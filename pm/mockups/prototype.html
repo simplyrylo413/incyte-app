@@ -854,17 +854,48 @@ function getCurrentSet(mv) {
 //   low RPE → add weight; high RPE → drop; mid → hold
 //   very high reps + low RPE → big add
 function computeRecommendation(set, trackRpe = true) {
-  // When RPE isn't tracked, fall back to a rep-only heuristic
+  // When RPE isn't tracked, fall back to a rep-only heuristic.
+  // High reps imply capacity remains; low reps imply the load was hard.
   if (!trackRpe) {
     if (set.weight == null || set.reps == null) {
       return { action: 'Log weight + reps', next: 'Recommendation activates after set 1', reason: 'Log this set to get a next-set suggestion.', muted: true };
     }
+    const r = set.reps;
+    const w = set.weight;
+    let delta = 0;
+    let actionLabel = 'Hold';
+    let reason = '';
+    let nextReps = r;
+
+    if (r >= 15) {
+      delta = 10;
+      actionLabel = `Add ${delta} lb`;
+      reason = 'Rep count is well above typical working range. Add weight to find a productive load.';
+      nextReps = Math.max(8, r - 5);
+    } else if (r >= 12) {
+      delta = 5;
+      actionLabel = `Add ${delta} lb`;
+      reason = 'Rep count is above typical working range. Small weight bump.';
+    } else if (r >= 6) {
+      delta = 0;
+      actionLabel = 'Hold';
+      reason = 'Productive rep range. Repeat the same load.';
+    } else if (r >= 3) {
+      delta = -5;
+      actionLabel = `Drop ${Math.abs(delta)} lb`;
+      reason = 'Rep count is low. If this was intentional strength work, hold; otherwise drop weight.';
+    } else {
+      delta = -10;
+      actionLabel = `Drop ${Math.abs(delta)} lb`;
+      reason = 'Very low rep count. Drop weight to clean up the next session.';
+    }
+
     return {
-      action: 'Hold',
-      next: `${set.weight} × ${set.reps}`,
-      reason: 'Repeat the same weight and reps. Turn on RPE for sharper guidance.',
-      weight: set.weight,
-      reps: set.reps,
+      action: actionLabel,
+      next: `${w + delta} × ${nextReps}`,
+      reason: reason + ' Turn on RPE for sharper guidance.',
+      weight: w + delta,
+      reps: nextReps,
       rpe: null,
       muted: false,
     };
@@ -1093,26 +1124,40 @@ function renderWorkout() {
     fut.appendChild(row);
   });
 
-  // AI recommendation (only if session preference allows)
+  // AI recommendation (only if session preference allows).
+  // - If there's a CURRENT set: live recommendation for the next set in this session.
+  // - If the movement is COMPLETE: "Next time" recommendation based on the last logged set.
   const rec = $('#wm-rec');
   rec.innerHTML = '';
-  if (cur && state.session.aiRecOn) {
-    const r = computeRecommendation(cur, state.session.trackRpe);
-    const recEl = document.createElement('div');
-    recEl.className = 'rec' + (r.muted ? ' muted' : '');
-    recEl.innerHTML = `
-      <div class="head">
-        <span class="eyebrow"><span class="live-dot"></span>RECOMMENDATION · LIVE</span>
-      </div>
-      <div class="row">
-        <span class="action">${r.action}</span>
-        ${r.muted ? '' : `<span class="next">→ ${r.next}</span>`}
-      </div>
-      <div class="reason">${r.reason}</div>
-      ${r.muted ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
-    rec.appendChild(recEl);
-    if (!r.muted) {
-      $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
+  if (state.session.aiRecOn) {
+    let baseSet = cur;
+    let isNextTime = false;
+    if (!baseSet) {
+      const logged = mv.sets.filter(s => s.status === 'done');
+      if (logged.length > 0) {
+        baseSet = logged[logged.length - 1];
+        isNextTime = true;
+      }
+    }
+    if (baseSet) {
+      const r = computeRecommendation(baseSet, state.session.trackRpe);
+      const eyebrowText = isNextTime ? 'NEXT TIME' : 'RECOMMENDATION · LIVE';
+      const recEl = document.createElement('div');
+      recEl.className = 'rec' + (r.muted ? ' muted' : '');
+      recEl.innerHTML = `
+        <div class="head">
+          <span class="eyebrow"><span class="live-dot"></span>${eyebrowText}</span>
+        </div>
+        <div class="row">
+          <span class="action">${r.action}</span>
+          ${r.muted ? '' : `<span class="next">→ ${r.next}</span>`}
+        </div>
+        <div class="reason">${r.reason}</div>
+        ${(r.muted || isNextTime) ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
+      rec.appendChild(recEl);
+      if (!r.muted && !isNextTime) {
+        $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
+      }
     }
   }
 
