@@ -1545,7 +1545,6 @@ function renderWorkout() {
       <div class="hero">
         <div class="hero-eyebrow">
           <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
-          <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
         <div class="hero-statement">
           <div class="hero-primary">
@@ -1561,7 +1560,6 @@ function renderWorkout() {
     hero.querySelectorAll('[data-pk]').forEach(el => {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
-    hero.querySelector('#btn-remove-current').addEventListener('click', () => removeSet(cur.idx));
     hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
   } else {
     hero.innerHTML = `
