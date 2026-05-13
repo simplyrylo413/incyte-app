@@ -2185,8 +2185,10 @@ function renderWorkout() {
       if (isLast && state.session.aiRecOn) {
         const r = computeRecommendation(s, state.session.trackRpe);
         if (!r.muted) {
-          const moreToDo = mv.sets.some(x => x.status !== 'done');
-          const showApply = moreToDo;
+          // Apply is always available when AI shows a rec. When there's an
+          // existing target, Apply updates it; when all sets are done, Apply
+          // creates a new set seeded with the rec (extends the session).
+          const showApply = true;
           const reasonText = (r.reason || '').replace(/\s*Enable RPE for sharper guidance\.$/i, '');
           const recAnimCls = state.session._animRec ? ' premium-enter' : '';
           html += `
@@ -2627,15 +2629,35 @@ function reopenSet(idx) {
 function applyRecommendation(r) {
   const mv = getActiveMovement();
   const targets = mv.sets.filter(s => s.status === 'target');
-  if (targets.length === 0) {
-    showToast('No future targets to apply to.');
+  const hasCurrent = mv.sets.some(s => s.status === 'current');
+
+  // If there's already a target row, apply to it (existing behavior).
+  if (targets.length > 0) {
+    const t = targets[0];
+    t.weight = r.weight;
+    t.reps = r.reps;
+    renderWorkout();
+    showToast(`Set ${t.idx} target updated to ${r.weight}×${r.reps}.`);
     return;
   }
-  const t = targets[0];
-  t.weight = r.weight;
-  t.reps = r.reps;
+
+  // All planned sets are done. The user is asking the AI for "what's next",
+  // so create a NEW set seeded with the recommended values and make it the
+  // active (current) set when none exists, otherwise queue it as the next
+  // target.
+  const newSet = {
+    idx: mv.sets.length + 1,
+    weight: r.weight,
+    reps: r.reps,
+    rpe: null,
+    status: hasCurrent ? 'target' : 'current',
+    setType: 'working',
+  };
+  mv.sets.push(newSet);
+  if (mv.status === 'complete') mv.status = 'pending';
+  state.session._animSetIdx = newSet.idx;
   renderWorkout();
-  showToast(`Set ${t.idx} target updated to ${r.weight}×${r.reps}.`);
+  showToast(`Set ${newSet.idx} added · ${r.weight}×${r.reps}.`);
 }
 
 function skipMovement() {
