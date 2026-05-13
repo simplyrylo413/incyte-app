@@ -139,7 +139,12 @@
     transition: background 360ms ease, color 240ms ease;
   }
   .app {
-    max-width: clamp(640px, 96vw, 1600px);
+    /* Was clamp(640px, 96vw, 1600px) — the 640px MIN forced .app wider
+       than the viewport on narrow phones, causing horizontal overflow.
+       Switched to min(96vw, 1600px) so the value never exceeds the
+       actual viewport. Desktop look is preserved (96vw on big screens
+       caps at 1600px). */
+    max-width: min(96vw, 1600px);
     margin: 0 auto;
     background: var(--glass-bg);
     /* Restrained Liquid Glass — was 40px / 180% sat (which read as
@@ -6036,10 +6041,15 @@
      stays self-contained for offline / Capacitor packaging. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style id="mobile-overrides">
-@media (max-width: 430px) {
-  html, body { -webkit-text-size-adjust: 100%; }
-  body { padding: 0 !important; background: var(--paper); min-height: 100dvh; }
-  .app { max-width: 100% !important; width: 100%; min-height: 100dvh; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top) !important; }
+@media (max-width: 480px) {
+  /* Bumped from 430 → 480 so all modern iPhones (incl. Pro Max at 430/440)
+     hit the mobile override. Previously the .app was clamping to 640px on
+     anything wider than 430, which overflowed the viewport. */
+  html, body { -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+  body { padding: 0 !important; background: var(--paper); min-height: 100dvh; max-width: 100vw; }
+  .app { max-width: 100vw !important; width: 100% !important; min-width: 0 !important; min-height: 100dvh; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top) !important; overflow-x: hidden; }
+  .app-scroll { max-width: 100vw !important; overflow-x: hidden !important; }
+  .view { max-width: 100%; min-width: 0; }
   .top-rail { padding: 10px 14px 8px !important; flex-shrink: 0; border-bottom: 0.5px solid var(--hairline-soft); min-height: 48px; }
   .brand { font-size: 15px !important; } .brand-mark { display: none; } .profile-name { display: none; } .top-right { gap: 6px; } #sync-indicator { width: 8px !important; height: 8px !important; }
   .tabs { display: flex !important; gap: 4px !important; } .tab { font-size: 11px !important; padding: 5px 10px !important; }
@@ -8402,7 +8412,20 @@
      (CSS lines 4793-4874). Cards expand fully in the carousel mode;
      the collapse chevron is hidden (always-open in the carousel).
      ============================================================ */
-  .insights-carousel-wrap { /* no negative margin */ }
+  /* Carousel wrap + track must explicitly clip to parent width.
+     Without min-width:0, the flex children's min-content sizing
+     propagates upward and the wrap grows wider than viewport.
+     overflow: hidden is the firewall — even if a card or its content
+     unexpectedly exceeds the calculated width, it can't bleed past
+     the wrap's visible bounds. */
+  .insights-carousel-wrap {
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+    box-sizing: border-box;
+  }
   .insights-carousel-track {
     display: flex;
     gap: 10px;
@@ -8412,11 +8435,17 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     scroll-behavior: smooth;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
   .insights-carousel-track::-webkit-scrollbar { display: none; }
   .insights-carousel-track > .hero-card {
     flex: 0 0 100%;
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     margin-top: 0;
     scroll-snap-align: start;
     scroll-snap-stop: always;
