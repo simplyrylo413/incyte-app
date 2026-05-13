@@ -8228,6 +8228,103 @@
      feel focused, not embedded in the tab chrome. */
   body[data-view="workout"] .bottom-nav { display: none; }
 
+  /* ============================================================
+     HISTORY PILL — Option B (two-line metric strip) from
+     pm/mockups/history-pill-options.html. Replaces the legacy
+     .history-row layout. Compact pill matching Today's .mv style.
+     Tap = expand inline editor; existing .history-row behavior
+     preserved by reusing data-wid + same CSS class.
+     ============================================================ */
+  .history-row.hist-pill-b {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 10px 14px;
+    background: rgba(255,255,255, 0.75);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 4px 10px rgba(15,22,34, 0.04);
+    cursor: pointer;
+    transition: box-shadow 180ms ease-out, border-color 180ms ease-out;
+    margin: 0 0 6px;
+    position: relative;
+  }
+  .history-row.hist-pill-b:hover {
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 6px 14px rgba(15,22,34, 0.07);
+    border-color: rgba(15,22,34, 0.12);
+  }
+  .history-row.hist-pill-b .hpb-row1 {
+    display: flex; align-items: center; gap: 8px;
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .history-row.hist-pill-b .hpb-time {
+    font-weight: 500; color: var(--muted); letter-spacing: 0.04em;
+  }
+  .history-row.hist-pill-b .hpb-spacer { flex: 1; }
+  .history-row.hist-pill-b .hpb-row2 {
+    display: flex; align-items: baseline; gap: 10px;
+    font: 600 12.5px/1 'Geist Mono', ui-monospace, monospace;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .history-row.hist-pill-b .hpb-vol-unit { font-size: 9.5px; color: var(--label); margin-left: 2px; letter-spacing: 0.10em; text-transform: uppercase; }
+  .history-row.hist-pill-b .hpb-meta { font: 500 11px/1.3 'Geist Mono', ui-monospace, monospace; color: var(--muted); letter-spacing: 0.04em; }
+  .history-row.hist-pill-b .hpb-sep { color: var(--label); font-weight: 500; }
+  .history-row.hist-pill-b .status-chip {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font: 700 8.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .history-row.hist-pill-b .status-chip.done  { background: var(--ok); color: white; }
+  .history-row.hist-pill-b .status-chip.saved { background: rgba(15,22,34, 0.12); color: var(--ink); }
+  .history-row.hist-pill-b .hpb-actions { position: absolute; top: 6px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 150ms ease-out; }
+  .history-row.hist-pill-b:hover .hpb-actions,
+  .history-row.hist-pill-b.expanded .hpb-actions { opacity: 1; }
+  .history-row.hist-pill-b .hpb-resume {
+    padding: 4px 10px; font: 600 11px/1 'Inter Tight', sans-serif;
+    background: var(--ink-deep); color: white;
+    border: none; border-radius: 999px; cursor: pointer;
+  }
+  .history-row.hist-pill-b .hpb-del {
+    width: 22px; height: 22px;
+    background: rgba(255,255,255, 0.85); border: 1px solid var(--hairline);
+    border-radius: 50%; display: grid; place-items: center;
+    color: var(--label); cursor: pointer;
+    transition: color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .history-row.hist-pill-b .hpb-del:hover { color: var(--bad); border-color: var(--bad); }
+  .history-row.hist-pill-b .hpb-del svg { width: 9px; height: 9px; }
+  .history-row.hist-pill-b.expanded {
+    border-radius: 14px 14px 0 0;
+    border-bottom-color: transparent;
+  }
+
+  /* DARK MODE — history pill B */
+  body.theme-dark .history-row.hist-pill-b {
+    background: linear-gradient(145deg, rgba(255,255,255, 0.05) 0%, rgba(155,130,200, 0.07) 100%);
+    border-color: rgba(255,255,255, 0.10);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.04) inset, 0 2px 10px rgba(0,0,0, 0.25);
+  }
+  body.theme-dark .history-row.hist-pill-b:hover {
+    border-color: rgba(255,255,255, 0.20);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.06) inset, 0 4px 14px rgba(0,0,0, 0.32);
+  }
+  body.theme-dark .history-row.hist-pill-b .hpb-row1 { color: rgba(255,255,255, 0.95); }
+  body.theme-dark .history-row.hist-pill-b .hpb-time { color: rgba(255,255,255, 0.55); }
+  body.theme-dark .history-row.hist-pill-b .hpb-row2 { color: rgba(255,255,255, 0.92); }
+  body.theme-dark .history-row.hist-pill-b .hpb-vol-unit { color: rgba(255,255,255, 0.50); }
+  body.theme-dark .history-row.hist-pill-b .hpb-meta { color: rgba(255,255,255, 0.55); }
+  body.theme-dark .history-row.hist-pill-b .hpb-sep { color: rgba(255,255,255, 0.30); }
+  body.theme-dark .history-row.hist-pill-b .status-chip.saved { background: rgba(255,255,255, 0.12); color: rgba(255,255,255, 0.85); }
+  body.theme-dark .history-row.hist-pill-b .hpb-resume { background: rgba(255,255,255, 0.92); color: var(--ink); }
+  body.theme-dark .history-row.hist-pill-b .hpb-del { background: rgba(255,255,255, 0.06); border-color: rgba(255,255,255, 0.18); color: rgba(255,255,255, 0.55); }
+
   /* --- Equipment popover (dark mode) --- */
   body.theme-dark .mv .equip-pop {
     background: rgba(28, 34, 50, 0.96);
@@ -17523,33 +17620,38 @@ function renderHistory() {
   list.innerHTML = items.map(w => {
     const vol = workoutVolume(w);
     const setCount = w.entries.reduce((s, e) => s + e.sets.filter(x => x.done).length, 0);
-    const mvNames = w.entries.map(e => data.movements.find(m => m.id === e.movementId)?.name).filter(Boolean).slice(0, 3);
-    const savedTag = w.finished ? '' : '<span style="display:inline-block;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:3px;margin-right:6px;vertical-align:middle;">SAVED</span>';
-    const resumeBtn = w.finished ? '' : `<button class="btn" data-resume="${w.id}" style="font-size:11px;padding:4px 10px;">Resume</button>`;
-    // Build a richer date label: weekday + month/day on top, completed/saved time below.
-    // savedAt is the "archived at" timestamp written when the user hits Finish or
-    // Save & exit. Older records without it fall back to w.date.
+    // Avg RPE across done sets that recorded an RPE value.
+    let rpeSum = 0, rpeCount = 0;
+    w.entries.forEach(e => (e.sets || []).forEach(s => {
+      if (s.done && s.rpe != null && !isNaN(+s.rpe)) { rpeSum += +s.rpe; rpeCount++; }
+    }));
+    const avgRpe = rpeCount > 0 ? (rpeSum / rpeCount).toFixed(1) : null;
     const stamp = w.savedAt || w.date;
-    const subLabel = w.finished
-      ? ('Completed ' + fmtRelative(stamp) + (sameDay(new Date(stamp), new Date()) ? ' · ' + fmtTime(stamp) : ''))
-      : ('Saved ' + fmtTime(stamp));
-    const subClass = 'history-date-sub' + (w.finished ? '' : ' is-saved');
-    const dateBlock = `<div class="history-date">
-      <div class="history-date-main">${fmtWeekdayShort(w.date)} · ${fmtShort(w.date)}</div>
-      <div class="${subClass}">${subLabel}</div>
-    </div>`;
-    return `<div class="history-row" data-wid="${w.id}" style="${w.finished ? '' : 'background:var(--paper-warm,rgba(0,0,0,0.02));'}">
-      <div class="history-marker"></div>
-      <div>
-        <div class="history-name">${savedTag}${w.name}</div>
-        <div class="history-sub">${mvNames.join(' · ')}${w.entries.length > 3 ? ' · +' + (w.entries.length - 3) : ''}</div>
+    const timeStr = (typeof fmtTime === 'function') ? fmtTime(stamp) : '';
+    const dateStr = ((typeof fmtWeekdayShort === 'function') ? fmtWeekdayShort(w.date) : '') + ' · ' + ((typeof fmtShort === 'function') ? fmtShort(w.date) : '');
+    const statusCls = w.finished ? 'done' : 'saved';
+    const statusLbl = w.finished ? 'Done' : 'Saved';
+    const metaBits = [w.entries.length + ' mv', setCount + ' sets'];
+    if (avgRpe) metaBits.push('RPE ' + avgRpe);
+    const resumeBtn = w.finished ? '' : `<button class="hpb-resume" data-resume="${w.id}" type="button">Resume</button>`;
+    return `<div class="history-row hist-pill-b" data-wid="${w.id}">
+      <div class="hpb-row1">
+        <span class="status-chip ${statusCls}">${statusLbl}</span>
+        <span>${dateStr}</span>
+        <span class="hpb-time">${timeStr}</span>
+        <span class="hpb-spacer"></span>
       </div>
-      ${dateBlock}
-      <div class="history-meta">${w.entries.length} movements · ${setCount} sets</div>
-      <div class="history-vol">${fmt(vol)} lb</div>
-      ${resumeBtn}
-      <span class="history-expand-indicator">▼ Edit</span>
-      <button class="history-del" data-del-history="${w.id}" title="Delete this session">×</button>
+      <div class="hpb-row2">
+        <span>${(typeof fmt === 'function') ? fmt(vol) : vol}<span class="hpb-vol-unit">lb</span></span>
+        <span class="hpb-sep">·</span>
+        <span class="hpb-meta">${metaBits.join(' · ')}</span>
+      </div>
+      <div class="hpb-actions">
+        ${resumeBtn}
+        <button class="hpb-del" data-del-history="${w.id}" type="button" title="Delete this session">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>`;
   }).join('') || '<div class="empty"><div class="empty-title">No workouts logged</div></div>';
 
@@ -17561,13 +17663,18 @@ function renderHistory() {
       // Collapse any existing
       const existing = list.querySelector('.history-inline-editor');
       const existingRow = list.querySelector('.history-row.expanded');
-      if (existingRow) { existingRow.classList.remove('expanded'); existingRow.querySelector('.history-expand-indicator').textContent = '▼ Edit'; }
+      if (existingRow) {
+        existingRow.classList.remove('expanded');
+        const exInd = existingRow.querySelector('.history-expand-indicator');
+        if (exInd) exInd.textContent = '▼ Edit';
+      }
       if (existing) {
         if (existing.dataset.wid === wid) { existing.remove(); return; } // toggle off
         existing.remove();
       }
       row.classList.add('expanded');
-      row.querySelector('.history-expand-indicator').textContent = '▲ Close';
+      const ind = row.querySelector('.history-expand-indicator');
+      if (ind) ind.textContent = '▲ Close';
       const editor = document.createElement('div');
       editor.className = 'history-inline-editor';
       editor.dataset.wid = wid;
