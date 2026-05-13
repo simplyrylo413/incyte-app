@@ -129,7 +129,7 @@
   }
   .view::-webkit-scrollbar { display: none; }
   .view.active { display: flex; }
-  #view-workout { padding-bottom: 90px; }
+  #view-workout { padding-bottom: 24px; }
 
   /* === Header (today view) === */
   .head-today {
@@ -458,13 +458,18 @@
     color: var(--label);
   }
 
-  /* Hero primary action — solid black pill. Centered, content-width with
-     generous internal padding. Not full-width — a deliberate action button,
-     not a banner. */
+  /* Hero actions row — toggles to the left of Log Set, all in one row */
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  /* Hero primary action — solid black pill */
   .hero-cta {
-    display: block;
-    margin: 16px auto 2px;
-    padding: 13px 36px;
+    padding: 13px 28px;
     background: var(--ink-deep);
     color: white;
     border: none;
@@ -1152,8 +1157,7 @@
     <!-- Add-set affordance (always visible in Workout Mode) -->
     <div id="wm-add-set"></div>
 
-    <!-- Bottom action bar — rendered dynamically by renderWorkout -->
-    <div class="wm-actions" id="wm-actions"></div>
+    <!-- (Footer removed — toggles + Log Set now live inside the hero card) -->
   </div>
 
   <!-- TOAST -->
@@ -1549,6 +1553,8 @@ function renderWorkout() {
       ? '<span>LB</span><span>REPS</span><span>RPE</span>'
       : '<span>LB</span><span>REPS</span>';
 
+    const trackOn = state.session.trackRpe;
+    const aiOn = state.session.aiRecOn;
     hero.innerHTML = `
       <div class="hero">
         <div class="hero-eyebrow">
@@ -1563,22 +1569,70 @@ function renderWorkout() {
           </div>
           <div class="hero-units-bar">${unitsBar}</div>
         </div>
-        <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
+        <div class="hero-actions">
+          <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+            <span>RPE</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
+            <span>AI</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
+        </div>
       </div>`;
     hero.querySelectorAll('[data-pk]').forEach(el => {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
     hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
+    hero.querySelector('#toggle-rpe').addEventListener('click', () => {
+      state.session.trackRpe = !state.session.trackRpe;
+      if (!state.session.trackRpe) {
+        state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
+      }
+      renderWorkout();
+      showToast(state.session.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
+    });
+    hero.querySelector('#toggle-ai').addEventListener('click', () => {
+      state.session.aiRecOn = !state.session.aiRecOn;
+      renderWorkout();
+      showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
+    });
   } else {
+    const trackOn = state.session.trackRpe;
+    const aiOn = state.session.aiRecOn;
     hero.innerHTML = `
       <div class="hero" style="text-align: center;">
         <div class="hero-eyebrow" style="justify-content: center;">
           <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
         </div>
-        <p style="margin: 10px 0 12px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
-        <button class="hero-cta" id="btn-complete-hero">Complete movement</button>
+        <p style="margin: 10px 0 4px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
+        <div class="hero-actions">
+          <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+            <span>RPE</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
+            <span>AI</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="hero-cta" id="btn-complete-hero">Complete</button>
+        </div>
       </div>`;
     hero.querySelector('#btn-complete-hero').addEventListener('click', completeMovement);
+    hero.querySelector('#toggle-rpe').addEventListener('click', () => {
+      state.session.trackRpe = !state.session.trackRpe;
+      if (!state.session.trackRpe) {
+        state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
+      }
+      renderWorkout();
+      showToast(state.session.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
+    });
+    hero.querySelector('#toggle-ai').addEventListener('click', () => {
+      state.session.aiRecOn = !state.session.aiRecOn;
+      renderWorkout();
+      showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
+    });
   }
 
   // === LIVE preview rec — shown below the hero when no sets are logged
@@ -1712,37 +1766,9 @@ function renderWorkout() {
     </button>`;
   $('#btn-add-set').addEventListener('click', addSet);
 
-  // === Footer action bar — 3 buttons: RPE toggle, AI toggle, Skip Today.
-  // The primary action (Log Set / Complete) lives inside the hero card. ===
-  const footer = $('#wm-actions');
-  const trackOn = state.session.trackRpe;
-  const aiOn = state.session.aiRecOn;
-  footer.innerHTML = `
-    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
-      <span>RPE</span>
-      <span class="toggle-track"><span class="toggle-thumb"></span></span>
-    </button>
-    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
-      <span>AI</span>
-      <span class="toggle-track"><span class="toggle-thumb"></span></span>
-    </button>`;
-
-  $('#toggle-rpe').addEventListener('click', () => {
-    state.session.trackRpe = !state.session.trackRpe;
-    if (!state.session.trackRpe) {
-      state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
-    }
-    renderWorkout();
-    showToast(state.session.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
-  });
-  $('#toggle-ai').addEventListener('click', () => {
-    state.session.aiRecOn = !state.session.aiRecOn;
-    renderWorkout();
-    showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
-  });
-  // Skip-movement removed from footer per design review — users delete
-  // the movement from the Today list (× button on the movement card)
-  // before entering Workout Mode instead.
+  // Toggle handlers are attached inside the hero render now (RPE + AI live
+  // to the left of Log Set inside the hero card). The footer element is
+  // empty and could be removed entirely once polish is locked.
 
   // Clear one-shot animation flags. They were consumed by .premium-enter
   // class additions during this render; clearing prevents re-animating on
