@@ -12487,7 +12487,11 @@ function renderTodayV2() {
     if (e && e.movementId && (e.sets || []).some(s => s.done)) finishedTodayMids.add(e.movementId);
   }));
   const planRaw = (typeof todaysPlan === 'function') ? todaysPlan() : [];
-  const plan = finishedTodayMids.size > 0 ? planRaw.filter(p => !finishedTodayMids.has(p.mid)) : planRaw;
+  // Filter out (1) movements finished in an earlier session today AND
+  // (2) plan items the user removed from this session (hiddenPlanIds).
+  // Matches production's filtering logic at line ~11827.
+  const hiddenPlanIdsV2 = new Set((data.active && data.active.hiddenPlanIds) || []);
+  const plan = planRaw.filter(p => !finishedTodayMids.has(p.mid) && !hiddenPlanIdsV2.has(p.id));
   const planIds = new Set(plan.map(p => p.id));
   const adhocEntries = (data.active && data.active.entries)
     ? data.active.entries.filter(e => (!e.planId || !planIds.has(e.planId)) && !finishedTodayMids.has(e.movementId))
@@ -12624,10 +12628,31 @@ function renderTodayV2() {
         if (typeof openWorkoutMode === 'function') openWorkoutMode(item.p.mid, item.p.id);
         else go('workout');
       });
+      // Removal mirrors production's logic in buildMvBlock (line ~14027):
+      // adhoc entries get filtered from data.active.entries; plan items get
+      // their planId pushed to data.active.hiddenPlanIds so they stay hidden
+      // for this session without disturbing the underlying plan template.
       card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
         e.stopPropagation();
-        if (typeof removePlanItemAdhoc === 'function') removePlanItemAdhoc(item.p.id);
-        else if (typeof removeMovement === 'function') removeMovement(item.p.id);
+        const pid = item.p.id;
+        if (!confirm("Remove this movement from today's session only? It stays in your plan.")) return;
+        if (typeof ensureActiveSession === 'function') ensureActiveSession();
+        if (typeof pid === 'string' && pid.startsWith('adhoc-')) {
+          const mid = pid.slice('adhoc-'.length);
+          if (data.active && data.active.entries) {
+            data.active.entries = data.active.entries.filter(e => e.movementId !== mid);
+          }
+        } else {
+          const planItem = (data.plan || data.plans || []).find(p => p && p.id === pid);
+          if (planItem && data.active) {
+            data.active.entries = (data.active.entries || []).filter(e => e.movementId !== planItem.mid);
+            data.active.hiddenPlanIds = data.active.hiddenPlanIds || [];
+            if (!data.active.hiddenPlanIds.includes(pid)) data.active.hiddenPlanIds.push(pid);
+          }
+        }
+        if (typeof saveData === 'function') saveData();
+        if (typeof syncActiveSession === 'function') syncActiveSession();
+        if (typeof renderToday === 'function') renderToday();
       });
       // Equipment popover: tap pill → toggle; tap chip → set + close. Writes
       // to entry.equipmentType only, per port-plan decision 2026-05-13.
