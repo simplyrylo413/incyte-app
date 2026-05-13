@@ -582,68 +582,102 @@
     gap: 6px;
     flex-shrink: 0;
   }
-  .set-row {
-    display: flex;
+  /* Columnar table — Option B (Pill rows, columnar) from set-table-options.html.
+     Single header row above; each set is a 4-col pill: SET | PREVIOUS | TODAY | CHK.
+     Done rows = teal-tinted. Target rows = white glass. */
+  .col-head {
+    display: grid;
+    grid-template-columns: 32px 1fr 1.15fr 24px 18px;
     align-items: center;
-    gap: 8px;
-    padding: 5px 10px 5px 12px;
+    gap: 10px;
+    padding: 0 14px 6px;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .col-head .h-today { text-align: right; }
+
+  .set-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 1.15fr 24px 18px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
     background: rgba(255,255,255, 0.55);
     backdrop-filter: blur(24px) saturate(1.4);
     -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    border: 1px solid rgba(255,255,255, 0.75);
-    border-radius: 16px;
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
     box-shadow:
       0 1px 0 rgba(255,255,255, 1) inset,
-      0 0 0 1px rgba(255,255,255, 0.3) inset,
-      0 6px 18px rgba(15,22,34, 0.05);
-    transition: box-shadow 180ms ease-out;
-    position: relative;
+      0 4px 10px rgba(15,22,34, 0.04);
+    transition: box-shadow 180ms ease-out, border-color 180ms ease-out, background 180ms ease-out;
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
   }
-  .set-row::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 22%; right: 22%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.95), transparent);
-    pointer-events: none;
-  }
-  }
-  .set-row .idx {
-    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.16em;
+  .set-row .r-set {
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--label);
-    width: 34px;
-    flex-shrink: 0;
+    color: var(--muted);
   }
-  .set-row .vals {
-    flex: 1;
-    font: 600 10.5px/1 'Geist Mono',ui-monospace,monospace;
+  .set-row .r-prev {
+    color: var(--label);
+    font-weight: 500;
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .set-row .r-vals {
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+    text-align: right;
     color: var(--ink);
     letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .set-row .meta {
-    font: 700 8px/1 'Geist Mono',ui-monospace,monospace;
+  .set-row .r-vals .rpe-bit {
+    font-size: 10px;
     color: var(--label);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    margin-left: 3px;
   }
   .set-row.done {
+    background: rgba(79,154,168, 0.07);
+    border-color: rgba(79,154,168, 0.20);
     cursor: pointer;
   }
   .set-row.done:hover {
     box-shadow: 0 2px 6px rgba(15,22,34,0.06);
-    border-color: rgba(15,22,34,0.12);
+    border-color: rgba(79,154,168, 0.35);
   }
-  .set-row.done .vals { color: var(--ink); }
-  .set-row.done .meta {
-    color: var(--ok);
-    padding: 2px 7px;
-    background: rgba(79,154,168, 0.12);
-    border: 1px solid rgba(79,154,168, 0.26);
-    border-radius: 999px;
-    font-size: 8px;
+  .set-row.done .r-vals { color: var(--muted); }
+  .set-row.target .r-vals { color: var(--ink); }
+  .set-row.target .r-vals.blank { color: var(--label); }
+
+  /* Check column — done = filled teal, target = ghost ring */
+  .set-row .chk {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    flex-shrink: 0;
   }
-  .set-row.target .vals { color: var(--muted); }
+  .set-row .chk svg { width: 11px; height: 11px; }
+  .set-row.done .chk {
+    background: var(--ok);
+    color: white;
+    border: none;
+  }
+  .set-row.target .chk {
+    background: white;
+    color: var(--label);
+    border: 1px solid rgba(15,22,34, 0.14);
+  }
 
   /* Set row group — wraps the standalone WORK/WARM pill + the main set pill
      in one flex line. The toggle pill is detached (gap, no shared border). */
@@ -678,8 +712,8 @@
 
   /* Per-set remove — simple ghost icon button */
   .set-row .row-remove {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 999px;
     border: none;
     background: transparent;
@@ -688,11 +722,10 @@
     color: var(--label);
     cursor: pointer;
     transition: color 150ms ease-out;
-    flex-shrink: 0;
-    margin-right: -6px;
+    padding: 0;
   }
   .set-row .row-remove:hover { color: var(--bad); }
-  .set-row .row-remove svg { width: 10px; height: 10px; }
+  .set-row .row-remove svg { width: 9px; height: 9px; }
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
@@ -1897,15 +1930,34 @@ function renderWorkout() {
     }
   }
 
-  // === LOGGED sets — editorial section. AI rec renders inline below the
-  // most recently logged set (only if AI guidance is on). ===
+  // === Per-set previous values, parsed from the movement's priorRef. ===
+  const priorPerSet = parsePriorRef(mv.priorRef);
+  const prevFor = (i) => {
+    const p = priorPerSet[i - 1];
+    if (!p || p.weight == null) return '—';
+    return `${p.weight} × ${p.reps}`;
+  };
+  const checkSvg = '<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  // === LOGGED sets — columnar pill rows (Option B). AI rec renders inline
+  // below the most recently logged set (only if AI guidance is on). ===
   const loggedSection = $('#wm-logged-section');
   const loggedSets = mv.sets.filter(s => s.status === 'done');
+  const targetSetsForHeader = mv.sets.filter(s => s.status === 'target');
+  const headerHtml = (loggedSets.length + targetSetsForHeader.length) > 0 ? `
+    <div class="col-head">
+      <span>Set</span>
+      <span>Previous</span>
+      <span class="h-today">Today</span>
+      <span></span>
+      <span></span>
+    </div>` : '';
   if (loggedSets.length > 0) {
-    let html = `<div class="sets-eyebrow">LOGGED</div><div class="sets">`;
+    let html = `${headerHtml}<div class="sets">`;
     loggedSets.forEach((s, idx) => {
       const isLast = idx === loggedSets.length - 1;
-      const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
+      const rpeBit = (state.session.trackRpe && s.rpe != null) ? `<span class="rpe-bit">@${s.rpe}</span>` : '';
+      const setLabel = String(s.idx).padStart(2, '0');
       const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
@@ -1913,9 +1965,10 @@ function renderWorkout() {
         <div class="set-row-group${animCls}">
           <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
           <div class="set-row done" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
-            <span class="idx">SET ${s.idx}</span>
-            <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
-            <span class="meta">DONE</span>
+            <span class="r-set">${setLabel}</span>
+            <span class="r-prev">${prevFor(s.idx)}</span>
+            <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
+            <span class="chk">${checkSvg}</span>
             <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
               <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             </button>
@@ -1944,11 +1997,13 @@ function renderWorkout() {
     });
     html += `</div>`;
     loggedSection.innerHTML = html;
-    // Wire up reopen + remove handlers
+    // Wire up reopen + remove handlers. The whole row (except the remove ×)
+    // is the reopen target — tap anywhere on the columnar row to edit it.
     loggedSection.querySelectorAll('[data-reopen-set]').forEach(el => {
-      el.querySelector('.idx').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
-      el.querySelector('.vals').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
-      el.querySelector('.meta').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.row-remove')) return;
+        reopenSet(+el.dataset.reopenSet);
+      });
     });
     loggedSection.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); removeSet(+el.dataset.removeSet); });
@@ -1970,25 +2025,30 @@ function renderWorkout() {
     loggedSection.innerHTML = '';
   }
 
-  // === UPCOMING (target) sets ===
+  // === UPCOMING (target) sets — columnar pill rows. If no logged sets,
+  // this section renders the column header instead. ===
   const futSection = $('#wm-future-section');
-  const targetSets = mv.sets.filter(s => s.status === 'target');
+  const targetSets = targetSetsForHeader;
   if (targetSets.length > 0) {
-    let html = `<div class="sets-eyebrow">UPCOMING</div><div class="sets">`;
+    // If no logged sets above, the header lives here; otherwise it's already up there.
+    const showHeader = loggedSets.length === 0;
+    let html = `${showHeader ? headerHtml : ''}<div class="sets">`;
     targetSets.forEach(s => {
       const isBlank = s.weight == null && s.reps == null;
       const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
-      const meta = isBlank ? 'BLANK' : 'TARGET';
+      const setLabel = String(s.idx).padStart(2, '0');
       const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
+      const valsCls = isBlank ? 'r-vals blank' : 'r-vals';
       html += `
         <div class="set-row-group${animCls}">
           <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
           <div class="set-row target" data-set-idx="${s.idx}">
-            <span class="idx">SET ${s.idx}</span>
-            <span class="vals">${vals}</span>
-            <span class="meta">${meta}</span>
+            <span class="r-set">${setLabel}</span>
+            <span class="r-prev">${prevFor(s.idx)}</span>
+            <span class="${valsCls}">${vals}</span>
+            <span class="chk">${checkSvg}</span>
             <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
               <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             </button>
