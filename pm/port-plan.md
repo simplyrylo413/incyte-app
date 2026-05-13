@@ -2,6 +2,12 @@
 
 Last updated 2026-05-13. Scope: bring the prototype's Today + Workout Mode UI/UX into the live `fitlog-mobile.html` build without disturbing Insights, Week, Library, Plan, Progress, Generate, or History.
 
+## Decisions log
+
+| Date | Decision | Notes |
+|---|---|---|
+| 2026-05-13 | **Cardio + Mobility movements**: v1 supports them for logging only. They are excluded from the session-stats hero's Volume and Avg RPE math. Complete % still counts their sets. | Implementation: dispatcher in `renderWorkout` routes cardio/mobility to existing `cardioTable`/`mobilityTable` inline tables inside the new view shell; only strength movements get the big-type hero + columnar set rows. |
+
 ## Goals & non-goals
 
 **Goals**
@@ -215,7 +221,7 @@ For each tab, verify no regression:
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Cardio + Mobility movements use different set tables in production (10611–10680). Prototype assumes strength-only. | Medium — cardio entries lose their UI. | Workout Mode v1 routes cardio + mobility entries to a "legacy inline" rendering using the existing `cardioTable`/`mobilityTable`. Only strength movements get the new hero+columnar treatment. Decide this explicitly before Phase 3. |
+| Cardio + Mobility movements use different set tables in production (10611–10680). Prototype assumes strength-only. | Medium — cardio entries lose their UI if not handled. | **Resolved (2026-05-13):** Workout Mode dispatches by movement type. Strength → new big-type hero + columnar set rows. Cardio/Mobility → existing `cardioTable`/`mobilityTable` rendered inside the new view shell (back chip + breadcrumb + history pill + the legacy table). Session-stats hero filters cardio/mobility out of Volume and Avg RPE; Complete % still counts them. |
 | Touch / drag conflicts between `.mv` drag-handle and tap-to-open. | Medium — accidental opens during reorder. | Keep `wireTodayMoveDrag` (battle-tested in production); attach tap-to-open only to `.body` sub-element, not the drag handle. |
 | Picker overlay z-index war with existing modals (`modal-start`, `modal-pick-movement`, Movement Details collapsibles). | Low | Audit z-indexes; use `9999` for `.pk-overlay`; verify by opening from inside an already-open modal. |
 | Prototype CSS contains generic selectors (`.stat`, `.empty`, `.scroll`) that production also uses. | High if pasted as-is. | Mechanical pre-paste rename; cherry-pick rather than wholesale copy. Quick QA pass across all 7 other tabs after Phase 1. |
@@ -223,7 +229,7 @@ For each tab, verify no regression:
 
 ## Open questions for Albert
 
-1. **Cardio / Mobility in Workout Mode** — should the new big-type hero apply to non-strength movements at all? If yes, what does "weight × reps × rpe" become for a 20-min walk? Recommendation: strength-only for v1; cardio/mobility keep their current inline table inside the new view shell.
+1. **Cardio / Mobility in Workout Mode** — ~~should the new big-type hero apply to non-strength movements at all?~~ **DECIDED 2026-05-13 (Albert):** v1 supports cardio + mobility for **logging only**. They appear in Today and can be entered in Workout Mode, but **do not contribute to RPE averaging or volume calculations** in the session-stats hero. Implementation: keep production's existing `cardioTable` / `mobilityTable` inline renderers inside the new Workout Mode shell (no big-type hero for them); skip their entries when summing `totalVolume` and when collecting `rpe` values for `avgRpe`. The Today screen's session-stats hero must filter to strength-only when computing Volume and Avg RPE; Complete % still counts all sets across all movement types.
 2. **Per-body-part volume breakdown** — production tracks `muscle` (more granular than prototype's `bodyPart`). Show breakdown at `muscle` level or roll up to body part?
 3. **Equipment popover scope** — does changing equipment on Today rewrite the active entry only, or also propagate to the underlying plan item (`p.equipmentType`)? Today, the dropdown writes to entry; behavior should match.
 4. **Rest timer auto-start** — prototype's `logSet` does not auto-start; an explicit "Rest" tap is required. Confirm same in production.
@@ -244,4 +250,4 @@ Realistic total: **5–7 working sessions of 3–4 hours each** (≈18–25 hour
 - Phase 5 (reconciliation): 0.5 session, 1 hour.
 - Phase 6 (test pass + cardio/mobility regression fix): 1 session, 3–4 hours.
 
-**Riskiest phase: Phase 3.** The render rewrite is where data-shape mismatches surface and where the cardio/mobility carve-out has to be decided. Lock the open questions before starting it.
+**Riskiest phase: Phase 3.** The render rewrite is where data-shape mismatches surface. Cardio/mobility carve-out is now decided (logging-only, excluded from Volume/RPE); the dispatcher in `renderWorkout` becomes ~5 extra lines. Remaining open questions (2–7) are smaller and can be answered during Phase 3 as they come up.
