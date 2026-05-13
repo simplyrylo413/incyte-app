@@ -13044,11 +13044,31 @@ function renderTodayV2() {
     : [];
 
   // ---- Compute scope stats ----
+  // Audit (2026-05-13): the Complete % bar must reflect ALL currently-active
+  // work for the day. Inputs and their filters:
+  //
+  //   plan items (filtered above):
+  //     - drop items where the movementId is already in a finished session
+  //       today (via finishedTodayMids)
+  //     - drop items the user removed from this session (via hiddenPlanIds)
+  //   adhoc entries (filtered above):
+  //     - drop entries that match a plan item still in `plan`
+  //     - drop entries finished elsewhere today
+  //     - REMOVED adhoc entries are not in data.active.entries at all
+  //       (production's × handler splices them out + saveData()), so they
+  //       can never appear here.
+  //   finished sessions today:
+  //     - drop tombstoned (deleted) workout IDs as a safety net even though
+  //       production's deletion handler also removes from data.workouts.
+  //
+  // For plan items WITHOUT an entry yet (user hasn't opened them in Workout
+  // Mode), we now count their planned set count toward totalSets — otherwise
+  // adding a new movement doesn't move the Complete % needle until you
+  // actually start logging.
+  const tombstonedIds = new Set(((data.tombstones && data.tombstones.workouts) || []));
   let totalSets = 0, doneSets = 0, totalVolume = 0, rpeSum = 0, rpeCount = 0;
   const volumeByPart = {};
   const displayGroup = (muscle, bodyPart) => {
-    // Legs muscles get their own row in the volume breakdown; everything else
-    // rolls up to body part. Per port-plan decision 2026-05-13.
     const m = String(muscle || '').toLowerCase();
     if (m === 'glute' || m === 'glutes') return 'Glutes';
     if (m === 'hamstring' || m === 'hamstrings') return 'Hamstrings';
@@ -13056,10 +13076,25 @@ function renderTodayV2() {
     if (m === 'calf' || m === 'calves') return 'Calves';
     return (bodyPart || muscle || '—').toString();
   };
-  const collectStats = (entry, mv) => {
+  // plannedFallback = number of planned sets to assume when no entry exists.
+  // Reads (in order) the plan's explicit sets, the movement library default,
+  // or 0 if neither is set. Matches production's defaultSetsFor heuristic.
+  const plannedFallback = (planItem, mv) => {
+    const explicit = Number(planItem && planItem.sets);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    const lib = Number(mv && mv.defaultSets);
+    if (Number.isFinite(lib) && lib > 0) return lib;
+    return 0;
+  };
+  const collectStats = (entry, mv, fallbackPlannedSets) => {
     const sets = (entry && entry.sets) || [];
-    if (!sets.length) return;
     const isStrength = !mv || (mv.category !== 'cardio' && mv.category !== 'mobility');
+    if (sets.length === 0) {
+      // No real sets yet, but a plan item may have an intended set count.
+      // Count those as PLANNED (toward totalSets only — done stays 0).
+      if (fallbackPlannedSets && isStrength) totalSets += fallbackPlannedSets;
+      return;
+    }
     totalSets += sets.length;
     sets.forEach(s => {
       if (s.done) {
@@ -13086,13 +13121,22 @@ function renderTodayV2() {
     }
     return (data.active && data.active.entries) ? data.active.entries.find(e => e.planId === p.id) : null;
   };
-  plan.forEach(p => collectStats(getEntryFor(p) || { sets: [] }, (typeof getMv === 'function') ? getMv(p.mid) : null));
-  adhocEntries.forEach(e => collectStats(e, (typeof getMv === 'function') ? getMv(e.movementId) : null));
+  plan.forEach(p => {
+    const mv = (typeof getMv === 'function') ? getMv(p.mid) : null;
+    const entry = getEntryFor(p);
+    collectStats(entry || { sets: [] }, mv, plannedFallback(p, mv));
+  });
+  adhocEntries.forEach(e => {
+    const mv = (typeof getMv === 'function') ? getMv(e.movementId) : null;
+    collectStats(e, mv, plannedFallback(null, mv));
+  });
 
-  // Also accumulate stats from any sessions ALREADY FINISHED today so the
-  // hero matches History's daily total. Without this, finishing a session
-  // resets the Today stats to 0 even though History still shows the work.
+  // Accumulate stats from sessions ALREADY FINISHED today. Skip any whose
+  // ID has been tombstoned (deleted) — defense in depth; production's
+  // deletion handler also removes from data.workouts so this should already
+  // be the case.
   finishedTodayList.forEach(w => {
+    if (w && w.id && tombstonedIds.has(w.id)) return;
     (w.entries || []).forEach(entry => {
       const mvForEntry = (typeof getMv === 'function') ? getMv(entry.movementId) : null;
       collectStats(entry, mvForEntry);
@@ -13307,7 +13351,7 @@ function renderTodayV2() {
         ? 'All movements complete — switch to Completed to review.'
         : 'No movements remaining. Add one to get started.';
     } else {
-      empty.textContent = 'No completed movements yet. Log a set to start.';
+      empty.textContent = 'Log a set to start tracking.';
     }
     // Insert AFTER the toggle but BEFORE the add-movement button.
     scrollEl.insertBefore(empty, addBtn);
