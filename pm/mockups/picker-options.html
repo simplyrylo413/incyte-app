@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Picker section alternatives</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --accent: #5d9bb8;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1300px; margin: 0 auto; }
+  .page-header { margin-bottom: 32px; }
+  .page-header h1 {
+    font: 700 28px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    max-width: 600px;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1100px) {
+    .options { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  }
+
+  .opt {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .opt-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+  .opt-tagline {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    min-height: 36px;
+  }
+
+  /* Hero card surface — consistent across options */
+  .hero {
+    padding: 18px 18px 16px;
+    background: linear-gradient(155deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.70) 100%);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 22px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.5) inset,
+      0 0 0 1px rgba(15,22,34,0.03),
+      0 18px 38px rgba(15,22,34,0.08),
+      0 6px 14px rgba(15,22,34,0.05);
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12%; right: 12%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  }
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 16px;
+  }
+  .hero-eyebrow .marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ink);
+  }
+  .hero-eyebrow .marker .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  .head-remove {
+    background: transparent;
+    border: none;
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    cursor: pointer;
+  }
+  .hero-cta {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 12px;
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+    margin-top: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 2px 6px rgba(15,22,34,0.05);
+  }
+
+  /* ============================================================
+     OPTION A — STACKED ROWS
+     Each input is its own full-width row. Label left, value right.
+     Equal sizing guaranteed because all rows are 100% wide.
+     ============================================================ */
+  .opt-a .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: box-shadow 180ms ease-out;
+  }
+  .opt-a .row:hover { box-shadow: 0 3px 8px rgba(15,22,34,0.05); }
+  .opt-a .row .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-a .row .val-group {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .opt-a .row .val {
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .opt-a .row .val.empty { color: var(--label); }
+  .opt-a .row .unit {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ============================================================
+     OPTION B — BIG TYPE HERO
+     Single typographic statement. Tap any value to edit.
+     No grid sizing fight — there's only one centered line.
+     ============================================================ */
+  .opt-b .statement {
+    text-align: center;
+    padding: 14px 0 10px;
+  }
+  .opt-b .primary-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .opt-b .num {
+    background: transparent;
+    border: none;
+    font: 700 56px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.055em;
+    color: var(--ink);
+    padding: 0;
+    cursor: pointer;
+    transition: opacity 180ms ease-out;
+  }
+  .opt-b .num:hover { opacity: 0.65; }
+  .opt-b .num.empty { color: var(--label); }
+  .opt-b .sep {
+    font: 500 32px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    letter-spacing: -0.02em;
+  }
+  .opt-b .secondary-line {
+    font: 500 14px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+  }
+  .opt-b .rpe-btn {
+    background: transparent;
+    border: none;
+    font: 700 17px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 180ms ease-out;
+  }
+  .opt-b .rpe-btn:hover { background: rgba(93,155,184,0.10); }
+  .opt-b .rpe-btn.empty { color: var(--label); font-weight: 600; }
+  .opt-b .units-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .opt-b .units-bar span:nth-child(2)::before,
+  .opt-b .units-bar span:nth-child(3)::before {
+    content: '·';
+    margin-right: 20px;
+    color: var(--label);
+  }
+
+  /* ============================================================
+     OPTION C — STEPPER ROWS
+     Each value has inline +/- buttons. No picker sheet needed for
+     fine-tuning. Big value in center, steppers on edges.
+     ============================================================ */
+  .opt-c .stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
+    margin-bottom: 6px;
+  }
+  .opt-c .stepper-row .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    width: 52px;
+    text-align: left;
+    padding-left: 6px;
+  }
+  .opt-c .stepper-row .minus,
+  .opt-c .stepper-row .plus {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    font: 700 14px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 180ms ease-out;
+  }
+  .opt-c .stepper-row .minus:hover,
+  .opt-c .stepper-row .plus:hover { background: rgba(93,155,184,0.10); }
+  .opt-c .stepper-row .val-wrap {
+    flex: 1;
+    text-align: center;
+    cursor: pointer;
+  }
+  .opt-c .stepper-row .val {
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .opt-c .stepper-row .val.empty { color: var(--label); }
+  .opt-c .stepper-row .unit {
+    font: 500 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Notes panel under each option */
+  .notes {
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; font-weight: 700; }
+  .notes ul { margin: 6px 0 0; padding-left: 18px; }
+  .notes li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Picker section — three alternatives</h1>
+    <p>Same data (Weight, Reps, RPE), three different ways to lay it out. Each guarantees balanced sizing by design — no three-cards-side-by-side equal-width fight.</p>
+  </div>
+
+  <div class="options">
+
+    <!-- =================================================
+         OPTION A — STACKED ROWS
+         ================================================= -->
+    <div class="opt opt-a">
+      <span class="opt-label">A</span>
+      <h2 class="opt-name">Stacked rows</h2>
+      <p class="opt-tagline">Each input is its own full-width row. Label left, value right. iOS Settings / Health vibe.</p>
+      <div class="hero">
+        <div class="hero-eyebrow">
+          <span class="marker"><span class="dot"></span>SET 2 · NOW</span>
+          <button class="head-remove">Remove set</button>
+        </div>
+        <div class="row">
+          <span class="lbl">Weight</span>
+          <div class="val-group"><span class="val">185</span><span class="unit">LB</span></div>
+        </div>
+        <div class="row">
+          <span class="lbl">Reps</span>
+          <div class="val-group"><span class="val">10</span></div>
+        </div>
+        <div class="row">
+          <span class="lbl">RPE</span>
+          <div class="val-group"><span class="val empty">—</span></div>
+        </div>
+        <button class="hero-cta">Log set 2</button>
+      </div>
+      <div class="notes">
+        <strong>Why it works</strong>
+        Sizing is guaranteed — every row is 100% width. No grid fight, no <em>"why is RPE narrower"</em>. Each input has more horizontal breathing room for the value (larger numerals possible). Reads like iOS Settings — familiar mental model.
+        <ul>
+          <li>+ Equal sizing trivially solved</li>
+          <li>+ Plenty of horizontal space for large values</li>
+          <li>− Card is taller (3 rows instead of 1)</li>
+          <li>− Loses the "compact glance" of side-by-side</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =================================================
+         OPTION B — BIG TYPE HERO
+         ================================================= -->
+    <div class="opt opt-b">
+      <span class="opt-label">B</span>
+      <h2 class="opt-name">Big-type hero</h2>
+      <p class="opt-tagline">One typographic statement: 185 × 10 at RPE 7. Tap any number to edit. Single focal point.</p>
+      <div class="hero">
+        <div class="hero-eyebrow">
+          <span class="marker"><span class="dot"></span>SET 2 · NOW</span>
+          <button class="head-remove">Remove set</button>
+        </div>
+        <div class="statement">
+          <div class="primary-line">
+            <button class="num">185</button>
+            <span class="sep">×</span>
+            <button class="num">10</button>
+          </div>
+          <div class="secondary-line">
+            at <button class="rpe-btn empty">RPE —</button>
+          </div>
+          <div class="units-bar">
+            <span>LB</span><span>REPS</span><span>EFFORT</span>
+          </div>
+        </div>
+        <button class="hero-cta">Log set 2</button>
+      </div>
+      <div class="notes">
+        <strong>Why it works</strong>
+        Reads as a sentence: <em>"185 × 10 at RPE —."</em> Numbers are huge (56px) — your eye lands on the data immediately. There's no grid to fight; the numbers are inline-baseline-aligned and just flow. RPE is its own tap-zone below.
+        <ul>
+          <li>+ Maximum visual weight on the values you're editing</li>
+          <li>+ No equal-width problem (no grid)</li>
+          <li>+ Premium type-driven aesthetic</li>
+          <li>− Less obvious tap-target affordances (no visible cards)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =================================================
+         OPTION C — STEPPER ROWS (inline ± buttons)
+         ================================================= -->
+    <div class="opt opt-c">
+      <span class="opt-label">C</span>
+      <h2 class="opt-name">Stepper rows</h2>
+      <p class="opt-tagline">Each row has inline +/− buttons. Tap to fine-tune without opening a picker sheet. Fastest in-workout.</p>
+      <div class="hero">
+        <div class="hero-eyebrow">
+          <span class="marker"><span class="dot"></span>SET 2 · NOW</span>
+          <button class="head-remove">Remove set</button>
+        </div>
+        <div class="stepper-row">
+          <span class="lbl">Weight</span>
+          <button class="minus">−</button>
+          <div class="val-wrap"><div class="val">185</div><div class="unit">LB</div></div>
+          <button class="plus">+</button>
+        </div>
+        <div class="stepper-row">
+          <span class="lbl">Reps</span>
+          <button class="minus">−</button>
+          <div class="val-wrap"><div class="val">10</div><div class="unit">REPS</div></div>
+          <button class="plus">+</button>
+        </div>
+        <div class="stepper-row">
+          <span class="lbl">RPE</span>
+          <button class="minus">−</button>
+          <div class="val-wrap"><div class="val empty">—</div><div class="unit">EFFORT</div></div>
+          <button class="plus">+</button>
+        </div>
+        <button class="hero-cta">Log set 2</button>
+      </div>
+      <div class="notes">
+        <strong>Why it works</strong>
+        Common case (+5 lb, +1 rep) is a single tap — no picker sheet to open. Tapping the center value still opens the picker for preset jumps. All rows are full-width so sizing is identical. Fastest path for in-workout one-handed adjustments.
+        <ul>
+          <li>+ Equal sizing (full-width rows)</li>
+          <li>+ Fastest single-handed adjustments</li>
+          <li>+ Picker sheet stays available for jumps</li>
+          <li>− Visually denser; more controls on screen</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
