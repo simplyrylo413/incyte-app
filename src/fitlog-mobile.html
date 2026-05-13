@@ -8215,6 +8215,48 @@
     </div>
   </div>
 
+  <!-- ==================== WORKOUT MODE ====================
+       Focused-hero layout ported from prototype.html (lines 1725-1762).
+       Activated by go('workout'); driven by renderWorkout() (Phase 3).
+       Only the skeleton is added here — JS will populate #wm-hero, lists,
+       and live-rec slots in Phase 3. -->
+  <div class="view" id="view-workout">
+
+    <!-- Minimal top strip: back chip only -->
+    <div class="topbar">
+      <button class="back-chip" id="wm-back-btn" aria-label="Back to Today">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Movement identity — breadcrumb + name -->
+    <div class="identity">
+      <div class="body-part" id="wm-body-part">CHEST · BARBELL</div>
+      <div class="name" id="wm-name">Bench Press</div>
+    </div>
+
+    <!-- History reference pill — minimal grey strip with date + ranges -->
+    <div class="prior">
+      <span class="lbl">History <span class="lbl-date" id="wm-prior-date"></span></span>
+      <span class="vals" id="wm-prior">—</span>
+    </div>
+
+    <!-- HERO: current set with big-type pickers + Log Set CTA.
+         Populated by renderWorkout(). Inner element will carry .wm-hero class. -->
+    <div id="wm-hero"></div>
+
+    <!-- LIVE AI recommendation (preview before any set is logged) -->
+    <div id="wm-live-rec"></div>
+
+    <!-- Logged + upcoming sets. AI recommendation renders INLINE under the
+         last logged set inside #wm-logged-section. -->
+    <div id="wm-logged-section"></div>
+    <div id="wm-future-section"></div>
+
+    <!-- Add-set affordance (always visible) -->
+    <div id="wm-add-set"></div>
+  </div>
+
   <!-- ==================== INSIGHTS ==================== -->
   <!-- Default landing screen. Hero modules — Readiness, Coach Insights,
        Fatigue map, PR / achievements. No workout list here; the Today tab
@@ -8936,6 +8978,31 @@
     </div>
   </div>
 </div>
+
+<!-- ==================== PICKER OVERLAY + TOAST ====================
+     Number-picker sheet ported from prototype.html (lines 1768-1782).
+     Classes renamed to .pk-* to avoid collision with production's modal
+     system. openPicker() / renderPicker() / closePicker() will drive it
+     in Phase 3. The toast element is used by showToast() for transient
+     status messages (set logged, equipment changed, etc.). -->
+<div class="pk-overlay" id="picker-overlay">
+  <div class="pk-sheet">
+    <div class="pk-handle"></div>
+    <div class="pk-header">
+      <span class="pk-title" id="pk-title">Weight</span>
+      <button class="pk-done" id="pk-done">Done</button>
+    </div>
+    <div class="pk-display">
+      <span class="pk-val" id="pk-val">185</span>
+      <span class="pk-unit" id="pk-unit">LB</span>
+    </div>
+    <div class="pk-steppers" id="pk-steppers"></div>
+    <div class="pk-presets" id="pk-presets"></div>
+  </div>
+</div>
+
+<!-- TOAST — used by showToast() for transient status messages -->
+<div class="toast" id="wm-toast" style="display:none;">Saved.</div>
 
 <script>
 // ============ EARLY GLOBALS (needed by inline onclick handlers) ============
