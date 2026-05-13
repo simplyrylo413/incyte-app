@@ -6,9 +6,28 @@ Static HTML mockups of the three load-bearing screens in the new Training-OS UX 
 
 | # | File | Screen | Purpose |
 |---|---|---|---|
-| 01 | [`01-today-overview.html`](01-today-overview.html) | Today — workout overview | Movements grouped by body part, set-progress chips, primary CTA, bottom nav |
-| 02 | [`02-workout-mode.html`](02-workout-mode.html) | Workout Mode — focused single movement | One-handed no-scroll layout, current-set expanded, future sets compact, live AI recommendation card |
-| 03 | [`03-add-movement-sheet.html`](03-add-movement-sheet.html) | Add Movement bottom sheet | Use Last Time vs. Start Blank toggle, compact stepper inputs, prior reference reveal |
+| ★ | [`prototype.html`](prototype.html) | **Interactive flow** | Full clickable prototype — all three screens with working state, transitions, AI rec logic, number picker, Add Movement flow |
+| 01 | [`01-today-overview.html`](01-today-overview.html) | Today — workout overview (static) | Design-spec snapshot of the populated Today view |
+| 02 | [`02-workout-mode.html`](02-workout-mode.html) | Workout Mode (static) | Design-spec snapshot of the focused single-movement view |
+| 03 | [`03-add-movement-sheet.html`](03-add-movement-sheet.html) | Add Movement sheet (static) | Design-spec snapshot of the bottom sheet |
+
+**Start with `prototype.html`.** The three numbered files are static design specs (one screen each, no JS) — useful for reviewing one surface in isolation, but the prototype shows the actual flow.
+
+## What the prototype demonstrates
+
+Click-through-able flows you can exercise:
+
+1. **Today → tap movement → Workout Mode** opens with that movement's sets ready.
+2. **Tap weight / reps / RPE picker pill** → number picker bottom sheet rises with `-10/-5/-1/+1/+5/+10` steppers (weight) and field-specific presets (reps: 5/6/7/8/10/12/15/20 — RPE: 4/5/6/7/7.5/8/8.5/9/9.5).
+3. **Adjust RPE** → AI recommendation card live-updates: low RPE → "Add 5/10 lb"; mid RPE → "Hold"; high RPE → "Drop 5/10 lb"; very-high reps + very-low RPE → "Add 10 lb" with capped rep target. Reason copy explains the mechanism in clinical voice.
+4. **Tap "Apply target"** → the AI rec's weight/reps populate the next future set's target.
+5. **Tap "Log set N"** → current set marks Done (compact row), next target promotes to current.
+6. **Tap a "Done" chip on a logged set** → set reopens for editing (no separate edit mode).
+7. **Skip movement** → returns to Today with movement marked `SKIP` in the progress chip.
+8. **Complete movement** (enabled only when all sets logged) → returns to Today with `DONE` chip.
+9. **Add movement → bottom sheet** → toggle Use Last Time / Start Blank (prior reference shows/hides), tune sets / weight / reps / RPE with steppers, Add to today → new movement appears in the list.
+10. **Remove movement** (x button on each card) → confirms then drops it.
+11. **Top progress strip** updates as sets get logged — gradient fill, sets-remaining count.
 
 ## Viewport
 

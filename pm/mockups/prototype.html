@@ -1,0 +1,1334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>INCYTE — Interactive Prototype</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --glass: rgba(255,255,255,0.65);
+    --glass-2: rgba(255,255,255,0.85);
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
+
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --accent-3: #9eb5cb;
+    --ok: #4f9aa8;
+    --warn: #8e9bb0;
+    --bad: #b08092;
+
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+
+    --depth-1: 0 1px 0 rgba(255,255,255,0.7) inset, 0 1px 2px rgba(15,22,34,0.04);
+    --depth-2: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px rgba(15,22,34,0.05), 0 1px 3px rgba(15,22,34,0.04);
+    --depth-3: 0 1px 0 rgba(255,255,255,0.9) inset, 0 14px 30px rgba(15,22,34,0.09), 0 2px 6px rgba(15,22,34,0.05);
+
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --r-xl: 24px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color: var(--ink);
+    background: radial-gradient(140% 80% at 50% -10%, #e6ecf5 0%, var(--paper) 50%, var(--paper-2) 100%);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: start center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .device {
+    width: 393px;
+    height: 852px;
+    border-radius: 44px;
+    background: var(--paper);
+    box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 44px;
+    padding: 0 24px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    flex-shrink: 0;
+  }
+  .statusbar .sig { display:flex; gap:4px; align-items:flex-end; opacity:.85; }
+  .statusbar .sig span { width:3px; background:var(--ink); border-radius:1px; }
+  .statusbar .sig span:nth-child(1){height:5px}.statusbar .sig span:nth-child(2){height:7px}
+  .statusbar .sig span:nth-child(3){height:9px}.statusbar .sig span:nth-child(4){height:11px}
+
+  /* View containers */
+  .view {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .view.active { display: flex; }
+
+  /* === Header (today view) === */
+  .head-today {
+    padding: 14px 22px 12px;
+    flex-shrink: 0;
+  }
+  .head-today .eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .head-today h1 {
+    margin: 0;
+    font: 700 26px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .head-today .date {
+    margin-top: 4px;
+    font: 500 14px/1 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+
+  /* === Progress strip === */
+  .progress {
+    margin: 4px 22px 12px;
+    padding: 14px 16px;
+    background: var(--glass);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    box-shadow: var(--depth-2);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    flex-shrink: 0;
+  }
+  .progress .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .progress .lhs { display: flex; align-items: baseline; gap: 8px; }
+  .progress .big { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+  .progress .of { font: 500 12px/1 'Inter Tight',sans-serif; color: var(--muted); }
+  .progress .label { font: 500 11px/1 'Inter Tight',sans-serif; color: var(--label); }
+  .progress .bar { height: 6px; background: var(--paper-2); border-radius: var(--r-pill); overflow: hidden; border: 1px solid var(--hairline); }
+  .progress .fill { height: 100%; background: linear-gradient(90deg,#5d9bb8 0%,#9b82c8 55%,#c9a0be 100%); border-radius: var(--r-pill); transition: width 250ms ease-out; }
+
+  /* === Scroll area === */
+  .scroll { flex: 1; overflow-y: auto; padding-bottom: 110px; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  .section-eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 26px 6px;
+  }
+
+  /* === Movement card on Today === */
+  .mv {
+    margin: 6px 22px;
+    padding: 12px 14px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  .mv:active { transform: scale(0.99); box-shadow: var(--depth-1); }
+  .mv .body { flex: 1; min-width: 0; }
+  .mv .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .mv .type { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); padding: 3px 7px; background: rgba(93,155,184,0.10); border-radius: var(--r-pill); }
+  .mv .type.volume { color: var(--accent-2); background: rgba(127,165,199,0.12); }
+  .mv .type.pump { color: var(--warn); background: rgba(142,155,176,0.14); }
+  .mv .ref { font: 500 11px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mv .ref.skipped { color: var(--bad); }
+  .mv .ref.done { color: var(--ok); }
+  .mv .progress-chip { font: 600 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); background: var(--paper-2); border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 6px 10px; min-width: 44px; text-align: center; }
+  .mv .progress-chip.done { color: var(--ok); background: rgba(79,154,168,0.10); border-color: rgba(79,154,168,0.20); }
+  .mv .progress-chip.skipped { color: var(--bad); background: rgba(176,128,146,0.10); border-color: rgba(176,128,146,0.20); }
+  .mv .progress-chip.partial { color: var(--accent); background: rgba(93,155,184,0.10); border-color: rgba(93,155,184,0.20); }
+  .mv .remove { width: 28px; height: 28px; border-radius: var(--r-pill); border: 1px solid var(--hairline); background: transparent; display: grid; place-items: center; color: var(--label); cursor: pointer; flex-shrink: 0; }
+  .mv .remove:hover { color: var(--bad); border-color: rgba(176,128,146,0.30); }
+  .mv .remove svg { width: 12px; height: 12px; }
+
+  /* Empty state (Today with no movements) */
+  .empty {
+    margin: 20px 22px;
+    padding: 28px 18px;
+    background: var(--glass);
+    border: 1px dashed var(--hairline-strong);
+    border-radius: var(--r-lg);
+    text-align: center;
+  }
+  .empty .eb { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; color: var(--label); text-transform: uppercase; margin-bottom: 10px; }
+  .empty h3 { margin: 0 0 6px; font: 600 16px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .empty p { margin: 0; font: 500 13px/1.45 'Inter Tight',sans-serif; color: var(--muted); }
+
+  /* === Add CTA + Nav === */
+  .add-cta {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 86px;
+    padding: 14px 18px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 24px rgba(24,32,48,0.30), 0 2px 4px rgba(24,32,48,0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .add-cta .plus { width: 18px; height: 18px; border-radius: var(--r-pill); background: rgba(255,255,255,0.18); display: grid; place-items: center; font-size: 14px; line-height: 1; }
+
+  .nav {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    height: 62px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    box-shadow: var(--depth-3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 12px;
+    z-index: 5;
+  }
+  .nav button { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; cursor: pointer; color: var(--label); }
+  .nav button.active { color: var(--ink); }
+  .nav button svg { width: 18px; height: 18px; }
+  .nav button span { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; text-transform: uppercase; }
+
+  /* === Workout Mode === */
+  .topbar {
+    padding: 6px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .back-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 8px 12px 8px 8px;
+    box-shadow: var(--depth-1);
+    cursor: pointer;
+  }
+  .back-chip svg { width: 14px; height: 14px; color: var(--ink); }
+  .back-chip span { font: 600 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .identity { flex: 1; min-width: 0; }
+  .identity .body-part { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); margin-bottom: 4px; }
+  .identity .name { font: 700 20px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .set-counter { text-align: right; flex-shrink: 0; }
+  .set-counter .now { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+  .set-counter .of { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; color: var(--label); text-transform: uppercase; margin-top: 3px; }
+
+  .prior {
+    margin: 0 18px 12px;
+    padding: 10px 14px;
+    background: var(--glass);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .prior .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); flex-shrink: 0; }
+  .prior .vals { font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .sets { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-1);
+    cursor: pointer;
+  }
+  .set-row .idx { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); width: 40px; }
+  .set-row .vals { flex: 1; font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); letter-spacing: 0.02em; }
+  .set-row .meta { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.06em; text-transform: uppercase; }
+  .set-row.done .vals { color: var(--ok); }
+  .set-row.done .meta { color: var(--ok); padding: 5px 10px; background: rgba(79,154,168,0.10); border: 1px solid rgba(79,154,168,0.20); border-radius: var(--r-pill); }
+  .set-row.target .vals { color: var(--muted); }
+
+  .current {
+    margin: 10px 18px;
+    padding: 16px 16px 14px;
+    background: white;
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--depth-3);
+    flex-shrink: 0;
+  }
+  .current .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .current .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+  .current .eyebrow .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(93,155,184,0.20); }
+  .current .set-label { font: 700 16px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+
+  .pickers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .picker { border: 1px solid var(--hairline-strong); background: var(--paper); border-radius: var(--r-md); padding: 10px 8px; text-align: center; cursor: pointer; transition: background 150ms ease-out, border-color 150ms ease-out; }
+  .picker:hover { background: white; border-color: var(--accent); }
+  .picker:active { transform: scale(0.98); }
+  .picker .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+  .picker .val { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+  .picker .unit { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+  .picker.empty .val { color: var(--label); }
+
+  .log-btn { width: 100%; padding: 14px; background: var(--ink-deep); color: white; border: none; border-radius: var(--r-pill); font: 600 14px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em; box-shadow: 0 8px 20px rgba(24,32,48,0.30), 0 2px 4px rgba(24,32,48,0.20); cursor: pointer; transition: transform 150ms ease-out; }
+  .log-btn:active { transform: scale(0.98); }
+  .log-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .rec {
+    margin: 10px 18px 0;
+    padding: 14px;
+    background: linear-gradient(160deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.08) 60%, rgba(201,160,190,0.08) 100%);
+    border: 1px solid rgba(93,155,184,0.25);
+    border-radius: var(--r-lg);
+    box-shadow: var(--depth-2);
+    flex-shrink: 0;
+  }
+  .rec .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .rec .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+  .rec .live-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 0 3px rgba(93,155,184,0.20); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .rec .row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .rec .action { font: 700 20px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+  .rec .next { font: 600 13px/1.2 'Geist Mono',ui-monospace,monospace; color: var(--muted); letter-spacing: 0.02em; }
+  .rec .reason { font: 500 12px/1.45 'Inter Tight',sans-serif; color: var(--muted); margin: 6px 0 12px; }
+  .rec .apply { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px 8px 12px; background: rgba(15,22,34,0.06); border: 1px solid rgba(15,22,34,0.08); border-radius: var(--r-pill); font: 600 12px/1 'Inter Tight',sans-serif; color: var(--ink); cursor: pointer; transition: background 150ms ease-out; }
+  .rec .apply:hover { background: rgba(15,22,34,0.10); }
+  .rec .apply svg { width: 12px; height: 12px; }
+  .rec.muted { background: rgba(142,155,176,0.06); border-color: rgba(142,155,176,0.18); }
+  .rec.muted .eyebrow { color: var(--muted); }
+  .rec.muted .live-dot { background: var(--muted); box-shadow: 0 0 0 3px rgba(142,155,176,0.15); animation: none; }
+  .rec.muted .action { color: var(--muted); font-size: 15px; }
+
+  .wm-actions {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    box-shadow: var(--depth-3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 5;
+  }
+  .wm-actions button { background: none; border: none; font: 600 12px/1 'Inter Tight',sans-serif; cursor: pointer; }
+  .wm-actions .skip { color: var(--bad); padding: 8px 4px; }
+  .wm-actions .complete { color: white; padding: 8px 14px; background: var(--ok); border-radius: var(--r-pill); border: 1px solid rgba(79,154,168,0.30); }
+  .wm-actions .complete:disabled { background: var(--paper-2); color: var(--label); border-color: var(--hairline); cursor: not-allowed; }
+
+  /* === Number Picker Overlay === */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,22,34,0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 50;
+    display: none;
+    align-items: flex-end;
+  }
+  .overlay.active { display: flex; }
+  .sheet {
+    width: 100%;
+    background: white;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    box-shadow: 0 -16px 40px rgba(15,22,34,0.16);
+    padding: 8px 0 22px;
+    max-height: 78%;
+    overflow-y: auto;
+    transform: translateY(0);
+    animation: slideUp 250ms ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet::-webkit-scrollbar { display: none; }
+  .handle { width: 38px; height: 4px; background: var(--hairline-strong); border-radius: var(--r-pill); margin: 6px auto 14px; }
+
+  .pk-header { padding: 0 22px 14px; display: flex; justify-content: space-between; align-items: baseline; }
+  .pk-header .lbl { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label); }
+  .pk-header .val { font: 700 40px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; }
+  .pk-header .unit { font: 500 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--muted); margin-left: 6px; }
+
+  .pk-steppers { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 0 16px 14px; }
+  .pk-steppers button {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    padding: 12px 0;
+    font: 700 13px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out;
+  }
+  .pk-steppers button:hover { background: white; border-color: var(--accent); }
+  .pk-steppers button:active { transform: scale(0.96); }
+
+  .pk-presets {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 14px;
+    flex-wrap: wrap;
+  }
+  .pk-presets .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; color: var(--label); text-transform: uppercase; width: 100%; margin-bottom: 4px; padding-left: 6px; }
+  .pk-presets button {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 8px 14px;
+    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .pk-presets button.active { background: var(--ink-deep); color: white; border-color: var(--ink-deep); }
+  .pk-presets button:hover:not(.active) { background: white; border-color: var(--accent); }
+
+  .pk-done {
+    margin: 8px 22px 0;
+    width: calc(100% - 44px);
+    padding: 14px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    cursor: pointer;
+  }
+  .pk-clear {
+    margin: 6px auto 0;
+    display: block;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font: 500 12px/1 'Inter Tight',sans-serif;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  /* === Add Movement Sheet === */
+  .am-header { padding: 0 22px 14px; }
+  .am-header .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+  .am-header h2 { margin: 0; font: 700 22px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+
+  .seg {
+    margin: 0 22px 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 4px;
+  }
+  .seg button { background: transparent; border: none; padding: 10px 14px; border-radius: var(--r-pill); font: 600 12px/1 'Inter Tight',sans-serif; color: var(--muted); cursor: pointer; transition: background 150ms ease-out, color 150ms ease-out; }
+  .seg button.active { background: white; color: var(--ink); box-shadow: var(--depth-1); }
+
+  .prior-card {
+    margin: 6px 22px 8px;
+    padding: 12px 14px;
+    background: linear-gradient(160deg, rgba(93,155,184,0.08) 0%, rgba(155,130,200,0.06) 100%);
+    border: 1px solid rgba(93,155,184,0.20);
+    border-radius: var(--r-md);
+  }
+  .prior-card .lbl { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .prior-card .vals { font: 500 12px/1.4 'Geist Mono',ui-monospace,monospace; color: var(--muted); }
+  .prior-card .hint { font: 500 11px/1.4 'Inter Tight',sans-serif; color: var(--muted); margin-top: 6px; }
+  .prior-card.hidden { display: none; }
+
+  .div-eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 22px 8px;
+  }
+
+  .field, .field-num {
+    margin: 0 22px 10px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .field-num { padding: 10px 14px; }
+  .field .lbl, .field-num .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); }
+  .field .lbl { width: 96px; flex-shrink: 0; }
+  .field-num .lbl { flex: 1; }
+  .field .val { flex: 1; font: 600 14px/1 'Inter Tight',sans-serif; color: var(--ink); }
+  .field .chev { width: 14px; height: 14px; color: var(--label); }
+
+  .stepper { display: flex; align-items: center; background: white; border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 2px; }
+  .stepper button { width: 30px; height: 30px; border: none; background: transparent; border-radius: var(--r-pill); color: var(--ink); font: 700 14px/1 'Inter Tight',sans-serif; cursor: pointer; }
+  .stepper button:hover { background: var(--paper); }
+  .stepper button:active { transform: scale(0.94); }
+  .stepper .v { min-width: 50px; text-align: center; font: 700 15px/1 'Geist Mono',ui-monospace,monospace; }
+  .stepper .u { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.10em; text-transform: uppercase; padding-right: 8px; }
+
+  .cta-wrap { padding: 14px 22px 0; }
+  .cta { width: 100%; padding: 14px; background: var(--ink-deep); color: white; border: none; border-radius: var(--r-pill); font: 600 14px/1 'Inter Tight',sans-serif; box-shadow: 0 8px 20px rgba(24,32,48,0.30); cursor: pointer; }
+  .cta-cancel { width: 100%; margin-top: 8px; padding: 12px; background: transparent; color: var(--muted); border: none; font: 500 13px/1 'Inter Tight',sans-serif; cursor: pointer; }
+
+  /* === Toast === */
+  .toast {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 92px;
+    padding: 12px 16px;
+    background: var(--ink-deep);
+    color: white;
+    border-radius: var(--r-pill);
+    font: 600 13px/1 'Inter Tight',sans-serif;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(24,32,48,0.30);
+    z-index: 40;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 250ms ease-out, transform 250ms ease-out;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* === Demo hint banner (outside the device) === */
+  .hint {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    max-width: 280px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-2);
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .hint strong { color: var(--ink); display: block; margin-bottom: 6px; font-weight: 700; }
+  .hint code { font-family: 'Geist Mono',ui-monospace,monospace; background: var(--paper-2); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="hint">
+  <strong>INCYTE — Interactive prototype</strong>
+  Click a movement on Today to enter Workout Mode. Tap weight/reps/RPE to open the picker. Apply target writes the AI rec into the current set. Try logging a few sets and going back.
+</div>
+
+<div class="device" id="device">
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span id="clock">9:41</span>
+    <div class="sig"><span></span><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- TODAY VIEW -->
+  <div class="view active" id="view-today">
+    <div class="head-today">
+      <div class="eyebrow" id="today-eyebrow">TODAY · TUE</div>
+      <h1>Build today's session.</h1>
+      <div class="date" id="today-date">May 12 · Push + Pull</div>
+    </div>
+
+    <div class="progress">
+      <div class="row">
+        <div class="lhs">
+          <span class="big" id="prog-done">0</span>
+          <span class="of">of <span id="prog-total">0</span> sets</span>
+        </div>
+        <span class="label" id="prog-left">0 SETS LEFT</span>
+      </div>
+      <div class="bar"><div class="fill" id="prog-fill" style="width: 0%"></div></div>
+    </div>
+
+    <div class="scroll" id="today-scroll"></div>
+
+    <button class="add-cta" id="btn-add-movement">
+      <span class="plus">+</span>
+      Add movement
+    </button>
+
+    <div class="nav">
+      <button class="active"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l8-8 8 8M6 10v10h12V10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
+      <button><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M4 9h16M9 4v16" stroke="currentColor" stroke-width="1.6"/></svg><span>Plan</span></button>
+      <button><svg viewBox="0 0 24 24" fill="none"><path d="M4 18l5-5 4 4 7-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Momentum</span></button>
+      <button><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5zM5 9h14M9 5v14" stroke="currentColor" stroke-width="1.6"/></svg><span>Library</span></button>
+    </div>
+  </div>
+
+  <!-- WORKOUT MODE VIEW -->
+  <div class="view" id="view-workout">
+    <div class="topbar">
+      <div class="back-chip" id="btn-back">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Today</span>
+      </div>
+      <div class="identity">
+        <div class="body-part" id="wm-body-part">CHEST</div>
+        <div class="name" id="wm-name">Bench Press</div>
+      </div>
+      <div class="set-counter">
+        <div class="now" id="wm-set-now">1</div>
+        <div class="of">OF <span id="wm-set-total">4</span></div>
+      </div>
+    </div>
+
+    <div class="prior">
+      <span class="lbl">LAST TIME</span>
+      <span class="vals" id="wm-prior">—</span>
+    </div>
+
+    <div class="sets" id="wm-logged"></div>
+    <div id="wm-current"></div>
+    <div class="sets" id="wm-future" style="margin-top: 8px;"></div>
+    <div id="wm-rec"></div>
+
+    <div class="wm-actions">
+      <button class="skip" id="btn-skip">Skip movement</button>
+      <button class="complete" id="btn-complete">Complete</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">Saved.</div>
+
+  <!-- NUMBER PICKER OVERLAY -->
+  <div class="overlay" id="picker-overlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <div class="pk-header">
+        <span class="lbl" id="pk-label">WEIGHT</span>
+        <div>
+          <span class="val" id="pk-val">185</span>
+          <span class="unit" id="pk-unit">LB</span>
+        </div>
+      </div>
+      <div class="pk-steppers" id="pk-steppers"></div>
+      <div class="pk-presets" id="pk-presets"></div>
+      <button class="pk-done" id="pk-done">Done</button>
+      <button class="pk-clear" id="pk-clear">Clear value</button>
+    </div>
+  </div>
+
+  <!-- ADD MOVEMENT OVERLAY -->
+  <div class="overlay" id="am-overlay">
+    <div class="sheet">
+      <div class="handle"></div>
+      <div class="am-header">
+        <div class="eyebrow">ADD MOVEMENT</div>
+        <h2 id="am-name">Bench Press</h2>
+      </div>
+
+      <div class="seg" id="am-seg">
+        <button class="active" data-mode="last">Use last time</button>
+        <button data-mode="blank">Start blank</button>
+      </div>
+
+      <div class="prior-card" id="am-prior">
+        <div class="lbl">PRIOR REFERENCE · MAY 5</div>
+        <div class="vals">185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5</div>
+        <div class="hint">Copy these as today's targets. Each set is editable before you log it.</div>
+      </div>
+
+      <div class="div-eyebrow">SETUP</div>
+
+      <div class="field">
+        <span class="lbl">BODY PART</span>
+        <span class="val" id="am-body">Chest</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="field">
+        <span class="lbl">MOVEMENT</span>
+        <span class="val" id="am-mv">Overhead Press</span>
+        <svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="field-num">
+        <span class="lbl">SETS</span>
+        <div class="stepper">
+          <button data-am-step="sets" data-am-delta="-1">−</button>
+          <span class="v" id="am-sets">3</span>
+          <button data-am-step="sets" data-am-delta="1">+</button>
+        </div>
+      </div>
+
+      <div class="field-num">
+        <span class="lbl">STARTING WEIGHT</span>
+        <div class="stepper">
+          <button data-am-step="weight" data-am-delta="-5">−</button>
+          <span class="v" id="am-weight">95</span>
+          <span class="u">LB</span>
+          <button data-am-step="weight" data-am-delta="5">+</button>
+        </div>
+      </div>
+
+      <div class="field-num">
+        <span class="lbl">TARGET REPS</span>
+        <div class="stepper">
+          <button data-am-step="reps" data-am-delta="-1">−</button>
+          <span class="v" id="am-reps">8</span>
+          <button data-am-step="reps" data-am-delta="1">+</button>
+        </div>
+      </div>
+
+      <div class="field-num">
+        <span class="lbl">TARGET RPE</span>
+        <div class="stepper">
+          <button data-am-step="rpe" data-am-delta="-0.5">−</button>
+          <span class="v" id="am-rpe">7</span>
+          <button data-am-step="rpe" data-am-delta="0.5">+</button>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <button class="cta" id="am-add">Add to today</button>
+        <button class="cta-cancel" id="am-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  view: 'today',           // 'today' | 'workout'
+  activeMovementId: null,  // when in workout mode
+  movements: [
+    {
+      id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength',
+      priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
+      sets: [
+        { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current' },
+        { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target' },
+        { idx: 3, weight: 180, reps: 10, rpe: null, status: 'target' },
+        { idx: 4, weight: 180, reps: 8,  rpe: null, status: 'target' },
+      ],
+      status: 'pending',
+    },
+    {
+      id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume',
+      priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
+      sets: [
+        { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current' },
+        { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target' },
+        { idx: 3, weight: 55, reps: 10, rpe: null, status: 'target' },
+      ],
+      status: 'pending',
+    },
+    {
+      id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength',
+      priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
+      sets: [
+        { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current' },
+        { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target' },
+        { idx: 3, weight: 150, reps: 10, rpe: null, status: 'target' },
+        { idx: 4, weight: 150, reps: 8,  rpe: null, status: 'target' },
+      ],
+      status: 'pending',
+    },
+    {
+      id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume',
+      priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
+      sets: [
+        { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current' },
+        { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target' },
+        { idx: 3, weight: 135, reps: 8,  rpe: null, status: 'target' },
+      ],
+      status: 'pending',
+    },
+  ],
+  picker: null,    // { field: 'weight'|'reps'|'rpe', setIdx: int, value: number }
+  addMovement: { mode: 'last', sets: 3, weight: 95, reps: 8, rpe: 7 },
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function getActiveMovement() {
+  return state.movements.find(m => m.id === state.activeMovementId);
+}
+
+function getCurrentSet(mv) {
+  return mv.sets.find(s => s.status === 'current');
+}
+
+// AI recommendation logic (per UX rationale):
+//   low RPE → add weight; high RPE → drop; mid → hold
+//   very high reps + low RPE → big add
+function computeRecommendation(set) {
+  if (set.rpe == null) {
+    return { action: 'Log current set', next: 'Add RPE to get a recommendation', reason: 'RPE is required for next-set guidance.', muted: true };
+  }
+  const r = set.rpe;
+  const reps = set.reps;
+  const w = set.weight;
+
+  let delta = 0;
+  let actionLabel = 'Hold';
+  let reason = '';
+  let nextReps = reps;
+
+  if (r <= 4 && reps >= 15) {
+    delta = 10;
+    actionLabel = `Add ${delta} lb`;
+    reason = `High reps at very low effort. Add weight to find a real working load.`;
+    nextReps = Math.max(8, reps - 5);
+  } else if (r <= 5) {
+    delta = 10;
+    actionLabel = `Add ${delta} lb`;
+    reason = `Set was well within capacity. Add weight on the next set.`;
+  } else if (r <= 7) {
+    delta = 5;
+    actionLabel = `Add ${delta} lb`;
+    reason = `Effort stayed controlled. Add a small amount of weight.`;
+  } else if (r <= 8) {
+    delta = 0;
+    actionLabel = `Hold`;
+    reason = `Productive effort. Hold weight and repeat.`;
+  } else if (r <= 9) {
+    delta = -5;
+    actionLabel = `Drop ${Math.abs(delta)} lb`;
+    reason = `Effort is near failure. Drop weight to keep volume clean.`;
+  } else {
+    delta = -10;
+    actionLabel = `Drop ${Math.abs(delta)} lb`;
+    reason = `Very high effort. Drop weight and rest fully.`;
+  }
+
+  return {
+    action: actionLabel,
+    next: `${w + delta} × ${nextReps}`,
+    reason,
+    weight: w + delta,
+    reps: nextReps,
+    rpe: null,
+    muted: false,
+  };
+}
+
+// ============================================================
+// RENDER — TODAY
+// ============================================================
+function renderToday() {
+  const scroll = $('#today-scroll');
+  scroll.innerHTML = '';
+
+  // Group movements by body part
+  const groups = {};
+  state.movements.forEach(m => {
+    if (!groups[m.bodyPart]) groups[m.bodyPart] = [];
+    groups[m.bodyPart].push(m);
+  });
+
+  if (state.movements.length === 0) {
+    scroll.innerHTML = `
+      <div class="empty">
+        <div class="eb">NO MOVEMENTS PLANNED</div>
+        <h3>Build the session.</h3>
+        <p>Group movements by body part. Add one at a time.</p>
+      </div>`;
+  } else {
+    Object.keys(groups).forEach(bodyPart => {
+      const eb = document.createElement('div');
+      eb.className = 'section-eyebrow';
+      eb.textContent = bodyPart.toUpperCase();
+      scroll.appendChild(eb);
+
+      groups[bodyPart].forEach(mv => {
+        const done = mv.sets.filter(s => s.status === 'done').length;
+        const total = mv.sets.length;
+        const isComplete = done === total;
+        const isSkipped = mv.status === 'skipped';
+        const isPartial = done > 0 && !isComplete;
+
+        let chipClass = '';
+        let chipText = `${done}/${total}`;
+        if (isSkipped) { chipClass = 'skipped'; chipText = 'SKIP'; }
+        else if (isComplete) { chipClass = 'done'; chipText = 'DONE'; }
+        else if (isPartial) { chipClass = 'partial'; }
+
+        let refText = `Last: ${mv.priorRef.split(' · ').slice(0, 3).join(' · ')}`;
+        let refClass = '';
+        if (isSkipped) { refText = `Skipped today · last: ${mv.priorRef.split(' · ')[0]}`; refClass = 'skipped'; }
+        else if (isComplete) { refText = `Done · ${mv.sets.map(s => `${s.weight}×${s.reps}`).join(' · ')}`; refClass = 'done'; }
+
+        const card = document.createElement('div');
+        card.className = 'mv';
+        card.innerHTML = `
+          <div class="body">
+            <div class="row1">
+              <span class="name">${mv.name}</span>
+              <span class="type ${mv.type}">${mv.type.toUpperCase()}</span>
+            </div>
+            <div class="ref ${refClass}">${refText}</div>
+          </div>
+          <span class="progress-chip ${chipClass}">${chipText}</span>
+          <button class="remove" data-remove="${mv.id}" aria-label="Remove">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>`;
+        card.querySelector('.body').addEventListener('click', () => openWorkoutMode(mv.id));
+        card.querySelector('.progress-chip').addEventListener('click', () => openWorkoutMode(mv.id));
+        card.querySelector('[data-remove]').addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeMovement(mv.id);
+        });
+        scroll.appendChild(card);
+      });
+    });
+  }
+
+  // Progress stats
+  const totalSets = state.movements.reduce((s, m) => s + m.sets.length, 0);
+  const doneSets = state.movements.reduce((s, m) => s + m.sets.filter(x => x.status === 'done').length, 0);
+  $('#prog-done').textContent = doneSets;
+  $('#prog-total').textContent = totalSets;
+  $('#prog-left').textContent = `${totalSets - doneSets} SETS LEFT`;
+  $('#prog-fill').style.width = totalSets > 0 ? `${(doneSets / totalSets) * 100}%` : '0%';
+}
+
+// ============================================================
+// RENDER — WORKOUT MODE
+// ============================================================
+function renderWorkout() {
+  const mv = getActiveMovement();
+  if (!mv) return;
+
+  $('#wm-body-part').textContent = `${mv.bodyPart.toUpperCase()} · ${mv.type.toUpperCase()}`;
+  $('#wm-name').textContent = mv.name;
+  $('#wm-set-total').textContent = mv.sets.length;
+  const cur = getCurrentSet(mv);
+  $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
+  $('#wm-prior').textContent = mv.priorRef;
+
+  // Logged (done) sets
+  const logged = $('#wm-logged');
+  logged.innerHTML = '';
+  mv.sets.filter(s => s.status === 'done').forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'set-row done';
+    row.innerHTML = `
+      <span class="idx">SET ${s.idx}</span>
+      <span class="vals">${s.weight} × ${s.reps}${s.rpe != null ? ` · RPE ${s.rpe}` : ''}</span>
+      <span class="meta">DONE</span>`;
+    row.addEventListener('click', () => reopenSet(s.idx));
+    logged.appendChild(row);
+  });
+
+  // Current set (expanded)
+  const cw = $('#wm-current');
+  if (cur) {
+    cw.innerHTML = `
+      <div class="current">
+        <div class="head">
+          <span class="eyebrow"><span class="dot"></span>SET ${cur.idx} · NOW</span>
+          <span class="set-label">Working set</span>
+        </div>
+        <div class="pickers">
+          <div class="picker" data-pk="weight">
+            <div class="lbl">WEIGHT</div>
+            <div class="val">${cur.weight}</div>
+            <div class="unit">LB</div>
+          </div>
+          <div class="picker" data-pk="reps">
+            <div class="lbl">REPS</div>
+            <div class="val">${cur.reps}</div>
+            <div class="unit">REPS</div>
+          </div>
+          <div class="picker ${cur.rpe == null ? 'empty' : ''}" data-pk="rpe">
+            <div class="lbl">RPE</div>
+            <div class="val">${cur.rpe != null ? cur.rpe : '—'}</div>
+            <div class="unit">EFFORT</div>
+          </div>
+        </div>
+        <button class="log-btn" id="btn-log">Log set ${cur.idx}</button>
+      </div>`;
+    cw.querySelectorAll('[data-pk]').forEach(el => {
+      el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
+    });
+    cw.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
+  } else {
+    cw.innerHTML = `
+      <div class="current" style="text-align:center;">
+        <div class="head" style="justify-content:center;">
+          <span class="eyebrow" style="color: var(--ok);">MOVEMENT COMPLETE</span>
+        </div>
+        <p style="margin: 8px 0 14px; color: var(--muted); font: 500 13px/1.4 'Inter Tight',sans-serif;">All sets logged. Tap Complete to return.</p>
+      </div>`;
+  }
+
+  // Future target sets
+  const fut = $('#wm-future');
+  fut.innerHTML = '';
+  mv.sets.filter(s => s.status === 'target').forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'set-row target';
+    row.innerHTML = `
+      <span class="idx">SET ${s.idx}</span>
+      <span class="vals">${s.weight} × ${s.reps}</span>
+      <span class="meta">TARGET</span>`;
+    fut.appendChild(row);
+  });
+
+  // AI recommendation
+  const rec = $('#wm-rec');
+  rec.innerHTML = '';
+  if (cur) {
+    const r = computeRecommendation(cur);
+    const recEl = document.createElement('div');
+    recEl.className = 'rec' + (r.muted ? ' muted' : '');
+    recEl.innerHTML = `
+      <div class="head">
+        <span class="eyebrow"><span class="live-dot"></span>RECOMMENDATION · LIVE</span>
+      </div>
+      <div class="row">
+        <span class="action">${r.action}</span>
+        ${r.muted ? '' : `<span class="next">→ ${r.next}</span>`}
+      </div>
+      <div class="reason">${r.reason}</div>
+      ${r.muted ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
+    rec.appendChild(recEl);
+    if (!r.muted) {
+      $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
+    }
+  }
+
+  // Complete button enable/disable
+  const allDone = mv.sets.every(s => s.status === 'done');
+  $('#btn-complete').disabled = !allDone;
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function openWorkoutMode(mvId) {
+  state.activeMovementId = mvId;
+  state.view = 'workout';
+  $('#view-today').classList.remove('active');
+  $('#view-workout').classList.add('active');
+  renderWorkout();
+}
+
+function backToToday() {
+  state.activeMovementId = null;
+  state.view = 'today';
+  $('#view-workout').classList.remove('active');
+  $('#view-today').classList.add('active');
+  renderToday();
+}
+
+function logSet(idx) {
+  const mv = getActiveMovement();
+  const set = mv.sets.find(s => s.idx === idx);
+  if (!set) return;
+  if (set.rpe == null) {
+    showToast('Add RPE before logging the set.');
+    openPicker('rpe', idx);
+    return;
+  }
+  set.status = 'done';
+  const next = mv.sets.find(s => s.status === 'target');
+  if (next) next.status = 'current';
+  renderWorkout();
+  showToast(`Set ${idx} logged.`);
+}
+
+function reopenSet(idx) {
+  const mv = getActiveMovement();
+  // Demote current set back to target
+  const cur = mv.sets.find(s => s.status === 'current');
+  if (cur) cur.status = 'target';
+  // Promote the tapped one back to current
+  const set = mv.sets.find(s => s.idx === idx);
+  set.status = 'current';
+  renderWorkout();
+  showToast(`Set ${idx} reopened. Update and re-log.`);
+}
+
+function applyRecommendation(r) {
+  const mv = getActiveMovement();
+  const targets = mv.sets.filter(s => s.status === 'target');
+  if (targets.length === 0) {
+    showToast('No future targets to apply to.');
+    return;
+  }
+  const t = targets[0];
+  t.weight = r.weight;
+  t.reps = r.reps;
+  renderWorkout();
+  showToast(`Set ${t.idx} target updated to ${r.weight}×${r.reps}.`);
+}
+
+function skipMovement() {
+  const mv = getActiveMovement();
+  mv.status = 'skipped';
+  // Reset any unlogged sets to target status (so chip shows SKIP)
+  backToToday();
+  showToast(`${mv.name} skipped today.`);
+}
+
+function completeMovement() {
+  const mv = getActiveMovement();
+  if (!mv.sets.every(s => s.status === 'done')) {
+    showToast('Log all sets before completing.');
+    return;
+  }
+  mv.status = 'complete';
+  backToToday();
+  showToast(`${mv.name} complete.`);
+}
+
+function removeMovement(id) {
+  if (!confirm(`Remove this movement from today's session?`)) return;
+  state.movements = state.movements.filter(m => m.id !== id);
+  renderToday();
+  showToast('Movement removed.');
+}
+
+// ============================================================
+// PICKER
+// ============================================================
+const PICKER_CONFIG = {
+  weight: { label: 'WEIGHT', unit: 'LB', steps: [-10, -5, -1, 1, 5, 10], presets: [], min: 0 },
+  reps:   { label: 'REPS',   unit: 'REPS', steps: [-5, -1, 1, 5], presets: [5, 6, 7, 8, 10, 12, 15, 20], min: 0 },
+  rpe:    { label: 'RPE',    unit: 'EFFORT', steps: [-0.5, 0.5], presets: [4, 5, 6, 7, 7.5, 8, 8.5, 9, 9.5], min: 0, max: 10 },
+};
+
+function openPicker(field, setIdx) {
+  const mv = getActiveMovement();
+  const set = mv.sets.find(s => s.idx === setIdx);
+  state.picker = { field, setIdx, value: set[field] != null ? set[field] : (field === 'rpe' ? 7 : (field === 'reps' ? 10 : 185)) };
+  renderPicker();
+  $('#picker-overlay').classList.add('active');
+}
+
+function renderPicker() {
+  const cfg = PICKER_CONFIG[state.picker.field];
+  $('#pk-label').textContent = cfg.label;
+  $('#pk-unit').textContent = cfg.unit;
+  $('#pk-val').textContent = state.picker.value;
+
+  const steppers = $('#pk-steppers');
+  steppers.innerHTML = '';
+  // Pad to 6 columns
+  const cols = 6;
+  const filled = cfg.steps.length;
+  const padLeft = Math.floor((cols - filled) / 2);
+  for (let i = 0; i < padLeft; i++) {
+    const e = document.createElement('div');
+    steppers.appendChild(e);
+  }
+  cfg.steps.forEach(delta => {
+    const btn = document.createElement('button');
+    btn.textContent = (delta > 0 ? '+' : '') + delta;
+    btn.addEventListener('click', () => {
+      let v = +(state.picker.value + delta).toFixed(1);
+      if (v < cfg.min) v = cfg.min;
+      if (cfg.max != null && v > cfg.max) v = cfg.max;
+      state.picker.value = v;
+      renderPicker();
+    });
+    steppers.appendChild(btn);
+  });
+
+  const presets = $('#pk-presets');
+  presets.innerHTML = '';
+  if (cfg.presets.length > 0) {
+    const lbl = document.createElement('div');
+    lbl.className = 'lbl';
+    lbl.textContent = 'PRESETS';
+    presets.appendChild(lbl);
+    cfg.presets.forEach(v => {
+      const btn = document.createElement('button');
+      btn.textContent = v;
+      if (v === state.picker.value) btn.classList.add('active');
+      btn.addEventListener('click', () => {
+        state.picker.value = v;
+        renderPicker();
+      });
+      presets.appendChild(btn);
+    });
+  }
+}
+
+function closePicker(save) {
+  if (save) {
+    const mv = getActiveMovement();
+    const set = mv.sets.find(s => s.idx === state.picker.setIdx);
+    set[state.picker.field] = state.picker.value;
+    renderWorkout();
+  }
+  $('#picker-overlay').classList.remove('active');
+  state.picker = null;
+}
+
+function clearPickerValue() {
+  const mv = getActiveMovement();
+  const set = mv.sets.find(s => s.idx === state.picker.setIdx);
+  set[state.picker.field] = null;
+  $('#picker-overlay').classList.remove('active');
+  state.picker = null;
+  renderWorkout();
+}
+
+// ============================================================
+// ADD MOVEMENT SHEET
+// ============================================================
+function openAddMovement() {
+  state.addMovement = { mode: 'last', sets: 3, weight: 95, reps: 8, rpe: 7 };
+  renderAddMovementForm();
+  $('#am-overlay').classList.add('active');
+}
+
+function renderAddMovementForm() {
+  $('#am-sets').textContent = state.addMovement.sets;
+  $('#am-weight').textContent = state.addMovement.weight;
+  $('#am-reps').textContent = state.addMovement.reps;
+  $('#am-rpe').textContent = state.addMovement.rpe;
+  $$('#am-seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === state.addMovement.mode));
+  $('#am-prior').classList.toggle('hidden', state.addMovement.mode !== 'last');
+}
+
+function commitAddMovement() {
+  const am = state.addMovement;
+  const newMv = {
+    id: 'm' + Date.now(),
+    bodyPart: 'Shoulders',
+    name: 'Overhead Press',
+    type: 'strength',
+    priorRef: am.mode === 'last' ? '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5' : '—',
+    sets: Array.from({ length: am.sets }, (_, i) => ({
+      idx: i + 1,
+      weight: am.weight,
+      reps: am.reps,
+      rpe: null,
+      status: i === 0 ? 'current' : 'target',
+    })),
+    status: 'pending',
+  };
+  state.movements.push(newMv);
+  $('#am-overlay').classList.remove('active');
+  renderToday();
+  showToast(`${newMv.name} added.`);
+}
+
+// ============================================================
+// EVENT HANDLERS
+// ============================================================
+$('#btn-back').addEventListener('click', backToToday);
+$('#btn-skip').addEventListener('click', skipMovement);
+$('#btn-complete').addEventListener('click', completeMovement);
+$('#btn-add-movement').addEventListener('click', openAddMovement);
+
+$('#pk-done').addEventListener('click', () => closePicker(true));
+$('#pk-clear').addEventListener('click', clearPickerValue);
+$('#picker-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'picker-overlay') closePicker(false);
+});
+
+$('#am-cancel').addEventListener('click', () => $('#am-overlay').classList.remove('active'));
+$('#am-add').addEventListener('click', commitAddMovement);
+$('#am-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'am-overlay') $('#am-overlay').classList.remove('active');
+});
+$$('#am-seg button').forEach(b => {
+  b.addEventListener('click', () => {
+    state.addMovement.mode = b.dataset.mode;
+    renderAddMovementForm();
+  });
+});
+$$('[data-am-step]').forEach(b => {
+  b.addEventListener('click', () => {
+    const field = b.dataset.amStep;
+    const delta = parseFloat(b.dataset.amDelta);
+    let v = +(state.addMovement[field] + delta).toFixed(1);
+    if (v < 1) v = 1;
+    state.addMovement[field] = v;
+    renderAddMovementForm();
+  });
+});
+
+// Live clock
+function tickClock() {
+  const d = new Date();
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  $('#clock').textContent = `${((h + 11) % 12 + 1)}:${m}`;
+}
+tickClock();
+setInterval(tickClock, 30000);
+
+// Initial render
+renderToday();
+</script>
+</body>
+</html>
