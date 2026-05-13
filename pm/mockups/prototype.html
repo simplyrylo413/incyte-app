@@ -450,27 +450,25 @@
   .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 26px rgba(24,32,48,0.36); }
   .hero-cta:active { transform: translateY(0); }
 
-  /* Inline prior reference — one quiet line below the hero, no card */
+  /* Prior reference — two-line block layout. Eyebrow names the source
+     (e.g. "LAST SESSION · MAY 5") so it's unambiguously historical data. */
   .prior {
-    padding: 0 22px 4px;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
+    padding: 0 22px 6px;
     flex-shrink: 0;
   }
   .prior .lbl {
+    display: block;
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
     color: var(--label);
-    flex-shrink: 0;
+    margin-bottom: 6px;
   }
   .prior .vals {
-    font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace;
+    display: block;
+    font: 500 12px/1.4 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
   }
 
   /* Section eyebrow for set lists */
@@ -551,65 +549,88 @@
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
   /* Inline AI recommendation — small, attached directly under the
-     just-completed set row. Indented to show it's tied to the set above. */
+     just-completed set row. Eyebrow attributes the rec to that specific
+     set ("FROM SET N") and reason copy references the actual RPE/reps. */
   .rec-inline {
-    margin: 6px 0 8px 12px;
-    padding: 11px 14px 12px;
+    margin: 4px 0 6px 12px;
+    padding: 9px 12px 10px;
     background: rgba(93,155,184,0.05);
-    border: 1px solid rgba(93,155,184,0.18);
+    border: 1px solid rgba(93,155,184,0.16);
     border-left: 2px solid var(--accent);
-    border-radius: 10px;
-  }
-  .rec-inline .head {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 4px;
+    border-radius: 9px;
   }
   .rec-inline .eyebrow {
-    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
     color: var(--accent);
-    flex-shrink: 0;
+    margin-bottom: 5px;
+    display: block;
   }
   .rec-inline .row {
     display: flex;
     align-items: baseline;
+    justify-content: space-between;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .rec-inline .action {
-    font: 700 15px/1.1 'Inter Tight',sans-serif;
+    font: 700 13px/1.1 'Inter Tight',sans-serif;
     letter-spacing: -0.02em;
     color: var(--ink);
   }
   .rec-inline .next {
-    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
     letter-spacing: 0.02em;
   }
   .rec-inline .reason {
-    font: 500 11px/1.4 'Inter Tight',sans-serif;
+    font: 500 10.5px/1.4 'Inter Tight',sans-serif;
     color: var(--muted);
-    margin: 2px 0 8px;
+    margin: 2px 0 7px;
   }
   .rec-inline .apply {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px 6px 11px;
+    gap: 5px;
+    padding: 5px 10px 5px 9px;
     background: transparent;
     border: 1px solid var(--ink);
     border-radius: 999px;
-    font: 600 11px/1 'Inter Tight',sans-serif;
+    font: 600 10px/1 'Inter Tight',sans-serif;
     color: var(--ink);
     cursor: pointer;
     transition: background 180ms ease-out, color 180ms ease-out;
   }
   .rec-inline .apply:hover { background: var(--ink); color: white; }
   .rec-inline .apply:hover svg { transform: translateX(2px); }
-  .rec-inline .apply svg { width: 10px; height: 10px; transition: transform 180ms ease-out; }
+  .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
+
+  /* Add-set affordance — dashed-outline button at the end of UPCOMING */
+  .add-set-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 10px 22px 6px;
+    padding: 11px 14px;
+    background: transparent;
+    border: 1px dashed rgba(15,22,34,0.18);
+    border-radius: 10px;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+  }
+  .add-set-btn:hover {
+    background: rgba(15,22,34,0.025);
+    border-color: rgba(15,22,34,0.32);
+    color: var(--ink);
+  }
+  .add-set-btn:active { transform: scale(0.98); }
+  .add-set-btn svg { width: 12px; height: 12px; }
 
   .wm-actions {
     position: absolute;
@@ -958,9 +979,9 @@
     <!-- HERO: the current set as a single typographic statement -->
     <div id="wm-hero"></div>
 
-    <!-- Prior reference — one quiet inline line -->
+    <!-- Prior reference — two-line: source+date on first, values on second -->
     <div class="prior">
-      <span class="lbl">LAST</span>
+      <span class="lbl" id="wm-prior-label">LAST SESSION</span>
       <span class="vals" id="wm-prior">—</span>
     </div>
 
@@ -968,6 +989,9 @@
          AI recommendation now renders INLINE under the last logged set. -->
     <div id="wm-logged-section"></div>
     <div id="wm-future-section"></div>
+
+    <!-- Add-set affordance (always visible in Workout Mode) -->
+    <div id="wm-add-set"></div>
 
     <!-- Bottom action bar -->
     <div class="wm-actions">
@@ -1063,6 +1087,7 @@ const state = {
     {
       id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength',
       priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
+      priorDate: 'May 5',
       sets: [
         { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target' },
@@ -1074,6 +1099,7 @@ const state = {
     {
       id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume',
       priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
+      priorDate: 'May 5',
       sets: [
         { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current' },
         { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target' },
@@ -1084,6 +1110,7 @@ const state = {
     {
       id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength',
       priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
+      priorDate: 'May 8',
       sets: [
         { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target' },
@@ -1095,6 +1122,7 @@ const state = {
     {
       id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume',
       priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
+      priorDate: 'May 8',
       sets: [
         { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target' },
@@ -1149,24 +1177,24 @@ function computeRecommendation(set, trackRpe = true) {
     if (r >= 15) {
       delta = 10;
       actionLabel = `Add ${delta} lb`;
-      reason = 'Volume past target range. Capacity remains.';
+      reason = `${r} reps — well past target range, capacity remains.`;
       nextReps = Math.max(8, r - 5);
     } else if (r >= 12) {
       delta = 5;
       actionLabel = `Add ${delta} lb`;
-      reason = 'Volume above target. Small bump.';
+      reason = `${r} reps — above target range.`;
     } else if (r >= 6) {
       delta = 0;
       actionLabel = 'Hold';
-      reason = 'Productive range. Repeat the load.';
+      reason = `${r} reps — productive range.`;
     } else if (r >= 3) {
       delta = -5;
       actionLabel = `Drop ${Math.abs(delta)} lb`;
-      reason = 'Low rep count. Drop unless this was strength work.';
+      reason = `${r} reps — low unless this was strength work.`;
     } else {
       delta = -10;
       actionLabel = `Drop ${Math.abs(delta)} lb`;
-      reason = 'Volume below target. Drop weight.';
+      reason = `${r} reps — well below target.`;
     }
 
     return {
@@ -1194,28 +1222,28 @@ function computeRecommendation(set, trackRpe = true) {
   if (r <= 4 && reps >= 15) {
     delta = 10;
     actionLabel = `Add ${delta} lb`;
-    reason = 'High volume at low effort. Find a real working load.';
+    reason = `RPE ${r} at ${reps} reps — find a real working load.`;
     nextReps = Math.max(8, reps - 5);
   } else if (r <= 5) {
     delta = 10;
     actionLabel = `Add ${delta} lb`;
-    reason = 'Well within capacity.';
+    reason = `RPE ${r} — well within capacity.`;
   } else if (r <= 7) {
     delta = 5;
     actionLabel = `Add ${delta} lb`;
-    reason = 'Effort controlled. Small bump.';
+    reason = `RPE ${r} — effort controlled.`;
   } else if (r <= 8) {
     delta = 0;
     actionLabel = `Hold`;
-    reason = 'Productive effort.';
+    reason = `RPE ${r} — productive effort.`;
   } else if (r <= 9) {
     delta = -5;
     actionLabel = `Drop ${Math.abs(delta)} lb`;
-    reason = 'Near failure. Drop to keep volume clean.';
+    reason = `RPE ${r} — near failure, drop to keep volume clean.`;
   } else {
     delta = -10;
     actionLabel = `Drop ${Math.abs(delta)} lb`;
-    reason = 'Maxed out. Drop and rest.';
+    reason = `RPE ${r} — maxed out, drop and rest.`;
   }
 
   return {
@@ -1322,6 +1350,9 @@ function renderWorkout() {
   const cur = getCurrentSet(mv);
   $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
   $('#wm-prior').textContent = mv.priorRef;
+  $('#wm-prior-label').textContent = mv.priorDate
+    ? `LAST SESSION · ${mv.priorDate.toUpperCase()}`
+    : 'LAST SESSION';
 
   // Preference chips (session-wide)
   $('#toggle-rpe').classList.toggle('on', state.session.trackRpe);
@@ -1395,13 +1426,16 @@ function renderWorkout() {
       if (isLast && state.session.aiRecOn) {
         const r = computeRecommendation(s, state.session.trackRpe);
         if (!r.muted) {
-          // Eyebrow text: NEXT SET if more sets remain, NEXT TIME if movement complete
+          // Eyebrow attributes the rec to the source set so the user can see
+          // exactly what data the AI is reasoning from.
           const moreToDo = mv.sets.some(x => x.status !== 'done');
-          const eyebrowText = moreToDo ? 'NEXT SET' : 'NEXT TIME';
+          const eyebrowText = moreToDo
+            ? `NEXT · FROM SET ${s.idx}`
+            : `NEXT TIME · FROM SET ${s.idx}`;
           const showApply = moreToDo;
           html += `
             <div class="rec-inline" data-rec-base="${s.idx}">
-              <div class="head"><span class="eyebrow">${eyebrowText}</span></div>
+              <span class="eyebrow">${eyebrowText}</span>
               <div class="row">
                 <span class="action">${r.action}</span>
                 <span class="next">→ ${r.next}</span>
@@ -1464,6 +1498,15 @@ function renderWorkout() {
   } else {
     futSection.innerHTML = '';
   }
+
+  // === Add-set affordance (always visible during a workout) ===
+  const addSetWrap = $('#wm-add-set');
+  addSetWrap.innerHTML = `
+    <button class="add-set-btn" id="btn-add-set">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Add set
+    </button>`;
+  $('#btn-add-set').addEventListener('click', addSet);
 
   // AI recommendation card.
   // - Render ONLY when there's a real, non-muted recommendation to show.
@@ -1558,6 +1601,43 @@ function logSet(idx) {
   if (next) next.status = 'current';
   renderWorkout();
   showToast(`Set ${idx} logged.`);
+}
+
+function addSet() {
+  const mv = getActiveMovement();
+  if (!mv) return;
+
+  // Smart defaults for the new set: copy weight + reps from the most relevant
+  // prior set so the user doesn't start from a blank picker.
+  // Priority: last logged set > last target set > blank.
+  let newWeight = null, newReps = null;
+  const logged = mv.sets.filter(s => s.status === 'done');
+  const targets = mv.sets.filter(s => s.status === 'target');
+  if (logged.length > 0) {
+    const last = logged[logged.length - 1];
+    newWeight = last.weight;
+    newReps = last.reps;
+  } else if (targets.length > 0) {
+    const last = targets[targets.length - 1];
+    newWeight = last.weight;
+    newReps = last.reps;
+  }
+
+  // If no current set exists (movement was complete), the new set becomes
+  // the active one — switches the hero back from "MOVEMENT COMPLETE".
+  const hasCurrent = mv.sets.some(s => s.status === 'current');
+  const newSet = {
+    idx: mv.sets.length + 1,
+    weight: newWeight,
+    reps: newReps,
+    rpe: null,
+    status: hasCurrent ? 'target' : 'current',
+  };
+  mv.sets.push(newSet);
+  // If the movement was previously marked complete, undo that
+  if (mv.status === 'complete') mv.status = 'pending';
+  renderWorkout();
+  showToast(`Set ${newSet.idx} added.`);
 }
 
 function removeSet(idx) {
