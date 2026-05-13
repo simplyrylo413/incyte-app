@@ -6895,7 +6895,7 @@
   .mv.drop-target-after  { box-shadow: 0 2px 0 var(--accent), var(--depth-1); }
 
   .mv .body { flex: 1; min-width: 0; }
-  .mv .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .mv .row1 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 4px; }
   .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
   /* Equipment pill — neutral ghost outline, tappable to change. Sits inline
      with the movement name. Tap opens a small popover with equipment chips. */
@@ -13191,6 +13191,29 @@ function renderTodayV2() {
     if (total > 0 && done === total) completedItems.push(item);
     else remainingItems.push(item);
   });
+  // Also surface movements completed in earlier finished-today sessions
+  // (History). These were filtered out of plan/adhoc above so they don't
+  // duplicate-render in Remaining; pull them in here so Completed reflects
+  // *everything* done today, not just what was completed from the active
+  // session. Read-only — no equipment edit, no remove, tap is a no-op.
+  const seenCompletedMids = new Set(completedItems.map(it => it && it.p && it.p.mid).filter(Boolean));
+  finishedTodayList.forEach(w => {
+    if (w && w.id && tombstonedIds.has(w.id)) return;
+    (w.entries || []).forEach(entry => {
+      if (!entry || !entry.movementId) return;
+      if (seenCompletedMids.has(entry.movementId)) return;
+      const sets = entry.sets || [];
+      if (!sets.length || !sets.some(s => s.done)) return;
+      const mv = (typeof getMv === 'function') ? getMv(entry.movementId) : null;
+      completedItems.push({
+        p: { id: 'hist-' + w.id + '-' + entry.movementId, mid: entry.movementId, muscle: entry.muscle },
+        mv,
+        entry,
+        fromHistory: true,
+      });
+      seenCompletedMids.add(entry.movementId);
+    });
+  });
   const visibleItems = activeTab === 'completed' ? completedItems : remainingItems;
   visibleItems.forEach(item => {
     const bp = (item.mv && (item.mv.bodyPart || item.mv.muscle || item.mv.category)) || (item.p && item.p.muscle) || 'Other';
@@ -13227,12 +13250,13 @@ function renderTodayV2() {
       const equip = ((item.entry && item.entry.equipmentType) || (item.p && item.p.equipmentType) || (item.mv && item.mv.equipment) || 'unspecified').toString().toLowerCase();
       const isComplete = total > 0 && done === total;
       const name = (item.mv && item.mv.name) || (item.entry && item.entry.name) || '—';
+      const fromHistory = !!item.fromHistory;
       const card = document.createElement('div');
-      card.className = 'mv' + (isComplete ? ' is-complete' : '');
+      card.className = 'mv' + (isComplete ? ' is-complete' : '') + (fromHistory ? ' from-history' : '');
       card.dataset.planId = item.p.id;
       card.dataset.mid = item.p.mid;
       card.innerHTML = `
-        <span class="drag-handle" aria-hidden="true">
+        ${fromHistory ? '' : `<span class="drag-handle" aria-hidden="true">
           <svg viewBox="0 0 10 14" fill="none">
             <circle cx="2" cy="2"  r="1.2" fill="currentColor"/>
             <circle cx="8" cy="2"  r="1.2" fill="currentColor"/>
@@ -13241,31 +13265,36 @@ function renderTodayV2() {
             <circle cx="2" cy="12" r="1.2" fill="currentColor"/>
             <circle cx="8" cy="12" r="1.2" fill="currentColor"/>
           </svg>
-        </span>
+        </span>`}
         <div class="body">
           <div class="row1">
             <span class="name">${escapeHtmlSafe(name)}</span>
             <span class="equip-wrap">
-              <button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
-              <div class="equip-pop" data-equip-pop>${EQUIPMENT_OPTIONS_V2.map(opt => `<button class="equip-chip${opt === equip ? ' active' : ''}" type="button" data-equip="${opt}">${opt}</button>`).join('')}</div>
+              ${fromHistory
+                ? `<span class="equip" aria-label="Equipment: ${equip}">${equip.toUpperCase()}</span>`
+                : `<button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
+              <div class="equip-pop" data-equip-pop>${EQUIPMENT_OPTIONS_V2.map(opt => `<button class="equip-chip${opt === equip ? ' active' : ''}" type="button" data-equip="${opt}">${opt}</button>`).join('')}</div>`}
             </span>
           </div>
         </div>
         <span class="progress-chip${isComplete ? ' done' : ''}">${isComplete ? 'DONE' : `${done}/${total}`}</span>
-        <button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
+        ${fromHistory ? '' : `<button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
           <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        </button>`;
+        </button>`}`;
       // Tap card body → enter workout mode (skip the equipment area).
-      card.querySelector('.body').addEventListener('click', (e) => {
-        if (e.target.closest('.equip-wrap')) return;
-        if (typeof openWorkoutMode === 'function') openWorkoutMode(item.p.mid, item.p.id);
-        else go('workout');
-      });
+      // History-sourced cards are read-only — tap does nothing.
+      if (!fromHistory) {
+        card.querySelector('.body').addEventListener('click', (e) => {
+          if (e.target.closest('.equip-wrap')) return;
+          if (typeof openWorkoutMode === 'function') openWorkoutMode(item.p.mid, item.p.id);
+          else go('workout');
+        });
+      }
       // Removal mirrors production's logic in buildMvBlock (line ~14027):
       // adhoc entries get filtered from data.active.entries; plan items get
       // their planId pushed to data.active.hiddenPlanIds so they stay hidden
       // for this session without disturbing the underlying plan template.
-      card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
+      if (!fromHistory) card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
         e.stopPropagation();
         const pid = item.p.id;
         if (!confirm("Remove this movement from today's session only? It stays in your plan.")) return;
@@ -13289,8 +13318,9 @@ function renderTodayV2() {
       });
       // Equipment popover: tap pill → toggle; tap chip → set + close. Writes
       // to entry.equipmentType only, per port-plan decision 2026-05-13.
-      const equipBtn = card.querySelector('[data-equip-toggle]');
-      const equipPop = card.querySelector('[data-equip-pop]');
+      // History-sourced cards render a non-interactive equip label (no popover).
+      const equipBtn = fromHistory ? null : card.querySelector('[data-equip-toggle]');
+      const equipPop = fromHistory ? null : card.querySelector('[data-equip-pop]');
       if (equipBtn && equipPop) {
         equipBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -13328,15 +13358,19 @@ function renderTodayV2() {
   });
 
   // Inline + ADD MOVEMENT button (matches workout-mode's + ADD SET treatment).
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-mv-btn';
-  addBtn.type = 'button';
-  addBtn.innerHTML = `<svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Add movement`;
-  addBtn.addEventListener('click', () => {
-    const trigger = document.getElementById('today-add-mv-btn') || document.getElementById('today-empty-add');
-    if (trigger) trigger.click();
-  });
-  scrollEl.appendChild(addBtn);
+  // Only shown on the Remaining tab — Completed is a review surface for
+  // finished work, not a place to add new movements.
+  if (activeTab === 'remaining') {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-mv-btn';
+    addBtn.type = 'button';
+    addBtn.innerHTML = `<svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Add movement`;
+    addBtn.addEventListener('click', () => {
+      const trigger = document.getElementById('today-add-mv-btn') || document.getElementById('today-empty-add');
+      if (trigger) trigger.click();
+    });
+    scrollEl.appendChild(addBtn);
+  }
 
   // The legacy "✓ N completed today" footer pill is retired — the
   // Remaining/Completed toggle above the list replaces its function.
@@ -13957,7 +13991,7 @@ function openPickerV2(field, setIdx) {
     overlay.onclick = null;
   };
   doneBtn.onclick = () => close(true);
-  overlay.onclick = (e) => { if (e.target === overlay) close(false); };
+  overlay.onclick = (e) => { if (e.target === overlay) close(true); };
   overlay.style.display = 'flex';
   overlay.classList.add('active');
 }
