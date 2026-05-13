@@ -506,13 +506,13 @@
   .wm-actions .complete { color: white; padding: 8px 14px; background: var(--ok); border-radius: var(--r-pill); border: 1px solid rgba(79,154,168,0.30); }
   .wm-actions .complete:disabled { background: var(--paper-2); color: var(--label); border-color: var(--hairline); cursor: not-allowed; }
 
-  /* === Number Picker Overlay === */
+  /* === Number Picker Overlay — redesigned per user-approved screenshots === */
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(15,22,34,0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(15,22,34,0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     z-index: 50;
     display: none;
     align-items: flex-end;
@@ -521,76 +521,121 @@
   .sheet {
     width: 100%;
     background: white;
-    border-radius: var(--r-xl) var(--r-xl) 0 0;
-    box-shadow: 0 -16px 40px rgba(15,22,34,0.16);
-    padding: 8px 0 22px;
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -20px 48px rgba(15,22,34,0.18), 0 -4px 12px rgba(15,22,34,0.06);
+    padding: 8px 0 26px;
     max-height: 78%;
     overflow-y: auto;
     transform: translateY(0);
-    animation: slideUp 250ms ease-out;
+    animation: slideUp 280ms cubic-bezier(0.32, 0.72, 0.30, 1);
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .sheet::-webkit-scrollbar { display: none; }
-  .handle { width: 38px; height: 4px; background: var(--hairline-strong); border-radius: var(--r-pill); margin: 6px auto 14px; }
+  .handle { width: 38px; height: 4px; background: var(--hairline-strong); border-radius: var(--r-pill); margin: 6px auto 16px; }
 
-  .pk-header { padding: 0 22px 14px; display: flex; justify-content: space-between; align-items: baseline; }
-  .pk-header .lbl { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: var(--label); }
-  .pk-header .val { font: 700 40px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; }
-  .pk-header .unit { font: 500 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--muted); margin-left: 6px; }
-
-  .pk-steppers { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 0 16px 14px; }
-  .pk-steppers button {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--r-md);
-    padding: 12px 0;
-    font: 700 13px/1 'Geist Mono',ui-monospace,monospace;
-    color: var(--ink);
-    cursor: pointer;
-    transition: background 150ms ease-out;
-  }
-  .pk-steppers button:hover { background: white; border-color: var(--accent); }
-  .pk-steppers button:active { transform: scale(0.96); }
-
-  .pk-presets {
+  /* Header: title left, Done pill right */
+  .pk-header {
+    padding: 0 22px 18px;
     display: flex;
-    gap: 6px;
-    padding: 0 16px 14px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
   }
-  .pk-presets .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; color: var(--label); text-transform: uppercase; width: 100%; margin-bottom: 4px; padding-left: 6px; }
-  .pk-presets button {
-    background: var(--paper);
+  .pk-title {
+    font: 700 16px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .pk-done {
+    background: white;
     border: 1px solid var(--hairline);
     border-radius: var(--r-pill);
-    padding: 8px 14px;
-    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
+    padding: 9px 18px;
+    font: 600 13px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
     color: var(--ink);
     cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  .pk-presets button.active { background: var(--ink-deep); color: white; border-color: var(--ink-deep); }
-  .pk-presets button:hover:not(.active) { background: white; border-color: var(--accent); }
+  .pk-done:hover { background: var(--ink-deep); color: white; border-color: var(--ink-deep); }
+  .pk-done:active { transform: scale(0.97); }
 
-  .pk-done {
-    margin: 8px 22px 0;
-    width: calc(100% - 44px);
-    padding: 14px;
-    background: var(--ink-deep);
-    color: white;
-    border: none;
-    border-radius: var(--r-pill);
-    font: 600 14px/1 'Inter Tight',sans-serif;
-    cursor: pointer;
+  /* Big value display card */
+  .pk-display {
+    margin: 0 20px 16px;
+    padding: 22px 20px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 3px rgba(15,22,34,0.04);
   }
-  .pk-clear {
-    margin: 6px auto 0;
-    display: block;
-    background: transparent;
-    border: none;
+  .pk-val {
+    font: 700 54px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+  }
+  .pk-unit {
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
-    font: 500 12px/1 'Inter Tight',sans-serif;
-    padding: 10px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Stepper row — 6 columns, padded layout for fewer-than-6 fields */
+  .pk-steppers {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 0 20px 14px;
+  }
+  .pk-steppers button {
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 13px;
+    padding: 13px 0;
+    font: 700 13px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
     cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, border-color 180ms ease-out, transform 150ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .pk-steppers button:hover {
+    background: rgba(93,155,184,0.05);
+    border-color: rgba(93,155,184,0.35);
+  }
+  .pk-steppers button:active { transform: scale(0.96); }
+  .pk-steppers .pk-pad { visibility: hidden; pointer-events: none; }
+
+  /* Preset grid — 4 columns, wraps to multiple rows */
+  .pk-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 0 20px;
+  }
+  .pk-presets button {
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 15px 0;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, border-color 180ms ease-out, transform 150ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .pk-presets button:hover { background: var(--paper-2); }
+  .pk-presets button:active { transform: scale(0.97); }
+  .pk-presets button.active {
+    background: rgba(93,155,184,0.10);
+    border-color: rgba(93,155,184,0.32);
+    color: var(--ink);
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 0 0 1px rgba(93,155,184,0.15);
   }
 
   /* === Add Movement Sheet === */
@@ -799,16 +844,15 @@
     <div class="sheet">
       <div class="handle"></div>
       <div class="pk-header">
-        <span class="lbl" id="pk-label">WEIGHT</span>
-        <div>
-          <span class="val" id="pk-val">185</span>
-          <span class="unit" id="pk-unit">LB</span>
-        </div>
+        <span class="pk-title" id="pk-title">Weight</span>
+        <button class="pk-done" id="pk-done">Done</button>
+      </div>
+      <div class="pk-display">
+        <span class="pk-val" id="pk-val">185</span>
+        <span class="pk-unit" id="pk-unit">LB</span>
       </div>
       <div class="pk-steppers" id="pk-steppers"></div>
       <div class="pk-presets" id="pk-presets"></div>
-      <button class="pk-done" id="pk-done">Done</button>
-      <button class="pk-clear" id="pk-clear">Clear value</button>
     </div>
   </div>
 
@@ -1415,13 +1459,19 @@ function removeMovement(id) {
 // PICKER
 // ============================================================
 const PICKER_CONFIG = {
-  // Weight presets cover the common range from empty bar / small DBs through
-  // heavy compound loads. Pre-loaded barbell increments (45/95/135/185/225/275)
-  // plus low-end accessory / DB starting points (10/25/45).
-  weight: { label: 'WEIGHT', unit: 'LB', steps: [-10, -5, -1, 1, 5, 10], presets: [10, 25, 45, 65, 95, 135, 185, 225, 275], min: 0 },
-  reps:   { label: 'REPS',   unit: 'REPS',   steps: [-5, -1, 1, 5], presets: [5, 6, 7, 8, 10, 12, 15, 20], min: 0 },
-  rpe:    { label: 'RPE',    unit: 'EFFORT', steps: [-0.5, 0.5], presets: [4, 5, 6, 7, 7.5, 8, 8.5, 9, 9.5], min: 0, max: 10 },
+  // Weight presets are DYNAMIC — generated centered on the current value
+  // (current ±5, ±10, ±20). Gives fine-tune jumps without forcing the user
+  // to step from a fixed default.
+  weight: { label: 'Weight', unit: 'LB',     steps: [-10, -5, -1, 1, 5, 10], presets: 'dynamic', min: 0 },
+  reps:   { label: 'Reps',   unit: 'REPS',   steps: [-5, -1, 1, 5],          presets: [5, 6, 7, 8, 10, 12, 15, 20], min: 0 },
+  rpe:    { label: 'RPE',    unit: 'EFFORT', steps: [-1, -0.5, 0.5, 1],      presets: [4, 5, 6, 7, 7.5, 8, 8.5, 9, 9.5], min: 0, max: 10 },
 };
+
+function generateWeightPresets(current) {
+  // Offsets give the user fine-tune options near the current value
+  const offsets = [-20, -10, -5, 0, 5, 10, 20];
+  return offsets.map(o => current + o).filter(v => v >= 0);
+}
 
 function openPicker(field, setIdx) {
   const mv = getActiveMovement();
@@ -1442,18 +1492,21 @@ function openPicker(field, setIdx) {
 
 function renderPicker() {
   const cfg = PICKER_CONFIG[state.picker.field];
-  $('#pk-label').textContent = cfg.label;
+  $('#pk-title').textContent = cfg.label;
   $('#pk-unit').textContent = cfg.unit;
   $('#pk-val').textContent = state.picker.value;
 
+  // Steppers — fixed 6-column grid; pad invisibly when a field has fewer
   const steppers = $('#pk-steppers');
   steppers.innerHTML = '';
-  // Pad to 6 columns
   const cols = 6;
   const filled = cfg.steps.length;
   const padLeft = Math.floor((cols - filled) / 2);
+  const padRight = cols - filled - padLeft;
   for (let i = 0; i < padLeft; i++) {
-    const e = document.createElement('div');
+    const e = document.createElement('button');
+    e.className = 'pk-pad';
+    e.disabled = true;
     steppers.appendChild(e);
   }
   cfg.steps.forEach(delta => {
@@ -1468,25 +1521,29 @@ function renderPicker() {
     });
     steppers.appendChild(btn);
   });
+  for (let i = 0; i < padRight; i++) {
+    const e = document.createElement('button');
+    e.className = 'pk-pad';
+    e.disabled = true;
+    steppers.appendChild(e);
+  }
 
+  // Presets — 4-column grid. Active preset gets tinted highlight.
   const presets = $('#pk-presets');
   presets.innerHTML = '';
-  if (cfg.presets.length > 0) {
-    const lbl = document.createElement('div');
-    lbl.className = 'lbl';
-    lbl.textContent = 'PRESETS';
-    presets.appendChild(lbl);
-    cfg.presets.forEach(v => {
-      const btn = document.createElement('button');
-      btn.textContent = v;
-      if (v === state.picker.value) btn.classList.add('active');
-      btn.addEventListener('click', () => {
-        state.picker.value = v;
-        renderPicker();
-      });
-      presets.appendChild(btn);
+  const presetList = cfg.presets === 'dynamic'
+    ? generateWeightPresets(state.picker.value)
+    : cfg.presets;
+  presetList.forEach(v => {
+    const btn = document.createElement('button');
+    btn.textContent = v;
+    if (v === state.picker.value) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      state.picker.value = v;
+      renderPicker();
     });
-  }
+    presets.appendChild(btn);
+  });
 }
 
 function closePicker(save) {
@@ -1498,15 +1555,6 @@ function closePicker(save) {
   }
   $('#picker-overlay').classList.remove('active');
   state.picker = null;
-}
-
-function clearPickerValue() {
-  const mv = getActiveMovement();
-  const set = mv.sets.find(s => s.idx === state.picker.setIdx);
-  set[state.picker.field] = null;
-  $('#picker-overlay').classList.remove('active');
-  state.picker = null;
-  renderWorkout();
 }
 
 // ============================================================
@@ -1605,7 +1653,7 @@ $('#toggle-ai').addEventListener('click', () => {
 });
 
 $('#pk-done').addEventListener('click', () => closePicker(true));
-$('#pk-clear').addEventListener('click', clearPickerValue);
+// Tap outside the sheet (on the dimmed backdrop) to dismiss without saving
 $('#picker-overlay').addEventListener('click', (e) => {
   if (e.target.id === 'picker-overlay') closePicker(false);
 });
