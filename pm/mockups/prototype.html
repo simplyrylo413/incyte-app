@@ -474,100 +474,69 @@
     padding: 12px 22px 6px;
     flex-shrink: 0;
   }
-  /* Tighter spacing for upcoming-only section (sets directly inside) */
-  #wm-future-section .sets { gap: 4px; }
+  /* (gap unified to 4px on all .sets containers) */
 
-  /* Set rows — individual glass cards (no hairlines). Each row is its own
-     premium surface with backdrop-blur, inset highlight, multi-layer shadow. */
+  /* Set rows — thin soft-blue pills matching the Previous reference panel.
+     Collapsed state is as compact as possible: minimal padding, single
+     line, hairline-tinted border. Both LOGGED and TARGET use the same
+     base; the meta chip differentiates state. */
   .sets {
     padding: 0 22px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     flex-shrink: 0;
   }
   .set-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: rgba(255,255,255,0.60);
-    backdrop-filter: blur(22px) saturate(1.4);
-    -webkit-backdrop-filter: blur(22px) saturate(1.4);
-    border: 1px solid rgba(255,255,255,0.78);
-    border-radius: 14px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.95) inset,
-      0 0 0 1px rgba(15,22,34,0.03),
-      0 4px 14px rgba(15,22,34,0.04);
-    transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease-out;
+    gap: 10px;
+    padding: 5px 12px;
+    background: rgba(93,155,184, 0.06);
+    border: 1px solid rgba(93,155,184, 0.18);
+    border-radius: 10px;
+    box-shadow: none;
+    transition: background 180ms ease-out;
   }
   .set-row .idx {
-    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.18em;
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--label);
-    width: 44px;
+    width: 38px;
     flex-shrink: 0;
   }
   .set-row .vals {
     flex: 1;
-    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--ink);
+    letter-spacing: 0.01em;
   }
   .set-row .meta {
-    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--label);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
   }
   .set-row.done {
     cursor: pointer;
   }
-  .set-row.done:hover {
-    transform: translateY(-1px);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.95) inset,
-      0 8px 20px rgba(15,22,34,0.08);
-  }
+  .set-row.done:hover { background: rgba(93,155,184, 0.10); }
   .set-row.done .vals { color: var(--ink); }
   .set-row.done .meta {
     color: var(--ok);
-    padding: 5px 11px;
-    background: rgba(79,154,168,0.12);
-    border: 1px solid rgba(79,154,168,0.28);
+    padding: 3px 8px;
+    background: rgba(79,154,168, 0.12);
+    border: 1px solid rgba(79,154,168, 0.26);
     border-radius: 999px;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset;
   }
-  /* UPCOMING (target) rows compressed — they don't add value during the
-     active phase and create visual confusion. Now much smaller, no glass
-     card treatment, just compact hairline rows. */
-  .set-row.target {
-    padding: 6px 12px;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: 1px solid rgba(15,22,34,0.06);
-    border-radius: 8px;
-    box-shadow: none;
-    gap: 10px;
-  }
-  .set-row.target:hover {
-    transform: none;
-    box-shadow: none;
-    background: rgba(15,22,34,0.02);
-  }
-  .set-row.target .idx { font-size: 9px; width: 38px; }
-  .set-row.target .vals { flex: 1; font-size: 12px; color: var(--label); }
-  .set-row.target .meta { font-size: 9px; color: var(--label); }
-  .set-row.target .row-remove { width: 20px; height: 20px; border-radius: 6px; }
-  .set-row.target .row-remove svg { width: 9px; height: 9px; }
+  .set-row.target .vals { color: var(--muted); }
 
-  /* Per-set remove — small ghost button on the right edge of each card */
+  /* Per-set remove — small ghost button on the right edge of each pill */
   .set-row .row-remove {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
     border: 1px solid transparent;
     background: transparent;
     display: grid;
@@ -579,10 +548,10 @@
   }
   .set-row .row-remove:hover {
     color: var(--bad);
-    background: rgba(176,128,146,0.10);
-    border-color: rgba(176,128,146,0.28);
+    background: rgba(176,128,146, 0.10);
+    border-color: rgba(176,128,146, 0.28);
   }
-  .set-row .row-remove svg { width: 11px; height: 11px; }
+  .set-row .row-remove svg { width: 9px; height: 9px; }
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
@@ -1293,6 +1262,21 @@ function getCurrentSet(mv) {
   return mv.sets.find(s => s.status === 'current');
 }
 
+// Convert a verbose priorRef like "185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5"
+// into a glanceable range string like "180-185 lb · 8-10 reps".
+function formatPriorAsRange(priorRef) {
+  if (!priorRef || priorRef === '—') return '—';
+  const matches = [...priorRef.matchAll(/(\d+(?:\.\d+)?)\s*×\s*(\d+)/g)];
+  if (matches.length === 0) return priorRef;
+  const weights = matches.map(m => parseFloat(m[1]));
+  const reps = matches.map(m => parseInt(m[2], 10));
+  const minW = Math.min(...weights), maxW = Math.max(...weights);
+  const minR = Math.min(...reps),    maxR = Math.max(...reps);
+  const weightStr = minW === maxW ? `${minW} lb` : `${minW}-${maxW} lb`;
+  const repsStr = minR === maxR ? `${minR} reps` : `${minR}-${maxR} reps`;
+  return `${weightStr} · ${repsStr}`;
+}
+
 // AI recommendation logic (per UX rationale):
 //   low RPE → add weight; high RPE → drop; mid → hold
 //   very high reps + low RPE → big add
@@ -1485,13 +1469,10 @@ function renderWorkout() {
   $('#wm-set-total').textContent = mv.sets.length;
   const cur = getCurrentSet(mv);
   $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
-  // Previous reference: strip @RPE tokens (last session's effort isn't
-  // relevant for today's planning), swap the multiplication sign for ' x ',
-  // and replace bullet separator with comma to match the minimal pill style.
-  $('#wm-prior').textContent = mv.priorRef
-    .replace(/\s*@\d+(?:\.\d+)?/g, '')
-    .replace(/\s*·\s*/g, ', ')
-    .replace(/(\d)\s*×\s*(\d)/g, '$1 x $2');
+  // Previous reference: summarize last session as a weight range + rep range
+  // ("180-185 lb · 8-10 reps") rather than listing every set. Keeps the
+  // historical context glanceable without dominating the page.
+  $('#wm-prior').textContent = formatPriorAsRange(mv.priorRef);
 
   // (Track RPE / AI toggles now render inside the footer action bar below)
 
