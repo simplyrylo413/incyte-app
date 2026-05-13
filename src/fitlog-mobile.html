@@ -12507,6 +12507,587 @@ function escapeHtmlSafe(s) {
 })();
 // ============= end Phase 3 V2 layer =============
 
+// =============================================================
+// PORT PLAN PHASE 3c — Workout Mode V2 (renderWorkoutV2 + helpers)
+// Drives the new #view-workout view. Reads from data.active.entries
+// (production's set shape: {weight, reps, rpe, done, warmup, bw}).
+// Cardio + Mobility movements take the legacy carve-out: their
+// big-type hero is hidden and they fall back to a simple status message
+// (logging-only per decision 2026-05-13).
+// =============================================================
+
+// Transient UI state for Workout Mode — never persisted.
+window.ui = window.ui || {};
+ui.session = ui.session || {
+  activeMid: null,           // movement id currently in Workout Mode
+  activePlanId: null,        // plan item id
+  trackRpe: true,
+  aiRecOn: true,
+  restTimer: {
+    enabled: false,
+    duration: 120,
+    remaining: 0,
+    intervalId: null,
+    presets: [60, 90, 120, 180, 300],
+  },
+};
+
+function formatTimeWm(sec) {
+  if (sec == null || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function openWorkoutModeV2(mid, planId) {
+  ui.session.activeMid = mid;
+  ui.session.activePlanId = planId;
+  if (typeof go === 'function') go('workout');
+  setTimeout(renderWorkoutV2, 0);
+}
+
+function backToTodayV2() {
+  stopRestTimerV2();
+  if (typeof go === 'function') go('today');
+}
+
+function getActiveWorkoutEntry() {
+  const mid = ui.session.activeMid;
+  const planId = ui.session.activePlanId;
+  if (!mid) return null;
+  let entry = (typeof activeEntryFor === 'function') ? activeEntryFor(mid, planId) : null;
+  // If no active entry yet, try ensureActiveEntry with sensible defaults.
+  if (!entry && typeof ensureActiveEntry === 'function') {
+    const mv = (typeof getMv === 'function') ? getMv(mid) : null;
+    const defaults = { sets: [], plannedReps: null };
+    // Seed with planned set count from prevW/prevR if available (production
+    // already populates these via defaultSetsFor when Today first renders).
+    try {
+      if (typeof defaultSetsFor === 'function' && planId) {
+        const seeded = defaultSetsFor(planId);
+        if (seeded && seeded.sets) defaults.sets = seeded.sets;
+      }
+    } catch (e) {}
+    entry = ensureActiveEntry(mid, planId, defaults);
+  }
+  return entry;
+}
+
+function currentSetIdxV2(entry) {
+  if (!entry || !entry.sets) return -1;
+  for (let i = 0; i < entry.sets.length; i++) if (!entry.sets[i].done) return i;
+  return -1;
+}
+
+function prevForSetV2(entry, idx) {
+  const s = entry && entry.sets ? entry.sets[idx] : null;
+  if (!s) return '—';
+  if (s.prevW != null && s.prevR != null) return `${s.prevW} × ${s.prevR}`;
+  return '—';
+}
+
+function renderWorkoutV2() {
+  const view = document.getElementById('view-workout');
+  if (!view) return;
+  const entry = getActiveWorkoutEntry();
+  const mid = ui.session.activeMid;
+  const planId = ui.session.activePlanId;
+  const mv = (typeof getMv === 'function') ? getMv(mid) : null;
+
+  // ---- Breadcrumb + name ----
+  const equip = ((entry && entry.equipmentType) || (mv && mv.equipment) || 'barbell').toString().toUpperCase();
+  const bodyPart = ((mv && (mv.bodyPart || mv.muscle || mv.category)) || '—').toString().toUpperCase();
+  const bp = view.querySelector('#wm-body-part');
+  if (bp) bp.textContent = `${bodyPart} · ${equip}`;
+  const nm = view.querySelector('#wm-name');
+  if (nm) nm.textContent = (mv && mv.name) || '—';
+
+  // ---- History pill ----
+  const priorEl = view.querySelector('#wm-prior');
+  const priorDateEl = view.querySelector('#wm-prior-date');
+  let lastEntry = null;
+  if (typeof lastSessionFor === 'function' && mid) {
+    try { lastEntry = lastSessionFor(mid); } catch (e) {}
+  }
+  if (lastEntry && lastEntry.sets && lastEntry.sets.length) {
+    const wRange = (() => {
+      const ws = lastEntry.sets.map(s => s.weight).filter(v => v != null);
+      if (!ws.length) return '—';
+      const min = Math.min(...ws), max = Math.max(...ws);
+      return min === max ? `${min} lb` : `${min}–${max} lb`;
+    })();
+    const rRange = (() => {
+      const rs = lastEntry.sets.map(s => s.reps).filter(v => v != null);
+      if (!rs.length) return '';
+      const min = Math.min(...rs), max = Math.max(...rs);
+      return min === max ? `${min} reps` : `${min}–${max} reps`;
+    })();
+    if (priorEl) priorEl.textContent = rRange ? `${wRange} · ${rRange}` : wRange;
+    if (priorDateEl && lastEntry.date) {
+      const d = new Date(lastEntry.date);
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      priorDateEl.textContent = `· ${months[d.getMonth()].toUpperCase()} ${d.getDate()}`;
+    }
+  } else {
+    if (priorEl) priorEl.textContent = '—';
+    if (priorDateEl) priorDateEl.textContent = '';
+  }
+
+  // ---- Cardio / Mobility carve-out: skip the big-type hero and set table ----
+  const isCard = (typeof isCardio === 'function') && isCardio(mv);
+  const planItem = (data.plans || []).find(p => p && p.id === planId);
+  const isMob = (typeof isMobility === 'function') && isMobility(mv, planItem);
+  const heroSlot = view.querySelector('#wm-hero');
+  const liveRecSlot = view.querySelector('#wm-live-rec');
+  const loggedSlot = view.querySelector('#wm-logged-section');
+  const futureSlot = view.querySelector('#wm-future-section');
+  const addSlot = view.querySelector('#wm-add-set');
+  if (heroSlot) heroSlot.innerHTML = '';
+  if (liveRecSlot) liveRecSlot.innerHTML = '';
+  if (loggedSlot) loggedSlot.innerHTML = '';
+  if (futureSlot) futureSlot.innerHTML = '';
+  if (addSlot) addSlot.innerHTML = '';
+
+  if (!entry || !entry.sets || !entry.sets.length) {
+    if (heroSlot) heroSlot.innerHTML = `
+      <div class="wm-empty" style="margin: 16px 22px;">
+        <div class="eb">No sets seeded</div>
+        <p>This movement has no planned sets yet. Tap "+ Add set" to start logging.</p>
+      </div>`;
+    if (addSlot) {
+      addSlot.innerHTML = `<button class="add-set-btn" type="button" id="wm-add-set-btn">+ Add set</button>`;
+      addSlot.querySelector('#wm-add-set-btn').addEventListener('click', addSetV2);
+    }
+    return;
+  }
+
+  if (isCard || isMob) {
+    if (heroSlot) heroSlot.innerHTML = `
+      <div class="wm-empty" style="margin: 16px 22px;">
+        <div class="eb">${isMob ? 'Mobility' : 'Cardio'}</div>
+        <p>Logging-only view. Use the legacy table below.</p>
+      </div>`;
+    // For now, fall back to a brief summary of sets. Phase 4 can integrate
+    // production's cardioTable / mobilityTable renderers here.
+    if (loggedSlot) {
+      const lines = entry.sets.map((s, i) => `<div class="prior" style="margin: 6px 22px;">
+        <span class="lbl">Set ${i + 1}</span>
+        <span class="vals">${s.done ? `${s.weight ?? '—'} × ${s.reps ?? '—'}` : '—'}</span>
+      </div>`).join('');
+      loggedSlot.innerHTML = lines;
+    }
+    return;
+  }
+
+  // ---- HERO (current set) ----
+  const cur = currentSetIdxV2(entry);
+  if (cur === -1) {
+    // All sets logged — show MOVEMENT COMPLETE hero
+    if (heroSlot) heroSlot.innerHTML = `
+      <div class="wm-hero" style="text-align:center;">
+        <div class="wm-hero-eyebrow" style="justify-content: center;">
+          <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
+        </div>
+        <p style="margin: 10px 0 4px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
+        <div class="wm-hero-actions">
+          <button class="wm-hero-cta" id="wm-btn-complete">Complete</button>
+        </div>
+      </div>`;
+    heroSlot.querySelector('#wm-btn-complete').addEventListener('click', completeMovementV2);
+  } else {
+    const s = entry.sets[cur];
+    const weight = s.weight != null ? s.weight : '—';
+    const reps = s.reps != null ? s.reps : '—';
+    const rpe = (ui.session.trackRpe && s.rpe != null) ? s.rpe : '—';
+    const wCls = s.weight == null ? ' empty' : '';
+    const rCls = s.reps == null ? ' empty' : '';
+    const rpeCls = (s.rpe == null) ? ' empty' : '';
+    const total = entry.sets.length;
+    const rt = ui.session.restTimer;
+    const restOn = !!rt.enabled;
+    const restDisplay = restOn ? formatTimeWm(rt.remaining) : formatTimeWm(rt.duration);
+    const restUrgent = restOn && rt.remaining <= 10 ? ' urgent' : '';
+    const restOnCls = restOn ? ' on' : '';
+    const clockSvg = '<svg class="timer-icon" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.5v2.5l1.6 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 2.4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+    const trackOn = ui.session.trackRpe, aiOn = ui.session.aiRecOn;
+    const rpeInline = ui.session.trackRpe
+      ? `<span class="wm-hero-sep">×</span><button class="wm-hero-num${rpeCls}" data-pk="rpe">${rpe}</button>`
+      : '';
+    const unitsBar = ui.session.trackRpe
+      ? '<span>LB</span><span>REPS</span><span>RPE</span>'
+      : '<span>LB</span><span>REPS</span>';
+
+    heroSlot.innerHTML = `
+      <div class="wm-hero">
+        <div class="wm-hero-eyebrow">
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur + 1}</span><span class="set-of"> of ${total}</span></span>
+          <span class="eyebrow-pills">
+            <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="wm-toggle-rpe"><span>RPE</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
+            <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="wm-toggle-ai"><span>AI</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
+            <span class="pill-rest-wrap">
+              <button class="pill-rest${restOnCls}${restUrgent}" id="rest-pill" aria-label="Rest timer">${clockSvg}<span class="lbl">Rest</span><span class="time" id="rest-pill-time">${restDisplay}</span></button>
+              <div class="dur-picker" id="rest-dur-picker"><span class="dur-label">Rest duration</span><div class="dur-chips" id="rest-dur-chips"></div></div>
+            </span>
+          </span>
+        </div>
+        <div class="wm-hero-statement">
+          <div class="wm-hero-primary">
+            <button class="wm-hero-num${wCls}" data-pk="weight">${weight}</button>
+            <span class="wm-hero-sep">×</span>
+            <button class="wm-hero-num${rCls}" data-pk="reps">${reps}</button>
+            ${rpeInline}
+          </div>
+          <div class="wm-hero-units-bar">${unitsBar}</div>
+        </div>
+        <div class="wm-hero-actions">
+          <button class="wm-hero-cta" id="wm-btn-log">Log set ${cur + 1}</button>
+        </div>
+      </div>`;
+    heroSlot.querySelectorAll('[data-pk]').forEach(el => {
+      el.addEventListener('click', () => openPickerV2(el.dataset.pk, cur));
+    });
+    heroSlot.querySelector('#wm-btn-log').addEventListener('click', () => logSetV2(cur));
+    heroSlot.querySelector('#wm-toggle-rpe').addEventListener('click', () => { ui.session.trackRpe = !ui.session.trackRpe; renderWorkoutV2(); });
+    heroSlot.querySelector('#wm-toggle-ai').addEventListener('click', () => { ui.session.aiRecOn = !ui.session.aiRecOn; renderWorkoutV2(); });
+    wireRestPillV2();
+  }
+
+  // ---- DONE + TARGET set rows ----
+  const headerHtml = `
+    <div class="col-head">
+      <span>Set</span><span></span><span>Previous</span><span class="h-today">Today</span><span></span><span></span>
+    </div>`;
+  const checkSvg = '<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const doneSets = entry.sets.map((s, i) => ({ s, i })).filter(x => x.s.done);
+  const targetSets = entry.sets.map((s, i) => ({ s, i })).filter(x => !x.s.done && x.i !== cur);
+  if (doneSets.length === 0 && targetSets.length === 0) {
+    // nothing to render — hero is the only thing visible
+  } else if (loggedSlot) {
+    let html = headerHtml + '<div class="sets">';
+    doneSets.forEach(({ s, i }) => {
+      const typeCls = s.warmup ? ' warmup' : '';
+      const bwCls = s.bw ? ' on' : '';
+      const rpeBit = (ui.session.trackRpe && s.rpe != null) ? `<span class="rpe-bit">@${s.rpe}</span>` : '';
+      html += `
+        <div class="set-row done" data-set-idx="${i}">
+          <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
+          <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
+          <span class="r-prev">${prevForSetV2(entry, i)}</span>
+          <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
+          <span class="chk">${checkSvg}</span>
+          <button class="row-remove" data-remove-set="${i}" type="button" aria-label="Remove">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>`;
+    });
+    html += '</div>';
+    loggedSlot.innerHTML = html;
+    loggedSlot.querySelectorAll('[data-toggle-type]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSetTypeV2(+el.dataset.toggleType); });
+    });
+    loggedSlot.querySelectorAll('[data-toggle-bw]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleBodyweightV2(+el.dataset.toggleBw); });
+    });
+    loggedSlot.querySelectorAll('[data-remove-set]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); removeSetV2(+el.dataset.removeSet); });
+    });
+  }
+  if (targetSets.length > 0 && futureSlot) {
+    let html = (doneSets.length === 0 ? headerHtml : '') + '<div class="sets">';
+    targetSets.forEach(({ s, i }) => {
+      const typeCls = s.warmup ? ' warmup' : '';
+      const bwCls = s.bw ? ' on' : '';
+      const isBlank = s.weight == null && s.reps == null;
+      const wDisp = s.weight != null ? s.weight : '—';
+      const rDisp = s.reps != null ? s.reps : '—';
+      html += `
+        <div class="set-row target" data-set-idx="${i}">
+          <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
+          <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
+          <span class="r-prev">${prevForSetV2(entry, i)}</span>
+          <span class="r-vals editable">
+            <button class="edit-num" data-edit-w="${i}" type="button">${wDisp}</button>
+            <span class="x">×</span>
+            <button class="edit-num" data-edit-r="${i}" type="button">${rDisp}</button>
+          </span>
+          <span class="chk">${checkSvg}</span>
+          <button class="row-remove" data-remove-set="${i}" type="button" aria-label="Remove">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>`;
+    });
+    html += '</div>';
+    futureSlot.innerHTML = html;
+    futureSlot.querySelectorAll('[data-toggle-type]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSetTypeV2(+el.dataset.toggleType); });
+    });
+    futureSlot.querySelectorAll('[data-toggle-bw]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleBodyweightV2(+el.dataset.toggleBw); });
+    });
+    futureSlot.querySelectorAll('[data-remove-set]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); removeSetV2(+el.dataset.removeSet); });
+    });
+    futureSlot.querySelectorAll('[data-edit-w]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); openPickerV2('weight', +el.dataset.editW); });
+    });
+    futureSlot.querySelectorAll('[data-edit-r]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); openPickerV2('reps', +el.dataset.editR); });
+    });
+  }
+
+  // ---- Add Set ----
+  if (addSlot) {
+    addSlot.innerHTML = `<button class="add-set-btn" type="button" id="wm-add-set-btn">+ Add set</button>`;
+    addSlot.querySelector('#wm-add-set-btn').addEventListener('click', addSetV2);
+  }
+}
+
+// --- Set actions ---
+function logSetV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[idx]) return;
+  const s = entry.sets[idx];
+  if (s.weight == null) { showToastV2('Add weight before logging.'); openPickerV2('weight', idx); return; }
+  if (s.reps == null) { showToastV2('Add reps before logging.'); openPickerV2('reps', idx); return; }
+  if (ui.session.trackRpe && s.rpe == null) { showToastV2('Add RPE before logging.'); openPickerV2('rpe', idx); return; }
+  s.done = true;
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+  if (typeof renderToday === 'function') renderToday();
+  showToastV2(`Set ${idx + 1} logged.`);
+}
+function addSetV2() {
+  const entry = getActiveWorkoutEntry();
+  if (!entry) return;
+  if (!entry.sets) entry.sets = [];
+  const last = entry.sets[entry.sets.length - 1];
+  entry.sets.push({
+    weight: last ? last.weight : null,
+    reps: last ? last.reps : null,
+    rpe: null, done: false, warmup: false, bw: false,
+  });
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+}
+function removeSetV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets) return;
+  if (entry.sets.length <= 1) { showToastV2('Movement needs at least one set.'); return; }
+  if (entry.sets[idx].done && !confirm(`Remove logged set ${idx + 1}?`)) return;
+  entry.sets.splice(idx, 1);
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+  if (typeof renderToday === 'function') renderToday();
+}
+function toggleSetTypeV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[idx]) return;
+  entry.sets[idx].warmup = !entry.sets[idx].warmup;
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+}
+function toggleBodyweightV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[idx]) return;
+  entry.sets[idx].bw = !entry.sets[idx].bw;
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+}
+function completeMovementV2() {
+  // Production has no "complete movement" status on the entry — finishing
+  // the whole session is the existing flow. For V2 we just go back to Today;
+  // the user's progress is already persisted.
+  backToTodayV2();
+}
+
+// --- Picker overlay (minimal — uses simple steppers/presets) ---
+function openPickerV2(field, setIdx) {
+  const overlay = document.getElementById('picker-overlay');
+  if (!overlay) return;
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[setIdx]) return;
+  const s = entry.sets[setIdx];
+  const titles = { weight: 'Weight', reps: 'Reps', rpe: 'RPE' };
+  const units = { weight: 'LB', reps: 'REPS', rpe: 'EFFORT' };
+  const defaults = { weight: 95, reps: 10, rpe: 7 };
+  const stepConfigs = {
+    weight: [-10, -5, -2.5, +2.5, +5, +10],
+    reps: [-2, -1, +1, +2],
+    rpe: [-1, -0.5, +0.5, +1],
+  };
+  const presetConfigs = {
+    weight: (v) => [Math.max(0, v - 20), Math.max(0, v - 10), Math.max(0, v - 5), v, v + 5, v + 10, v + 20].filter((x, i, arr) => arr.indexOf(x) === i),
+    reps: () => [1, 3, 5, 8, 10, 12, 15],
+    rpe: () => [6, 7, 7.5, 8, 8.5, 9, 9.5, 10],
+  };
+  const state = { field, setIdx, value: s[field] != null ? +s[field] : defaults[field] };
+
+  const titleEl = overlay.querySelector('#pk-title');
+  const unitEl = overlay.querySelector('#pk-unit');
+  const valEl = overlay.querySelector('#pk-val');
+  const steppersEl = overlay.querySelector('#pk-steppers');
+  const presetsEl = overlay.querySelector('#pk-presets');
+  const doneBtn = overlay.querySelector('#pk-done');
+  if (titleEl) titleEl.textContent = titles[field];
+  if (unitEl) unitEl.textContent = units[field];
+
+  function paint() {
+    if (valEl) valEl.textContent = state.value;
+    if (presetsEl) {
+      presetsEl.innerHTML = '';
+      const ps = presetConfigs[field](state.value);
+      ps.forEach(p => {
+        const b = document.createElement('button');
+        b.className = 'pk-preset' + (p === state.value ? ' active' : '');
+        b.type = 'button';
+        b.textContent = p;
+        b.addEventListener('click', () => { state.value = p; paint(); });
+        presetsEl.appendChild(b);
+      });
+    }
+  }
+  if (steppersEl) {
+    steppersEl.innerHTML = '';
+    stepConfigs[field].forEach(delta => {
+      const b = document.createElement('button');
+      b.className = 'pk-stepper';
+      b.type = 'button';
+      b.textContent = (delta > 0 ? '+' : '') + delta;
+      b.addEventListener('click', () => {
+        const nv = +(state.value + delta).toFixed(1);
+        if (nv < 0) return;
+        state.value = nv;
+        paint();
+      });
+      steppersEl.appendChild(b);
+    });
+  }
+  paint();
+
+  const close = (commit) => {
+    if (commit) {
+      entry.sets[setIdx][field] = state.value;
+      if (typeof saveData === 'function') saveData();
+      renderWorkoutV2();
+    }
+    overlay.classList.remove('active');
+    overlay.style.display = '';
+    doneBtn.onclick = null;
+    overlay.onclick = null;
+  };
+  doneBtn.onclick = () => close(true);
+  overlay.onclick = (e) => { if (e.target === overlay) close(false); };
+  overlay.style.display = 'flex';
+  overlay.classList.add('active');
+}
+
+// --- Rest timer ---
+function startRestTimerV2() {
+  const t = ui.session.restTimer;
+  if (t.intervalId) clearInterval(t.intervalId);
+  t.enabled = true;
+  t.remaining = t.duration;
+  renderWorkoutV2();
+  t.intervalId = setInterval(() => {
+    t.remaining--;
+    if (t.remaining <= 0) { stopRestTimerV2(); showToastV2('Rest complete.'); return; }
+    const timeEl = document.querySelector('#rest-pill-time');
+    if (timeEl) timeEl.textContent = formatTimeWm(t.remaining);
+    if (t.remaining <= 10) document.querySelector('#rest-pill')?.classList.add('urgent');
+  }, 1000);
+}
+function stopRestTimerV2() {
+  const t = ui.session.restTimer;
+  if (t.intervalId) { clearInterval(t.intervalId); t.intervalId = null; }
+  t.enabled = false; t.remaining = 0;
+}
+function toggleRestTimerV2() {
+  if (ui.session.restTimer.enabled) { stopRestTimerV2(); renderWorkoutV2(); }
+  else startRestTimerV2();
+}
+function setRestDurationV2(secs) {
+  const t = ui.session.restTimer;
+  t.duration = secs;
+  if (t.enabled) startRestTimerV2();
+  else {
+    const timeEl = document.querySelector('#rest-pill-time');
+    if (timeEl) timeEl.textContent = formatTimeWm(t.duration);
+  }
+  showToastV2(`Rest set to ${formatTimeWm(t.duration)}.`);
+}
+function wireRestPillV2() {
+  const pill = document.getElementById('rest-pill');
+  const picker = document.getElementById('rest-dur-picker');
+  const chipsEl = document.getElementById('rest-dur-chips');
+  if (!pill || !picker || !chipsEl) return;
+  const t = ui.session.restTimer;
+  chipsEl.innerHTML = '';
+  t.presets.forEach(secs => {
+    const chip = document.createElement('button');
+    chip.className = 'dur-chip' + (secs === t.duration ? ' active' : '');
+    chip.type = 'button';
+    chip.textContent = formatTimeWm(secs);
+    chip.dataset.secs = secs;
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setRestDurationV2(secs);
+      [...chipsEl.querySelectorAll('.dur-chip')].forEach(c => c.classList.toggle('active', +c.dataset.secs === secs));
+      picker.classList.remove('open');
+    });
+    chipsEl.appendChild(chip);
+  });
+  let pressTimer = null, longPressFired = false;
+  const LONG_PRESS_MS = 450;
+  pill.onpointerdown = (e) => {
+    longPressFired = false; pill.classList.add('holding');
+    pressTimer = setTimeout(() => { longPressFired = true; picker.classList.add('open'); pill.classList.remove('holding'); }, LONG_PRESS_MS);
+  };
+  pill.onpointerup = (e) => {
+    pill.classList.remove('holding');
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    if (longPressFired) return;
+    toggleRestTimerV2();
+  };
+  pill.onpointerleave = pill.onpointercancel = () => {
+    pill.classList.remove('holding');
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  };
+}
+
+// Toast helper. Uses #wm-toast added in Phase 2.
+let _toastTimer = null;
+function showToastV2(msg) {
+  const t = document.getElementById('wm-toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.opacity = '1';
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => { t.style.display = 'none'; }, 240);
+  }, 2400);
+}
+
+// Wire back chip + Today V2 tap → openWorkoutModeV2
+(function wireWorkoutV2Bindings(){
+  const back = document.getElementById('wm-back-btn');
+  if (back) back.addEventListener('click', backToTodayV2);
+  // Patch openWorkoutMode so renderTodayV2's card taps route through us.
+  window.openWorkoutMode = openWorkoutModeV2;
+  // Stop rest timer when leaving the workout view.
+  if (typeof go === 'function' && !go.__v2Wrapped) {
+    const _origGo = go;
+    window.go = function(v) {
+      if (ui.session && ui.session.restTimer && ui.session.restTimer.enabled && v !== 'workout') stopRestTimerV2();
+      return _origGo.apply(this, arguments);
+    };
+    window.go.__v2Wrapped = true;
+  }
+})();
+// ============= end Phase 3c Workout Mode V2 =============
+
+
 
 // Open the History view, expand the workout that contains the given movement,
 // and scroll to that movement's entry block. Prefers a finished/saved workout
