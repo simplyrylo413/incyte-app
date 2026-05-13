@@ -192,20 +192,32 @@
   }
 
   /* === Movement card on Today === */
+  /* Today movement pill — same surface treatment as workout-mode set rows:
+     white-glass background, specular top edge, subtle ambient shadow.
+     Tighter padding/margins than the previous card style so it reads as a
+     compact list of pills, not big cards. */
   .mv {
-    margin: 6px 22px;
-    padding: 12px 14px;
-    background: var(--glass-2);
-    border: 1px solid var(--hairline);
-    border-radius: var(--r-md);
-    box-shadow: var(--depth-1);
+    margin: 4px 22px;
+    padding: 9px 14px;
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 10px rgba(15,22,34, 0.04);
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+    transition: transform 150ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
   }
-  .mv:active { transform: scale(0.99); box-shadow: var(--depth-1); }
+  .mv:hover {
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 6px 14px rgba(15,22,34, 0.07);
+    border-color: rgba(15,22,34, 0.12);
+  }
+  .mv:active { transform: scale(0.99); }
 
   /* Drag handle — grippy icon at the leading edge; the card itself is the
      drag source. Reorder is restricted to within the same body-part group. */
