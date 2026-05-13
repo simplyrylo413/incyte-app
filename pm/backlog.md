@@ -66,6 +66,8 @@ Every feature, bug, and polish item. Roadmap pulls from here.
 | F-06 | Dark-mode token layer via `@media (prefers-color-scheme: dark)` | design | P3 | S | No | From handoff. Tokens already separated from semantics |
 | F-07 | PWA manifest + service worker | infra | P3 | S | No | From handoff. Superseded by Capacitor decision for App Store; revisit only if PWA fallback becomes path |
 | A-01 | **Resolve Supabase-primary vs. localStorage-only-v1 architecture mismatch** | infra | P0 | M–L | Yes | Handoff says Supabase is cloud-primary; v1 plan ships localStorage-only. Either temporarily disable cloud-primary writes for v1, or stash the cloud-sync logic behind a feature flag. Real engineering work — confirm scope before sizing the rest of the punch list |
+| A-02 | **Flip default theme: dark → light**, keep dark as opt-in toggle | design | P0 | M | Yes | Per 2026-05-12 decision. `fitlog-mobile.html` ships dark-default today; swap to light per the new mockups. Token system already supports the switch; need to flip the default body class + audit per-component shadow/glass tokens for both themes |
+| A-03 | **Rework tab structure**: Week/Momentum/Library/Insights → Today/Plan/Momentum/More | design | P0 | M | Yes | Per 2026-05-12 decision. "Today" replaces "Week" (same surface, better name). "Plan" promotes to top-level tab. "More" overflow absorbs Library + Insights + Settings. Routing logic + bottom nav SVGs + Insights detail screen design under More |
 
 ---
 

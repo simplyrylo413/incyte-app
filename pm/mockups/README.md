@@ -71,19 +71,14 @@ All three target **393 × 852** (iPhone 15 Pro logical resolution). Open in a de
 - No emojis as structural icons
 - No fabricated PR claims — all numbers shown are realistic per the rationale doc's examples
 
-## Open contradictions to resolve
+## Resolved decisions (2026-05-12)
 
-### Light mode vs. dark-default
-The UX rationale doc (recent) calls for **"Light frosted glass foundation, pale blue-gray surfaces, dark navy primary actions."** The INCYTE handoff (mobile294, May 11) said **"dark theme by default with light theme toggle."** These contradict.
+Both prior open contradictions are now resolved (see `~/fitness-app/pm/decisions.md` for full rationale):
 
-Mockups are rendered in the light-mode direction per the newer rationale doc. If dark-by-default is still correct, all three mockups need a dark variant.
+- **Theme: LIGHT is the default.** Dark mode is an opt-in toggle, not the default. Mockups already reflect this.
+- **Canonical tab structure: Today / Plan / Momentum / More.** Replaces handoff's Week/Momentum/Library/Insights. Library + Insights collapse into the "More" overflow tab. Mockups updated.
 
-Logged as an open question in `~/fitness-app/pm/decisions.md`.
-
-### Tab structure
-Mockups use bottom nav: **Today / Plan / Momentum / Library**. The INCYTE handoff names tabs **Week / Momentum / Library / Insights**. The new UX rationale uses "Today" as the active surface name but doesn't enumerate all tabs.
-
-Picked the rationale doc's "Today" naming since it's more recent and matches the user-facing language. The full tab structure needs alignment.
+Implementation tasks **A-02** (theme flip) and **A-03** (tab rework) now sit in the launch punch list as P0 items.
 
 ## Limitations
 

@@ -152,9 +152,9 @@ Append-only record of meaningful PM decisions. Each entry captures what was deci
 
 ---
 
-## 2026-05-12 — Light mode vs. dark-default contradiction (FLAGGED, NOT RESOLVED)
+## 2026-05-12 — Light mode is the default theme (RESOLVED)
 
-**Decision:** Pending. Two recent sources of design direction contradict on the base theme.
+**Decision:** **Light mode is the default theme for INCYTE.** Dark mode becomes an opt-in toggle, not the default.
 
 **Context:**
 - **INCYTE_Handoff.docx (mobile294, May 11):** *"Mobile-first layout, dark theme by default with light theme toggle."*
@@ -167,33 +167,45 @@ The newer rationale doc describes a light-mode experience. The handoff baseline 
 - **B. Keep dark-default**, treat the rationale doc as describing the light-mode variant. Build dark equivalents of the three mockups.
 - **C. Make the toggle real and equal-priority**, with no canonical "default" — both themes are first-class. Slightly more work but matches premium-app convention.
 
-**Rationale (proposed, not final):** Option **A** is most likely correct given:
-- The rationale doc is more recent than the handoff
-- Light glass + blue-gray + dark navy primary is harder to get wrong than a dark theme with accent gradients (lower visual risk for App Store screenshots)
-- Light mode reads as "premium / calm" more cleanly to App Store reviewers and users browsing the store; dark mode tends to read as "gaming / dev tool"
-- The trained-lifter audience using INCYTE in well-lit gym environments benefits from a light surface
+**Rationale:**
+- The UX rationale doc (May 12) is more recent than the handoff (May 11) and specifies "light frosted glass foundation, pale blue-gray surfaces, dark navy primary actions."
+- Light glass + blue-gray + dark navy reads as "premium / calm" — matches the trained-lifter positioning ("calm mirror, not hype reel"). Dark default tends to read as "gaming / dev tool."
+- Lower visual risk for App Store screenshots and listing imagery — pale surfaces photograph more credibly as "premium consumer health app."
+- Gym environments are typically well-lit; light surface is the right default for in-use viewing.
 
-But this is a real product decision and the user should make the call.
+**Implementation impact:**
+- All three light-mode mockups (`01-today-overview.html`, `02-workout-mode.html`, `03-add-movement-sheet.html`) and `prototype.html` become the design baseline.
+- `fitlog-mobile.html` ships dark-default today (per handoff). **A theme switch is required as part of the v1 launch work** — flip the default surface tokens to the light variant, keep dark as an opt-in toggle. Logged as backlog item below.
+- Dark variant mockups are not required as launch blockers — they can be added later if dark mode polish needs visualization.
 
-**Mockups rendered in light direction:** `~/fitness-app/pm/mockups/01-today-overview.html`, `02-workout-mode.html`, `03-add-movement-sheet.html` reflect Option A. If the call goes to B or C, the dark variants need to be built.
-
-**Revisit when:** User makes the call. Update this entry with the chosen option and decommission the wrong-direction mockup variants.
+**Revisit when:** A future reason to make dark the default emerges (e.g., user feedback overwhelmingly preferring dark, or App Store competitive analysis showing dark wins). Until then, light is locked.
 
 ---
 
-## 2026-05-12 — Tab structure naming inconsistency (FLAGGED, NOT RESOLVED)
+## 2026-05-12 — Canonical tab structure: Today / Plan / Momentum / More (RESOLVED)
 
-**Decision:** Pending. Two recent sources name the tabs differently.
+**Decision:** The four canonical bottom-nav tabs are **Today, Plan, Momentum, More.**
 
 **Context:**
-- **INCYTE_Handoff.docx (mobile294, May 11):** Tabs are **Week / Momentum / Library / Insights**.
-- **UX Rationale doc (May 12):** Names the active surface **Today** and describes Workout Mode as a focused secondary state. Doesn't enumerate all four tabs.
+- **INCYTE_Handoff.docx (mobile294, May 11):** Used Week / Momentum / Library / Insights.
+- **UX Rationale doc (May 12):** Centered the surface name "Today" without enumerating all tabs.
+- The prototype used Today / Plan / Momentum / Library as a working interpretation, then the user confirmed Today / Plan / Momentum / More.
 
-The mockups use **Today / Plan / Momentum / Library** as a working interpretation. The "Today" surface inside the rationale doc may map to "Week" in the handoff (the current week's session view), with Insights renamed or absorbed.
+**Mapping from handoff → canonical:**
+- "Today" replaces "Week" — same surface (current week's session view), better day-focused naming for the trained-lifter audience.
+- "Plan" is new as a top-level tab — promoted from being a Week sub-view to its own surface for the weekly grid editor.
+- "Momentum" unchanged — progress analytics (PR hero, sparkline, history table).
+- "More" replaces "Library" + absorbs "Insights" — overflow tab containing the movement library, readiness/fatigue insights, settings, theme toggle, profile, history of past sessions. Standard iOS convention.
 
-**Resolutions to choose between:**
-- Keep handoff names: Week / Momentum / Library / Insights
-- Adopt rationale-doc naming: Today / Plan / Momentum / Library (+ Insights as a fifth or merge into Momentum)
-- Pick a new canonical set
+**Rationale:**
+- Four-tab cap matches iOS HIG recommendation for bottom nav (max 5, recommended ≤4 for clarity).
+- "More" pattern is well-understood by iOS users; collapsing Library + Insights + Settings into one overflow tab reduces top-level cognitive load.
+- "Today" is concrete and action-oriented; "Week" is broader and less immediate.
+- Plan as its own tab makes the weekly grid editor first-class — important for power users planning multiple weeks ahead.
 
-**Revisit when:** User confirms canonical tab names. Update mockups, roadmap, and handoff to match.
+**Implementation impact:**
+- `fitlog-mobile.html` tab structure needs to be reworked from Week / Momentum / Library / Insights → Today / Plan / Momentum / More. Tracked as backlog item below.
+- Insights content (Readiness, Recovery map, Muscle Stimulus, Recent PRs) moves under More → could become individual More-tab list rows or get a dedicated "Insights" detail screen within More.
+- Library moves under More → standard list view, search-first.
+
+**Revisit when:** Usage data post-launch shows a specific tab being undiscoverable (e.g., users can't find Insights). Could promote a frequently-used sub-screen back to top-level.

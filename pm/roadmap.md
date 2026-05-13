@@ -27,18 +27,20 @@ _Alternates considered (low confidence — discuss):_
 
 **Path locked.** Capacitor wrap of `fitlog-mobile.html` → App Store. v1 ships **without** Supabase auth or remote push — both deferred to v1.1. See `decisions.md` 2026-05-10.
 
-**Final 8-item launch list (suggested order):**
+**Final 10-item launch list (suggested order):**
 
-1. [ ] **D-08** — Apple Developer Program enrollment ($99/yr). _Start TODAY — has 24–48h lead time, sometimes longer. Doesn't block other work._
-2. [ ] **A-01** — **Resolve Supabase-primary vs. localStorage-only-v1 architecture mismatch.** Handoff says cloud-primary; v1 plan says localStorage-only. Must scope + decide before touching Capacitor. Real engineering work — could be feature-flagging the cloud sync, or stripping Supabase calls behind a `CLOUD_ENABLED` toggle.
-3. [ ] **B-01** — Fix Save & Exit dropping today's session into History. _Verify it's still open after the mobile295–331 iterations — handoff bug log doesn't mention it._
-4. [ ] **D-06** — Capacitor scaffold around `fitlog-mobile.html`. iOS project, build pipeline, asset bundling, splash/icon.
-5. [ ] **D-07** — Bind native calendar plugin (EKEventStore). Replaces C-02; provides "native value" for App Store review.
-6. [ ] **D-09** — Bind `@capacitor/local-notifications`. Training reminders, rest timers, streak nudges. ~1 day. Second native plugin = stronger App Store review posture.
-7. [ ] **D-02** — Privacy policy hosted publicly + App Store privacy labels. Required even without auth (health-data category, on-device storage disclosure).
-8. [ ] **D-05** — App Store listing copy + 5–8 screenshots + 30s preview video. Positioning hook: "for people who already know how to train."
+1. [ ] **D-08** — Apple Developer Program enrollment ($99/yr). _Start TODAY — has 24–48h lead time. Doesn't block other work._
+2. [ ] **A-02** — Flip default theme dark → light. Keep dark as opt-in toggle. Per 2026-05-12 decision; mockups already reflect target.
+3. [ ] **A-03** — Rework tab structure: Week/Momentum/Library/Insights → **Today / Plan / Momentum / More.** Per 2026-05-12 decision.
+4. [ ] **A-01** — Resolve Supabase-primary vs. localStorage-only-v1 architecture mismatch. Feature-flag the cloud sync for v1.
+5. [ ] **B-01** — Fix Save & Exit dropping today's session into History. _Verify still open after mobile295–331._
+6. [ ] **D-06** — Capacitor scaffold around `fitlog-mobile.html`. iOS project, build pipeline, asset bundling, splash/icon.
+7. [ ] **D-07** — Bind native calendar plugin (EKEventStore). Replaces C-02; provides "native value" for App Store review.
+8. [ ] **D-09** — Bind `@capacitor/local-notifications`. Training reminders, rest timers, streak nudges. ~1 day. Second native plugin = stronger App Store review posture.
+9. [ ] **D-02** — Privacy policy hosted publicly + App Store privacy labels (health-data category, on-device storage disclosure).
+10. [ ] **D-05** — App Store listing copy + 5–8 screenshots + 30s preview video. Positioning hook: "for people who already know how to train."
 
-**Realistic timeline (solo dev):** ~3–4 weeks from kickoff to App Store submission (revised up from 2.5–3.5 to account for A-01). Add ~1–2 weeks for Apple review + any rejection round-trips.
+**Realistic timeline (solo dev):** ~3.5–4.5 weeks from kickoff to App Store submission (added a week for A-02 + A-03 theme and IA rework). Add ~1–2 weeks for Apple review + any rejection round-trips.
 
 **Open scope questions (don't block launch but worth resolving early):**
 - C-01 "Design visual layout" — what's the actual scope? Polish on the #32 redesign, or unfinished work? Until clarified, treat as P2 polish, not P0.
