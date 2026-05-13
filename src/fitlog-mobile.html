@@ -12873,9 +12873,10 @@ window.mergeSameDayHistorySessions = mergeSameDayHistorySessions;
   }
 })();
 
-// Equipment options surfaced in the Today-card popover. Keep this short so
-// the picker stays compact; covers the most common lifter equipment types.
-const EQUIPMENT_OPTIONS_V2 = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'];
+// Equipment options surfaced in the Today-card popover. "unspecified" is
+// the leading option (and the default for movements with no equipmentType
+// set on the entry, plan, or library) so the user can clear a selection.
+const EQUIPMENT_OPTIONS_V2 = ['unspecified', 'barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'];
 
 // Global outside-click dismiss for any open equipment popover on Today.
 document.addEventListener('click', (e) => {
@@ -13035,7 +13036,7 @@ function renderTodayV2() {
       const sets = (item.entry && item.entry.sets) || [];
       const done = sets.filter(s => s.done).length;
       const total = sets.length || (item.p.targetSets || 0) || 0;
-      const equip = ((item.entry && item.entry.equipmentType) || (item.p && item.p.equipmentType) || (item.mv && item.mv.equipment) || 'barbell').toString().toLowerCase();
+      const equip = ((item.entry && item.entry.equipmentType) || (item.p && item.p.equipmentType) || (item.mv && item.mv.equipment) || 'unspecified').toString().toLowerCase();
       const isComplete = total > 0 && done === total;
       const name = (item.mv && item.mv.name) || (item.entry && item.entry.name) || '—';
       const card = document.createElement('div');
@@ -13312,7 +13313,7 @@ function renderWorkoutV2() {
   const mv = (typeof getMv === 'function') ? getMv(mid) : null;
 
   // ---- Breadcrumb + name ----
-  const equip = ((entry && entry.equipmentType) || (mv && mv.equipment) || 'barbell').toString().toUpperCase();
+  const equip = ((entry && entry.equipmentType) || (mv && mv.equipment) || 'unspecified').toString().toUpperCase();
   const bodyPart = ((mv && (mv.bodyPart || mv.muscle || mv.category)) || '—').toString().toUpperCase();
   const bp = view.querySelector('#wm-body-part');
   if (bp) bp.textContent = `${bodyPart} · ${equip}`;
