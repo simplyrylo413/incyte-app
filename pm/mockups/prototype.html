@@ -1124,10 +1124,6 @@
       <button class="back-chip" id="btn-back" aria-label="Back to Today">
         <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div class="set-counter">
-        <span class="now" id="wm-set-now">1</span>
-        <span class="of"> / <span id="wm-set-total">4</span></span>
-      </div>
     </div>
 
     <!-- Movement identity — its own quiet block -->
@@ -1524,9 +1520,7 @@ function renderWorkout() {
 
   $('#wm-body-part').textContent = `${mv.bodyPart.toUpperCase()} · ${mv.type.toUpperCase()}`;
   $('#wm-name').textContent = mv.name;
-  $('#wm-set-total').textContent = mv.sets.length;
   const cur = getCurrentSet(mv);
-  $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
   // Previous reference: date + summarized range. The date corresponds to
   // the session those weights came from.
   $('#wm-prior').textContent = formatPriorAsRange(mv.priorRef);
