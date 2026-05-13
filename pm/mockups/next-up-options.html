@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Next Up treatment options</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font: 700 28px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    max-width: 760px;
+    margin: 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 1040px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+  .option { display: flex; flex-direction: column; gap: 16px; }
+  .opt-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    margin: -8px 0 0;
+  }
+  .opt-tag {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    min-height: 75px;
+  }
+  .stage {
+    padding: 24px 18px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255, 0.4), rgba(255,255,255, 0.20));
+    border: 1px solid rgba(255,255,255, 0.55);
+    border-radius: 22px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .notes {
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; }
+
+  /* Shared movement-card scaffold matching prototype.html */
+  .mv {
+    padding: 9px 14px;
+    background: rgba(255,255,255, 0.85);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 4px 10px rgba(15,22,34, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+  }
+  .mv .drag-handle {
+    width: 14px; height: 22px;
+    display: grid; place-items: center;
+    color: var(--label);
+    opacity: 0.30;
+    flex-shrink: 0;
+    margin-left: -6px;
+  }
+  .mv .drag-handle .dot {
+    width: 2px; height: 2px; background: currentColor; border-radius: 50%;
+    box-shadow: 6px 0 0 currentColor, 0 5px 0 currentColor, 6px 5px 0 currentColor, 0 10px 0 currentColor, 6px 10px 0 currentColor;
+  }
+  .mv .body { flex: 1; min-width: 0; }
+  .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .mv .row1 { display: flex; align-items: center; gap: 8px; }
+  .mv .equip {
+    font: 700 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 9px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.16);
+    border-radius: 999px;
+  }
+  .mv .progress-chip {
+    padding: 5px 11px;
+    background: white;
+    border: 1px solid rgba(15,22,34, 0.10);
+    border-radius: 999px;
+    font: 700 11px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .mv .remove {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid rgba(15,22,34, 0.10);
+    display: grid; place-items: center;
+    color: var(--label);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .mv .remove svg { width: 9px; height: 9px; }
+
+  /* === A — Ambient glow === */
+  .mv.a-next {
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 0 0 1px rgba(93,155,184, 0.30),
+      0 8px 26px rgba(93,155,184, 0.22),
+      0 2px 6px rgba(93,155,184, 0.10);
+  }
+
+  /* === B — START CTA chip === */
+  .mv.b-next .progress-chip {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.12) inset, 0 2px 8px rgba(93,155,184, 0.25);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+  .mv.b-next .progress-chip .arrow {
+    transition: transform 200ms ease-out;
+  }
+  .mv.b-next:hover .progress-chip .arrow {
+    transform: translateX(2px);
+  }
+
+  /* === C — Inline accent dot + label === */
+  .mv.c-next .name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mv.c-next .pip {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(93,155,184, 0.20);
+    flex-shrink: 0;
+  }
+  .mv.c-next .label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: 4px;
+  }
+
+  /* Section eyebrow for context */
+  .eb {
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 6px 2px 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>NEXT UP — 3 treatment options</h1>
+    <p>Three alternatives to the current floating "NEXT" pill + left-edge accent on the Today screen's first uncompleted movement. Same card content in each so the treatment compares directly.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ───────── A — Ambient glow ───────── -->
+    <div class="option">
+      <span class="opt-label">A</span>
+      <h2 class="opt-name">Ambient glow</h2>
+      <p class="opt-tag">No chip, no edge bar. The card simply lifts off the page with a soft accent-blue ambient shadow. Whisper-emphasis: you see it before you can name what's different.</p>
+      <div class="stage">
+        <span class="eb">Chest</span>
+        <div class="mv a-next">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name">Bench Press</span>
+              <span class="equip">Barbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">0/4</span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+        <div class="mv">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name">Incline DB Press</span>
+              <span class="equip">Dumbbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">0/3</span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most subtle. No language, no chrome. The card just feels alive. Tradeoff: a returning user might miss it on a quick glance; ambient cues require attention. Best when the user is already in flow and doesn't need an instruction.
+      </div>
+    </div>
+
+    <!-- ───────── B — START CTA chip ───────── -->
+    <div class="option">
+      <span class="opt-label">B</span>
+      <h2 class="opt-name">START CTA chip</h2>
+      <p class="opt-tag">Repurpose the existing progress chip into a primary action. "0/4" becomes a solid accent-blue "Start →" pill on the next-up card. The chip <em>is</em> the cue. Tap it to enter.</p>
+      <div class="stage">
+        <span class="eb">Chest</span>
+        <div class="mv b-next">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name">Bench Press</span>
+              <span class="equip">Barbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">Start <span class="arrow">→</span></span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+        <div class="mv">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name">Incline DB Press</span>
+              <span class="equip">Dumbbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">0/3</span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most action-oriented. The cue and the action are the same element — tap "Start" to enter. Tradeoff: it shifts the chip's meaning per-card (progress vs. CTA). After you log a set on Bench Press, the chip flips back to "1/4" progress and the next card's chip becomes "Start". The user adapts to that — call it action-first design.
+      </div>
+    </div>
+
+    <!-- ───────── C — Inline accent dot + label ───────── -->
+    <div class="option">
+      <span class="opt-label">C</span>
+      <h2 class="opt-name">Inline marker</h2>
+      <p class="opt-tag">No card-level chrome at all. A small accent dot + "NEXT" mono label sits inline, immediately before the movement name. Reads as part of the row, not a stuck-on decoration.</p>
+      <div class="stage">
+        <span class="eb">Chest</span>
+        <div class="mv c-next">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name-row"><span class="pip"></span><span class="label">Next</span><span class="name">Bench Press</span></span>
+              <span class="equip">Barbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">0/4</span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+        <div class="mv">
+          <span class="drag-handle"><span class="dot"></span></span>
+          <div class="body">
+            <div class="row1">
+              <span class="name">Incline DB Press</span>
+              <span class="equip">Dumbbell</span>
+            </div>
+          </div>
+          <span class="progress-chip">0/3</span>
+          <button class="remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most editorial. Treats "NEXT" as content rather than UI chrome. The dot + small label live inline with the name, sharing its baseline. Card geometry stays identical to non-next cards — no shadow swap, no border change. Tradeoff: less visual punch than A or B; relies on the user noticing the inline glyph rather than feeling the card.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
