@@ -6441,6 +6441,1671 @@
     text-align: right;
   }
 </style>
+
+<style id="prototype-port">
+/* =============================================================
+   PROTOTYPE PORT — Phase 1: CSS transplant (2026-05-13)
+   Source: pm/mockups/prototype.html lines 8-1655
+   Renames applied:
+     .hero*      → .wm-hero*   (avoids Insights .hero-card collision)
+     .stat*      → .wm-stat*   (production has its own .stat family)
+     .empty*     → .wm-empty*  (production has its own .empty at line 1689)
+     .overlay    → .pk-overlay
+     .sheet      → .pk-sheet
+     .handle     → .pk-handle
+   Token block (:root) kept — production already owns these vars; this
+   only adds prototype-specific ones (--ease-premium, etc.).
+   Phase 2 (HTML) and Phase 3 (JS) will follow in subsequent commits.
+   ============================================================= */
+  :root {
+    /* Motion easings — named cubic-beziers from Emil Kowalski's
+       "Animations on the Web" course. Tokens > inline values. */
+    --ease-out-quint: cubic-bezier(.23, 1, .32, 1);
+    --ease-out-cubic: cubic-bezier(.33, 1, .68, 1);
+    --ease-in-out-cubic: cubic-bezier(.645, .045, .355, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot for hover lift */
+    --ease-premium: cubic-bezier(0.32, 0.72, 0.30, 1); /* Jakub's enter feel */
+
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --glass: rgba(255,255,255,0.65);
+    --glass-2: rgba(255,255,255,0.85);
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
+
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --accent-3: #9eb5cb;
+    --ok: #4f9aa8;
+    --warn: #8e9bb0;
+    --bad: #b08092;
+
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+
+    --depth-1: 0 1px 0 rgba(255,255,255,0.7) inset, 0 1px 2px rgba(15,22,34,0.04);
+    --depth-2: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px rgba(15,22,34,0.05), 0 1px 3px rgba(15,22,34,0.04);
+    --depth-3: 0 1px 0 rgba(255,255,255,0.9) inset, 0 14px 30px rgba(15,22,34,0.09), 0 2px 6px rgba(15,22,34,0.05);
+
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --r-xl: 24px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+
+  /* === Premium motion (Jakub Krehel's enter recipe + exit < enter rule) ===
+     Enter: opacity 0->1, translateY 8px->0, blur 4px->0, spring 450ms.
+     Exit (subtler): translateY 4px, blur 2px, 260ms.
+     Applied via .premium-enter / .premium-exit classes on specific
+     state transitions (set logged, set added, rec card appearance).
+     A11y: prefers-reduced-motion kills all of it globally. */
+  @keyframes premium-enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+  }
+  @keyframes premium-exit {
+    from { opacity: 1; transform: translateY(0);   filter: blur(0); }
+    to   { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+  }
+  .premium-enter {
+    animation: premium-enter 420ms var(--ease-premium);
+  }
+  .premium-exit {
+    animation: premium-exit 260ms var(--ease-premium) forwards;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color: var(--ink);
+    background: radial-gradient(140% 80% at 50% -10%, #e6ecf5 0%, var(--paper) 50%, var(--paper-2) 100%);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: start center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .device {
+    width: 393px;
+    height: 852px;
+    border-radius: 44px;
+    /* Ambient color bleed for glass surfaces to refract */
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .wm-statusbar {
+    height: 44px;
+    padding: 0 24px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    flex-shrink: 0;
+  }
+  .wm-statusbar .sig { display:flex; gap:4px; align-items:flex-end; opacity:.85; }
+  .wm-statusbar .sig span { width:3px; background:var(--ink); border-radius:1px; }
+  .wm-statusbar .sig span:nth-child(1){height:5px}.wm-statusbar .sig span:nth-child(2){height:7px}
+  .wm-statusbar .sig span:nth-child(3){height:9px}.wm-statusbar .sig span:nth-child(4){height:11px}
+
+  /* View containers */
+  .view {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+  .view::-webkit-scrollbar { display: none; }
+  .view.active { display: flex; }
+  #view-workout { padding-bottom: 24px; }
+
+  /* === Header (today view) === */
+  .head-today {
+    padding: 14px 22px 12px;
+    flex-shrink: 0;
+  }
+  .head-today .eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .head-today h1 {
+    margin: 0;
+    font: 700 26px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .head-today .date {
+    margin-top: 4px;
+    font: 500 14px/1 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+
+  /* === Progress strip === */
+  /* Session hero — 3-stat card at the top of Today: Volume, Avg RPE, Complete %.
+     Subtle prismatic wash + glass surface; columns separated by hairline rules.
+     Auto-collapses to a thin "ready to start" strip pre-workout (when no sets
+     are logged) and expands once the first set is logged. */
+  .progress {
+    margin: 4px 22px 12px;
+    padding: 14px 8px 12px;
+    transition: padding 220ms var(--ease-out-cubic);
+    background: linear-gradient(155deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.06) 55%, rgba(201,160,190,0.04) 100%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 14px rgba(15,22,34, 0.05);
+    flex-shrink: 0;
+  }
+  .progress .wm-stats-row {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 0;
+  }
+  .progress .wm-stat {
+    padding: 2px 12px;
+    position: relative;
+    min-width: 0;
+  }
+  .progress .wm-stat + .wm-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 1px;
+    background: rgba(15,22,34, 0.08);
+  }
+  .progress .wm-stat-label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .progress .wm-stat-value {
+    font: 700 22px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .progress .wm-stat-unit {
+    font: 600 11px/1 'Inter Tight', sans-serif;
+    color: var(--muted);
+    margin-left: 3px;
+    letter-spacing: 0;
+  }
+  .progress .vol-parts {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font: 500 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .progress .vol-parts span em {
+    font-style: normal;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .progress .mini-bar {
+    margin-top: 6px;
+    height: 4px;
+    background: rgba(15,22,34, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress .mini-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg,#5d9bb8 0%,#9b82c8 55%,#c9a0be 100%);
+    border-radius: 999px;
+    transition: width 280ms var(--ease-out-cubic);
+  }
+
+  /* Collapsed pre-workout state: thin strip showing planned scope.
+     Hides the 3-stat row, reveals the .ready-strip. */
+  .progress.compact {
+    padding: 9px 14px;
+  }
+  .progress.compact .wm-stats-row { display: none; }
+  .progress .ready-strip { display: none; }
+  .progress.compact .ready-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .progress .ready-strip .planned {
+    font: 600 12px/1 'Inter Tight', sans-serif;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .progress .ready-strip .planned .num {
+    font: 700 15px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress .ready-strip .planned .sep {
+    color: var(--label);
+    margin: 0 2px;
+  }
+  .progress .ready-strip .planned .unit {
+    font: 500 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+  .progress .ready-strip .ready-label {
+    font: 700 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .progress .ready-strip .ready-label .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(93,155,184, 0.20);
+  }
+
+  /* === Scroll area === */
+  .scroll { flex: 1; overflow-y: auto; padding-bottom: 110px; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  .section-eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 26px 6px;
+  }
+
+  /* === Movement card on Today === */
+  /* Today movement pill — same surface treatment as workout-mode set rows:
+     white-glass background, specular top edge, subtle ambient shadow.
+     Tighter padding/margins than the previous card style so it reads as a
+     compact list of pills, not big cards. */
+  .mv {
+    margin: 4px 22px;
+    padding: 9px 14px;
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 10px rgba(15,22,34, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 150ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+  }
+  .mv:hover {
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 6px 14px rgba(15,22,34, 0.07);
+    border-color: rgba(15,22,34, 0.12);
+  }
+  .mv:active { transform: scale(0.99); }
+
+  /* Completed movement — same light-grey treatment as done set rows.
+     Dim the name + equip + drag handle so the card recedes; keep the
+     progress chip's "DONE" visible as the completion cue. */
+  .mv.is-complete {
+    background: rgba(15,22,34, 0.04);
+    border-color: rgba(15,22,34, 0.08);
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.04);
+  }
+  .mv.is-complete .name { color: var(--muted); }
+  .mv.is-complete .equip { opacity: 0.7; }
+  .mv.is-complete .drag-handle { opacity: 0.18; }
+
+  .mv { position: relative; }
+  /* (.mv.next-up treatment removed — the user picks their own next movement;
+     auto-labeling "NEXT" on the first incomplete card was paternalistic for
+     a trained lifter who built the plan.) */
+
+  /* Drag handle — grippy icon at the leading edge; the card itself is the
+     drag source. Reorder is restricted to within the same body-part group.
+     Always visible at low opacity so the affordance is discoverable on touch
+     (no :hover on iOS). */
+  .mv .drag-handle {
+    width: 16px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    color: var(--label);
+    opacity: 0.30;
+    cursor: grab;
+    flex-shrink: 0;
+    margin-left: -6px;
+    transition: opacity 150ms ease-out, color 150ms ease-out;
+  }
+  .mv:hover .drag-handle { opacity: 0.85; color: var(--muted); }
+  .mv .drag-handle:active { cursor: grabbing; }
+  .mv .drag-handle svg { width: 10px; height: 14px; }
+  .mv.dragging { opacity: 0.45; transform: scale(0.98); }
+  .mv.drop-target-before { box-shadow: 0 -2px 0 var(--accent), var(--depth-1); }
+  .mv.drop-target-after  { box-shadow: 0 2px 0 var(--accent), var(--depth-1); }
+
+  .mv .body { flex: 1; min-width: 0; }
+  .mv .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  /* Equipment pill — neutral ghost outline, tappable to change. Sits inline
+     with the movement name. Tap opens a small popover with equipment chips. */
+  .mv .equip-wrap { position: relative; display: inline-block; }
+  .mv .equip {
+    font: 700 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 9px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.16);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .mv .equip:hover { background: rgba(15,22,34, 0.04); color: var(--ink); border-color: rgba(15,22,34, 0.28); }
+  .mv .equip-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(255,255,255, 0.95);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(15,22,34, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(15,22,34, 0.16), 0 2px 6px rgba(15,22,34, 0.06);
+    z-index: 8;
+    min-width: 180px;
+    animation: premium-enter 220ms var(--ease-premium);
+  }
+  .mv .equip-pop.open { display: flex; }
+  .mv .equip-chip {
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid rgba(15,22,34, 0.10);
+    border-radius: var(--r-pill);
+    font: 600 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .mv .equip-chip:hover { background: var(--paper-2); }
+  .mv .equip-chip.active {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+  }
+  .mv .ref { font: 500 11px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mv .ref.skipped { color: var(--bad); }
+  .mv .ref.done { color: var(--ok); }
+  .mv .progress-chip { font: 600 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); background: var(--paper-2); border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 6px 10px; min-width: 44px; text-align: center; }
+  .mv .progress-chip.done { color: var(--ok); background: rgba(79,154,168,0.10); border-color: rgba(79,154,168,0.20); }
+  .mv .progress-chip.skipped { color: var(--bad); background: rgba(176,128,146,0.10); border-color: rgba(176,128,146,0.20); }
+  .mv .progress-chip.partial { color: var(--accent); background: rgba(93,155,184,0.10); border-color: rgba(93,155,184,0.20); }
+  .mv .remove { width: 28px; height: 28px; border-radius: var(--r-pill); border: 1px solid var(--hairline); background: transparent; display: grid; place-items: center; color: var(--label); cursor: pointer; flex-shrink: 0; }
+  .mv .remove:hover { color: var(--bad); border-color: rgba(176,128,146,0.30); }
+  .mv .remove svg { width: 12px; height: 12px; }
+
+  /* Empty state (Today with no movements) */
+  /* Empty-state card — consolidates the "nothing planned" message with the
+     Add Movement action. When this is showing, the floating .add-cta is
+     hidden via .today-empty on #view-today. One affordance, not two. */
+  .wm-empty {
+    margin: 28px 22px;
+    padding: 28px 22px;
+    background: var(--glass);
+    border: 1px dashed var(--hairline-strong);
+    border-radius: var(--r-lg);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .wm-empty .eb { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; color: var(--label); text-transform: uppercase; }
+  .wm-empty h3 { margin: 0; font: 600 18px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .wm-empty p { margin: 0; font: 500 13px/1.45 'Inter Tight',sans-serif; color: var(--muted); max-width: 280px; }
+  .wm-empty .wm-empty-cta {
+    margin-top: 6px;
+    padding: 12px 22px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 22px rgba(24,32,48, 0.25), 0 2px 4px rgba(24,32,48, 0.15);
+    transition: transform 150ms var(--ease-out-cubic), box-shadow 200ms ease-out;
+  }
+  .wm-empty .wm-empty-cta:hover { transform: translateY(-1px); }
+  .wm-empty .wm-empty-cta .plus {
+    width: 18px; height: 18px;
+    border-radius: var(--r-pill);
+    background: rgba(255,255,255, 0.18);
+    display: grid; place-items: center;
+    font-size: 14px; line-height: 1;
+  }
+
+  /* The floating Add Movement CTA is fully retired in favor of an inline
+     button at the end of the movement list (matches the workout-mode
+     "+ ADD SET" treatment). Keep the rule for any legacy markup. */
+  .add-cta { display: none !important; }
+
+  /* Inline "+ ADD MOVEMENT" button rendered after the last movement card.
+     Same visual language as .add-set-btn from Workout Mode. */
+  .add-mv-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 14px auto 4px;
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .add-mv-btn:hover { background: var(--paper-2); color: var(--ink); }
+  .add-mv-btn svg { width: 11px; height: 11px; }
+
+  /* === Add CTA + Nav === */
+  .add-cta {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 86px;
+    padding: 14px 18px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 24px rgba(24,32,48,0.30), 0 2px 4px rgba(24,32,48,0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .add-cta .plus { width: 18px; height: 18px; border-radius: var(--r-pill); background: rgba(255,255,255,0.18); display: grid; place-items: center; font-size: 14px; line-height: 1; }
+
+  .nav {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    height: 62px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    box-shadow: var(--depth-3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 12px;
+    z-index: 5;
+  }
+  .nav button { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; cursor: pointer; color: var(--label); }
+  .nav button.active { color: var(--ink); }
+  .nav button svg { width: 18px; height: 18px; }
+  .nav button span { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; text-transform: uppercase; }
+
+  /* === Workout Mode — focused-hero rebuild ===
+     The page has ONE focal element: the active set, expressed as a single
+     typographic statement. Everything else is subordinate supporting info
+     arranged below, separated by editorial hairlines rather than cards.
+  */
+
+  /* Top strip: just a back chevron and the set counter. Nothing else. */
+  .topbar {
+    padding: 4px 22px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .back-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out;
+  }
+  .back-chip:hover { background: var(--paper-2); }
+  .back-chip svg { width: 14px; height: 14px; }
+  .back-chip span { display: none; }   /* hidden by default; revealed via aria-label */
+
+  .set-counter {
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .set-counter .now { color: var(--ink); font-weight: 700; }
+  .set-counter .of { color: var(--label); }
+
+  /* Movement identity — its own quiet block. The breadcrumb + name only. */
+  .identity {
+    padding: 0 22px 14px;
+  }
+  .identity .body-part {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 8px;
+  }
+  .identity .name {
+    font: 700 28px/1.05 'Inter Tight',sans-serif;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+
+  /* (.prefs row removed — Track RPE + AI now live in the footer action bar) */
+
+  /* Hero card — central focal point. Prismatic glass treatment:
+     steel blue → lavender → soft pink gradient, deep backdrop-blur,
+     accent-tinted border, specular top-edge highlight. This is THE
+     primary visual element on the page. */
+  .wm-hero {
+    margin: 0 22px 12px;
+    padding: 16px 16px 14px;
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
+    border: 1px solid rgba(93,155,184,0.30);
+    border-radius: 22px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.85) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 0 0 1px rgba(93,155,184,0.04),
+      0 22px 48px rgba(93,155,184,0.14),
+      0 8px 18px rgba(15,22,34,0.06);
+    position: relative;
+  }
+  /* (Compact-hero rules removed per user direction — hero stays full size
+     for the whole movement so the active set always gets the big-type
+     treatment.) */
+  .wm-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+  .wm-hero-eyebrow {
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wm-hero-eyebrow .now-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  .wm-hero-eyebrow .now-marker .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(93, 155, 184, 0.20);
+  }
+  /* Active-set token — accent steel blue + bold. (Was --bad red; moved to
+     --accent so red is reserved for warmup/destructive cues. Matches the
+     Today screen's NEXT chip color so "this is current" reads consistently
+     across screens.) */
+  .wm-hero-eyebrow .now-marker .active-set {
+    color: var(--accent);
+    font-weight: 800;
+    letter-spacing: 0.16em;
+  }
+  .wm-hero-eyebrow .now-marker .active-set + .sep,
+  .wm-hero-eyebrow .now-marker .now-tail {
+    color: var(--label);
+  }
+  /* "OF N" suffix — quiet metadata, lowercase to read as a phrase. */
+  .wm-hero-eyebrow .now-marker .set-of {
+    color: var(--label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: none;
+    margin-left: 2px;
+  }
+  .wm-hero-eyebrow .head-remove {
+    background: transparent;
+    border: none;
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: color 150ms ease-out;
+  }
+  .wm-hero-eyebrow .head-remove:hover { color: var(--ink); }
+
+  /* Big-type hero — all three values inline on one line (weight × reps × RPE)
+     with the unit labels in a small mono uppercase row at the bottom of the
+     card, separated by a hairline. Numbers are pure: no inline units. */
+  .wm-hero-statement {
+    text-align: center;
+    padding: 6px 0 4px;
+  }
+  .wm-hero-primary {
+    display: flex;
+    /* Locked at 50px so the primary row is identical whether RPE is filled
+       or shows the em-dash placeholder. Previously the em-dash's intrinsic
+       line metrics expanded the flex line to 106px when other values were
+       50px, causing the hero to appear to shrink as soon as RPE was entered. */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    height: 50px;
+  }
+  .wm-hero-num {
+    background: transparent;
+    border: none;
+    font: 700 46px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.05em;
+    color: var(--ink);
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 180ms ease-out;
+  }
+  .wm-hero-num:hover { background: rgba(93,155,184,0.08); }
+  .wm-hero-num:active { transform: scale(0.97); transition: transform 100ms var(--ease-out-cubic); }
+  .wm-hero-num.wm-empty { color: var(--label); }
+  .wm-hero-sep {
+    font: 500 26px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    letter-spacing: -0.02em;
+  }
+  .wm-hero-units-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid var(--hairline);
+  }
+  .wm-hero-units-bar span:not(:first-child)::before {
+    content: '·';
+    margin-right: 18px;
+    color: var(--label);
+  }
+
+  /* Hero actions row — toggles to the left of Log Set, all in one row */
+  .wm-hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: nowrap;
+  }
+
+  /* Hero primary action — solid black pill */
+  /* Ghost "Finish" link — shown next to Log Set when the movement is
+     armed-complete (bonus set added). Tap finalizes without logging. */
+  .wm-hero-finish-link {
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.16);
+    border-radius: 999px;
+    font: 600 11.5px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .wm-hero-finish-link:hover {
+    background: rgba(15,22,34, 0.04);
+    color: var(--ink);
+    border-color: rgba(15,22,34, 0.28);
+  }
+
+  .wm-hero-cta {
+    padding: 12px 22px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.10) inset,
+      0 6px 16px rgba(24,32,48,0.28),
+      0 2px 4px rgba(24,32,48,0.18);
+    transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease-out;
+  }
+  .wm-hero-cta:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.12) inset,
+      0 10px 22px rgba(24,32,48,0.38),
+      0 4px 8px rgba(24,32,48,0.24);
+  }
+  .wm-hero-cta:active {
+    transform: scale(0.97);
+    transition: transform 100ms var(--ease-out-cubic);
+  }
+
+  /* Previous reference — Spatial Glass treatment (Option B):
+     pearl/rose tinted glass, backdrop-blur, specular top edge. */
+  /* History pill — slim grey reference strip above the hero. Was a prismatic
+     lavender/pink glass pill; now a clean low-contrast surface so it
+     recedes into the page chrome rather than competing with the hero. */
+  .prior {
+    margin: 0 22px 12px;
+    padding: 6px 12px;
+    background: rgba(15,22,34, 0.04);
+    border: 1px solid rgba(255,255,255, 0.6);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .prior .lbl {
+    font: 700 11px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--muted);
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .prior .lbl-date {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .prior .vals {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--label);
+    letter-spacing: 0.01em;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  /* Section eyebrow for set lists — smaller, more subtle */
+  .sets-eyebrow {
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 22px 6px;
+    flex-shrink: 0;
+  }
+  /* (gap unified to 4px on all .sets containers) */
+
+  /* Set rows — Spatial Glass treatment (Option B): floating glass cards
+     with backdrop-blur, specular top edge, accent-tinted ambient shadow. */
+  .sets {
+    padding: 0 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  /* Columnar table — Option B (Pill rows, columnar) from set-table-options.html.
+     Single header row above; each set is a 4-col pill: SET | PREVIOUS | TODAY | CHK.
+     Done rows = teal-tinted. Target rows = white glass. */
+  .col-head {
+    display: grid;
+    grid-template-columns: 36px 28px 0.85fr 1fr 22px 16px;
+    align-items: center;
+    gap: 10px;
+    /* 22px outer (matches .sets padding) + 13px inner (matches each row's
+       12px padding + 1px border) = 35px so labels sit directly over the row
+       content. */
+    padding: 0 35px 6px;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .col-head .h-today { text-align: right; }
+
+  .set-row {
+    display: grid;
+    grid-template-columns: 36px 28px 0.85fr 1fr 22px 16px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 10px rgba(15,22,34, 0.04);
+    transition: box-shadow 180ms ease-out, border-color 180ms ease-out, background 180ms ease-out;
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+  }
+  .set-row .r-set {
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .set-row .r-prev {
+    color: var(--label);
+    font-weight: 500;
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .set-row .r-vals {
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+    text-align: right;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .set-row .r-vals .rpe-bit {
+    font-size: 10px;
+    color: var(--label);
+    margin-left: 3px;
+  }
+  /* Done row — light grey wash + dimmed values. The row stays visible so the
+     user can compare against upcoming sets; the filled check carries the
+     "completed" cue. (Was teal-tinted; greyed per user feedback so the row
+     reads as "in the past" without screaming success.) */
+  .set-row.done {
+    background: rgba(15,22,34, 0.04);
+    border-color: rgba(15,22,34, 0.08);
+    cursor: pointer;
+  }
+  .set-row.done:hover {
+    box-shadow: 0 2px 6px rgba(15,22,34,0.06);
+    border-color: rgba(15,22,34, 0.18);
+  }
+  .set-row.done .r-vals { color: var(--muted); }
+  .set-row.done .r-prev { opacity: 0.7; }
+  .set-row.done .r-set-btn { opacity: 0.75; }
+  .set-row.target .r-vals { color: var(--ink); }
+  .set-row.target .r-vals.blank { color: var(--label); }
+
+  /* Inline edit buttons on target rows — invisible by default, tap to open
+     the matching picker. Hover/focus shows a subtle hint that they're tappable. */
+  .set-row .r-vals.editable {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .set-row .edit-num {
+    background: transparent;
+    border: none;
+    padding: 1px 4px;
+    margin: -1px -2px;
+    border-radius: 6px;
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .set-row .edit-num:hover {
+    background: rgba(93,155,184, 0.10);
+    color: var(--accent);
+  }
+  .set-row .edit-num.blank { color: var(--label); }
+  .set-row .r-vals .x { color: var(--label); font-size: 11px; }
+
+  /* Check column — done = filled teal, target = ghost ring */
+  .set-row .chk {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .set-row .chk svg { width: 11px; height: 11px; }
+  .set-row.done .chk {
+    background: var(--ok);
+    color: white;
+    border: none;
+  }
+  .set-row.target .chk {
+    background: white;
+    color: var(--label);
+    border: 1px solid rgba(15,22,34, 0.14);
+  }
+
+  /* SET number doubles as the working/warmup toggle.
+     Default (working) = teal-green (--ok). Tap → warmup = red (--bad).
+     The number itself IS the indicator; no separate pill. */
+  .set-row .r-set-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    border-radius: 6px;
+    font: 800 11px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ok);
+    cursor: pointer;
+    transition: color 180ms ease-out, background 180ms ease-out, transform 100ms var(--ease-out-cubic);
+    text-align: left;
+    justify-self: start;
+  }
+  .set-row .r-set-btn:hover { background: rgba(15,22,34, 0.04); }
+  .set-row .r-set-btn:active { transform: scale(0.96); }
+  .set-row .r-set-btn.warmup { color: var(--bad); }
+
+  /* BW toggle — small square box that flags the set as bodyweight.
+     Off = ghost outline + muted label. On = solid dark fill.
+     Same on/off treatment as the eyebrow RPE/AI pills but square-cornered. */
+  .set-row .bw-btn {
+    width: 26px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(15,22,34, 0.18);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--label);
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    display: inline-grid;
+    place-items: center;
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 100ms var(--ease-out-cubic);
+    justify-self: center;
+  }
+  .set-row .bw-btn:active { transform: scale(0.94); }
+  .set-row .bw-btn.on {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 1px 4px rgba(15,22,34, 0.18);
+  }
+
+  /* Per-set remove — simple ghost icon button */
+  .set-row .row-remove {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    color: var(--label);
+    cursor: pointer;
+    transition: color 150ms ease-out;
+    padding: 0;
+  }
+  .set-row .row-remove:hover { color: var(--bad); }
+  .set-row .row-remove svg { width: 9px; height: 9px; }
+
+  /* (.current, .pickers, .picker, .log-btn removed — replaced by .wm-hero block above) */
+
+  /* Inline AI recommendation — Spatial Glass treatment (Option B):
+     prismatic gradient matching the hero family (smaller version), backdrop-blur,
+     specular top-edge highlight, accent-tinted ambient shadow. */
+  .rec-inline {
+    margin: 6px 0 10px 0;
+    padding: 9px 8px 9px 14px;
+    background: linear-gradient(155deg, rgba(93,155,184, 0.20) 0%, rgba(155,130,200, 0.14) 55%, rgba(201,160,190, 0.12) 100%);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    border: 1px solid rgba(93,155,184, 0.30);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 0.9) inset,
+      0 0 0 1px rgba(255,255,255, 0.4) inset,
+      0 10px 24px rgba(93,155,184, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: visible;
+    position: relative;
+  }
+  .rec-inline::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22%; right: 22%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.95), transparent);
+    pointer-events: none;
+  }
+  .rec-inline .live-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 5px;
+  }
+  .rec-inline .body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .rec-inline .summary {
+    font: 500 12px/1.2 'Inter Tight',sans-serif;
+    color: var(--muted);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rec-inline .summary .coach-tag {
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.005em;
+    margin-right: 6px;
+  }
+  .rec-inline .summary .action {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .rec-inline .summary .arrow {
+    margin: 0 4px;
+    color: var(--label);
+  }
+  .rec-inline .summary .next {
+    font-family: 'Geist Mono',ui-monospace,monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .rec-inline .reason {
+    font: 500 10px/1.3 'Inter Tight',sans-serif;
+    color: var(--muted);
+    letter-spacing: -0.003em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rec-inline .apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px 6px 11px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    font: 600 10.5px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+    align-self: center;
+    transition: background 150ms ease-out;
+  }
+  .rec-inline .apply:hover { background: var(--paper-2); }
+  .rec-inline .apply svg { width: 9px; height: 9px; }
+
+  /* Add-set affordance — simple outlined pill */
+  .add-set-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 12px auto 4px;
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .add-set-btn:hover {
+    background: var(--paper-2);
+    color: var(--ink);
+  }
+  .add-set-btn svg { width: 11px; height: 11px; }
+
+  /* Footer action bar — RPE + AI as iOS-style toggle switches.
+     Content-sized buttons centered in a glass pill. */
+  .wm-actions {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 8px 18px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(36px) saturate(1.5);
+    -webkit-backdrop-filter: blur(36px) saturate(1.5);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 999px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(15,22,34,0.04),
+      0 14px 36px rgba(15,22,34,0.12),
+      0 4px 10px rgba(15,22,34,0.06);
+    z-index: 5;
+  }
+
+  .foot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 6px;
+    background: transparent;
+    border: none;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    cursor: pointer;
+    transition: color 180ms ease-out, background 200ms ease-out, border-color 200ms ease-out;
+  }
+
+  /* Ghost-outline pill toggle — the pill IS the indicator (no inner switch).
+     Off = ghost outline + muted label. On = solid dark fill, white label.
+     Sized to match the rest pill exactly so all three eyebrow controls read
+     as a single family. */
+  .foot-btn.toggle {
+    height: auto;
+    padding: 5px 12px;
+    border: 1px solid rgba(15,22,34, 0.18);
+    border-radius: 999px;
+    gap: 0;
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+  }
+  .foot-btn.toggle .toggle-track { display: none; }
+  .foot-btn.toggle.on {
+    color: white;
+    background: var(--ink-deep);
+    border-color: var(--ink-deep);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 2px 8px rgba(15,22,34, 0.18);
+  }
+
+  /* Eyebrow control cluster — RPE + AI + Rest pill sit together on the
+     right of the hero eyebrow. */
+  .wm-hero-eyebrow .eyebrow-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .foot-btn.toggle .toggle-track {
+    width: 30px;
+    height: 18px;
+    background: rgba(15,22,34, 0.12);
+    border-radius: 999px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 200ms var(--ease-out-cubic);
+  }
+  .foot-btn.toggle .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(15,22,34, 0.20), 0 0 0 1px rgba(15,22,34, 0.04);
+    transition: left 220ms var(--ease-out-cubic);
+  }
+  .foot-btn.toggle.on .toggle-track {
+    background: var(--ink-deep);
+  }
+  .foot-btn.toggle.on .toggle-thumb {
+    left: 14px;
+  }
+
+  /* Rest pill (Option B from rest-timer-options.html) — the pill IS the toggle.
+     Off = ghost (grey outline). On = solid dark (countdown live).
+     Tap toggles on/off. Long-press opens duration picker. */
+  .pill-rest-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .pill-rest {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 10px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.18);
+    border-radius: 999px;
+    color: var(--label);
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    user-select: none;
+    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out, transform 150ms var(--ease-out-cubic), box-shadow 200ms ease-out;
+  }
+  .pill-rest .timer-icon { width: 11px; height: 11px; }
+  .pill-rest .lbl { font-size: 9.5px; opacity: 0.85; }
+  .pill-rest .time {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    font-size: 11px;
+  }
+  .pill-rest.on {
+    background: var(--ink-deep);
+    border-color: var(--ink-deep);
+    color: white;
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 2px 8px rgba(15,22,34, 0.18);
+  }
+  .pill-rest.urgent {
+    background: var(--bad);
+    border-color: var(--bad);
+    color: white;
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.12) inset, 0 2px 10px rgba(176,128,146, 0.45);
+  }
+  .pill-rest.holding { transform: scale(0.97); }
+
+  /* Duration picker — pops up below the pill on long-press. */
+  .dur-picker {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 11px;
+    background: rgba(255,255,255, 0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(15,22,34, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15,22,34, 0.18), 0 2px 6px rgba(15,22,34, 0.06);
+    z-index: 6;
+    animation: premium-enter 280ms var(--ease-premium);
+  }
+  .dur-picker.open { display: flex; }
+  .dur-picker .dur-label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    text-align: center;
+  }
+  .dur-chips {
+    display: flex;
+    gap: 5px;
+  }
+  .dur-chip {
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--hairline, rgba(15,22,34, 0.10));
+    border-radius: 999px;
+    font: 600 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out, transform 100ms var(--ease-out-cubic);
+  }
+  .dur-chip:active { transform: scale(0.96); }
+  .dur-chip.active {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+  }
+
+  /* (.foot-btn.skip removed — Skip is handled via the Today × button) */
+
+  /* Log Set — primary action, takes remaining space */
+  .foot-btn.primary {
+    flex: 1;
+    min-width: 0;
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 4px 12px rgba(24,32,48,0.25);
+  }
+  .foot-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 20px rgba(24,32,48,0.35);
+  }
+  .foot-btn.primary:disabled {
+    background: var(--paper-2);
+    color: var(--label);
+    border-color: transparent;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* === Number Picker Overlay — redesigned per user-approved screenshots === */
+  .pk-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,22,34,0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 50;
+    display: none;
+    align-items: flex-end;
+  }
+  .pk-overlay.active { display: flex; }
+  .pk-sheet {
+    width: 100%;
+    background: white;
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -20px 48px rgba(15,22,34,0.18), 0 -4px 12px rgba(15,22,34,0.06);
+    padding: 8px 0 26px;
+    max-height: 78%;
+    overflow-y: auto;
+    transform: translateY(0);
+    animation: slideUp 280ms cubic-bezier(0.32, 0.72, 0.30, 1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .pk-sheet::-webkit-scrollbar { display: none; }
+  .pk-handle { width: 38px; height: 4px; background: var(--hairline-strong); border-radius: var(--r-pill); margin: 6px auto 16px; }
+
+  /* Header: title left, Done pill right */
+  .pk-header {
+    padding: 0 22px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pk-title {
+    font: 700 16px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .pk-done {
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 9px 18px;
+    font: 600 13px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .pk-done:hover { background: var(--ink-deep); color: white; border-color: var(--ink-deep); }
+  .pk-done:active { transform: scale(0.97); }
+
+  /* Big value display card */
+  .pk-display {
+    margin: 0 20px 16px;
+    padding: 22px 20px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 3px rgba(15,22,34,0.04);
+  }
+  .pk-val {
+    font: 700 54px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+  }
+  .pk-unit {
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Stepper row — 6 columns, padded layout for fewer-than-6 fields */
+  .pk-steppers {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 0 20px 14px;
+  }
+  .pk-steppers button {
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 13px;
+    padding: 13px 0;
+    font: 700 13px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, border-color 180ms ease-out, transform 150ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .pk-steppers button:hover {
+    background: rgba(93,155,184,0.05);
+    border-color: rgba(93,155,184,0.35);
+  }
+  .pk-steppers button:active { transform: scale(0.96); }
+  .pk-steppers .pk-pad { visibility: hidden; pointer-events: none; }
+
+  /* Preset grid — 4 columns, wraps to multiple rows */
+  .pk-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 0 20px;
+  }
+  .pk-presets button {
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 15px 0;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 180ms ease-out, border-color 180ms ease-out, transform 150ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .pk-presets button:hover { background: var(--paper-2); }
+  .pk-presets button:active { transform: scale(0.97); }
+  .pk-presets button.active {
+    background: rgba(93,155,184,0.10);
+    border-color: rgba(93,155,184,0.32);
+    color: var(--ink);
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 0 0 1px rgba(93,155,184,0.15);
+  }
+
+  /* === Add Movement Sheet === */
+  .am-header { padding: 0 22px 14px; }
+  .am-header .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+  .am-header h2 { margin: 0; font: 700 22px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
+
+  .seg {
+    margin: 0 22px 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 4px;
+  }
+  .seg button { background: transparent; border: none; padding: 10px 14px; border-radius: var(--r-pill); font: 600 12px/1 'Inter Tight',sans-serif; color: var(--muted); cursor: pointer; transition: background 150ms ease-out, color 150ms ease-out; }
+  .seg button.active { background: white; color: var(--ink); box-shadow: var(--depth-1); }
+
+  .prior-card {
+    margin: 6px 22px 8px;
+    padding: 12px 14px;
+    background: linear-gradient(160deg, rgba(93,155,184,0.08) 0%, rgba(155,130,200,0.06) 100%);
+    border: 1px solid rgba(93,155,184,0.20);
+    border-radius: var(--r-md);
+  }
+  .prior-card .lbl { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .prior-card .vals { font: 500 12px/1.4 'Geist Mono',ui-monospace,monospace; color: var(--muted); }
+  .prior-card .hint { font: 500 11px/1.4 'Inter Tight',sans-serif; color: var(--muted); margin-top: 6px; }
+  .prior-card.hidden { display: none; }
+
+  .div-eyebrow {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 22px 8px;
+  }
+
+  .field, .field-num {
+    margin: 0 22px 10px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .field-num { padding: 10px 14px; }
+  .field .lbl, .field-num .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); }
+  .field .lbl { width: 96px; flex-shrink: 0; }
+  .field-num .lbl { flex: 1; }
+  .field .val { flex: 1; font: 600 14px/1 'Inter Tight',sans-serif; color: var(--ink); }
+  .field .chev { width: 14px; height: 14px; color: var(--label); }
+
+  .stepper { display: flex; align-items: center; background: white; border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 2px; }
+  .stepper button { width: 30px; height: 30px; border: none; background: transparent; border-radius: var(--r-pill); color: var(--ink); font: 700 14px/1 'Inter Tight',sans-serif; cursor: pointer; }
+  .stepper button:hover { background: var(--paper); }
+  .stepper button:active { transform: scale(0.94); }
+  .stepper .v { min-width: 50px; text-align: center; font: 700 15px/1 'Geist Mono',ui-monospace,monospace; }
+  .stepper .u { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.10em; text-transform: uppercase; padding-right: 8px; }
+
+  .cta-wrap { padding: 14px 22px 0; }
+  .cta { width: 100%; padding: 14px; background: var(--ink-deep); color: white; border: none; border-radius: var(--r-pill); font: 600 14px/1 'Inter Tight',sans-serif; box-shadow: 0 8px 20px rgba(24,32,48,0.30); cursor: pointer; }
+  .cta-cancel { width: 100%; margin-top: 8px; padding: 12px; background: transparent; color: var(--muted); border: none; font: 500 13px/1 'Inter Tight',sans-serif; cursor: pointer; }
+
+  /* === Toast === */
+  .toast {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 92px;
+    padding: 12px 16px;
+    background: var(--ink-deep);
+    color: white;
+    border-radius: var(--r-pill);
+    font: 600 13px/1 'Inter Tight',sans-serif;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(24,32,48,0.30);
+    z-index: 40;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 250ms ease-out, transform 250ms ease-out;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* === Demo hint banner (outside the device) === */
+  .hint {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    max-width: 280px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-2);
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .hint strong { color: var(--ink); display: block; margin-bottom: 6px; font-weight: 700; }
+  .hint code { font-family: 'Geist Mono',ui-monospace,monospace; background: var(--paper-2); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+</style>
 </head>
 <body>
 <div class="app">
