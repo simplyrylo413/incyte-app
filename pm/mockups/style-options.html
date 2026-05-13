@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Three style options</title>
+<style>
+  /* ============================================================
+     Page layout
+     ============================================================ */
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background: #f4f6fa;
+    color: #0f1622;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding: 40px 24px 80px;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .page-header {
+    margin-bottom: 40px;
+    text-align: left;
+  }
+  .page-header h1 {
+    font: 700 32px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 8px;
+    color: #0f1622;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: #5e6a82;
+    margin: 0;
+    max-width: 680px;
+  }
+  .phones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 1280px) {
+    .phones { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+  }
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+  .phone-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #5e6a82;
+    text-align: center;
+    padding-bottom: 4px;
+  }
+  .phone-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+    color: #0f1622;
+    text-align: center;
+    margin: -8px 0 0;
+  }
+  .phone-tagline {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: #5e6a82;
+    text-align: center;
+    max-width: 320px;
+    margin: 0;
+  }
+  .device {
+    width: 393px;
+    height: 852px;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(15,22,34,0.16), 0 6px 18px rgba(15,22,34,0.06);
+    border: 1px solid rgba(15,22,34,0.10);
+  }
+  .phone-notes {
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: #5e6a82;
+    max-width: 360px;
+    padding: 14px 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid rgba(15,22,34,0.08);
+  }
+  .phone-notes strong { color: #0f1622; font-weight: 700; }
+  .phone-notes ul { margin: 6px 0 0; padding-left: 18px; }
+  .phone-notes li { margin: 4px 0; }
+
+  /* ============================================================
+     Shared device chrome (status bar + content layout)
+     ============================================================ */
+  .statusbar {
+    height: 44px;
+    padding: 0 24px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    flex-shrink: 0;
+  }
+  .statusbar .sig { display: flex; gap: 4px; align-items: flex-end; opacity: .85; }
+  .statusbar .sig span { width: 3px; border-radius: 1px; }
+  .statusbar .sig span:nth-child(1){height:5px}
+  .statusbar .sig span:nth-child(2){height:7px}
+  .statusbar .sig span:nth-child(3){height:9px}
+  .statusbar .sig span:nth-child(4){height:11px}
+
+  /* ============================================================
+     STYLE A — CRYSTALLINE LIGHT
+     iOS 26 Liquid Glass refinement. Soft ambient gradient, true backdrop
+     blur, specular edge highlights, premium spring-physics micro-motion.
+     ============================================================ */
+  .style-a {
+    background:
+      radial-gradient(120% 70% at 80% -10%, rgba(255,205,180,0.35) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.40) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+  }
+  .style-a .statusbar { color: #0f1622; }
+  .style-a .statusbar .sig span { background: #0f1622; }
+
+  .style-a .topbar {
+    padding: 6px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .style-a .back-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 999px;
+    padding: 8px 12px 8px 8px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.9) inset,
+      0 0 0 1px rgba(15,22,34,0.04),
+      0 4px 12px rgba(15,22,34,0.06);
+    cursor: pointer;
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease-out;
+  }
+  .style-a .back-chip:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 0 0 1px rgba(15,22,34,0.06), 0 8px 20px rgba(15,22,34,0.10); }
+  .style-a .back-chip:active { transform: translateY(0); }
+  .style-a .back-chip svg { width: 14px; height: 14px; color: #0f1622; }
+  .style-a .back-chip span { font: 600 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; color: #0f1622; }
+
+  .style-a .identity { flex: 1; min-width: 0; }
+  .style-a .identity .body-part { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #8893a8; margin-bottom: 4px; }
+  .style-a .identity .name { font: 700 22px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.025em; color: #0f1622; }
+  .style-a .set-counter { text-align: right; flex-shrink: 0; }
+  .style-a .set-counter .now { font: 700 24px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; color: #0f1622; }
+  .style-a .set-counter .of { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; color: #8893a8; text-transform: uppercase; margin-top: 3px; }
+
+  .style-a .prefs {
+    padding: 0 18px 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .style-a .pref-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px 8px 11px;
+    background: rgba(93,155,184,0.10);
+    border: 1px solid rgba(93,155,184,0.25);
+    border-radius: 999px;
+    font: 600 11px/1 'Inter Tight',sans-serif;
+    color: #0f1622;
+    cursor: pointer;
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), background 200ms ease-out;
+  }
+  .style-a .pref-chip .dot {
+    width: 7px; height: 7px;
+    background: #5d9bb8;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(93,155,184,0.18), 0 0 8px rgba(93,155,184,0.4);
+  }
+  .style-a .pref-chip:hover { transform: translateY(-1px); background: rgba(93,155,184,0.16); }
+
+  .style-a .prior {
+    margin: 0 18px 14px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.8) inset,
+      0 0 0 1px rgba(15,22,34,0.03),
+      0 6px 18px rgba(15,22,34,0.04);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .style-a .prior .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #8893a8; }
+  .style-a .prior .vals { font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace; color: #5e6a82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .style-a .sets { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; }
+  .style-a .set-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(18px) saturate(1.3);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,0.65);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.9) inset,
+      0 4px 14px rgba(15,22,34,0.04);
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease-out;
+  }
+  .style-a .set-row:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 8px 22px rgba(15,22,34,0.08);
+  }
+  .style-a .set-row .idx { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #8893a8; width: 40px; }
+  .style-a .set-row .vals { flex: 1; font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: #0f1622; }
+  .style-a .set-row .meta { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; color: #8893a8; letter-spacing: 0.06em; text-transform: uppercase; }
+  .style-a .set-row.done .vals { color: #4f9aa8; }
+  .style-a .set-row.done .meta {
+    color: #4f9aa8;
+    padding: 5px 10px;
+    background: rgba(79,154,168,0.12);
+    border: 1px solid rgba(79,154,168,0.25);
+    border-radius: 999px;
+  }
+  .style-a .set-row.target .vals { color: #5e6a82; }
+  .style-a .row-remove {
+    width: 26px; height: 26px; border-radius: 999px;
+    border: 1px solid transparent; background: transparent;
+    display: grid; place-items: center; color: #8893a8; cursor: pointer;
+    transition: all 150ms ease-out;
+  }
+  .style-a .row-remove:hover { color: #b08092; border-color: rgba(176,128,146,0.30); background: rgba(176,128,146,0.06); }
+  .style-a .row-remove svg { width: 11px; height: 11px; }
+
+  /* Style A current set card — the hero glass element */
+  .style-a .current {
+    margin: 10px 18px;
+    padding: 18px 18px 16px;
+    background:
+      linear-gradient(155deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.65) 100%);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 22px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.95) inset,
+      0 -1px 0 rgba(15,22,34,0.04) inset,
+      0 0 0 1px rgba(15,22,34,0.04),
+      0 22px 50px rgba(15,22,34,0.10),
+      0 4px 10px rgba(15,22,34,0.05);
+    position: relative;
+  }
+  .style-a .current::before {
+    content: ''; position: absolute; inset: 0; border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 30%);
+    pointer-events: none;
+  }
+  .style-a .current .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; position: relative; }
+  .style-a .current .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #5d9bb8; display: flex; align-items: center; gap: 7px; }
+  .style-a .current .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #5d9bb8; box-shadow: 0 0 8px rgba(93,155,184,0.5), 0 0 0 3px rgba(93,155,184,0.18); }
+  .style-a .current .head-remove { background: transparent; border: none; color: #8893a8; font: 500 11px/1 'Inter Tight',sans-serif; padding: 4px 8px; border-radius: 999px; cursor: pointer; transition: all 150ms ease-out; }
+  .style-a .current .head-remove:hover { color: #b08092; background: rgba(176,128,146,0.08); }
+
+  .style-a .pickers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; position: relative; }
+  .style-a .picker {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(15,22,34,0.04);
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease-out, border-color 200ms ease-out;
+  }
+  .style-a .picker:hover {
+    transform: translateY(-2px);
+    border-color: rgba(93,155,184,0.45);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 0 0 4px rgba(93,155,184,0.10), 0 8px 18px rgba(15,22,34,0.06);
+  }
+  .style-a .picker .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #8893a8; margin-bottom: 8px; }
+  .style-a .picker .val { font: 700 26px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; color: #0f1622; }
+  .style-a .picker .unit { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: #5e6a82; letter-spacing: 0.10em; text-transform: uppercase; margin-top: 4px; }
+  .style-a .picker.empty .val { color: #8893a8; }
+
+  .style-a .log-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(180deg, #2a3548 0%, #1a2333 100%);
+    color: white; border: none; border-radius: 999px;
+    font: 600 14px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em;
+    cursor: pointer; position: relative; overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.15) inset,
+      0 -1px 0 rgba(0,0,0,0.3) inset,
+      0 10px 26px rgba(24,32,48,0.36),
+      0 2px 6px rgba(24,32,48,0.22);
+    transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease-out;
+  }
+  .style-a .log-btn:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 16px 36px rgba(24,32,48,0.45), 0 4px 10px rgba(24,32,48,0.28); }
+  .style-a .log-btn:active { transform: translateY(0); }
+
+  /* Style A AI recommendation card */
+  .style-a .rec {
+    margin: 12px 18px 0;
+    padding: 16px 18px 14px;
+    background:
+      linear-gradient(140deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.12) 50%, rgba(201,160,190,0.10) 100%);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid rgba(93,155,184,0.30);
+    border-radius: 18px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 12px 30px rgba(93,155,184,0.10),
+      0 2px 6px rgba(15,22,34,0.04);
+    position: relative;
+  }
+  .style-a .rec .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .style-a .rec .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #2a6d8b; display: flex; align-items: center; gap: 8px; }
+  .style-a .rec .live-dot { width: 5px; height: 5px; background: #5d9bb8; border-radius: 50%; box-shadow: 0 0 8px rgba(93,155,184,0.6); }
+  .style-a .rec .row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  .style-a .rec .action { font: 700 26px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; color: #0f1622; }
+  .style-a .rec .next { font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: #5e6a82; letter-spacing: 0.02em; }
+  .style-a .rec .reason { font: 500 12px/1.5 'Inter Tight',sans-serif; color: #5e6a82; margin: 8px 0 14px; }
+  .style-a .rec .apply {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px 10px 14px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 999px;
+    font: 600 12px/1 'Inter Tight',sans-serif; color: #0f1622;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 2px 6px rgba(15,22,34,0.06);
+    transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-a .rec .apply:hover { transform: translateY(-1px); background: #1a2333; color: white; border-color: #1a2333; box-shadow: 0 6px 16px rgba(24,32,48,0.30); }
+  .style-a .rec .apply:hover svg { transform: translateX(3px); }
+  .style-a .rec .apply svg { width: 12px; height: 12px; transition: transform 200ms ease-out; }
+
+  /* ============================================================
+     STYLE B — AURORA SPATIAL
+     Vision Pro / Spatial UI inspired. Saturated aurora gradient ambient,
+     heavier blur, dramatic depth, prismatic glass.
+     ============================================================ */
+  .style-b {
+    background:
+      radial-gradient(85% 60% at 20% 10%, rgba(255,180,210,0.55) 0%, transparent 60%),
+      radial-gradient(80% 70% at 80% 0%, rgba(170,200,255,0.55) 0%, transparent 55%),
+      radial-gradient(100% 80% at 60% 100%, rgba(220,180,240,0.50) 0%, transparent 60%),
+      linear-gradient(180deg, #f0eef7 0%, #ebebf4 100%);
+  }
+  .style-b .statusbar { color: #1f2536; }
+  .style-b .statusbar .sig span { background: #1f2536; }
+  .style-b .topbar { padding: 6px 18px 14px; display: flex; align-items: center; gap: 12px; }
+  .style-b .back-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.40);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 999px;
+    padding: 9px 13px 9px 9px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 0 0 1px rgba(155,130,200,0.10),
+      0 8px 24px rgba(155,130,200,0.15);
+    cursor: pointer;
+    transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-b .back-chip:hover { transform: translateY(-2px) scale(1.02); }
+  .style-b .back-chip svg { width: 14px; height: 14px; color: #1f2536; }
+  .style-b .back-chip span { font: 600 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; color: #1f2536; }
+
+  .style-b .identity { flex: 1; min-width: 0; }
+  .style-b .identity .body-part { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #6c5d8a; margin-bottom: 4px; }
+  .style-b .identity .name { font: 700 22px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.025em; color: #1f2536; }
+  .style-b .set-counter { text-align: right; flex-shrink: 0; }
+  .style-b .set-counter .now { font: 700 24px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; color: #1f2536; }
+  .style-b .set-counter .of { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; color: #6c5d8a; text-transform: uppercase; margin-top: 3px; }
+
+  .style-b .prefs { padding: 0 18px 12px; display: flex; gap: 8px; }
+  .style-b .pref-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 14px 9px 11px;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(30px) saturate(1.6);
+    -webkit-backdrop-filter: blur(30px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 999px;
+    font: 600 11px/1 'Inter Tight',sans-serif;
+    color: #1f2536;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 4px 14px rgba(155,130,200,0.10);
+    transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-b .pref-chip .dot {
+    width: 8px; height: 8px;
+    background: linear-gradient(135deg, #9b82c8 0%, #c9a0be 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(155,130,200,0.6);
+  }
+  .style-b .pref-chip:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 8px 20px rgba(155,130,200,0.20); }
+
+  .style-b .prior {
+    margin: 0 18px 14px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(36px) saturate(1.6);
+    -webkit-backdrop-filter: blur(36px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 18px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 10px 28px rgba(155,130,200,0.12);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .style-b .prior .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #6c5d8a; }
+  .style-b .prior .vals { font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace; color: #4a4a6e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .style-b .sets { padding: 0 18px; display: flex; flex-direction: column; gap: 10px; }
+  .style-b .set-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 18px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.3) inset,
+      0 8px 22px rgba(155,130,200,0.08);
+    transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 280ms ease-out;
+  }
+  .style-b .set-row:hover { transform: translateY(-2px) scale(1.005); box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 0 0 1px rgba(255,255,255,0.4) inset, 0 14px 30px rgba(155,130,200,0.16); }
+  .style-b .set-row .idx { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #6c5d8a; width: 40px; }
+  .style-b .set-row .vals { flex: 1; font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: #1f2536; }
+  .style-b .set-row .meta { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; color: #6c5d8a; letter-spacing: 0.06em; text-transform: uppercase; }
+  .style-b .set-row.done .vals { background: linear-gradient(90deg, #4f9aa8 0%, #9b82c8 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .style-b .set-row.done .meta {
+    color: #4f9aa8;
+    padding: 5px 11px;
+    background: rgba(79,154,168,0.14);
+    border: 1px solid rgba(79,154,168,0.28);
+    border-radius: 999px;
+  }
+  .style-b .set-row.target .vals { color: #4a4a6e; }
+  .style-b .row-remove { width: 28px; height: 28px; border-radius: 999px; border: 1px solid transparent; background: transparent; display: grid; place-items: center; color: #8893a8; cursor: pointer; transition: all 150ms ease-out; }
+  .style-b .row-remove:hover { color: #b08092; border-color: rgba(176,128,146,0.40); background: rgba(176,128,146,0.10); }
+  .style-b .row-remove svg { width: 11px; height: 11px; }
+
+  /* Style B current set — floating glass with aurora interior */
+  .style-b .current {
+    margin: 10px 18px;
+    padding: 20px 18px 16px;
+    background:
+      linear-gradient(155deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.45) 100%);
+    backdrop-filter: blur(48px) saturate(1.8);
+    -webkit-backdrop-filter: blur(48px) saturate(1.8);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 26px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.5) inset,
+      0 0 0 1px rgba(155,130,200,0.05),
+      0 30px 70px rgba(155,130,200,0.18),
+      0 8px 18px rgba(155,130,200,0.08);
+    position: relative;
+  }
+  .style-b .current::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+    border-radius: 1px;
+  }
+  .style-b .current .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .style-b .current .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #5d9bb8; display: flex; align-items: center; gap: 8px; }
+  .style-b .current .eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: linear-gradient(135deg, #5d9bb8 0%, #9b82c8 100%);
+    box-shadow: 0 0 12px rgba(93,155,184,0.7), 0 0 0 3px rgba(93,155,184,0.18);
+  }
+  .style-b .current .head-remove { background: transparent; border: none; color: #6c5d8a; font: 500 11px/1 'Inter Tight',sans-serif; padding: 4px 8px; border-radius: 999px; cursor: pointer; transition: all 150ms ease-out; }
+  .style-b .current .head-remove:hover { color: #b08092; background: rgba(176,128,146,0.10); }
+
+  .style-b .pickers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .style-b .picker {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 16px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 0 0 1px rgba(155,130,200,0.05), 0 4px 12px rgba(155,130,200,0.08);
+    transition: all 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-b .picker:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(93,155,184,0.50);
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 0 0 4px rgba(93,155,184,0.10), 0 16px 32px rgba(93,155,184,0.18);
+  }
+  .style-b .picker .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #6c5d8a; margin-bottom: 10px; }
+  .style-b .picker .val { font: 700 28px/1 'Inter Tight',sans-serif; letter-spacing: -0.035em; color: #1f2536; }
+  .style-b .picker .unit { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: #4a4a6e; letter-spacing: 0.10em; text-transform: uppercase; margin-top: 5px; }
+  .style-b .picker.empty .val {
+    background: linear-gradient(135deg, #9eb5cb 0%, #c9a0be 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .style-b .log-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #1f2536 0%, #2d3a55 50%, #1f2536 100%);
+    color: white; border: none; border-radius: 999px;
+    font: 600 14px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em;
+    cursor: pointer; position: relative; overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.20) inset,
+      0 -1px 0 rgba(0,0,0,0.3) inset,
+      0 0 0 1px rgba(155,130,200,0.30),
+      0 14px 32px rgba(31,37,54,0.40),
+      0 4px 8px rgba(31,37,54,0.25);
+    transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-b .log-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 600ms ease-out;
+  }
+  .style-b .log-btn:hover { transform: translateY(-2px); box-shadow: 0 1px 0 rgba(255,255,255,0.22) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 0 0 1px rgba(155,130,200,0.40), 0 20px 40px rgba(31,37,54,0.48); }
+  .style-b .log-btn:hover::before { left: 100%; }
+
+  .style-b .rec {
+    margin: 12px 18px 0;
+    padding: 18px 18px 16px;
+    background:
+      linear-gradient(145deg, rgba(170,200,255,0.30) 0%, rgba(220,180,240,0.25) 50%, rgba(255,180,210,0.20) 100%);
+    backdrop-filter: blur(36px) saturate(1.8);
+    -webkit-backdrop-filter: blur(36px) saturate(1.8);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 22px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 18px 40px rgba(155,130,200,0.18);
+    position: relative; overflow: hidden;
+  }
+  .style-b .rec::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent);
+  }
+  .style-b .rec .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .style-b .rec .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #2a6d8b; display: flex; align-items: center; gap: 8px; }
+  .style-b .rec .live-dot { width: 6px; height: 6px; background: linear-gradient(135deg, #5d9bb8 0%, #9b82c8 100%); border-radius: 50%; box-shadow: 0 0 10px rgba(93,155,184,0.7); }
+  .style-b .rec .row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+  .style-b .rec .action { font: 700 28px/1 'Inter Tight',sans-serif; letter-spacing: -0.035em; color: #1f2536; }
+  .style-b .rec .next { font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: #4a4a6e; }
+  .style-b .rec .reason { font: 500 12px/1.5 'Inter Tight',sans-serif; color: #4a4a6e; margin: 8px 0 14px; }
+  .style-b .rec .apply {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px 10px 16px;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.95);
+    border-radius: 999px;
+    font: 600 12px/1 'Inter Tight',sans-serif; color: #1f2536;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 4px 12px rgba(155,130,200,0.15);
+    transition: all 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .style-b .rec .apply:hover { transform: translateY(-2px) scale(1.02); background: #1f2536; color: white; border-color: #1f2536; box-shadow: 0 10px 24px rgba(31,37,54,0.35); }
+  .style-b .rec .apply:hover svg { transform: translateX(4px); }
+  .style-b .rec .apply svg { width: 12px; height: 12px; transition: transform 280ms ease-out; }
+
+  /* ============================================================
+     STYLE C — MONOCHROME EDITORIAL
+     Linear / Things 3 / Stripe inspired. Tight architectural grayscale.
+     Solid surfaces, dramatic typographic hierarchy, single accent moment.
+     ============================================================ */
+  .style-c {
+    background: #fafbfc;
+  }
+  .style-c .statusbar { color: #0f1622; }
+  .style-c .statusbar .sig span { background: #0f1622; }
+  .style-c .topbar { padding: 6px 22px 18px; display: flex; align-items: center; gap: 12px; }
+  .style-c .back-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.10);
+    border-radius: 999px;
+    padding: 7px 12px 7px 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.04);
+    transition: background 200ms ease-out, border-color 200ms ease-out;
+  }
+  .style-c .back-chip:hover { background: #f4f6fa; border-color: rgba(15,22,34,0.16); }
+  .style-c .back-chip svg { width: 14px; height: 14px; color: #0f1622; }
+  .style-c .back-chip span { font: 600 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; color: #0f1622; }
+
+  .style-c .identity { flex: 1; min-width: 0; }
+  .style-c .identity .body-part { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: #8893a8; margin-bottom: 6px; }
+  .style-c .identity .name { font: 700 24px/1.05 'Inter Tight',sans-serif; letter-spacing: -0.035em; color: #0f1622; }
+  .style-c .set-counter { text-align: right; flex-shrink: 0; }
+  .style-c .set-counter .now { font: 700 28px/1 'Inter Tight',sans-serif; letter-spacing: -0.04em; color: #0f1622; }
+  .style-c .set-counter .of { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; color: #8893a8; text-transform: uppercase; margin-top: 4px; }
+
+  .style-c .prefs { padding: 0 22px 14px; display: flex; gap: 8px; }
+  .style-c .pref-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 12px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34,0.12);
+    border-radius: 999px;
+    font: 600 11px/1 'Inter Tight',sans-serif;
+    color: #0f1622;
+    cursor: pointer;
+    transition: background 200ms ease-out, border-color 200ms ease-out;
+  }
+  .style-c .pref-chip .dot {
+    width: 6px; height: 6px;
+    background: #0f1622;
+    border-radius: 50%;
+  }
+  .style-c .pref-chip:hover { background: #f4f6fa; border-color: rgba(15,22,34,0.20); }
+
+  .style-c .prior {
+    margin: 0 22px 0;
+    padding: 14px 0 16px;
+    border-bottom: 1px solid rgba(15,22,34,0.08);
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  .style-c .prior .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #8893a8; flex-shrink: 0; }
+  .style-c .prior .vals { font: 500 13px/1.3 'Geist Mono',ui-monospace,monospace; color: #5e6a82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .style-c .sets-section-eyebrow { font: 700 9px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.20em; text-transform: uppercase; color: #8893a8; padding: 14px 22px 8px; }
+
+  .style-c .sets { padding: 0 22px; display: flex; flex-direction: column; gap: 0; }
+  .style-c .set-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(15,22,34,0.06);
+    transition: padding 200ms ease-out;
+  }
+  .style-c .set-row:hover { padding-left: 4px; padding-right: 4px; }
+  .style-c .set-row .idx { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.18em; text-transform: uppercase; color: #8893a8; width: 40px; }
+  .style-c .set-row .vals { flex: 1; font: 600 15px/1 'Geist Mono',ui-monospace,monospace; color: #0f1622; }
+  .style-c .set-row .meta { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; color: #8893a8; letter-spacing: 0.14em; text-transform: uppercase; }
+  .style-c .set-row.done .vals { color: #0f1622; }
+  .style-c .set-row.done .meta {
+    color: #4f9aa8; padding: 4px 10px;
+    background: rgba(79,154,168,0.08);
+    border: 1px solid rgba(79,154,168,0.20);
+    border-radius: 4px;
+  }
+  .style-c .set-row.target .vals { color: #5e6a82; }
+  .style-c .row-remove { width: 24px; height: 24px; border-radius: 4px; border: 1px solid transparent; background: transparent; display: grid; place-items: center; color: #8893a8; cursor: pointer; transition: all 150ms ease-out; }
+  .style-c .row-remove:hover { color: #b08092; background: rgba(176,128,146,0.08); }
+  .style-c .row-remove svg { width: 11px; height: 11px; }
+
+  /* Style C — the current set is the ONE moment of accent */
+  .style-c .current {
+    margin: 18px 22px;
+    padding: 18px 18px 16px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.10);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.04), 0 8px 24px rgba(15,22,34,0.06);
+    position: relative;
+  }
+  .style-c .current::before {
+    content: '';
+    position: absolute;
+    left: -1px; top: 16px; bottom: 16px;
+    width: 3px;
+    background: #0f1622;
+    border-radius: 0 3px 3px 0;
+  }
+  .style-c .current .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .style-c .current .eyebrow { font: 700 9px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.22em; text-transform: uppercase; color: #0f1622; display: flex; align-items: center; gap: 7px; }
+  .style-c .current .eyebrow .dot { width: 5px; height: 5px; background: #0f1622; border-radius: 50%; }
+  .style-c .current .head-remove { background: transparent; border: none; color: #8893a8; font: 500 11px/1 'Inter Tight',sans-serif; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: all 150ms ease-out; }
+  .style-c .current .head-remove:hover { color: #b08092; background: rgba(176,128,146,0.08); }
+
+  .style-c .pickers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+  .style-c .picker {
+    background: #fafbfc;
+    border: 1px solid rgba(15,22,34,0.08);
+    border-radius: 10px;
+    padding: 14px 8px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 200ms ease-out;
+  }
+  .style-c .picker:hover { background: white; border-color: #0f1622; }
+  .style-c .picker .lbl { font: 700 9px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.20em; text-transform: uppercase; color: #8893a8; margin-bottom: 8px; }
+  .style-c .picker .val { font: 700 30px/1 'Inter Tight',sans-serif; letter-spacing: -0.04em; color: #0f1622; }
+  .style-c .picker .unit { font: 600 9px/1 'Geist Mono',ui-monospace,monospace; color: #8893a8; letter-spacing: 0.16em; text-transform: uppercase; margin-top: 5px; }
+  .style-c .picker.empty .val { color: #c5cbd6; }
+
+  .style-c .log-btn {
+    width: 100%; padding: 14px;
+    background: #0f1622;
+    color: white; border: none; border-radius: 10px;
+    font: 600 13px/1 'Inter Tight',sans-serif; letter-spacing: -0.005em;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.10);
+    transition: background 200ms ease-out, box-shadow 200ms ease-out;
+  }
+  .style-c .log-btn:hover { background: #1f2536; box-shadow: 0 4px 12px rgba(15,22,34,0.18); }
+
+  .style-c .rec {
+    margin: 18px 22px 0;
+    padding: 0;
+    background: transparent;
+    border-top: 1px solid rgba(15,22,34,0.08);
+    border-radius: 0;
+  }
+  .style-c .rec .head { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 8px; }
+  .style-c .rec .eyebrow { font: 700 9px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.22em; text-transform: uppercase; color: #0f1622; display: flex; align-items: center; gap: 7px; }
+  .style-c .rec .live-dot { width: 5px; height: 5px; background: #5d9bb8; border-radius: 50%; }
+  .style-c .rec .row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 6px; }
+  .style-c .rec .action { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.03em; color: #0f1622; }
+  .style-c .rec .next { font: 600 13px/1 'Geist Mono',ui-monospace,monospace; color: #5e6a82; }
+  .style-c .rec .reason { font: 500 12px/1.5 'Inter Tight',sans-serif; color: #5e6a82; margin: 6px 0 12px; }
+  .style-c .rec .apply {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid #0f1622;
+    border-radius: 999px;
+    font: 600 11px/1 'Inter Tight',sans-serif; color: #0f1622;
+    cursor: pointer;
+    transition: background 200ms ease-out, color 200ms ease-out;
+  }
+  .style-c .rec .apply:hover { background: #0f1622; color: white; }
+  .style-c .rec .apply:hover svg { transform: translateX(3px); }
+  .style-c .rec .apply svg { width: 11px; height: 11px; transition: transform 200ms ease-out; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>INCYTE — Three premium style options</h1>
+    <p>Same Workout Mode content rendered three ways. Hover the cards to feel the motion. Pick the direction that feels right — I'll apply it to the working prototype.</p>
+  </div>
+
+  <div class="phones">
+
+    <!-- =================================================
+         STYLE A — CRYSTALLINE LIGHT
+         ================================================= -->
+    <div class="phone-wrap">
+      <div class="phone-label">A</div>
+      <div class="phone-name">Crystalline Light</div>
+      <p class="phone-tagline">Refined iOS 26 Liquid Glass. Soft ambient gradient bleeds through frosted glass cards. Specular edge highlights, spring-physics motion. The centrist premium choice.</p>
+      <div class="device style-a">
+        <div class="statusbar"><span>9:41</span><div class="sig"><span></span><span></span><span></span><span></span></div></div>
+        <div class="topbar">
+          <div class="back-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></div>
+          <div class="identity"><div class="body-part">CHEST · STRENGTH</div><div class="name">Bench Press</div></div>
+          <div class="set-counter"><div class="now">2</div><div class="of">OF 4</div></div>
+        </div>
+        <div class="prefs">
+          <button class="pref-chip"><span class="dot"></span>Track RPE</button>
+          <button class="pref-chip"><span class="dot"></span>AI guidance</button>
+        </div>
+        <div class="prior">
+          <span class="lbl">LAST TIME</span>
+          <span class="vals">185×10 @7 · 185×9 @8 · 180×10 @8</span>
+        </div>
+        <div class="sets">
+          <div class="set-row done">
+            <span class="idx">SET 1</span>
+            <span class="vals">185 × 10 · RPE 7</span>
+            <span class="meta">DONE</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="current">
+          <div class="head">
+            <span class="eyebrow"><span class="dot"></span>SET 2 · NOW</span>
+            <button class="head-remove">Remove set</button>
+          </div>
+          <div class="pickers">
+            <div class="picker"><div class="lbl">WEIGHT</div><div class="val">185</div><div class="unit">LB</div></div>
+            <div class="picker"><div class="lbl">REPS</div><div class="val">10</div><div class="unit">REPS</div></div>
+            <div class="picker empty"><div class="lbl">RPE</div><div class="val">—</div><div class="unit">EFFORT</div></div>
+          </div>
+          <button class="log-btn">Log set 2</button>
+        </div>
+        <div class="sets" style="margin-top: 8px;">
+          <div class="set-row target">
+            <span class="idx">SET 3</span>
+            <span class="vals">180 × 10</span>
+            <span class="meta">TARGET</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="head"><span class="eyebrow"><span class="live-dot"></span>NEXT SET</span></div>
+          <div class="row"><span class="action">Add 5 lb</span><span class="next">190 × 10</span></div>
+          <div class="reason">Effort controlled. Small bump.</div>
+          <button class="apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="phone-notes">
+        <strong>Personality:</strong> Balanced premium. Approachable but elevated.
+        <ul>
+          <li>Backdrop-blur 24–32px with saturation boost</li>
+          <li>Soft peach/blue ambient gradient bleeds through</li>
+          <li>Spring-easing hovers (cubic-bezier 0.34, 1.56)</li>
+          <li>Specular top-edge highlights on cards</li>
+          <li>Whoop / Oura / Apple Fitness register</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =================================================
+         STYLE B — AURORA SPATIAL
+         ================================================= -->
+    <div class="phone-wrap">
+      <div class="phone-label">B</div>
+      <div class="phone-name">Aurora Spatial</div>
+      <p class="phone-tagline">Vision Pro / spatial-UI register. Saturated aurora ambient mesh, deeper blur, dramatic floating-card depth, prismatic glass surfaces. The maximalist premium choice.</p>
+      <div class="device style-b">
+        <div class="statusbar"><span>9:41</span><div class="sig"><span></span><span></span><span></span><span></span></div></div>
+        <div class="topbar">
+          <div class="back-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></div>
+          <div class="identity"><div class="body-part">CHEST · STRENGTH</div><div class="name">Bench Press</div></div>
+          <div class="set-counter"><div class="now">2</div><div class="of">OF 4</div></div>
+        </div>
+        <div class="prefs">
+          <button class="pref-chip"><span class="dot"></span>Track RPE</button>
+          <button class="pref-chip"><span class="dot"></span>AI guidance</button>
+        </div>
+        <div class="prior">
+          <span class="lbl">LAST TIME</span>
+          <span class="vals">185×10 @7 · 185×9 @8 · 180×10 @8</span>
+        </div>
+        <div class="sets">
+          <div class="set-row done">
+            <span class="idx">SET 1</span>
+            <span class="vals">185 × 10 · RPE 7</span>
+            <span class="meta">DONE</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="current">
+          <div class="head">
+            <span class="eyebrow"><span class="dot"></span>SET 2 · NOW</span>
+            <button class="head-remove">Remove set</button>
+          </div>
+          <div class="pickers">
+            <div class="picker"><div class="lbl">WEIGHT</div><div class="val">185</div><div class="unit">LB</div></div>
+            <div class="picker"><div class="lbl">REPS</div><div class="val">10</div><div class="unit">REPS</div></div>
+            <div class="picker empty"><div class="lbl">RPE</div><div class="val">—</div><div class="unit">EFFORT</div></div>
+          </div>
+          <button class="log-btn">Log set 2</button>
+        </div>
+        <div class="sets" style="margin-top: 10px;">
+          <div class="set-row target">
+            <span class="idx">SET 3</span>
+            <span class="vals">180 × 10</span>
+            <span class="meta">TARGET</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="head"><span class="eyebrow"><span class="live-dot"></span>NEXT SET</span></div>
+          <div class="row"><span class="action">Add 5 lb</span><span class="next">190 × 10</span></div>
+          <div class="reason">Effort controlled. Small bump.</div>
+          <button class="apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="phone-notes">
+        <strong>Personality:</strong> Maximalist premium. Higher-drama, wow-factor moments.
+        <ul>
+          <li>Backdrop-blur 36–48px with strong saturation</li>
+          <li>Aurora mesh (pink + lavender + blue) ambient</li>
+          <li>Bigger lift on hover, gradient-text accents</li>
+          <li>Shimmer animation on primary buttons</li>
+          <li>Vision Pro / Linear Aurora register</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =================================================
+         STYLE C — MONOCHROME EDITORIAL
+         ================================================= -->
+    <div class="phone-wrap">
+      <div class="phone-label">C</div>
+      <div class="phone-name">Monochrome Editorial</div>
+      <p class="phone-tagline">Linear / Things 3 / Stripe register. Tight architectural grayscale, dramatic typographic hierarchy, single accent stripe on the current set. Quiet authority, no glass theatrics.</p>
+      <div class="device style-c">
+        <div class="statusbar"><span>9:41</span><div class="sig"><span></span><span></span><span></span><span></span></div></div>
+        <div class="topbar">
+          <div class="back-chip"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></div>
+          <div class="identity"><div class="body-part">CHEST · STRENGTH</div><div class="name">Bench Press</div></div>
+          <div class="set-counter"><div class="now">2</div><div class="of">OF 4</div></div>
+        </div>
+        <div class="prefs">
+          <button class="pref-chip"><span class="dot"></span>Track RPE</button>
+          <button class="pref-chip"><span class="dot"></span>AI guidance</button>
+        </div>
+        <div class="prior">
+          <span class="lbl">LAST TIME</span>
+          <span class="vals">185×10 @7 · 185×9 @8 · 180×10 @8</span>
+        </div>
+        <div class="sets-section-eyebrow">LOGGED</div>
+        <div class="sets">
+          <div class="set-row done">
+            <span class="idx">SET 1</span>
+            <span class="vals">185 × 10 · RPE 7</span>
+            <span class="meta">DONE</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="current">
+          <div class="head">
+            <span class="eyebrow"><span class="dot"></span>SET 2 · NOW</span>
+            <button class="head-remove">Remove set</button>
+          </div>
+          <div class="pickers">
+            <div class="picker"><div class="lbl">WEIGHT</div><div class="val">185</div><div class="unit">LB</div></div>
+            <div class="picker"><div class="lbl">REPS</div><div class="val">10</div><div class="unit">REPS</div></div>
+            <div class="picker empty"><div class="lbl">RPE</div><div class="val">—</div><div class="unit">EFFORT</div></div>
+          </div>
+          <button class="log-btn">Log set 2</button>
+        </div>
+        <div class="sets-section-eyebrow">UPCOMING</div>
+        <div class="sets">
+          <div class="set-row target">
+            <span class="idx">SET 3</span>
+            <span class="vals">180 × 10</span>
+            <span class="meta">TARGET</span>
+            <button class="row-remove"><svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="head"><span class="eyebrow"><span class="live-dot"></span>NEXT SET</span></div>
+          <div class="row"><span class="action">Add 5 lb</span><span class="next">190 × 10</span></div>
+          <div class="reason">Effort controlled. Small bump.</div>
+          <button class="apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="phone-notes">
+        <strong>Personality:</strong> Minimalist premium. Architectural, confident, no-nonsense.
+        <ul>
+          <li>Solid surfaces, no backdrop-blur theatrics</li>
+          <li>Dramatic type hierarchy (30px picker numerals)</li>
+          <li>Single accent stripe on the active set card</li>
+          <li>Section eyebrows (LOGGED / UPCOMING) like an editorial layout</li>
+          <li>Linear / Things 3 / Stripe register</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Tiny demo: clicking the pickers / buttons fires no-op haptic-style feedback
+  document.querySelectorAll('.picker, .log-btn, .apply, .pref-chip, .back-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      el.style.transition = 'none';
+      el.style.transform = 'scale(0.97)';
+      requestAnimationFrame(() => {
+        el.style.transition = '';
+        el.style.transform = '';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
