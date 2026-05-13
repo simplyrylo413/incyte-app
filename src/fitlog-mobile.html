@@ -6895,6 +6895,15 @@
     animation: premium-enter 220ms var(--ease-premium);
   }
   .mv .equip-pop.open { display: flex; }
+  /* Stack the card above its siblings while the equipment popover is open
+     so the dropdown can overlay the next card. Two redundant selectors:
+     :has() works on iOS 15.4+ / Capacitor targets; the explicit .equip-open
+     class is added by JS so older WebViews still work. */
+  .mv:has(.equip-pop.open),
+  .mv.equip-open {
+    z-index: 50;
+    position: relative;
+  }
   .mv .equip-chip {
     padding: 5px 10px;
     background: white;
@@ -12868,6 +12877,8 @@ document.addEventListener('click', (e) => {
     const wrap = pop.closest('.equip-wrap');
     if (wrap && wrap.contains(e.target)) return; // toggle button handles itself
     pop.classList.remove('open');
+    // Drop the card's z-index lift so it stops covering its siblings.
+    pop.closest('.mv')?.classList.remove('equip-open');
   });
 });
 
@@ -13087,8 +13098,16 @@ function renderTodayV2() {
       if (equipBtn && equipPop) {
         equipBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          document.querySelectorAll('.equip-pop.open').forEach(p => { if (p !== equipPop) p.classList.remove('open'); });
-          equipPop.classList.toggle('open');
+          // Close any other popovers + drop their .equip-open lift class.
+          document.querySelectorAll('.equip-pop.open').forEach(p => {
+            if (p !== equipPop) {
+              p.classList.remove('open');
+              p.closest('.mv')?.classList.remove('equip-open');
+            }
+          });
+          const willOpen = !equipPop.classList.contains('open');
+          equipPop.classList.toggle('open', willOpen);
+          card.classList.toggle('equip-open', willOpen);
         });
         equipPop.querySelectorAll('[data-equip]').forEach(chip => {
           chip.addEventListener('click', (e) => {
