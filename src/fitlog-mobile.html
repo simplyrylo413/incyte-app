@@ -5089,12 +5089,41 @@
   .insight-text .sub { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
 
   /* ---------- Fatigue card ---------- */
+  /* Fatigue toggle pill — ported from mobile331. Single visible column at
+     a time; toggle pill swaps Upper Body ↔ Lower · Cardio. Avoids the
+     fixed-height clipping issue in the Insights carousel. */
+  .fatigue-toggle-pill {
+    display: flex;
+    background: rgba(15,22,34,0.06);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 12px;
+  }
+  .fatigue-toggle-pill button {
+    flex: 1;
+    border: none;
+    background: none;
+    border-radius: 10px;
+    padding: 7px 10px;
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .fatigue-toggle-pill button.on {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+    box-shadow: 0 1px 4px rgba(15,22,34, 0.12);
+  }
+  body.theme-dark .fatigue-toggle-pill { background: rgba(255,255,255, 0.08); }
+  body.theme-dark .fatigue-toggle-pill button.on { background: rgba(255,255,255, 0.15); color: var(--paper); }
+
   .fatigue-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Doubled column gap (was 14px) so UPPER BODY and LOWER BODY · CARDIO
-       have clear breathing room between them. Vertical gap stays the same. */
-    gap: 14px 28px;
+    grid-template-columns: 1fr;       /* single column — toggle pill swaps which side is shown */
+    gap: 14px;
   }
   /* B3 glass container — same pattern as .muscle-section */
   .fatigue-col {
@@ -8835,6 +8864,12 @@
         <span class="hero-card-chev" aria-hidden="true">▼</span>
       </div>
       <div class="hero-card-body"><div class="hero-inner">
+        <!-- Upper / Lower · Cardio toggle pill — ported from mobile331.
+             Only one column is visible at a time; setFatigueTab() swaps. -->
+        <div class="fatigue-toggle-pill" id="fatigue-toggle-pill">
+          <button type="button" class="on" data-fatigue-tab="upper">Upper body</button>
+          <button type="button" data-fatigue-tab="lower">Lower · Cardio</button>
+        </div>
         <div class="fatigue-grid" id="fatigue-grid"></div>
       </div></div>
     </section>
@@ -20298,8 +20333,12 @@ function renderFatigueCard() {
     <div class="fatigue-row-meta"><span class="fatigue-meta-when">${cardioAgo}</span><span class="fatigue-meta-sep">·</span><span class="fatigue-meta-tip tone-${cardioAdv.tone}">${cardioAdv.word}</span><span class="fatigue-meta-sep">·</span><span class="fatigue-meta-sets">${cardioBreakdown}</span></div>
   </div>`;
 
+  // Tabbed layout — Upper / Lower-Cardio. The toggle pill above the grid
+  // controls which column is visible. Default = upper (matches the pill's
+  // initial .on state).
+  const currentTab = (typeof ui !== 'undefined' && ui.fatigueTab) || 'upper';
   grid.innerHTML = `
-    <div class="fatigue-col fatigue-col-upper" data-fatigue-section>
+    <div class="fatigue-col fatigue-col-upper" id="fatigue-tab-upper" data-fatigue-section style="${currentTab === 'upper' ? '' : 'display:none;'}">
       <button type="button" class="fatigue-col-label" data-section-toggle aria-expanded="true">
         <span class="fatigue-section-chev" aria-hidden="true">▼</span>
         <span>UPPER BODY</span>
@@ -20307,7 +20346,7 @@ function renderFatigueCard() {
       </button>
       <div class="fatigue-col-body">${upperRows}</div>
     </div>
-    <div class="fatigue-col fatigue-col-lower" data-fatigue-section>
+    <div class="fatigue-col fatigue-col-lower" id="fatigue-tab-lower" data-fatigue-section style="${currentTab === 'lower' ? '' : 'display:none;'}">
       <button type="button" class="fatigue-col-label" data-section-toggle aria-expanded="true">
         <span class="fatigue-section-chev" aria-hidden="true">▼</span>
         <span>LOWER BODY · CARDIO</span>
@@ -20316,6 +20355,26 @@ function renderFatigueCard() {
       <div class="fatigue-col-body">${lowerRows}${cardioRow}</div>
     </div>
   `;
+  // Wire the toggle pill above the grid (it's a sibling, rendered once in
+  // markup; wiring happens here so it survives re-renders).
+  const pill = document.getElementById('fatigue-toggle-pill');
+  if (pill && !pill.__wired) {
+    pill.querySelectorAll('button[data-fatigue-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.fatigueTab;
+        if (typeof ui !== 'undefined') ui.fatigueTab = tab;
+        // Toggle "on" state in the pill.
+        pill.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        // Swap column visibility.
+        const upper = document.getElementById('fatigue-tab-upper');
+        const lower = document.getElementById('fatigue-tab-lower');
+        if (upper) upper.style.display = tab === 'upper' ? '' : 'none';
+        if (lower) lower.style.display = tab === 'lower' ? '' : 'none';
+      });
+    });
+    pill.__wired = true;
+  }
   // Per-row toggle: tap a body part to reveal/hide its "Xd ago · advice"
   // meta line. Each row starts collapsed so the default view is name + bar
   // + sets/%.
