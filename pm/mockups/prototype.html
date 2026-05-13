@@ -209,9 +209,59 @@
   .mv .body { flex: 1; min-width: 0; }
   .mv .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
-  .mv .type { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); padding: 3px 7px; background: rgba(93,155,184,0.10); border-radius: var(--r-pill); }
-  .mv .type.volume { color: var(--accent-2); background: rgba(127,165,199,0.12); }
-  .mv .type.pump { color: var(--warn); background: rgba(142,155,176,0.14); }
+  /* Equipment pill — neutral ghost outline, tappable to change. Sits inline
+     with the movement name. Tap opens a small popover with equipment chips. */
+  .mv .equip-wrap { position: relative; display: inline-block; }
+  .mv .equip {
+    font: 700 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 9px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.16);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .mv .equip:hover { background: rgba(15,22,34, 0.04); color: var(--ink); border-color: rgba(15,22,34, 0.28); }
+  .mv .equip-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: none;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(255,255,255, 0.95);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(15,22,34, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(15,22,34, 0.16), 0 2px 6px rgba(15,22,34, 0.06);
+    z-index: 8;
+    min-width: 180px;
+    animation: premium-enter 220ms var(--ease-premium);
+  }
+  .mv .equip-pop.open { display: flex; }
+  .mv .equip-chip {
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid rgba(15,22,34, 0.10);
+    border-radius: var(--r-pill);
+    font: 600 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .mv .equip-chip:hover { background: var(--paper-2); }
+  .mv .equip-chip.active {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+  }
   .mv .ref { font: 500 11px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mv .ref.skipped { color: var(--bad); }
   .mv .ref.done { color: var(--ok); }
@@ -1486,6 +1536,10 @@
 // ============================================================
 // STATE
 // ============================================================
+// Equipment options surfaced in the Today-card popover. Kept short so the
+// picker stays compact; covers the most common lifter equipment.
+const EQUIPMENT_OPTIONS = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'];
+
 const state = {
   view: 'today',           // 'today' | 'workout'
   activeMovementId: null,  // when in workout mode
@@ -1505,7 +1559,7 @@ const state = {
   },
   movements: [
     {
-      id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength',
+      id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength', equipment: 'barbell',
       priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
       priorDate: 'May 5',
       sets: [
@@ -1517,7 +1571,7 @@ const state = {
       status: 'pending',
     },
     {
-      id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume',
+      id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume', equipment: 'dumbbell',
       priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
       priorDate: 'May 5',
       sets: [
@@ -1528,7 +1582,7 @@ const state = {
       status: 'pending',
     },
     {
-      id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength',
+      id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength', equipment: 'cable',
       priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
       priorDate: 'May 8',
       sets: [
@@ -1540,7 +1594,7 @@ const state = {
       status: 'pending',
     },
     {
-      id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume',
+      id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume', equipment: 'barbell',
       priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
       priorDate: 'May 8',
       sets: [
@@ -1744,13 +1798,21 @@ function renderToday() {
 
         const refHtml = refText ? `<div class="ref ${refClass}">${refText}</div>` : '';
 
+        const equip = mv.equipment || 'barbell';
+        const chipsHtml = EQUIPMENT_OPTIONS.map(opt => `
+          <button class="equip-chip${opt === equip ? ' active' : ''}" data-equip="${opt}">${opt}</button>
+        `).join('');
+
         const card = document.createElement('div');
         card.className = 'mv';
         card.innerHTML = `
           <div class="body">
             <div class="row1">
               <span class="name">${mv.name}</span>
-              <span class="type ${mv.type}">${mv.type.toUpperCase()}</span>
+              <span class="equip-wrap">
+                <button class="equip" data-equip-toggle aria-label="Equipment: ${equip} — tap to change">${equip.toUpperCase()}</button>
+                <div class="equip-pop" data-equip-pop>${chipsHtml}</div>
+              </span>
             </div>
             ${refHtml}
           </div>
@@ -1758,11 +1820,33 @@ function renderToday() {
           <button class="remove" data-remove="${mv.id}" aria-label="Remove">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           </button>`;
-        card.querySelector('.body').addEventListener('click', () => openWorkoutMode(mv.id));
+        card.querySelector('.body').addEventListener('click', (e) => {
+          // Ignore taps on the equipment pill / popover so they don't enter workout mode
+          if (e.target.closest('.equip-wrap')) return;
+          openWorkoutMode(mv.id);
+        });
         card.querySelector('.progress-chip').addEventListener('click', () => openWorkoutMode(mv.id));
         card.querySelector('[data-remove]').addEventListener('click', (e) => {
           e.stopPropagation();
           removeMovement(mv.id);
+        });
+        // Equipment pill: toggle popover; chip clicks set + close.
+        const equipBtn = card.querySelector('[data-equip-toggle]');
+        const equipPop = card.querySelector('[data-equip-pop]');
+        equipBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Close any other open popovers first
+          document.querySelectorAll('.equip-pop.open').forEach(p => { if (p !== equipPop) p.classList.remove('open'); });
+          equipPop.classList.toggle('open');
+        });
+        equipPop.querySelectorAll('[data-equip]').forEach(chip => {
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mv.equipment = chip.dataset.equip;
+            equipPop.classList.remove('open');
+            renderToday();
+            showToast(`${mv.name} → ${mv.equipment}.`);
+          });
         });
         scroll.appendChild(card);
       });
@@ -2318,6 +2402,16 @@ document.addEventListener('click', (e) => {
   const pill = document.getElementById('rest-pill');
   if (picker.contains(e.target) || pill?.contains(e.target)) return;
   picker.classList.remove('open');
+});
+
+// Global dismiss for any open equipment popover on the Today screen.
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.equip-pop.open').forEach(pop => {
+    if (pop.contains(e.target)) return;
+    const wrap = pop.closest('.equip-wrap');
+    if (wrap && wrap.contains(e.target)) return; // the toggle itself handles its own click
+    pop.classList.remove('open');
+  });
 });
 
 function toggleSetType(idx) {
