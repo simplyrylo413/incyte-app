@@ -364,73 +364,72 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Three-picker grid inside the hero card. CSS Grid with
-     repeat(3, minmax(0, 1fr)) — the 0 minimum forces strictly equal
-     columns regardless of content (default 'auto' minimum lets intrinsic
-     content widen a column, which is what was making RPE look narrower). */
-  .hero-pickers {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    margin-bottom: 10px;
-  }
-  .hero-pickers.no-rpe {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .picker-card {
-    /* Force equal widths reliably across browsers. Markup switched from
-       <button> to <div role="button"> because user-agent button styles
-       (min-width / intrinsic sizing) were resisting grid distribution in
-       Chrome. overflow:hidden ensures content can never expand the cell. */
-    display: block;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow: hidden;
-    background: rgba(255,255,255,0.70);
-    backdrop-filter: blur(20px) saturate(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(1.3);
-    border: 1px solid rgba(255,255,255,0.85);
-    border-radius: 12px;
-    padding: 10px 6px 9px;
+  /* Big-type hero — one typographic statement instead of 3 picker cards.
+     Numbers are inline-baseline-aligned; tap any to open the picker. */
+  .hero-statement {
     text-align: center;
+    padding: 6px 0 4px;
+  }
+  .hero-primary {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .hero-num {
+    background: transparent;
+    border: none;
+    font: 700 56px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.055em;
+    color: var(--ink);
+    padding: 2px 6px;
     cursor: pointer;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,1) inset,
-      0 0 0 1px rgba(15,22,34,0.03),
-      0 3px 10px rgba(15,22,34,0.04);
-    transition: background 200ms ease-out, border-color 200ms ease-out, transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease-out;
+    border-radius: 8px;
+    transition: opacity 180ms ease-out, background 180ms ease-out;
   }
-  .picker-card:hover {
-    background: rgba(255,255,255,0.92);
-    border-color: rgba(93,155,184,0.42);
-    transform: translateY(-2px);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,1) inset,
-      0 0 0 3px rgba(93,155,184,0.08),
-      0 8px 18px rgba(15,22,34,0.06);
+  .hero-num:hover { background: rgba(93,155,184,0.08); }
+  .hero-num.empty { color: var(--label); }
+  .hero-sep {
+    font: 500 32px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    letter-spacing: -0.02em;
   }
-  .picker-card:active { transform: translateY(0); }
-  .picker-card .lbl {
-    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+  .hero-secondary {
+    font: 500 14px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    margin-bottom: 2px;
+  }
+  .hero-rpe-btn {
+    background: transparent;
+    border: none;
+    font: 700 17px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 180ms ease-out;
+  }
+  .hero-rpe-btn:hover { background: rgba(93,155,184,0.10); }
+  .hero-rpe-btn.empty { color: var(--label); font-weight: 600; }
+  .hero-units-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--label);
-    margin-bottom: 5px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
   }
-  .picker-card .val {
-    font: 700 22px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.035em;
-    color: var(--ink);
-  }
-  .picker-card.empty .val { color: var(--label); }
-  .picker-card .unit {
-    font: 600 8.5px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 5px;
+  .hero-units-bar span:not(:first-child)::before {
+    content: '·';
+    margin-right: 18px;
+    color: var(--label);
   }
 
   /* Hero primary action — glass-style. Frosted translucent white, smaller. */
@@ -1544,16 +1543,15 @@ function renderWorkout() {
     const repsCls = cur.reps == null ? 'empty' : '';
     const rpeCls = cur.rpe == null ? 'empty' : '';
 
-    // RPE picker only renders when session tracks RPE. When off, the grid
-    // drops to two columns via the .no-rpe class (still minmax(0, 1fr) so
-    // weight + reps stay strictly equal).
-    const gridClass = state.session.trackRpe ? '' : ' no-rpe';
-    const rpePicker = state.session.trackRpe ? `
-        <div class="picker-card ${rpeCls}" role="button" tabindex="0" data-pk="rpe">
-          <div class="lbl">RPE</div>
-          <div class="val">${rpe}</div>
-          <div class="unit">Effort</div>
+    // Big-type hero: '185 × 10' as a single statement, 'at RPE 7' below
+    // (only when RPE tracking is on). Tap any number to open the picker.
+    const rpeLine = state.session.trackRpe ? `
+        <div class="hero-secondary">
+          at <button class="hero-rpe-btn ${rpeCls}" data-pk="rpe">RPE ${rpe}</button>
         </div>` : '';
+    const unitsBar = state.session.trackRpe
+      ? '<span>LB</span><span>REPS</span><span>EFFORT</span>'
+      : '<span>LB</span><span>REPS</span>';
 
     hero.innerHTML = `
       <div class="hero">
@@ -1561,18 +1559,14 @@ function renderWorkout() {
           <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
           <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
-        <div class="hero-pickers${gridClass}">
-          <div class="picker-card ${weightCls}" role="button" tabindex="0" data-pk="weight">
-            <div class="lbl">Weight</div>
-            <div class="val">${weight}</div>
-            <div class="unit">LB</div>
+        <div class="hero-statement">
+          <div class="hero-primary">
+            <button class="hero-num ${weightCls}" data-pk="weight">${weight}</button>
+            <span class="hero-sep">×</span>
+            <button class="hero-num ${repsCls}" data-pk="reps">${reps}</button>
           </div>
-          <div class="picker-card ${repsCls}" role="button" tabindex="0" data-pk="reps">
-            <div class="lbl">Reps</div>
-            <div class="val">${reps}</div>
-            <div class="unit">Reps</div>
-          </div>
-          ${rpePicker}
+          ${rpeLine}
+          <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
