@@ -4029,6 +4029,18 @@
   }
   body.theme-dark .es-weight-cell .bw-toggle { color: var(--muted); border-color: var(--hairline); }
   body.theme-dark .es-weight-cell .bw-toggle.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* Mobile fix — the History inline editor cropped weight values like
+     "115" to "1·" because the BW toggle pill ate most of the WEIGHT cell.
+     Shrink BW + tighten fixed columns so 3-digit weights fit. */
+  @media (max-width: 520px) {
+    .es-set-row { grid-template-columns: 22px 32px 1.3fr 1fr 44px 26px 22px; gap: 4px; }
+    .es-set-row.cardio { grid-template-columns: 28px 1fr 1fr 60px 26px; gap: 4px; }
+    .es-weight-cell { gap: 3px; }
+    .es-weight-cell .bw-toggle { padding: 0 5px; font-size: 9px; height: 24px; }
+    .es-set-row input[type="number"], .es-set-row input[type="text"] { font-size: 13px; padding: 4px 5px; }
+  }
+
   .es-set-row.cardio { grid-template-columns: 32px 1fr 1fr 70px 28px; }
   .es-set-row .es-idx {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -4863,9 +4875,17 @@
   }
   .readiness-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 14px;
+  }
+  /* Mobile: tighter gap + smaller value numbers so 3 stats fit in the
+     carousel card without horizontal overflow. */
+  @media (max-width: 520px) {
+    .readiness-grid { gap: 8px; }
+    .readiness-stat-value { font-size: 28px !important; }
+    .readiness-stat-suffix { font-size: 11px !important; }
+    .readiness-stat-label, .readiness-stat-caption { font-size: 10px !important; }
   }
   .readiness-stat {
     display: flex;
@@ -8462,6 +8482,13 @@
     box-shadow: 0 1px 0 rgba(255,255,255, 0.05) inset, 0 4px 14px rgba(0,0,0, 0.30);
   }
   body.theme-dark .insights-dot { background: rgba(255,255,255, 0.50); }
+
+  /* Mobile: tighter padding inside each carousel card so the 3-stat
+     readiness grid + content has more room and doesn't overflow. */
+  @media (max-width: 520px) {
+    .insights-carousel-track > .hero-card { padding-left: 14px; padding-right: 14px; }
+    .readiness-card { padding: 16px 14px; }
+  }
 
   /* --- Equipment popover (dark mode) --- */
   body.theme-dark .mv .equip-pop {
