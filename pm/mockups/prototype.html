@@ -358,7 +358,8 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--label);
-    padding: 4px 0;
+    padding: 10px 4px;
+    margin: -10px -4px;
     cursor: pointer;
     transition: color 150ms ease-out;
   }
@@ -554,11 +555,12 @@
   }
   .set-row.target .vals { color: var(--muted); }
 
-  /* Per-set remove — small ghost button on the right edge of each pill */
+  /* Per-set remove — bumped to 36×36 for tap accessibility (still
+     visually compact but well above the 20px previous size). */
   .set-row .row-remove {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     border: 1px solid transparent;
     background: transparent;
     display: grid;
@@ -567,31 +569,27 @@
     cursor: pointer;
     transition: color 150ms ease-out, background 150ms ease-out, border-color 150ms ease-out;
     flex-shrink: 0;
+    margin-right: -6px;
   }
   .set-row .row-remove:hover {
     color: var(--bad);
     background: rgba(176,128,146, 0.10);
     border-color: rgba(176,128,146, 0.28);
   }
-  .set-row .row-remove svg { width: 9px; height: 9px; }
+  .set-row .row-remove svg { width: 11px; height: 11px; }
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — 2-line pill. Line 1: action + next-set value.
-     Line 2: AI attribution + reason (RPE/rep mechanism). Apply button on
-     the right, vertically centered. Compact but informational. */
+  /* Inline AI recommendation — 2-line pill. Quiet treatment so it
+     supports the hero rather than competing with it. White card family
+     with a faint accent tint, no saturated gradient, no specular highlight. */
   .rec-inline {
     margin: 5px 0 8px 12px;
     padding: 7px 6px 7px 13px;
-    background:
-      linear-gradient(90deg, rgba(93,155,184,0.14) 0%, rgba(155,130,200,0.10) 55%, rgba(201,160,190,0.08) 100%);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border: 1px solid rgba(93,155,184,0.22);
-    border-radius: 14px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.7) inset,
-      0 2px 6px rgba(93,155,184,0.08);
+    background: rgba(93,155,184, 0.04);
+    border: 1px solid rgba(15,22,34, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,22,34, 0.03);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -674,31 +672,32 @@
   .rec-inline .apply:hover svg { transform: translateX(2px); }
   .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
 
-  /* Add-set affordance — dashed-outline button at the end of UPCOMING */
+  /* Add-set affordance — small centered solid pill (replaces dashed).
+     Quiet but premium-looking; sits below the upcoming list. */
   .add-set-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin: 10px 22px 6px;
-    padding: 11px 14px;
-    background: transparent;
-    border: 1px dashed rgba(15,22,34,0.18);
-    border-radius: 10px;
+    gap: 7px;
+    margin: 12px auto 4px;
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid rgba(15,22,34, 0.10);
+    border-radius: 999px;
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
     cursor: pointer;
-    transition: background 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34, 0.04);
+    transition: background 180ms ease-out, color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
   }
   .add-set-btn:hover {
-    background: rgba(15,22,34,0.025);
-    border-color: rgba(15,22,34,0.32);
+    background: var(--paper-2);
     color: var(--ink);
   }
   .add-set-btn:active { transform: scale(0.98); }
-  .add-set-btn svg { width: 12px; height: 12px; }
+  .add-set-btn svg { width: 11px; height: 11px; }
 
   /* Footer action bar — Track RPE toggle, AI toggle, Skip Today, Log Set.
      All buttons same height; widths flex to content with Log Set taking the
@@ -730,8 +729,8 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 38px;
-    padding: 0 12px;
+    height: 44px;
+    padding: 0 14px;
     background: white;
     border: 1px solid rgba(15,22,34,0.10);
     border-radius: 14px;
@@ -763,16 +762,7 @@
       0 4px 10px rgba(24,32,48,0.25);
   }
 
-  /* Skip — muted ghost button */
-  .foot-btn.skip {
-    color: var(--bad);
-    background: transparent;
-    border-color: rgba(176,128,146,0.20);
-  }
-  .foot-btn.skip:hover {
-    background: rgba(176,128,146,0.08);
-    border-color: rgba(176,128,146,0.35);
-  }
+  /* (.foot-btn.skip removed — Skip is handled via the Today × button) */
 
   /* Log Set — primary action, takes remaining space */
   .foot-btn.primary {
@@ -1567,7 +1557,7 @@ function renderWorkout() {
           <div class="rec-inline" style="margin: 0 22px 12px;">
             <span class="live-dot"></span>
             <div class="body">
-              <div class="summary"><span class="coach-tag">AI Coach:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
+              <div class="summary"><span class="coach-tag">AI insight:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
               <div class="reason">${reasonText}</div>
             </div>
             <button class="apply" id="btn-live-apply">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -1607,7 +1597,7 @@ function renderWorkout() {
             <div class="rec-inline" data-rec-base="${s.idx}">
               <span class="live-dot"></span>
               <div class="body">
-                <div class="summary"><span class="coach-tag">AI Coach:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
+                <div class="summary"><span class="coach-tag">AI insight:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
                 <div class="reason">${reasonText}</div>
               </div>
               ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
@@ -1684,8 +1674,7 @@ function renderWorkout() {
   const aiOn = state.session.aiRecOn;
   footer.innerHTML = `
     <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">RPE</button>
-    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>
-    <button class="foot-btn skip" id="btn-skip">Skip</button>`;
+    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>`;
 
   $('#toggle-rpe').addEventListener('click', () => {
     state.session.trackRpe = !state.session.trackRpe;
@@ -1700,7 +1689,9 @@ function renderWorkout() {
     renderWorkout();
     showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
   });
-  $('#btn-skip').addEventListener('click', skipMovement);
+  // Skip-movement removed from footer per design review — users delete
+  // the movement from the Today list (× button on the movement card)
+  // before entering Workout Mode instead.
 
   // AI recommendation card.
   // - Render ONLY when there's a real, non-muted recommendation to show.
