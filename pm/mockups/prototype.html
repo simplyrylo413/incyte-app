@@ -6,6 +6,14 @@
 <title>INCYTE — Interactive Prototype</title>
 <style>
   :root {
+    /* Motion easings — named cubic-beziers from Emil Kowalski's
+       "Animations on the Web" course. Tokens > inline values. */
+    --ease-out-quint: cubic-bezier(.23, 1, .32, 1);
+    --ease-out-cubic: cubic-bezier(.33, 1, .68, 1);
+    --ease-in-out-cubic: cubic-bezier(.645, .045, .355, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot for hover lift */
+    --ease-premium: cubic-bezier(0.32, 0.72, 0.30, 1); /* Jakub's enter feel */
+
     --paper: #f5f7fb;
     --paper-2: #eef1f7;
     --glass: rgba(255,255,255,0.65);
@@ -53,10 +61,10 @@
     to   { opacity: 0; transform: translateY(4px); filter: blur(2px); }
   }
   .premium-enter {
-    animation: premium-enter 420ms cubic-bezier(0.32, 0.72, 0.30, 1);
+    animation: premium-enter 420ms var(--ease-premium);
   }
   .premium-exit {
-    animation: premium-exit 260ms cubic-bezier(0.32, 0.72, 0.30, 1) forwards;
+    animation: premium-exit 260ms var(--ease-premium) forwards;
     pointer-events: none;
   }
 
@@ -427,6 +435,7 @@
     transition: background 180ms ease-out;
   }
   .hero-num:hover { background: rgba(93,155,184,0.08); }
+  .hero-num:active { transform: scale(0.97); transition: transform 100ms var(--ease-out-cubic); }
   .hero-num.empty { color: var(--label); }
   .hero-sep {
     font: 500 26px/1 'Inter Tight',sans-serif;
@@ -479,7 +488,10 @@
       0 10px 22px rgba(24,32,48,0.38),
       0 4px 8px rgba(24,32,48,0.24);
   }
-  .hero-cta:active { transform: translateY(0); }
+  .hero-cta:active {
+    transform: scale(0.97);
+    transition: transform 100ms var(--ease-out-cubic);
+  }
 
   /* Previous reference — white card style with hairline border, matching
      the set-row treatment for visual consistency in the "data row" family. */
