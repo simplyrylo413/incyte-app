@@ -868,44 +868,98 @@
     left: 14px;
   }
 
-  /* REST toggle — clock icon variant (no text label, just icon + switch).
-     Saves horizontal space in the 4-button hero action row. */
-  .foot-btn.toggle.rest-toggle { padding: 0 4px; gap: 6px; }
-  .foot-btn.toggle.rest-toggle .timer-icon {
-    width: 14px;
-    height: 14px;
-    color: var(--label);
-    transition: color 180ms ease-out;
+  /* Rest pill (Option B from rest-timer-options.html) — the pill IS the toggle.
+     Off = ghost (grey outline). On = solid dark (countdown live).
+     Tap toggles on/off. Long-press opens duration picker. */
+  .pill-rest-wrap {
+    position: relative;
+    display: inline-block;
   }
-  .foot-btn.toggle.rest-toggle.on .timer-icon { color: var(--ink); }
-
-  /* Rest timer display — countdown pill in the hero eyebrow.
-     Appears only when restTimer is enabled. Mono countdown + clock icon. */
-  .rest-timer {
+  .pill-rest {
     display: inline-flex;
     align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 10px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.18);
+    border-radius: 999px;
+    color: var(--label);
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    user-select: none;
+    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out, transform 150ms var(--ease-out-cubic), box-shadow 200ms ease-out;
+  }
+  .pill-rest .timer-icon { width: 11px; height: 11px; }
+  .pill-rest .lbl { font-size: 9.5px; opacity: 0.85; }
+  .pill-rest .time {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    font-size: 11px;
+  }
+  .pill-rest.on {
+    background: var(--ink-deep);
+    border-color: var(--ink-deep);
+    color: white;
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 2px 8px rgba(15,22,34, 0.18);
+  }
+  .pill-rest.urgent {
+    background: var(--bad);
+    border-color: var(--bad);
+    color: white;
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.12) inset, 0 2px 10px rgba(176,128,146, 0.45);
+  }
+  .pill-rest.holding { transform: scale(0.97); }
+
+  /* Duration picker — pops up below the pill on long-press. */
+  .dur-picker {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: none;
+    flex-direction: column;
     gap: 6px;
-    padding: 4px 11px 4px 9px;
-    background: rgba(255,255,255, 0.72);
+    padding: 10px 11px;
+    background: rgba(255,255,255, 0.92);
     backdrop-filter: blur(20px) saturate(1.4);
     -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border: 1px solid rgba(255,255,255, 0.85);
+    border: 1px solid rgba(15,22,34, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15,22,34, 0.18), 0 2px 6px rgba(15,22,34, 0.06);
+    z-index: 6;
+    animation: premium-enter 280ms var(--ease-premium);
+  }
+  .dur-picker.open { display: flex; }
+  .dur-picker .dur-label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    text-align: center;
+  }
+  .dur-chips {
+    display: flex;
+    gap: 5px;
+  }
+  .dur-chip {
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--hairline, rgba(15,22,34, 0.10));
     border-radius: 999px;
-    font: 700 11px/1 'Geist Mono', ui-monospace, monospace;
+    font: 600 10.5px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.04em;
     color: var(--ink);
     cursor: pointer;
-    box-shadow:
-      0 1px 0 rgba(255,255,255, 1) inset,
-      0 0 0 1px rgba(15,22,34, 0.04),
-      0 2px 6px rgba(15,22,34, 0.06);
-    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out;
+    font-variant-numeric: tabular-nums;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out, transform 100ms var(--ease-out-cubic);
   }
-  .rest-timer .timer-icon { width: 11px; height: 11px; }
-  .rest-timer.urgent {
-    background: rgba(176,128,146, 0.18);
-    border-color: rgba(176,128,146, 0.40);
-    color: var(--bad);
+  .dur-chip:active { transform: scale(0.96); }
+  .dur-chip.active {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
   }
 
   /* (.foot-btn.skip removed — Skip is handled via the Today × button) */
@@ -1660,11 +1714,21 @@ function renderWorkout() {
     const rt = state.session.restTimer;
     const restOn = rt.enabled;
     const clockSvg = `<svg class="timer-icon" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.5v2.5l1.6 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 2.4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-    const timerPill = restOn ? `
-      <button class="rest-timer ${rt.remaining <= 10 ? 'urgent' : ''}" id="rest-timer-display" aria-label="Rest timer — tap to change duration">
-        ${clockSvg}
-        <span class="timer-time">${formatTime(rt.remaining)}</span>
-      </button>` : '';
+    const restDisplay = restOn ? formatTime(rt.remaining) : formatTime(rt.duration);
+    const restUrgent = restOn && rt.remaining <= 10 ? ' urgent' : '';
+    const restOnCls = restOn ? ' on' : '';
+    const timerPill = `
+      <span class="pill-rest-wrap">
+        <button class="pill-rest${restOnCls}${restUrgent}" id="rest-pill" aria-label="Rest timer — tap to start, long-press to change duration">
+          ${clockSvg}
+          <span class="lbl">Rest</span>
+          <span class="time" id="rest-pill-time">${restDisplay}</span>
+        </button>
+        <div class="dur-picker" id="rest-dur-picker">
+          <span class="dur-label">Rest duration</span>
+          <div class="dur-chips" id="rest-dur-chips"></div>
+        </div>
+      </span>`;
     hero.innerHTML = `
       <div class="hero">
         <div class="hero-eyebrow">
@@ -1689,10 +1753,6 @@ function renderWorkout() {
             <span>AI</span>
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </button>
-          <button class="foot-btn toggle rest-toggle ${restOn ? 'on' : ''}" id="toggle-rest" aria-label="Rest timer">
-            ${clockSvg}
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
           <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
         </div>
       </div>`;
@@ -1713,22 +1773,31 @@ function renderWorkout() {
       renderWorkout();
       showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
     });
-    hero.querySelector('#toggle-rest').addEventListener('click', toggleRestTimer);
-    hero.querySelector('#rest-timer-display')?.addEventListener('click', cycleRestDuration);
+    wireRestPill();
   } else {
     const trackOn = state.session.trackRpe;
     const aiOn = state.session.aiRecOn;
     const rt2 = state.session.restTimer;
     const restOn = rt2.enabled;
     const clockSvg = `<svg class="timer-icon" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.5v2.5l1.6 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 2.4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-    const timerPill = restOn ? `
-      <button class="rest-timer ${rt2.remaining <= 10 ? 'urgent' : ''}" id="rest-timer-display" aria-label="Rest timer">
-        ${clockSvg}
-        <span class="timer-time">${formatTime(rt2.remaining)}</span>
-      </button>` : '';
+    const restDisplay = restOn ? formatTime(rt2.remaining) : formatTime(rt2.duration);
+    const restUrgent = restOn && rt2.remaining <= 10 ? ' urgent' : '';
+    const restOnCls = restOn ? ' on' : '';
+    const timerPill = `
+      <span class="pill-rest-wrap">
+        <button class="pill-rest${restOnCls}${restUrgent}" id="rest-pill" aria-label="Rest timer — tap to start, long-press to change duration">
+          ${clockSvg}
+          <span class="lbl">Rest</span>
+          <span class="time" id="rest-pill-time">${restDisplay}</span>
+        </button>
+        <div class="dur-picker" id="rest-dur-picker">
+          <span class="dur-label">Rest duration</span>
+          <div class="dur-chips" id="rest-dur-chips"></div>
+        </div>
+      </span>`;
     hero.innerHTML = `
       <div class="hero" style="text-align: center;">
-        <div class="hero-eyebrow" style="justify-content: ${restOn ? 'space-between' : 'center'};">
+        <div class="hero-eyebrow" style="justify-content: space-between;">
           <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
           ${timerPill}
         </div>
@@ -1740,10 +1809,6 @@ function renderWorkout() {
           </button>
           <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
             <span>AI</span>
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
-          <button class="foot-btn toggle rest-toggle ${restOn ? 'on' : ''}" id="toggle-rest" aria-label="Rest timer">
-            ${clockSvg}
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </button>
           <button class="hero-cta" id="btn-complete-hero">Complete</button>
@@ -1763,8 +1828,7 @@ function renderWorkout() {
       renderWorkout();
       showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
     });
-    hero.querySelector('#toggle-rest').addEventListener('click', toggleRestTimer);
-    hero.querySelector('#rest-timer-display')?.addEventListener('click', cycleRestDuration);
+    wireRestPill();
   }
 
   // === LIVE preview rec — shown below the hero when no sets are logged
@@ -2001,10 +2065,10 @@ function startRestTimer() {
       return;
     }
     // Update display in place (avoid re-rendering the whole view every tick)
-    const timeEl = document.querySelector('#rest-timer-display .timer-time');
+    const timeEl = document.querySelector('#rest-pill-time');
     if (timeEl) timeEl.textContent = formatTime(t.remaining);
     if (t.remaining <= 10) {
-      document.querySelector('#rest-timer-display')?.classList.add('urgent');
+      document.querySelector('#rest-pill')?.classList.add('urgent');
     }
   }, 1000);
 }
@@ -2028,16 +2092,84 @@ function toggleRestTimer() {
   }
 }
 
-function cycleRestDuration() {
+function setRestDuration(secs) {
   const t = state.session.restTimer;
-  const i = t.presets.indexOf(t.duration);
-  t.duration = t.presets[(i + 1) % t.presets.length];
+  t.duration = secs;
   if (t.enabled) {
-    // Restart with the new duration
+    // Restart with the new duration so it takes effect immediately
     startRestTimer();
+  } else {
+    // Just update the displayed time on the pill
+    const timeEl = document.querySelector('#rest-pill-time');
+    if (timeEl) timeEl.textContent = formatTime(t.duration);
   }
   showToast(`Rest set to ${formatTime(t.duration)}.`);
 }
+
+// Wire the rest pill (Option B): tap = toggle on/off; long-press = open duration picker.
+// Called after each renderWorkout since the pill is recreated in the DOM.
+const REST_LONG_PRESS_MS = 450;
+function wireRestPill() {
+  const pill = document.getElementById('rest-pill');
+  const picker = document.getElementById('rest-dur-picker');
+  const chipsEl = document.getElementById('rest-dur-chips');
+  if (!pill || !picker || !chipsEl) return;
+
+  const t = state.session.restTimer;
+
+  // Build chips from the presets array; mark current duration as active.
+  chipsEl.innerHTML = '';
+  t.presets.forEach(secs => {
+    const chip = document.createElement('button');
+    chip.className = 'dur-chip' + (secs === t.duration ? ' active' : '');
+    chip.textContent = formatTime(secs);
+    chip.dataset.secs = secs;
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setRestDuration(secs);
+      [...chipsEl.querySelectorAll('.dur-chip')].forEach(c =>
+        c.classList.toggle('active', +c.dataset.secs === secs));
+      picker.classList.remove('open');
+    });
+    chipsEl.appendChild(chip);
+  });
+
+  let pressTimer = null;
+  let longPressFired = false;
+
+  function pressStart(e) {
+    longPressFired = false;
+    pill.classList.add('holding');
+    pressTimer = setTimeout(() => {
+      longPressFired = true;
+      picker.classList.add('open');
+      pill.classList.remove('holding');
+    }, REST_LONG_PRESS_MS);
+  }
+  function pressEnd(e) {
+    pill.classList.remove('holding');
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    if (longPressFired) { e?.preventDefault?.(); return; }
+    toggleRestTimer();
+  }
+  function pressCancel() {
+    pill.classList.remove('holding');
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  }
+  pill.addEventListener('pointerdown', (e) => { e.preventDefault(); pressStart(e); });
+  pill.addEventListener('pointerup', (e) => { e.preventDefault(); pressEnd(e); });
+  pill.addEventListener('pointerleave', pressCancel);
+  pill.addEventListener('pointercancel', pressCancel);
+}
+
+// Global dismiss for the duration picker — tap anywhere outside closes it.
+document.addEventListener('click', (e) => {
+  const picker = document.getElementById('rest-dur-picker');
+  if (!picker || !picker.classList.contains('open')) return;
+  const pill = document.getElementById('rest-pill');
+  if (picker.contains(e.target) || pill?.contains(e.target)) return;
+  picker.classList.remove('open');
+});
 
 function toggleSetType(idx) {
   const mv = getActiveMovement();
