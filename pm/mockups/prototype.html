@@ -301,22 +301,25 @@
 
   /* (.prefs row removed — Track RPE + AI now live in the footer action bar) */
 
-  /* Hero card — central focal point. Compressed sizing while keeping
-     the full glass treatment (backdrop-blur, multi-layer shadows, specular). */
+  /* Hero card — central focal point. Prismatic glass treatment:
+     steel blue → lavender → soft pink gradient, deep backdrop-blur,
+     accent-tinted border, specular top-edge highlight. This is THE
+     primary visual element on the page. */
   .hero {
     margin: 0 22px 12px;
     padding: 16px 16px 14px;
-    background: linear-gradient(155deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.65) 100%);
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
     backdrop-filter: blur(40px) saturate(1.6);
     -webkit-backdrop-filter: blur(40px) saturate(1.6);
-    border: 1px solid rgba(255,255,255,0.9);
+    border: 1px solid rgba(93,155,184,0.30);
     border-radius: 22px;
     box-shadow:
-      0 2px 0 rgba(255,255,255,1) inset,
-      0 0 0 1px rgba(255,255,255,0.5) inset,
-      0 0 0 1px rgba(15,22,34,0.03),
-      0 20px 44px rgba(15,22,34,0.09),
-      0 6px 14px rgba(15,22,34,0.05);
+      0 2px 0 rgba(255,255,255,0.85) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 0 0 1px rgba(93,155,184,0.04),
+      0 22px 48px rgba(93,155,184,0.14),
+      0 8px 18px rgba(15,22,34,0.06);
     position: relative;
   }
   .hero::before {
@@ -365,11 +368,9 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Big-type hero — all three values inline as a single statement with
-     units directly adjacent to each number:
-            185 LB × 10 REPS × RPE 7
-     Numbers sized down slightly to accommodate inline units on phone
-     width. Units in muted small caps mono. */
+  /* Big-type hero — all three values inline on one line (weight × reps × RPE)
+     with the unit labels in a small mono uppercase row at the bottom of the
+     card, separated by a hairline. Numbers are pure: no inline units. */
   .hero-statement {
     text-align: center;
     padding: 6px 0 4px;
@@ -378,40 +379,44 @@
     display: flex;
     align-items: baseline;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
   .hero-num {
     background: transparent;
     border: none;
-    font: 700 40px/1 'Inter Tight',sans-serif;
+    font: 700 46px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.05em;
     color: var(--ink);
     padding: 2px 4px;
     cursor: pointer;
     border-radius: 8px;
     transition: background 180ms ease-out;
-    white-space: nowrap;
   }
   .hero-num:hover { background: rgba(93,155,184,0.08); }
   .hero-num.empty { color: var(--label); }
-  .hero-num .hero-unit {
-    display: inline-block;
-    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--label);
-    margin-left: 5px;
-    vertical-align: baseline;
-    transform: translateY(-4px);
-  }
-  .hero-num .hero-unit.prefix {
-    margin-left: 0;
-    margin-right: 5px;
-  }
   .hero-sep {
-    font: 500 22px/1 'Inter Tight',sans-serif;
+    font: 500 26px/1 'Inter Tight',sans-serif;
     color: var(--label);
     letter-spacing: -0.02em;
+  }
+  .hero-units-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid var(--hairline);
+  }
+  .hero-units-bar span:not(:first-child)::before {
+    content: '·';
+    margin-right: 18px;
+    color: var(--label);
   }
 
   /* Hero primary action — solid black pill. Centered, content-width with
@@ -1495,13 +1500,14 @@ function renderWorkout() {
     const repsCls = cur.reps == null ? 'empty' : '';
     const rpeCls = cur.rpe == null ? 'empty' : '';
 
-    // Big-type hero: all three values inline with units adjacent to each:
-    //    185 LB × 10 REPS × RPE 7
-    // RPE only renders when session tracking is on. 'RPE' is a prefix unit
-    // (conventional in lifter speak), the others are suffix units.
+    // Big-type hero: '185 × 10 × 7' inline, with unit labels in a small
+    // mono uppercase row at the bottom of the card.
     const rpeInline = state.session.trackRpe
-      ? `<span class="hero-sep">×</span><button class="hero-num ${rpeCls}" data-pk="rpe"><span class="hero-unit prefix">RPE</span>${rpe}</button>`
+      ? `<span class="hero-sep">×</span><button class="hero-num ${rpeCls}" data-pk="rpe">${rpe}</button>`
       : '';
+    const unitsBar = state.session.trackRpe
+      ? '<span>LB</span><span>REPS</span><span>RPE</span>'
+      : '<span>LB</span><span>REPS</span>';
 
     hero.innerHTML = `
       <div class="hero">
@@ -1511,11 +1517,12 @@ function renderWorkout() {
         </div>
         <div class="hero-statement">
           <div class="hero-primary">
-            <button class="hero-num ${weightCls}" data-pk="weight">${weight}<span class="hero-unit">LB</span></button>
+            <button class="hero-num ${weightCls}" data-pk="weight">${weight}</button>
             <span class="hero-sep">×</span>
-            <button class="hero-num ${repsCls}" data-pk="reps">${reps}<span class="hero-unit">REPS</span></button>
+            <button class="hero-num ${repsCls}" data-pk="reps">${reps}</button>
             ${rpeInline}
           </div>
+          <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
