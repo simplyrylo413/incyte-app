@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — History pill options</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+    --warn: #8e9bb0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font: 700 28px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.03em; margin: 0 0 6px; }
+  .page-header p { font: 500 14px/1.5 'Inter Tight',sans-serif; color: var(--muted); max-width: 760px; margin: 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+  @media (max-width: 1040px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+  .option { display: flex; flex-direction: column; gap: 16px; }
+  .opt-label { font: 700 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.20em; text-transform: uppercase; color: var(--label); }
+  .opt-name { font: 700 22px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.025em; margin: -8px 0 0; }
+  .opt-tag { font: 500 12px/1.5 'Inter Tight',sans-serif; color: var(--muted); margin: 0; min-height: 75px; }
+  .stage {
+    padding: 18px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255, 0.55), rgba(255,255,255, 0.35));
+    border: 1px solid rgba(255,255,255, 0.75);
+    border-radius: 22px;
+    min-height: 360px;
+    display: flex; flex-direction: column; gap: 8px;
+    backdrop-filter: blur(20px) saturate(1.4);
+  }
+  .notes {
+    padding: 14px 16px; background: white; border: 1px solid var(--hairline);
+    border-radius: 12px; font: 500 12px/1.55 'Inter Tight',sans-serif; color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; }
+
+  /* Shared chip styles */
+  .status-chip {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font: 700 8.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .status-chip.done   { background: var(--ok); color: white; }
+  .status-chip.saved  { background: rgba(15,22,34, 0.12); color: var(--ink); }
+
+  /* =================== OPTION A — Single-line minimal =================== */
+  .a-pill {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto 14px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255, 0.75);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 4px 10px rgba(15,22,34, 0.04);
+    cursor: pointer;
+    transition: box-shadow 180ms ease-out, border-color 180ms ease-out;
+  }
+  .a-pill:hover { box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 6px 14px rgba(15,22,34, 0.07); border-color: rgba(15,22,34, 0.12); }
+  .a-pill .a-date {
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .a-pill .a-summary {
+    font: 500 12.5px/1.2 'Inter Tight', sans-serif;
+    color: var(--muted);
+    letter-spacing: -0.005em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0;
+  }
+  .a-pill .a-vol {
+    font: 700 12.5px/1 'Geist Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .a-pill .a-vol .a-vol-unit {
+    font-size: 10px; color: var(--label); margin-left: 2px; letter-spacing: 0.10em;
+  }
+  .a-pill .a-chev { color: var(--label); display: inline-flex; }
+  .a-pill .a-chev svg { width: 12px; height: 12px; }
+
+  /* =================== OPTION B — Two-line metric strip =================== */
+  .b-pill {
+    padding: 10px 14px;
+    background: rgba(255,255,255, 0.75);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 4px 10px rgba(15,22,34, 0.04);
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .b-pill .b-row1 {
+    display: flex; align-items: center; gap: 8px;
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .b-pill .b-time {
+    font-weight: 500; color: var(--muted); letter-spacing: 0.04em;
+  }
+  .b-pill .b-status-spacer { flex: 1; }
+  .b-pill .b-row2 {
+    display: flex; align-items: baseline; gap: 10px;
+    font: 600 12.5px/1 'Geist Mono', ui-monospace, monospace;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .b-pill .b-row2 .b-vol-unit { font-size: 9.5px; color: var(--label); margin-left: 2px; letter-spacing: 0.10em; text-transform: uppercase; }
+  .b-pill .b-row2 .b-meta { font: 500 11px/1 'Geist Mono', ui-monospace, monospace; color: var(--muted); letter-spacing: 0.04em; }
+  .b-pill .b-row2 .b-sep { color: var(--label); font-weight: 500; }
+
+  /* =================== OPTION C — Mono ledger (stat-first) =================== */
+  .c-pill {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px 10px 18px;
+    background: rgba(255,255,255, 0.78);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 4px 10px rgba(15,22,34, 0.04);
+    cursor: pointer;
+    position: relative;
+  }
+  .c-pill::before {
+    content: '';
+    position: absolute;
+    left: 12px; top: 12px; bottom: 12px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .c-pill.saved::before { background: rgba(15,22,34, 0.20); }
+  .c-pill .c-stat {
+    display: flex; flex-direction: column; gap: 1px;
+    min-width: 0;
+  }
+  .c-pill .c-vol {
+    font: 700 16px/1 'Geist Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .c-pill .c-vol .c-vol-unit {
+    font: 600 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    color: var(--label);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-left: 3px;
+  }
+  .c-pill .c-meta {
+    font: 500 10px/1.3 'Geist Mono', ui-monospace, monospace;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .c-pill .c-meta strong { color: var(--ink); font-weight: 700; }
+  .c-pill .c-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .c-pill .c-date {
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    color: var(--muted);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>History pill — 3 design options</h1>
+    <p>Each option preserves: status (saved/done), date, what was trained, total volume, set count, and a resume/view action. All three keep the same surface treatment as Today's movement pills so the visual language stays consistent across views.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ A ============ -->
+    <div class="option">
+      <span class="opt-label">A</span>
+      <h2 class="opt-name">Single-line minimal</h2>
+      <p class="opt-tag">All info on one row: status chip · date · movements summary · total volume · chevron. Whole pill is tappable; no separate Resume button. Best for at-a-glance scanning of many history rows.</p>
+      <div class="stage">
+        <div class="a-pill">
+          <span class="status-chip saved">Saved</span>
+          <span class="a-date">Wed · May 13</span>
+          <span class="a-summary">Y raises · Dips · Dips +2</span>
+          <span class="a-vol">1,710<span class="a-vol-unit">lb</span></span>
+          <span class="a-chev"><svg viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="a-pill">
+          <span class="status-chip done">Done</span>
+          <span class="a-date">Tue · May 12</span>
+          <span class="a-summary">Bench · Squat · Lat Pulldown +5</span>
+          <span class="a-vol">3,420<span class="a-vol-unit">lb</span></span>
+          <span class="a-chev"><svg viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="a-pill">
+          <span class="status-chip done">Done</span>
+          <span class="a-date">Mon · May 11</span>
+          <span class="a-summary">Bench · Incline DB · Lat Pulldown</span>
+          <span class="a-vol">2,860<span class="a-vol-unit">lb</span></span>
+          <span class="a-chev"><svg viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most compressed. Reads like a list of dated receipts. Tradeoff: long movement names get truncated; set count is omitted (folded into the volume figure). Best when you scan history mostly to find a date.
+      </div>
+    </div>
+
+    <!-- ============ B ============ -->
+    <div class="option">
+      <span class="opt-label">B</span>
+      <h2 class="opt-name">Two-line metric strip</h2>
+      <p class="opt-tag">Top row: status + date + time. Bottom row: volume / movements / sets in mono numerics. No separate Resume button — tap the whole pill. Slightly taller than A but exposes more stats per row.</p>
+      <div class="stage">
+        <div class="b-pill">
+          <div class="b-row1">
+            <span class="status-chip saved">Saved</span>
+            <span>Wed · May 13</span>
+            <span class="b-time">2:01 PM</span>
+          </div>
+          <div class="b-row2">
+            <span>1,710<span class="b-vol-unit">lb</span></span>
+            <span class="b-sep">·</span>
+            <span class="b-meta">5 movements · 2 sets</span>
+          </div>
+        </div>
+        <div class="b-pill">
+          <div class="b-row1">
+            <span class="status-chip done">Done</span>
+            <span>Tue · May 12</span>
+            <span class="b-time">7:42 PM</span>
+          </div>
+          <div class="b-row2">
+            <span>3,420<span class="b-vol-unit">lb</span></span>
+            <span class="b-sep">·</span>
+            <span class="b-meta">8 movements · 22 sets · RPE 7.8</span>
+          </div>
+        </div>
+        <div class="b-pill">
+          <div class="b-row1">
+            <span class="status-chip done">Done</span>
+            <span>Mon · May 11</span>
+            <span class="b-time">6:15 PM</span>
+          </div>
+          <div class="b-row2">
+            <span>2,860<span class="b-vol-unit">lb</span></span>
+            <span class="b-sep">·</span>
+            <span class="b-meta">6 movements · 18 sets · RPE 7.5</span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Densest information per row without feeling crowded. Bottom-row pattern (volume + meta) reads like a stat sheet. Best when the user actually reads history to compare sessions. Tradeoff: more vertical real estate than A.
+      </div>
+    </div>
+
+    <!-- ============ C ============ -->
+    <div class="option">
+      <span class="opt-label">C</span>
+      <h2 class="opt-name">Ledger (stat-first)</h2>
+      <p class="opt-tag">Stat leads: total volume in big mono numerals on the left, context (movements · sets · RPE) below it. Right side: date, top-right. Left-edge accent bar — teal for Done, slate for Saved.</p>
+      <div class="stage">
+        <div class="c-pill saved">
+          <div class="c-stat">
+            <span class="c-vol">1,710<span class="c-vol-unit">lb</span></span>
+            <span class="c-meta"><strong>5 mv</strong> · 2 sets</span>
+          </div>
+          <span></span>
+          <div class="c-right">
+            <span class="c-date">Wed · May 13</span>
+            <span class="status-chip saved">Saved</span>
+          </div>
+        </div>
+        <div class="c-pill">
+          <div class="c-stat">
+            <span class="c-vol">3,420<span class="c-vol-unit">lb</span></span>
+            <span class="c-meta"><strong>8 mv</strong> · 22 sets · RPE 7.8</span>
+          </div>
+          <span></span>
+          <div class="c-right">
+            <span class="c-date">Tue · May 12</span>
+            <span class="status-chip done">Done</span>
+          </div>
+        </div>
+        <div class="c-pill">
+          <div class="c-stat">
+            <span class="c-vol">2,860<span class="c-vol-unit">lb</span></span>
+            <span class="c-meta"><strong>6 mv</strong> · 18 sets · RPE 7.5</span>
+          </div>
+          <span></span>
+          <div class="c-right">
+            <span class="c-date">Mon · May 11</span>
+            <span class="status-chip done">Done</span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        The volume number is the focal point. Treats history rows like ledger entries — the lifter's progress over time is the story. Tradeoff: movement names are gone (you'd see them by tapping in). Best when volume and intensity are what you actually compare across sessions.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
