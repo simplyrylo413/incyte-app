@@ -1,10 +1,10 @@
-# Roadmap
+# INCYTE — Roadmap
 
 > Living document. Updated whenever priorities shift. Decisions go in `decisions.md`.
 
 ## Vision
 
-A workout tracker for trained lifters that turns logged sets into honest feedback — telling you when you've actually pushed, when you should back off, and how today's session moves your week. Not a logger. Not a coach. A mirror calibrated for people who already know how to train.
+**INCYTE** — progressive overload tracking for trained lifters. Turns logged sets into honest feedback: when you've actually pushed, when to back off, and how today's session moves your week. A mirror calibrated for people who already know how to train. Not a logger. Not a coach.
 
 ## Audience
 
@@ -27,17 +27,18 @@ _Alternates considered (low confidence — discuss):_
 
 **Path locked.** Capacitor wrap of `fitlog-mobile.html` → App Store. v1 ships **without** Supabase auth or remote push — both deferred to v1.1. See `decisions.md` 2026-05-10.
 
-**Final 7-item launch list (suggested order):**
+**Final 8-item launch list (suggested order):**
 
 1. [ ] **D-08** — Apple Developer Program enrollment ($99/yr). _Start TODAY — has 24–48h lead time, sometimes longer. Doesn't block other work._
-2. [ ] **B-01** — Fix Save & Exit dropping today's session into History. Only formally-open bug; don't ship with it.
-3. [ ] **D-06** — Capacitor scaffold around `fitlog-mobile.html`. iOS project, build pipeline, asset bundling, splash/icon.
-4. [ ] **D-07** — Bind native calendar plugin (EKEventStore). Replaces C-02; provides "native value" for App Store review.
-5. [ ] **D-09** — Bind `@capacitor/local-notifications`. Training reminders, rest timers, streak nudges. ~1 day. Second native plugin = stronger App Store review posture.
-6. [ ] **D-02** — Privacy policy hosted publicly + App Store privacy labels. Required even without auth (health-data category, on-device storage disclosure).
-7. [ ] **D-05** — App Store listing copy + 5–8 screenshots + 30s preview video. Positioning hook: "for people who already know how to train."
+2. [ ] **A-01** — **Resolve Supabase-primary vs. localStorage-only-v1 architecture mismatch.** Handoff says cloud-primary; v1 plan says localStorage-only. Must scope + decide before touching Capacitor. Real engineering work — could be feature-flagging the cloud sync, or stripping Supabase calls behind a `CLOUD_ENABLED` toggle.
+3. [ ] **B-01** — Fix Save & Exit dropping today's session into History. _Verify it's still open after the mobile295–331 iterations — handoff bug log doesn't mention it._
+4. [ ] **D-06** — Capacitor scaffold around `fitlog-mobile.html`. iOS project, build pipeline, asset bundling, splash/icon.
+5. [ ] **D-07** — Bind native calendar plugin (EKEventStore). Replaces C-02; provides "native value" for App Store review.
+6. [ ] **D-09** — Bind `@capacitor/local-notifications`. Training reminders, rest timers, streak nudges. ~1 day. Second native plugin = stronger App Store review posture.
+7. [ ] **D-02** — Privacy policy hosted publicly + App Store privacy labels. Required even without auth (health-data category, on-device storage disclosure).
+8. [ ] **D-05** — App Store listing copy + 5–8 screenshots + 30s preview video. Positioning hook: "for people who already know how to train."
 
-**Realistic timeline (solo dev):** ~2.5–3.5 weeks from kickoff to App Store submission. Add ~1–2 weeks for Apple review + any rejection round-trips.
+**Realistic timeline (solo dev):** ~3–4 weeks from kickoff to App Store submission (revised up from 2.5–3.5 to account for A-01). Add ~1–2 weeks for Apple review + any rejection round-trips.
 
 **Open scope questions (don't block launch but worth resolving early):**
 - C-01 "Design visual layout" — what's the actual scope? Polish on the #32 redesign, or unfinished work? Until clarified, treat as P2 polish, not P0.
@@ -58,6 +59,16 @@ Based on real usage signal, in roughly this order:
 - H-03: Live re-render of Readiness card on every set toggle (currently partial)
 - B-02 / B-03 cloud sync fixes if not done at launch
 - HealthKit binding if not picked as the D-09 second plugin
+
+### From INCYTE_Handoff.docx "Suggested Next Steps"
+
+These feed the Next/Later sections below:
+- F-02 Volume tracking (sets × reps × weight) as optional Momentum chart axis
+- F-03 Skipped-movement detection — badge/warning when planned movement has no logged sets after session finished
+- F-04 Multi-period sparkline overlay (e.g., last 3 weeks vs lifetime)
+- F-05 Import workout templates from structured text (bulk-create plan week)
+- F-06 Dark-mode token layer via `@media (prefers-color-scheme: dark)`
+- F-07 PWA manifest + service worker — _superseded by Capacitor decision for App Store path; revisit if PWA-only fallback ever becomes the path_
 
 ## Later (3–6 months out)
 

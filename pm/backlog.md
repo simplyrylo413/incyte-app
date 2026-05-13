@@ -59,6 +59,13 @@ Every feature, bug, and polish item. Roadmap pulls from here.
 | ID  | Title | Type | Priority | Effort | Launch blocker | Notes |
 |-----|-------|------|----------|--------|----------------|-------|
 | F-01 | "Tomorrow's plan" surface (separate from today-headline recommendation) | feature | P2 | M | No | Today-headline already in place; tomorrow notes demoted to bullets. Lacks dedicated UI |
+| F-02 | Volume tracking as optional Momentum chart axis (sets × reps × weight) | feature | P2 | M | No | From INCYTE_Handoff.docx suggested-next-steps |
+| F-03 | Skipped-movement detection — badge/warning when a planned movement has no logged sets after session finished | feature | P2 | S | No | From handoff |
+| F-04 | Multi-period sparkline overlay (e.g., last 3 weeks vs lifetime) | feature | P3 | M | No | From handoff |
+| F-05 | Import workout templates from structured text — bulk-create a plan week without tapping | feature | P3 | M | No | From handoff |
+| F-06 | Dark-mode token layer via `@media (prefers-color-scheme: dark)` | design | P3 | S | No | From handoff. Tokens already separated from semantics |
+| F-07 | PWA manifest + service worker | infra | P3 | S | No | From handoff. Superseded by Capacitor decision for App Store; revisit only if PWA fallback becomes path |
+| A-01 | **Resolve Supabase-primary vs. localStorage-only-v1 architecture mismatch** | infra | P0 | M–L | Yes | Handoff says Supabase is cloud-primary; v1 plan ships localStorage-only. Either temporarily disable cloud-primary writes for v1, or stash the cloud-sync logic behind a feature flag. Real engineering work — confirm scope before sizing the rest of the punch list |
 
 ---
 

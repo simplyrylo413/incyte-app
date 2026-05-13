@@ -111,3 +111,41 @@ Append-only record of meaningful PM decisions. Each entry captures what was deci
 - Remote push without a real backend nudge loop tends to be either unused or annoying.
 
 **Revisit when:** v1.1 ships with Supabase auth — at that point a backend exists and remote push has somewhere to push from. Trigger features at that point: re-engagement (haven't trained in N days), social/coach mode, multi-device session conflict alerts.
+
+---
+
+## 2026-05-12 — File workflow: retire numbered snapshots, adopt git commits
+
+**Decision:** Going forward, edit `~/fitness-app/src/fitlog-mobile.html` directly and commit each meaningful change to git. The "save as `mobile{N+1}.html`" pattern (308 numbered files from mobile87 through mobile332) is retired.
+
+**Context:** The Cowork-managed project at `~/Documents/Claude/Projects/Workout tracker/` accumulated 309 numbered HTML snapshots as a manual version-control workflow. Once the project moved to `~/fitness-app/` with git initialized, the snapshot workflow became redundant.
+
+**Rationale:**
+- Git provides per-change history, diffs, rollback, branching — all the things the snapshot workflow was approximating.
+- Single canonical filename means external references (App Store listing, marketing site, Capacitor build) point at a stable path.
+- Disk usage: snapshot workflow grew the project to 671 MB; git keeps it under 2 MB.
+- Trivial to roll back via `git checkout` instead of "which mobile{NNN} was the last good one."
+
+**Status:** Locked. Canonical file is `~/fitness-app/src/fitlog-mobile.html` (currently mobile294 baseline). The old snapshots remain in `~/Documents/Claude/Projects/Workout tracker/` as archive — do not write new files there.
+
+**Open reconciliation:** mobile295–332 are WIP iterations that postdate the mobile294 handoff baseline. User should either (a) merge their notable changes into the canonical file (then commit) or (b) declare them experimental and discard. Tracked as a working item, not a launch blocker.
+
+---
+
+## 2026-05-12 — Supabase-primary vs. localStorage-only-v1 architecture mismatch (FLAGGED, NOT RESOLVED)
+
+**Decision:** Hold the "v1 ships localStorage-only" direction (per 2026-05-10 decision), but explicitly acknowledge that the current code is cloud-primary per INCYTE_Handoff.docx — this is engineering work to resolve, not a configuration flip. Added as backlog item **A-01** in the launch punch list, between Apple Dev enrollment and Capacitor scaffold work.
+
+**Context:** The INCYTE handoff (mobile294, May 11) describes persistence as: *"Supabase Realtime (cloud primary) + localStorage (offline cache)."* The v1 launch decision (2026-05-10) was made on the earlier framing that localStorage was primary. The handoff invalidates that assumption.
+
+**Three plausible resolutions** (decide during A-01 work):
+- **Feature flag** — `CLOUD_ENABLED = false` for v1 build, sync code remains but is dormant. Cleanest, smallest blast radius. Recommended starting point.
+- **Strip cloud calls** — remove Supabase upsert/realtime code from the v1 build entirely. More invasive but produces a smaller, faster app.
+- **Re-evaluate the localStorage-only decision** — if A-01 reveals the cloud sync is too entangled to disable safely, the cheaper path may be to keep cloud sync in v1 (with anonymous Supabase rows, no auth/login UI). Would require revisiting the 2026-05-10 decision.
+
+**Rationale for flagging but not reversing 2026-05-10:**
+- The user explicitly chose "stay the course" when the mismatch was surfaced on 2026-05-12.
+- Anonymous Supabase (no auth) still avoids D-03 (account-deletion flow) and most of the launch-blocker weight.
+- The right time to decide between the three resolutions is when scoping A-01, not now.
+
+**Revisit when:** A-01 is being scoped. Update this entry with the chosen resolution.
