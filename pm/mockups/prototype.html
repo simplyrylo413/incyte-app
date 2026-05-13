@@ -712,10 +712,15 @@
   }
   .hero-primary {
     display: flex;
-    align-items: baseline;
+    /* Locked at 50px so the primary row is identical whether RPE is filled
+       or shows the em-dash placeholder. Previously the em-dash's intrinsic
+       line metrics expanded the flex line to 106px when other values were
+       50px, causing the hero to appear to shrink as soon as RPE was entered. */
+    align-items: center;
     justify-content: center;
     gap: 10px;
     margin-bottom: 8px;
+    height: 50px;
   }
   .hero-num {
     background: transparent;
