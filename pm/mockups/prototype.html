@@ -78,10 +78,13 @@
     display: none;
     flex: 1;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
   }
+  .view::-webkit-scrollbar { display: none; }
   .view.active { display: flex; }
+  #view-workout { padding-bottom: 100px; }
 
   /* === Header (today view) === */
   .head-today {
@@ -234,38 +237,64 @@
   .nav button svg { width: 18px; height: 18px; }
   .nav button span { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; text-transform: uppercase; }
 
-  /* === Workout Mode === */
+  /* === Workout Mode — focused-hero rebuild ===
+     The page has ONE focal element: the active set, expressed as a single
+     typographic statement. Everything else is subordinate supporting info
+     arranged below, separated by editorial hairlines rather than cards.
+  */
+
+  /* Top strip: just a back chevron and the set counter. Nothing else. */
   .topbar {
-    padding: 6px 18px 14px;
+    padding: 4px 22px 18px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
     flex-shrink: 0;
   }
   .back-chip {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: var(--glass-2);
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: transparent;
     border: 1px solid var(--hairline);
-    border-radius: var(--r-pill);
-    padding: 8px 12px 8px 8px;
-    box-shadow: var(--depth-1);
     cursor: pointer;
+    transition: background 180ms ease-out, border-color 180ms ease-out;
   }
+  .back-chip:hover { background: white; border-color: rgba(15,22,34,0.18); }
   .back-chip svg { width: 14px; height: 14px; color: var(--ink); }
-  .back-chip span { font: 600 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+  .back-chip span { display: none; }   /* hidden by default; revealed via aria-label */
 
-  .identity { flex: 1; min-width: 0; }
-  .identity .body-part { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); margin-bottom: 4px; }
-  .identity .name { font: 700 20px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .set-counter { text-align: right; flex-shrink: 0; }
-  .set-counter .now { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
-  .set-counter .of { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; color: var(--label); text-transform: uppercase; margin-top: 3px; }
+  .set-counter {
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .set-counter .now { color: var(--ink); font-weight: 700; }
+  .set-counter .of { color: var(--label); }
 
-  /* Workout Mode preferences (toggle chips) */
+  /* Movement identity — its own quiet block. The breadcrumb + name only. */
+  .identity {
+    padding: 0 22px 14px;
+  }
+  .identity .body-part {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 8px;
+  }
+  .identity .name {
+    font: 700 28px/1.05 'Inter Tight',sans-serif;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+
+  /* Toggle chips — minimal, no glass. Just outlined pills with a dot. */
   .prefs {
-    padding: 0 18px 10px;
+    padding: 0 22px 16px;
     display: flex;
     gap: 8px;
     flex-shrink: 0;
@@ -273,159 +302,263 @@
   .pref-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 12px 7px 9px;
-    background: var(--paper-2);
+    gap: 8px;
+    padding: 8px 14px 8px 12px;
+    background: transparent;
     border: 1px solid var(--hairline);
-    border-radius: var(--r-pill);
+    border-radius: 999px;
     font: 600 11px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
     color: var(--muted);
     cursor: pointer;
-    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
   }
   .pref-chip .dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--label);
-    box-shadow: 0 0 0 0 transparent;
-    transition: background 150ms ease-out, box-shadow 150ms ease-out;
+    transition: background 180ms ease-out;
   }
   .pref-chip.on {
-    background: rgba(93,155,184,0.10);
-    border-color: rgba(93,155,184,0.30);
+    background: white;
+    border-color: rgba(15,22,34,0.18);
     color: var(--ink);
   }
-  .pref-chip.on .dot {
-    background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(93,155,184,0.20);
-  }
-  .pref-chip:active { transform: scale(0.98); }
+  .pref-chip.on .dot { background: var(--ink); }
+  .pref-chip:active { transform: scale(0.97); }
 
-  .prior {
-    margin: 0 18px 12px;
-    padding: 10px 14px;
-    background: var(--glass);
+  /* Hero card — the central focal point. Single typographic statement. */
+  .hero {
+    margin: 0 22px 18px;
+    padding: 26px 24px 22px;
+    background: white;
     border: 1px solid var(--hairline);
-    border-radius: var(--r-md);
-    box-shadow: var(--depth-1);
+    border-radius: 22px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 1px 2px rgba(15,22,34,0.04),
+      0 12px 28px rgba(15,22,34,0.06);
+    position: relative;
+  }
+  .hero-eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 22px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+  }
+  .hero-eyebrow .now-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  .hero-eyebrow .now-marker .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+  .hero-eyebrow .head-remove {
+    background: transparent;
+    border: none;
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 4px 0;
+    cursor: pointer;
+    transition: color 150ms ease-out;
+  }
+  .hero-eyebrow .head-remove:hover { color: var(--bad); }
+
+  /* The hero typographic statement: 185 × 10. Tap any number to edit. */
+  .hero-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .hero-num {
+    background: transparent;
+    border: none;
+    font: 700 72px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.055em;
+    color: var(--ink);
+    padding: 4px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 180ms ease-out, color 180ms ease-out;
+  }
+  .hero-num:hover { background: rgba(93,155,184,0.08); }
+  .hero-num.empty { color: var(--label); }
+  .hero-sep {
+    font: 500 36px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    letter-spacing: -0.02em;
+  }
+
+  /* Second line: at RPE 7. RPE is its own tap-zone. */
+  .hero-sub {
+    text-align: center;
+    margin-bottom: 22px;
+    min-height: 28px;
+  }
+  .hero-sub .at {
+    font: 500 16px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    letter-spacing: -0.005em;
+  }
+  .hero-rpe {
+    background: transparent;
+    border: none;
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    padding: 4px 8px;
+    margin-left: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 180ms ease-out;
+  }
+  .hero-rpe:hover { background: rgba(93,155,184,0.08); }
+  .hero-rpe.empty { color: var(--label); font-weight: 600; }
+
+  /* Hero primary action */
+  .hero-cta {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 18px rgba(24,32,48,0.28);
+    transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease-out;
+  }
+  .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 26px rgba(24,32,48,0.36); }
+  .hero-cta:active { transform: translateY(0); }
+
+  /* Inline prior reference — one quiet line below the hero, no card */
+  .prior {
+    padding: 0 22px 4px;
+    display: flex;
+    align-items: baseline;
     gap: 10px;
     flex-shrink: 0;
   }
-  .prior .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); flex-shrink: 0; }
-  .prior .vals { font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prior .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    flex-shrink: 0;
+  }
+  .prior .vals {
+    font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-  .sets { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+  /* Section eyebrow for set lists */
+  .sets-eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 16px 22px 8px;
+    flex-shrink: 0;
+  }
+
+  /* Set rows — editorial, no cards. Just hairline-divided lines. */
+  .sets {
+    padding: 0 22px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
   .set-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: var(--glass-2);
-    border: 1px solid var(--hairline);
-    border-radius: var(--r-md);
-    box-shadow: var(--depth-1);
-    cursor: pointer;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(15,22,34,0.06);
   }
-  .set-row .idx { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); width: 40px; }
-  .set-row .vals { flex: 1; font: 600 14px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); letter-spacing: 0.02em; }
-  .set-row .meta { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.06em; text-transform: uppercase; }
-  .set-row.done .vals { color: var(--ok); }
-  .set-row.done .meta { color: var(--ok); padding: 5px 10px; background: rgba(79,154,168,0.10); border: 1px solid rgba(79,154,168,0.20); border-radius: var(--r-pill); }
+  .set-row:last-child { border-bottom: none; }
+  .set-row .idx {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    width: 44px;
+  }
+  .set-row .vals {
+    flex: 1;
+    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+  }
+  .set-row .meta {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .set-row.done {
+    cursor: pointer;
+    transition: padding 180ms ease-out;
+  }
+  .set-row.done:hover { padding-left: 4px; }
+  .set-row.done .vals { color: var(--ink); }
+  .set-row.done .meta {
+    color: var(--ok);
+    padding: 4px 10px;
+    background: rgba(79,154,168,0.08);
+    border: 1px solid rgba(79,154,168,0.18);
+    border-radius: 999px;
+  }
   .set-row.target .vals { color: var(--muted); }
 
-  /* Per-set remove button (compact rows) — subtle until hovered/tapped */
+  /* Per-set remove — tiny, subtle, always visible */
   .set-row .row-remove {
-    width: 26px;
-    height: 26px;
-    border-radius: var(--r-pill);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     border: 1px solid transparent;
     background: transparent;
     display: grid;
     place-items: center;
     color: var(--label);
     cursor: pointer;
-    transition: color 150ms ease-out, border-color 150ms ease-out, background 150ms ease-out;
-    flex-shrink: 0;
-  }
-  .set-row .row-remove:hover {
-    color: var(--bad);
-    border-color: rgba(176,128,146,0.30);
-    background: rgba(176,128,146,0.06);
-  }
-  .set-row .row-remove:active { transform: scale(0.94); }
-  .set-row .row-remove svg { width: 11px; height: 11px; }
-
-  /* Remove-set link inside the expanded current-set card */
-  .current .head-remove {
-    background: transparent;
-    border: none;
-    color: var(--label);
-    font: 500 11px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.005em;
-    padding: 4px 8px;
-    border-radius: var(--r-pill);
-    cursor: pointer;
     transition: color 150ms ease-out, background 150ms ease-out;
-  }
-  .current .head-remove:hover { color: var(--bad); background: rgba(176,128,146,0.08); }
-
-  .current {
-    margin: 10px 18px;
-    padding: 16px 16px 14px;
-    background: white;
-    border: 1px solid var(--hairline-strong);
-    border-radius: var(--r-lg);
-    box-shadow: var(--depth-3);
     flex-shrink: 0;
   }
-  .current .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .current .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
-  .current .eyebrow .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(93,155,184,0.20); }
-  .current .set-label { font: 700 16px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .set-row .row-remove:hover { color: var(--bad); background: rgba(176,128,146,0.08); }
+  .set-row .row-remove svg { width: 10px; height: 10px; }
 
-  .pickers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-  .picker { border: 1px solid var(--hairline-strong); background: var(--paper); border-radius: var(--r-md); padding: 10px 8px; text-align: center; cursor: pointer; transition: background 150ms ease-out, border-color 150ms ease-out; }
-  .picker:hover { background: white; border-color: var(--accent); }
-  .picker:active { transform: scale(0.98); }
-  .picker .lbl { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
-  .picker .val { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
-  .picker .unit { font: 500 10px/1 'Geist Mono',ui-monospace,monospace; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
-  .picker.empty .val { color: var(--label); }
+  /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  .log-btn { width: 100%; padding: 14px; background: var(--ink-deep); color: white; border: none; border-radius: var(--r-pill); font: 600 14px/1 'Inter Tight',sans-serif; letter-spacing: -0.01em; box-shadow: 0 8px 20px rgba(24,32,48,0.30), 0 2px 4px rgba(24,32,48,0.20); cursor: pointer; transition: transform 150ms ease-out; }
-  .log-btn:active { transform: scale(0.98); }
-  .log-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* AI recommendation card — refined for clinical / premium feel.
-     - No pulse animation (static indicator)
-     - Action label is the dominant typographic element
-     - Next-set value uses Geist Mono right-aligned for data emphasis
-     - Reason copy is short, mechanism-explained, no hand-holding
-     - Apply button refined to feel like a premium primary action */
+  /* AI recommendation — editorial register. Hairline separator above,
+     no card chrome, just structured type. */
   .rec {
-    margin: 10px 18px 0;
-    padding: 16px 18px 14px;
-    background: linear-gradient(155deg, rgba(93,155,184,0.07) 0%, rgba(245,247,251,0.40) 100%);
-    border: 1px solid rgba(93,155,184,0.18);
-    border-radius: var(--r-lg);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 6px 18px rgba(15,22,34,0.04);
+    margin: 0 22px;
+    padding: 16px 0 14px;
+    border-top: 1px solid rgba(15,22,34,0.08);
     flex-shrink: 0;
   }
-  .rec .head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+  .rec .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .rec .eyebrow {
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.20em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -435,76 +568,78 @@
     height: 5px;
     background: var(--accent);
     border-radius: 50%;
-    /* static — no pulse animation */
   }
   .rec .row {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .rec .action {
-    font: 700 24px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.025em;
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
     color: var(--ink);
   }
   .rec .next {
-    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
     letter-spacing: 0.02em;
-    flex-shrink: 0;
   }
   .rec .reason {
     font: 500 12px/1.5 'Inter Tight',sans-serif;
     color: var(--muted);
-    margin: 8px 0 14px;
-    letter-spacing: -0.005em;
+    margin: 6px 0 12px;
   }
   .rec .apply {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 9px 16px 9px 14px;
-    background: white;
-    border: 1px solid rgba(15,22,34,0.12);
-    border-radius: var(--r-pill);
+    background: transparent;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
     font: 600 12px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.005em;
     color: var(--ink);
     cursor: pointer;
-    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+    transition: background 180ms ease-out, color 180ms ease-out;
   }
-  .rec .apply:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-  }
-  .rec .apply:active { transform: scale(0.98); }
-  .rec .apply svg { width: 12px; height: 12px; transition: transform 150ms ease-out; }
+  .rec .apply:hover { background: var(--ink); color: white; }
   .rec .apply:hover svg { transform: translateX(2px); }
+  .rec .apply svg { width: 12px; height: 12px; transition: transform 180ms ease-out; }
 
   .wm-actions {
     position: absolute;
-    left: 18px;
-    right: 18px;
-    bottom: 14px;
+    left: 22px;
+    right: 22px;
+    bottom: 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--glass-2);
+    padding: 14px 18px;
+    background: white;
     border: 1px solid var(--hairline);
-    border-radius: var(--r-pill);
-    box-shadow: var(--depth-3);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border-radius: 999px;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 8px 24px rgba(15,22,34,0.08);
     z-index: 5;
   }
-  .wm-actions button { background: none; border: none; font: 600 12px/1 'Inter Tight',sans-serif; cursor: pointer; }
-  .wm-actions .skip { color: var(--bad); padding: 8px 4px; }
-  .wm-actions .complete { color: white; padding: 8px 14px; background: var(--ok); border-radius: var(--r-pill); border: 1px solid rgba(79,154,168,0.30); }
-  .wm-actions .complete:disabled { background: var(--paper-2); color: var(--label); border-color: var(--hairline); cursor: not-allowed; }
+  .wm-actions button { background: none; border: none; font: 600 12px/1 'Inter Tight',sans-serif; cursor: pointer; letter-spacing: -0.005em; }
+  .wm-actions .skip {
+    color: var(--bad);
+    padding: 6px 10px;
+    border-radius: 999px;
+    transition: background 180ms ease-out;
+  }
+  .wm-actions .skip:hover { background: rgba(176,128,146,0.08); }
+  .wm-actions .complete {
+    color: white;
+    padding: 9px 18px;
+    background: var(--ink-deep);
+    border-radius: 999px;
+    transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .wm-actions .complete:hover { transform: translateY(-1px); }
+  .wm-actions .complete:disabled { background: var(--paper-2); color: var(--label); cursor: not-allowed; transform: none; }
 
   /* === Number Picker Overlay — redesigned per user-approved screenshots === */
   .overlay {
@@ -791,45 +926,49 @@
     </div>
   </div>
 
-  <!-- WORKOUT MODE VIEW -->
+  <!-- WORKOUT MODE VIEW — focused-hero layout -->
   <div class="view" id="view-workout">
+
+    <!-- Minimal top strip: back + set counter only -->
     <div class="topbar">
-      <div class="back-chip" id="btn-back">
+      <button class="back-chip" id="btn-back" aria-label="Back to Today">
         <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>Today</span>
-      </div>
-      <div class="identity">
-        <div class="body-part" id="wm-body-part">CHEST</div>
-        <div class="name" id="wm-name">Bench Press</div>
-      </div>
+      </button>
       <div class="set-counter">
-        <div class="now" id="wm-set-now">1</div>
-        <div class="of">OF <span id="wm-set-total">4</span></div>
+        <span class="now" id="wm-set-now">1</span>
+        <span class="of"> / <span id="wm-set-total">4</span></span>
       </div>
     </div>
 
-    <!-- Workout preferences (per movement) -->
-    <div class="prefs">
-      <button class="pref-chip" id="toggle-rpe">
-        <span class="dot"></span>
-        Track RPE
-      </button>
-      <button class="pref-chip" id="toggle-ai">
-        <span class="dot"></span>
-        AI guidance
-      </button>
+    <!-- Movement identity — its own quiet block -->
+    <div class="identity">
+      <div class="body-part" id="wm-body-part">CHEST · STRENGTH</div>
+      <div class="name" id="wm-name">Bench Press</div>
     </div>
 
+    <!-- Session preferences -->
+    <div class="prefs">
+      <button class="pref-chip" id="toggle-rpe"><span class="dot"></span>Track RPE</button>
+      <button class="pref-chip" id="toggle-ai"><span class="dot"></span>AI guidance</button>
+    </div>
+
+    <!-- HERO: the current set as a single typographic statement -->
+    <div id="wm-hero"></div>
+
+    <!-- Prior reference — one quiet inline line -->
     <div class="prior">
-      <span class="lbl">LAST TIME</span>
+      <span class="lbl">LAST</span>
       <span class="vals" id="wm-prior">—</span>
     </div>
 
-    <div class="sets" id="wm-logged"></div>
-    <div id="wm-current"></div>
-    <div class="sets" id="wm-future" style="margin-top: 8px;"></div>
+    <!-- Logged + upcoming sets (editorial lines) -->
+    <div id="wm-logged-section"></div>
+    <div id="wm-future-section"></div>
+
+    <!-- AI recommendation -->
     <div id="wm-rec"></div>
 
+    <!-- Bottom action bar -->
     <div class="wm-actions">
       <button class="skip" id="btn-skip">Skip movement</button>
       <button class="complete" id="btn-complete">Complete</button>
@@ -1187,96 +1326,110 @@ function renderWorkout() {
   $('#toggle-rpe').classList.toggle('on', state.session.trackRpe);
   $('#toggle-ai').classList.toggle('on', state.session.aiRecOn);
 
-  // Logged (done) sets
-  const logged = $('#wm-logged');
-  logged.innerHTML = '';
-  mv.sets.filter(s => s.status === 'done').forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'set-row done';
-    const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
-    row.innerHTML = `
-      <span class="idx">SET ${s.idx}</span>
-      <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
-      <span class="meta">DONE</span>
-      <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-        <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      </button>`;
-    // Click the row body (except remove button) to reopen
-    row.querySelector('.idx').addEventListener('click', () => reopenSet(s.idx));
-    row.querySelector('.vals').addEventListener('click', () => reopenSet(s.idx));
-    row.querySelector('.meta').addEventListener('click', () => reopenSet(s.idx));
-    row.querySelector('[data-remove-set]').addEventListener('click', (e) => {
-      e.stopPropagation();
-      removeSet(s.idx);
-    });
-    logged.appendChild(row);
-  });
-
-  // Current set (expanded)
-  const cw = $('#wm-current');
+  // === HERO: the active set as a typographic statement ===
+  const hero = $('#wm-hero');
   if (cur) {
-    const pickerCols = state.session.trackRpe ? '1fr 1fr 1fr' : '1fr 1fr';
-    const rpePicker = state.session.trackRpe ? `
-          <div class="picker ${cur.rpe == null ? 'empty' : ''}" data-pk="rpe">
-            <div class="lbl">RPE</div>
-            <div class="val">${cur.rpe != null ? cur.rpe : '—'}</div>
-            <div class="unit">EFFORT</div>
-          </div>` : '';
-    cw.innerHTML = `
-      <div class="current">
-        <div class="head">
-          <span class="eyebrow"><span class="dot"></span>SET ${cur.idx} · NOW</span>
+    const weight = cur.weight != null ? cur.weight : '—';
+    const reps = cur.reps != null ? cur.reps : '—';
+    const weightCls = cur.weight == null ? 'empty' : '';
+    const repsCls = cur.reps == null ? 'empty' : '';
+
+    let rpeMarkup = '';
+    if (state.session.trackRpe) {
+      const rpeVal = cur.rpe != null ? `RPE ${cur.rpe}` : 'add RPE';
+      const rpeCls = cur.rpe == null ? 'empty' : '';
+      rpeMarkup = `<div class="hero-sub">
+        <span class="at">at </span><button class="hero-rpe ${rpeCls}" data-pk="rpe">${rpeVal}</button>
+      </div>`;
+    }
+
+    hero.innerHTML = `
+      <div class="hero">
+        <div class="hero-eyebrow">
+          <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
           <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
-        <div class="pickers" style="grid-template-columns: ${pickerCols};">
-          <div class="picker ${cur.weight == null ? 'empty' : ''}" data-pk="weight">
-            <div class="lbl">WEIGHT</div>
-            <div class="val">${cur.weight != null ? cur.weight : '—'}</div>
-            <div class="unit">LB</div>
-          </div>
-          <div class="picker ${cur.reps == null ? 'empty' : ''}" data-pk="reps">
-            <div class="lbl">REPS</div>
-            <div class="val">${cur.reps != null ? cur.reps : '—'}</div>
-            <div class="unit">REPS</div>
-          </div>
-          ${rpePicker}
+        <div class="hero-line">
+          <button class="hero-num ${weightCls}" data-pk="weight">${weight}</button>
+          <span class="hero-sep">×</span>
+          <button class="hero-num ${repsCls}" data-pk="reps">${reps}</button>
         </div>
-        <button class="log-btn" id="btn-log">Log set ${cur.idx}</button>
+        ${rpeMarkup}
+        <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
-    cw.querySelectorAll('[data-pk]').forEach(el => {
+    hero.querySelectorAll('[data-pk]').forEach(el => {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
-    cw.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
-    cw.querySelector('#btn-remove-current').addEventListener('click', () => removeSet(cur.idx));
+    hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
+    hero.querySelector('#btn-remove-current').addEventListener('click', () => removeSet(cur.idx));
   } else {
-    cw.innerHTML = `
-      <div class="current" style="text-align:center;">
-        <div class="head" style="justify-content:center;">
-          <span class="eyebrow" style="color: var(--ok);">MOVEMENT COMPLETE</span>
+    hero.innerHTML = `
+      <div class="hero" style="text-align: center;">
+        <div class="hero-eyebrow" style="justify-content: center;">
+          <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
         </div>
-        <p style="margin: 8px 0 14px; color: var(--muted); font: 500 13px/1.4 'Inter Tight',sans-serif;">All sets logged. Tap Complete to return.</p>
+        <p style="margin: 14px 0; color: var(--muted); font: 500 14px/1.5 'Inter Tight',sans-serif;">All sets logged. Tap Complete to return.</p>
       </div>`;
   }
 
-  // Future target sets
-  const fut = $('#wm-future');
-  fut.innerHTML = '';
-  mv.sets.filter(s => s.status === 'target').forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'set-row target';
-    const isBlank = s.weight == null && s.reps == null;
-    const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
-    const meta = isBlank ? 'BLANK' : 'TARGET';
-    row.innerHTML = `
-      <span class="idx">SET ${s.idx}</span>
-      <span class="vals">${vals}</span>
-      <span class="meta">${meta}</span>
-      <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-        <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      </button>`;
-    row.querySelector('[data-remove-set]').addEventListener('click', () => removeSet(s.idx));
-    fut.appendChild(row);
-  });
+  // === LOGGED sets — editorial section below the prior reference ===
+  const loggedSection = $('#wm-logged-section');
+  const loggedSets = mv.sets.filter(s => s.status === 'done');
+  if (loggedSets.length > 0) {
+    let html = `<div class="sets-eyebrow">LOGGED</div><div class="sets">`;
+    loggedSets.forEach(s => {
+      const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
+      html += `
+        <div class="set-row done" data-reopen-set="${s.idx}">
+          <span class="idx">SET ${s.idx}</span>
+          <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
+          <span class="meta">DONE</span>
+          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>`;
+    });
+    html += `</div>`;
+    loggedSection.innerHTML = html;
+    loggedSection.querySelectorAll('[data-reopen-set]').forEach(el => {
+      el.querySelector('.idx').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
+      el.querySelector('.vals').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
+      el.querySelector('.meta').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
+    });
+    loggedSection.querySelectorAll('[data-remove-set]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); removeSet(+el.dataset.removeSet); });
+    });
+  } else {
+    loggedSection.innerHTML = '';
+  }
+
+  // === UPCOMING (target) sets ===
+  const futSection = $('#wm-future-section');
+  const targetSets = mv.sets.filter(s => s.status === 'target');
+  if (targetSets.length > 0) {
+    let html = `<div class="sets-eyebrow">UPCOMING</div><div class="sets">`;
+    targetSets.forEach(s => {
+      const isBlank = s.weight == null && s.reps == null;
+      const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
+      const meta = isBlank ? 'BLANK' : 'TARGET';
+      html += `
+        <div class="set-row target">
+          <span class="idx">SET ${s.idx}</span>
+          <span class="vals">${vals}</span>
+          <span class="meta">${meta}</span>
+          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>`;
+    });
+    html += `</div>`;
+    futSection.innerHTML = html;
+    futSection.querySelectorAll('[data-remove-set]').forEach(el => {
+      el.addEventListener('click', () => removeSet(+el.dataset.removeSet));
+    });
+  } else {
+    futSection.innerHTML = '';
+  }
 
   // AI recommendation card.
   // - Render ONLY when there's a real, non-muted recommendation to show.
