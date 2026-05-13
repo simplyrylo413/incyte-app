@@ -463,13 +463,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: 10px;
     margin-top: 16px;
+    flex-wrap: nowrap;
   }
 
   /* Hero primary action — solid black pill */
   .hero-cta {
-    padding: 13px 28px;
+    padding: 12px 22px;
     background: var(--ink-deep);
     color: white;
     border: none;
@@ -865,6 +866,46 @@
   }
   .foot-btn.toggle.on .toggle-thumb {
     left: 14px;
+  }
+
+  /* REST toggle — clock icon variant (no text label, just icon + switch).
+     Saves horizontal space in the 4-button hero action row. */
+  .foot-btn.toggle.rest-toggle { padding: 0 4px; gap: 6px; }
+  .foot-btn.toggle.rest-toggle .timer-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--label);
+    transition: color 180ms ease-out;
+  }
+  .foot-btn.toggle.rest-toggle.on .timer-icon { color: var(--ink); }
+
+  /* Rest timer display — countdown pill in the hero eyebrow.
+     Appears only when restTimer is enabled. Mono countdown + clock icon. */
+  .rest-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px 4px 9px;
+    background: rgba(255,255,255, 0.72);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 999px;
+    font: 700 11px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 0 0 1px rgba(15,22,34, 0.04),
+      0 2px 6px rgba(15,22,34, 0.06);
+    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out;
+  }
+  .rest-timer .timer-icon { width: 11px; height: 11px; }
+  .rest-timer.urgent {
+    background: rgba(176,128,146, 0.18);
+    border-color: rgba(176,128,146, 0.40);
+    color: var(--bad);
   }
 
   /* (.foot-btn.skip removed — Skip is handled via the Today × button) */
@@ -1298,6 +1339,13 @@ const state = {
   session: {               // session-wide preferences — apply across all movements today
     trackRpe: true,
     aiRecOn: true,
+    restTimer: {           // rest timer between sets
+      enabled: false,      // toggle state — when on, the timer is running
+      duration: 120,       // current preset in seconds (default 2:00)
+      remaining: 0,        // live countdown
+      intervalId: null,    // setInterval handle
+      presets: [60, 90, 120, 180, 300], // 1:00, 1:30, 2:00, 3:00, 5:00
+    },
     // Animation triggers — set by user actions, consumed + cleared by renderWorkout
     _animSetIdx: null,     // set this idx had a status transition; animate its row enter
     _animRec: false,       // rec card just newly appeared; animate it enter
@@ -1609,10 +1657,19 @@ function renderWorkout() {
 
     const trackOn = state.session.trackRpe;
     const aiOn = state.session.aiRecOn;
+    const rt = state.session.restTimer;
+    const restOn = rt.enabled;
+    const clockSvg = `<svg class="timer-icon" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.5v2.5l1.6 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 2.4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+    const timerPill = restOn ? `
+      <button class="rest-timer ${rt.remaining <= 10 ? 'urgent' : ''}" id="rest-timer-display" aria-label="Rest timer — tap to change duration">
+        ${clockSvg}
+        <span class="timer-time">${formatTime(rt.remaining)}</span>
+      </button>` : '';
     hero.innerHTML = `
       <div class="hero">
         <div class="hero-eyebrow">
           <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
+          ${timerPill}
         </div>
         <div class="hero-statement">
           <div class="hero-primary">
@@ -1630,6 +1687,10 @@ function renderWorkout() {
           </button>
           <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
             <span>AI</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="foot-btn toggle rest-toggle ${restOn ? 'on' : ''}" id="toggle-rest" aria-label="Rest timer">
+            ${clockSvg}
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </button>
           <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
@@ -1652,13 +1713,24 @@ function renderWorkout() {
       renderWorkout();
       showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
     });
+    hero.querySelector('#toggle-rest').addEventListener('click', toggleRestTimer);
+    hero.querySelector('#rest-timer-display')?.addEventListener('click', cycleRestDuration);
   } else {
     const trackOn = state.session.trackRpe;
     const aiOn = state.session.aiRecOn;
+    const rt2 = state.session.restTimer;
+    const restOn = rt2.enabled;
+    const clockSvg = `<svg class="timer-icon" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="8" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5.5v2.5l1.6 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 2.4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+    const timerPill = restOn ? `
+      <button class="rest-timer ${rt2.remaining <= 10 ? 'urgent' : ''}" id="rest-timer-display" aria-label="Rest timer">
+        ${clockSvg}
+        <span class="timer-time">${formatTime(rt2.remaining)}</span>
+      </button>` : '';
     hero.innerHTML = `
       <div class="hero" style="text-align: center;">
-        <div class="hero-eyebrow" style="justify-content: center;">
+        <div class="hero-eyebrow" style="justify-content: ${restOn ? 'space-between' : 'center'};">
           <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
+          ${timerPill}
         </div>
         <p style="margin: 10px 0 4px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
         <div class="hero-actions">
@@ -1668,6 +1740,10 @@ function renderWorkout() {
           </button>
           <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
             <span>AI</span>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </button>
+          <button class="foot-btn toggle rest-toggle ${restOn ? 'on' : ''}" id="toggle-rest" aria-label="Rest timer">
+            ${clockSvg}
             <span class="toggle-track"><span class="toggle-thumb"></span></span>
           </button>
           <button class="hero-cta" id="btn-complete-hero">Complete</button>
@@ -1687,6 +1763,8 @@ function renderWorkout() {
       renderWorkout();
       showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
     });
+    hero.querySelector('#toggle-rest').addEventListener('click', toggleRestTimer);
+    hero.querySelector('#rest-timer-display')?.addEventListener('click', cycleRestDuration);
   }
 
   // === LIVE preview rec — shown below the hero when no sets are logged
@@ -1889,8 +1967,76 @@ function logSet(idx) {
   // Trigger entrance animation for the newly-logged row + the rec card
   state.session._animSetIdx = idx;
   state.session._animRec = true;
-  renderWorkout();
+  // If the rest timer feature is enabled, auto-(re)start the countdown
+  // after every logged set — standard workout-app behavior.
+  if (state.session.restTimer.enabled) {
+    startRestTimer();
+  } else {
+    renderWorkout();
+  }
   showToast(`Set ${idx} logged.`);
+}
+
+// ============================================================
+// REST TIMER
+// ============================================================
+function formatTime(sec) {
+  if (sec == null || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function startRestTimer() {
+  const t = state.session.restTimer;
+  if (t.intervalId) clearInterval(t.intervalId);
+  t.enabled = true;
+  t.remaining = t.duration;
+  renderWorkout();
+  t.intervalId = setInterval(() => {
+    t.remaining--;
+    if (t.remaining <= 0) {
+      stopRestTimer();
+      showToast('Rest complete.');
+      return;
+    }
+    // Update display in place (avoid re-rendering the whole view every tick)
+    const timeEl = document.querySelector('#rest-timer-display .timer-time');
+    if (timeEl) timeEl.textContent = formatTime(t.remaining);
+    if (t.remaining <= 10) {
+      document.querySelector('#rest-timer-display')?.classList.add('urgent');
+    }
+  }, 1000);
+}
+
+function stopRestTimer() {
+  const t = state.session.restTimer;
+  if (t.intervalId) {
+    clearInterval(t.intervalId);
+    t.intervalId = null;
+  }
+  t.enabled = false;
+  t.remaining = 0;
+  renderWorkout();
+}
+
+function toggleRestTimer() {
+  if (state.session.restTimer.enabled) {
+    stopRestTimer();
+  } else {
+    startRestTimer();
+  }
+}
+
+function cycleRestDuration() {
+  const t = state.session.restTimer;
+  const i = t.presets.indexOf(t.duration);
+  t.duration = t.presets[(i + 1) % t.presets.length];
+  if (t.enabled) {
+    // Restart with the new duration
+    startRestTimer();
+  }
+  showToast(`Rest set to ${formatTime(t.duration)}.`);
 }
 
 function toggleSetType(idx) {
