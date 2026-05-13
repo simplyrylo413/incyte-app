@@ -337,6 +337,42 @@
   .set-row.done .meta { color: var(--ok); padding: 5px 10px; background: rgba(79,154,168,0.10); border: 1px solid rgba(79,154,168,0.20); border-radius: var(--r-pill); }
   .set-row.target .vals { color: var(--muted); }
 
+  /* Per-set remove button (compact rows) — subtle until hovered/tapped */
+  .set-row .row-remove {
+    width: 26px;
+    height: 26px;
+    border-radius: var(--r-pill);
+    border: 1px solid transparent;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    color: var(--label);
+    cursor: pointer;
+    transition: color 150ms ease-out, border-color 150ms ease-out, background 150ms ease-out;
+    flex-shrink: 0;
+  }
+  .set-row .row-remove:hover {
+    color: var(--bad);
+    border-color: rgba(176,128,146,0.30);
+    background: rgba(176,128,146,0.06);
+  }
+  .set-row .row-remove:active { transform: scale(0.94); }
+  .set-row .row-remove svg { width: 11px; height: 11px; }
+
+  /* Remove-set link inside the expanded current-set card */
+  .current .head-remove {
+    background: transparent;
+    border: none;
+    color: var(--label);
+    font: 500 11px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    padding: 4px 8px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: color 150ms ease-out, background 150ms ease-out;
+  }
+  .current .head-remove:hover { color: var(--bad); background: rgba(176,128,146,0.08); }
+
   .current {
     margin: 10px 18px;
     padding: 16px 16px 14px;
@@ -1117,8 +1153,18 @@ function renderWorkout() {
     row.innerHTML = `
       <span class="idx">SET ${s.idx}</span>
       <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
-      <span class="meta">DONE</span>`;
-    row.addEventListener('click', () => reopenSet(s.idx));
+      <span class="meta">DONE</span>
+      <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>`;
+    // Click the row body (except remove button) to reopen
+    row.querySelector('.idx').addEventListener('click', () => reopenSet(s.idx));
+    row.querySelector('.vals').addEventListener('click', () => reopenSet(s.idx));
+    row.querySelector('.meta').addEventListener('click', () => reopenSet(s.idx));
+    row.querySelector('[data-remove-set]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeSet(s.idx);
+    });
     logged.appendChild(row);
   });
 
@@ -1136,7 +1182,7 @@ function renderWorkout() {
       <div class="current">
         <div class="head">
           <span class="eyebrow"><span class="dot"></span>SET ${cur.idx} · NOW</span>
-          <span class="set-label">Working set</span>
+          <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
         <div class="pickers" style="grid-template-columns: ${pickerCols};">
           <div class="picker ${cur.weight == null ? 'empty' : ''}" data-pk="weight">
@@ -1157,6 +1203,7 @@ function renderWorkout() {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
     cw.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
+    cw.querySelector('#btn-remove-current').addEventListener('click', () => removeSet(cur.idx));
   } else {
     cw.innerHTML = `
       <div class="current" style="text-align:center;">
@@ -1179,7 +1226,11 @@ function renderWorkout() {
     row.innerHTML = `
       <span class="idx">SET ${s.idx}</span>
       <span class="vals">${vals}</span>
-      <span class="meta">${meta}</span>`;
+      <span class="meta">${meta}</span>
+      <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>`;
+    row.querySelector('[data-remove-set]').addEventListener('click', () => removeSet(s.idx));
     fut.appendChild(row);
   });
 
@@ -1276,6 +1327,36 @@ function logSet(idx) {
   if (next) next.status = 'current';
   renderWorkout();
   showToast(`Set ${idx} logged.`);
+}
+
+function removeSet(idx) {
+  const mv = getActiveMovement();
+  const set = mv.sets.find(s => s.idx === idx);
+  if (!set) return;
+
+  // Block deletion of the last remaining set — the movement needs at least one
+  if (mv.sets.length <= 1) {
+    showToast('Movement needs at least one set. Remove the movement instead.');
+    return;
+  }
+
+  // Confirm on logged sets (real data); instant on plans
+  if (set.status === 'done') {
+    if (!confirm(`Remove logged set ${idx}? This deletes recorded weight, reps${state.session.trackRpe ? ', and RPE' : ''}.`)) return;
+  }
+
+  const wasCurrent = set.status === 'current';
+  // Drop the set
+  mv.sets = mv.sets.filter(s => s.idx !== idx);
+  // Renumber remaining sets sequentially
+  mv.sets.forEach((s, i) => { s.idx = i + 1; });
+  // If the current set was removed, promote the first remaining target (if any)
+  if (wasCurrent) {
+    const nextTarget = mv.sets.find(s => s.status === 'target');
+    if (nextTarget) nextTarget.status = 'current';
+  }
+  renderWorkout();
+  showToast(`Set removed.`);
 }
 
 function reopenSet(idx) {
