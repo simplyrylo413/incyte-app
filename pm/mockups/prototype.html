@@ -548,35 +548,45 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — small, attached directly under the
-     just-completed set row. Eyebrow attributes the rec to that specific
-     set ("FROM SET N") and reason copy references the actual RPE/reps. */
+  /* Inline AI recommendation — card style with soft tinted background.
+     Smaller than the original version but keeps the premium card aesthetic
+     (rounded all around, no left-border stripe, white pill Apply button). */
   .rec-inline {
-    margin: 4px 0 6px 12px;
-    padding: 9px 12px 10px;
-    background: rgba(93,155,184,0.05);
-    border: 1px solid rgba(93,155,184,0.16);
-    border-left: 2px solid var(--accent);
-    border-radius: 9px;
+    margin: 7px 0 9px 12px;
+    padding: 11px 14px 12px;
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.12) 0%, rgba(155,130,200,0.09) 55%, rgba(201,160,190,0.07) 100%);
+    border: 1px solid rgba(93,155,184,0.20);
+    border-radius: 13px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(15,22,34,0.03);
   }
   .rec-inline .eyebrow {
-    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
     color: var(--accent);
-    margin-bottom: 5px;
-    display: block;
+    margin-bottom: 7px;
+  }
+  .rec-inline .eyebrow::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
   }
   .rec-inline .row {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 3px;
   }
   .rec-inline .action {
-    font: 700 13px/1.1 'Inter Tight',sans-serif;
-    letter-spacing: -0.02em;
+    font: 700 15px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
     color: var(--ink);
   }
   .rec-inline .next {
@@ -585,26 +595,32 @@
     letter-spacing: 0.02em;
   }
   .rec-inline .reason {
-    font: 500 10.5px/1.4 'Inter Tight',sans-serif;
+    font: 500 10.5px/1.45 'Inter Tight',sans-serif;
     color: var(--muted);
-    margin: 2px 0 7px;
+    margin: 4px 0 9px;
   }
   .rec-inline .apply {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px 5px 9px;
-    background: transparent;
-    border: 1px solid var(--ink);
+    gap: 6px;
+    padding: 6px 12px 6px 11px;
+    background: white;
+    border: 1px solid rgba(255,255,255,0.7);
     border-radius: 999px;
-    font: 600 10px/1 'Inter Tight',sans-serif;
+    font: 600 11px/1 'Inter Tight',sans-serif;
     color: var(--ink);
     cursor: pointer;
-    transition: background 180ms ease-out, color 180ms ease-out;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 2px 5px rgba(15,22,34,0.06);
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  .rec-inline .apply:hover { background: var(--ink); color: white; }
+  .rec-inline .apply:hover {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+    transform: translateY(-1px);
+  }
   .rec-inline .apply:hover svg { transform: translateX(2px); }
-  .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
+  .rec-inline .apply svg { width: 10px; height: 10px; transition: transform 180ms ease-out; }
 
   /* Add-set affordance — dashed-outline button at the end of UPCOMING */
   .add-set-btn {
