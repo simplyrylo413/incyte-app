@@ -8222,6 +8222,151 @@
   body.theme-dark .prior .lbl { color: rgba(255,255,255, 0.70); }
   body.theme-dark .prior .lbl-date { color: rgba(255,255,255, 0.45); }
   body.theme-dark .prior .vals { color: rgba(255,255,255, 0.55); }
+
+  /* Hide bottom tab bar when Workout Mode is active. Body gets
+     data-view="workout" set by the patched go(). Workout view should
+     feel focused, not embedded in the tab chrome. */
+  body[data-view="workout"] .bottom-nav { display: none; }
+
+  /* --- Equipment popover (dark mode) --- */
+  body.theme-dark .mv .equip-pop {
+    background: rgba(28, 34, 50, 0.96);
+    border-color: rgba(255,255,255, 0.10);
+    box-shadow: 0 12px 28px rgba(0,0,0, 0.50), 0 2px 6px rgba(0,0,0, 0.30);
+  }
+  body.theme-dark .mv .equip-chip {
+    background: rgba(255,255,255, 0.06);
+    border-color: rgba(255,255,255, 0.14);
+    color: rgba(255,255,255, 0.82);
+  }
+  body.theme-dark .mv .equip-chip:hover {
+    background: rgba(255,255,255, 0.12);
+    color: white;
+  }
+  body.theme-dark .mv .equip-chip.active {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+    border-color: rgba(255,255,255, 0.92);
+  }
+
+  /* --- Picker overlay (dark mode) --- */
+  body.theme-dark .pk-sheet {
+    background: rgba(28, 34, 50, 0.98);
+    color: rgba(255,255,255, 0.95);
+    border-top-left-radius: 22px;
+    border-top-right-radius: 22px;
+  }
+  body.theme-dark .pk-title { color: rgba(255,255,255, 0.95); }
+  body.theme-dark .pk-val { color: rgba(255,255,255, 0.98); }
+  body.theme-dark .pk-unit { color: rgba(255,255,255, 0.55); }
+  body.theme-dark .pk-stepper, body.theme-dark .pk-preset {
+    background: rgba(255,255,255, 0.06);
+    border-color: rgba(255,255,255, 0.14);
+    color: rgba(255,255,255, 0.85);
+  }
+  body.theme-dark .pk-preset.active {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+    border-color: rgba(255,255,255, 0.92);
+  }
+  body.theme-dark .pk-done {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+  }
+
+  /* --- AI insight rec card (dark mode) --- */
+  body.theme-dark .rec-inline {
+    background: linear-gradient(155deg, rgba(93,155,184,0.22) 0%, rgba(155,130,200,0.16) 55%, rgba(201,160,190,0.10) 100%);
+    border-color: rgba(255,255,255, 0.10);
+  }
+  body.theme-dark .rec-inline .summary,
+  body.theme-dark .rec-inline .reason { color: rgba(255,255,255, 0.86); }
+  body.theme-dark .rec-inline .coach-tag { color: rgba(255,255,255, 0.55); }
+  body.theme-dark .rec-inline .arrow { color: rgba(255,255,255, 0.45); }
+  body.theme-dark .rec-inline .apply {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+  }
+
+  /* --- Workout-mode hero (.wm-hero) — dark mode --- */
+  body.theme-dark .wm-hero {
+    background: linear-gradient(155deg, rgba(93,155,184,0.22) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.10) 100%);
+    border-color: rgba(255,255,255, 0.12);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.08) inset, 0 18px 38px rgba(0,0,0, 0.35);
+  }
+  body.theme-dark .wm-hero-num { color: rgba(255,255,255, 0.98); }
+  body.theme-dark .wm-hero-num.empty { color: rgba(255,255,255, 0.30); }
+  body.theme-dark .wm-hero-sep { color: rgba(255,255,255, 0.35); }
+  body.theme-dark .wm-hero-units-bar {
+    color: rgba(255,255,255, 0.40);
+    border-top-color: rgba(255,255,255, 0.08);
+  }
+  body.theme-dark .wm-hero-cta {
+    background: rgba(255,255,255, 0.94);
+    color: var(--ink);
+  }
+  body.theme-dark .wm-hero-eyebrow .active-set { color: var(--accent); }
+  body.theme-dark .wm-hero-eyebrow .set-of { color: rgba(255,255,255, 0.45); }
+
+  /* --- Set rows (dark mode) --- */
+  body.theme-dark .set-row {
+    background: rgba(255,255,255, 0.05);
+    border-color: rgba(255,255,255, 0.10);
+  }
+  body.theme-dark .set-row.done {
+    background: rgba(255,255,255, 0.03);
+    border-color: rgba(255,255,255, 0.06);
+  }
+  body.theme-dark .set-row .r-prev { color: rgba(255,255,255, 0.40); }
+  body.theme-dark .set-row .r-vals { color: rgba(255,255,255, 0.92); }
+  body.theme-dark .set-row.done .r-vals { color: rgba(255,255,255, 0.55); }
+  body.theme-dark .set-row .rpe-bit { color: rgba(255,255,255, 0.45); }
+  body.theme-dark .set-row .r-set-btn { color: var(--ok); }
+  body.theme-dark .set-row .r-set-btn.warmup { color: var(--bad); }
+  body.theme-dark .set-row .bw-btn {
+    background: rgba(255,255,255, 0.04);
+    color: rgba(255,255,255, 0.55);
+    border-color: rgba(255,255,255, 0.18);
+  }
+  body.theme-dark .set-row .bw-btn.on {
+    background: rgba(255,255,255, 0.92);
+    color: var(--ink);
+    border-color: rgba(255,255,255, 0.92);
+  }
+  body.theme-dark .set-row .chk { color: rgba(255,255,255, 0.30); border-color: rgba(255,255,255, 0.20); background: transparent; }
+  body.theme-dark .set-row.done .chk { background: var(--ok); color: white; }
+  body.theme-dark .col-head { color: rgba(255,255,255, 0.40); }
+
+  /* Rest pill (dark) + RPE/AI toggles (dark) */
+  body.theme-dark .pill-rest {
+    background: rgba(255,255,255, 0.04);
+    border-color: rgba(255,255,255, 0.16);
+    color: rgba(255,255,255, 0.70);
+  }
+  body.theme-dark .pill-rest.on {
+    background: rgba(255,255,255, 0.92);
+    border-color: rgba(255,255,255, 0.92);
+    color: var(--ink);
+  }
+  body.theme-dark .foot-btn.toggle {
+    color: rgba(255,255,255, 0.70);
+    border-color: rgba(255,255,255, 0.18);
+    background: transparent;
+  }
+  body.theme-dark .foot-btn.toggle.on {
+    color: var(--ink);
+    background: rgba(255,255,255, 0.92);
+    border-color: rgba(255,255,255, 0.92);
+  }
+  body.theme-dark .add-set-btn {
+    background: transparent;
+    border-color: rgba(255,255,255, 0.18);
+    color: rgba(255,255,255, 0.70);
+  }
+  body.theme-dark .add-set-btn:hover {
+    background: rgba(255,255,255, 0.06);
+    color: white;
+  }
 </style>
 </head>
 <body>
@@ -12286,6 +12431,20 @@ function renderToday() {
   renderWeekParts();
 }
 
+// Equipment options surfaced in the Today-card popover. Keep this short so
+// the picker stays compact; covers the most common lifter equipment types.
+const EQUIPMENT_OPTIONS_V2 = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'];
+
+// Global outside-click dismiss for any open equipment popover on Today.
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.equip-pop.open').forEach(pop => {
+    if (pop.contains(e.target)) return;
+    const wrap = pop.closest('.equip-wrap');
+    if (wrap && wrap.contains(e.target)) return; // toggle button handles itself
+    pop.classList.remove('open');
+  });
+});
+
 // =============================================================
 // PORT PLAN PHASE 3 — renderTodayV2()
 // Populates the new visible Today layer (prototype-style). The legacy
@@ -12449,25 +12608,55 @@ function renderTodayV2() {
         <div class="body">
           <div class="row1">
             <span class="name">${escapeHtmlSafe(name)}</span>
-            <button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
+            <span class="equip-wrap">
+              <button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
+              <div class="equip-pop" data-equip-pop>${EQUIPMENT_OPTIONS_V2.map(opt => `<button class="equip-chip${opt === equip ? ' active' : ''}" type="button" data-equip="${opt}">${opt}</button>`).join('')}</div>
+            </span>
           </div>
         </div>
         <span class="progress-chip${isComplete ? ' done' : ''}">${isComplete ? 'DONE' : `${done}/${total}`}</span>
         <button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
           <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         </button>`;
-      // Tap card body → enter workout mode (Phase 3 will wire openWorkoutMode).
+      // Tap card body → enter workout mode (skip the equipment area).
       card.querySelector('.body').addEventListener('click', (e) => {
-        if (e.target.closest('.equip')) return;
+        if (e.target.closest('.equip-wrap')) return;
         if (typeof openWorkoutMode === 'function') openWorkoutMode(item.p.mid, item.p.id);
         else go('workout');
       });
       card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
         e.stopPropagation();
-        // Defer to existing remove flow if present.
         if (typeof removePlanItemAdhoc === 'function') removePlanItemAdhoc(item.p.id);
         else if (typeof removeMovement === 'function') removeMovement(item.p.id);
       });
+      // Equipment popover: tap pill → toggle; tap chip → set + close. Writes
+      // to entry.equipmentType only, per port-plan decision 2026-05-13.
+      const equipBtn = card.querySelector('[data-equip-toggle]');
+      const equipPop = card.querySelector('[data-equip-pop]');
+      if (equipBtn && equipPop) {
+        equipBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.equip-pop.open').forEach(p => { if (p !== equipPop) p.classList.remove('open'); });
+          equipPop.classList.toggle('open');
+        });
+        equipPop.querySelectorAll('[data-equip]').forEach(chip => {
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const newEq = chip.dataset.equip;
+            // Find/create the active entry and update its equipmentType.
+            let activeEntry = (typeof activeEntryFor === 'function') ? activeEntryFor(item.p.mid, item.p.id) : null;
+            if (!activeEntry && typeof ensureActiveEntry === 'function') {
+              try { activeEntry = ensureActiveEntry(item.p.mid, item.p.id, { sets: [], plannedReps: null }); } catch (err) {}
+            }
+            if (activeEntry) {
+              activeEntry.equipmentType = newEq;
+              if (typeof saveData === 'function') saveData();
+            }
+            equipPop.classList.remove('open');
+            renderTodayV2();
+          });
+        });
+      }
       scrollEl.appendChild(card);
     });
   });
@@ -12531,6 +12720,37 @@ ui.session = ui.session || {
     presets: [60, 90, 120, 180, 300],
   },
 };
+
+// Minimal RPE-aware recommendation. Returns { action, next, weight, reps,
+// reason, muted } — same shape as prototype's computeRecommendation so the
+// AI-insight pill can render identically.
+function computeRecommendationV2(lastSet, trackRpe) {
+  if (!lastSet || lastSet.weight == null || lastSet.reps == null) return { muted: true };
+  const w = +lastSet.weight, r = +lastSet.reps, rpe = lastSet.rpe != null ? +lastSet.rpe : null;
+  if (!isFinite(w) || !isFinite(r)) return { muted: true };
+  let action, nextW = w, nextR = r, reason;
+  if (!trackRpe || rpe == null) {
+    // No RPE signal — suggest "hold" at the same load.
+    action = 'Hold';
+    reason = 'RPE off — repeat last set.';
+  } else if (rpe <= 6.5) {
+    action = 'Add 10 lb'; nextW = w + 10;
+    reason = `RPE ${rpe} — easy. Add weight for a stronger stimulus.`;
+  } else if (rpe <= 7.5) {
+    action = 'Add 5 lb'; nextW = w + 5;
+    reason = `RPE ${rpe} — productive range.`;
+  } else if (rpe <= 8.5) {
+    action = 'Hold';
+    reason = `RPE ${rpe} — effort controlled.`;
+  } else if (rpe <= 9.5) {
+    action = 'Drop 5 lb'; nextW = Math.max(0, w - 5);
+    reason = `RPE ${rpe} — near failure, drop to keep volume clean.`;
+  } else {
+    action = 'Drop 10 lb'; nextW = Math.max(0, w - 10);
+    reason = `RPE ${rpe} — failure. Back off and recover.`;
+  }
+  return { action, next: `${nextW} × ${nextR}`, weight: nextW, reps: nextR, reason, muted: false };
+}
 
 function formatTimeWm(sec) {
   if (sec == null || sec < 0) sec = 0;
@@ -12791,6 +13011,28 @@ function renderWorkoutV2() {
     loggedSlot.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); removeSetV2(+el.dataset.removeSet); });
     });
+
+    // AI insight rec — under the last done set when AI is on. Apply updates
+    // the first remaining target, or creates a new set if all are done.
+    if (ui.session.aiRecOn && doneSets.length > 0) {
+      const lastDone = doneSets[doneSets.length - 1].s;
+      const r = computeRecommendationV2(lastDone, ui.session.trackRpe);
+      if (!r.muted) {
+        const reasonText = (r.reason || '').replace(/\s*Enable RPE for sharper guidance\.$/i, '');
+        const recEl = document.createElement('div');
+        recEl.className = 'rec-inline';
+        recEl.style.margin = '6px 22px 10px';
+        recEl.innerHTML = `
+          <span class="live-dot"></span>
+          <div class="body">
+            <div class="summary"><span class="coach-tag">AI insight:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
+            <div class="reason">${reasonText}</div>
+          </div>
+          <button class="apply" type="button" id="wm-rec-apply">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+        loggedSlot.appendChild(recEl);
+        recEl.querySelector('#wm-rec-apply').addEventListener('click', () => applyRecommendationV2(r));
+      }
+    }
   }
   if (targetSets.length > 0 && futureSlot) {
     let html = (doneSets.length === 0 ? headerHtml : '') + '<div class="sets">';
@@ -12898,6 +13140,32 @@ function completeMovementV2() {
   // the whole session is the existing flow. For V2 we just go back to Today;
   // the user's progress is already persisted.
   backToTodayV2();
+}
+
+// AI Apply — when targets remain, update the first one with the rec's values.
+// When all sets are done, create a NEW set seeded with the rec (port-plan
+// decision 2026-05-13: AI Apply survives in production).
+function applyRecommendationV2(r) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !r || r.muted) return;
+  const targets = entry.sets.filter(s => !s.done);
+  if (targets.length > 0) {
+    const t = targets[0];
+    t.weight = r.weight;
+    t.reps = r.reps;
+    if (typeof saveData === 'function') saveData();
+    renderWorkoutV2();
+    showToastV2(`Target updated to ${r.weight}×${r.reps}.`);
+    return;
+  }
+  // No targets — create a new set seeded with the rec values. Becomes current.
+  entry.sets.push({
+    weight: r.weight, reps: r.reps, rpe: null,
+    done: false, warmup: false, bw: false,
+  });
+  if (typeof saveData === 'function') saveData();
+  renderWorkoutV2();
+  showToastV2(`Set ${entry.sets.length} added · ${r.weight}×${r.reps}.`);
 }
 
 // --- Picker overlay (minimal — uses simple steppers/presets) ---
@@ -13080,6 +13348,11 @@ function showToastV2(msg) {
     const _origGo = go;
     window.go = function(v) {
       if (ui.session && ui.session.restTimer && ui.session.restTimer.enabled && v !== 'workout') stopRestTimerV2();
+      // Tag the body so CSS can scope rules per-view (e.g., hide tab bar in
+      // workout mode). Always reflect the latest navigation target.
+      if (typeof v === 'string' && document && document.body) {
+        document.body.setAttribute('data-view', v);
+      }
       return _origGo.apply(this, arguments);
     };
     window.go.__v2Wrapped = true;
