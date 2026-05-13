@@ -8331,6 +8331,93 @@
   body.theme-dark .history-row.hist-pill-b .hpb-resume { background: rgba(255,255,255, 0.92); color: var(--ink); }
   body.theme-dark .history-row.hist-pill-b .hpb-del { background: rgba(255,255,255, 0.06); border-color: rgba(255,255,255, 0.18); color: rgba(255,255,255, 0.55); }
 
+  /* ============================================================
+     INSIGHTS CAROUSEL — horizontal swipe-scroll of the 4 hero cards
+     (Readiness, Fatigue, Stimulus, PRs). Ported from mobile331.html
+     (CSS lines 4793-4874). Cards expand fully in the carousel mode;
+     the collapse chevron is hidden (always-open in the carousel).
+     ============================================================ */
+  .insights-carousel-wrap { /* no negative margin */ }
+  .insights-carousel-track {
+    display: flex;
+    gap: 10px;
+    padding: 4px 0 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .insights-carousel-track::-webkit-scrollbar { display: none; }
+  .insights-carousel-track > .hero-card {
+    flex: 0 0 100%;
+    min-width: 0;
+    margin-top: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    height: 450px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(77,208,225,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgba(215,123,168,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(183,142,215,0.10) 0%, transparent 70%),
+      var(--glass-bg, rgba(255,255,255, 0.78));
+    border: 1px solid var(--card-border, rgba(15,22,34, 0.10));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.85) inset;
+    isolation: isolate;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .insights-carousel-track > .hero-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(145deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%);
+    pointer-events: none;
+  }
+  /* Force all carousel cards to show their body (override is-collapsed) */
+  .insights-carousel-track > .hero-card .hero-card-body {
+    grid-template-rows: 1fr !important;
+    opacity: 1 !important;
+  }
+  .insights-carousel-track > .hero-card .hero-inner {
+    overflow-y: auto;
+    max-height: calc(450px - 58px);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .insights-carousel-track > .hero-card .hero-inner::-webkit-scrollbar { display: none; }
+  .insights-carousel-track > .hero-card .hero-card-chev { display: none; }
+  /* Dot pagination */
+  .insights-dots {
+    display: flex;
+    justify-content: center;
+    gap: 9px;
+    padding: 12px 0 4px;
+  }
+  .insights-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--muted);
+    opacity: 0.22;
+    transition: opacity 0.25s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  .insights-dot.active { opacity: 0.7; transform: scale(1.2); }
+
+  /* DARK MODE — carousel cards override the radial gradient */
+  body.theme-dark .insights-carousel-track > .hero-card {
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(77,208,225,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgba(215,123,168,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(183,142,215,0.06) 0%, transparent 70%),
+      rgba(28, 34, 50, 0.78);
+    border-color: rgba(255,255,255, 0.10);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.05) inset, 0 4px 14px rgba(0,0,0, 0.30);
+  }
+  body.theme-dark .insights-dot { background: rgba(255,255,255, 0.50); }
+
   /* --- Equipment popover (dark mode) --- */
   body.theme-dark .mv .equip-pop {
     background: rgba(28, 34, 50, 0.96);
@@ -8679,6 +8766,11 @@
         <div class="view-sub">READINESS · FATIGUE · STIMULUS · PRS</div>
       </div>
     </div>
+    <!-- Insights carousel — horizontal swipe-scroll, ported from mobile331.
+         All 4 cards (Readiness, Fatigue, Stimulus, PRs) are siblings of the
+         track and each takes 100% width with scroll-snap. -->
+    <div class="insights-carousel-wrap">
+      <div class="insights-carousel-track" id="insights-track">
     <section class="hero-card readiness-card" id="card-readiness" data-card="readiness">
       <div class="hero-card-head" data-card-toggle>
         <div>
@@ -8816,6 +8908,14 @@
         </div>
       </div></div>
     </section>
+      </div><!-- /.insights-carousel-track -->
+      <div class="insights-dots" id="insights-dots">
+        <div class="insights-dot active" aria-label="Readiness"></div>
+        <div class="insights-dot" aria-label="Fatigue"></div>
+        <div class="insights-dot" aria-label="Stimulus"></div>
+        <div class="insights-dot" aria-label="PRs"></div>
+      </div>
+    </div><!-- /.insights-carousel-wrap -->
   </div>
 
   <!-- ==================== THIS WEEK ==================== -->
@@ -21198,6 +21298,27 @@ function renderMomentumMovement(mid) {
   const dbgBadge = '<div style="font:10px/1 var(--font-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;padding:10px 0 2px;opacity:.6;">'+sortedLogs.length+' session'+(sortedLogs.length!==1?'s':'')+' · '+_dbgScanned+' workouts scanned</div>';
   chartEl.innerHTML = prStrip + svgHtml + '<table class="mom-prog-table">'+tableRows+'</table>' + dbgBadge;
 }
+
+// ── Insights carousel dot indicator (ported from mobile331.html L18227) ──
+// Syncs the dot indicator with the carousel's horizontal scroll position.
+// Tapping a dot scrolls the track to the matching card.
+(function(){
+  const track = document.getElementById('insights-track');
+  const dots  = Array.from(document.querySelectorAll('#insights-dots .insights-dot'));
+  if (!track || !dots.length) return;
+  function updateDots() {
+    const cardW = track.scrollWidth / dots.length;
+    const idx   = Math.min(Math.round(track.scrollLeft / cardW), dots.length - 1);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  track.addEventListener('scroll', updateDots, { passive: true });
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      const cardW = track.scrollWidth / dots.length;
+      track.scrollTo({ left: cardW * i, behavior: 'smooth' });
+    });
+  });
+})();
 
 </script>
 </body>
