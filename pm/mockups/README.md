@@ -18,10 +18,10 @@ Static HTML mockups of the three load-bearing screens in the new Training-OS UX 
 Click-through-able flows you can exercise:
 
 1. **Today → tap movement → Workout Mode** opens with that movement's sets ready.
-2. **Per-movement preference toggles** at the top of Workout Mode:
-   - **Track RPE** — when off, the RPE picker pill disappears and Log Set works without it
-   - **AI guidance** — when off, the recommendation card disappears entirely
-   - Try Barbell Row in the seed data — it starts with both toggles OFF to show the minimal-logging UX
+2. **Session-wide preference toggles** at the top of Workout Mode (apply across every movement in today's session, not just the one you're viewing):
+   - **Track RPE** — when off, the RPE picker pill disappears from every movement and Log Set works without RPE
+   - **AI guidance** — when off, the recommendation card disappears entirely for the whole session
+   - Both default to ON. Toggling affects all movements today; persistence beyond today is a future concern (could become a user-level preference under More → Settings).
 3. **Tap weight / reps / RPE picker pill** → number picker bottom sheet rises with `-10/-5/-1/+1/+5/+10` steppers (weight) and field-specific presets (reps: 5/6/7/8/10/12/15/20 — RPE: 4/5/6/7/7.5/8/8.5/9/9.5).
 4. **Adjust RPE** → AI recommendation card live-updates: low RPE → "Add 5/10 lb"; mid RPE → "Hold"; high RPE → "Drop 5/10 lb"; very-high reps + very-low RPE → "Add 10 lb" with capped rep target. Reason copy explains the mechanism in clinical voice.
 5. **Tap "Apply target"** → the AI rec's weight/reps populate the next future set's target.

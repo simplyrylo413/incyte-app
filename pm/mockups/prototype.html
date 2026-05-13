@@ -776,11 +776,14 @@
 const state = {
   view: 'today',           // 'today' | 'workout'
   activeMovementId: null,  // when in workout mode
+  session: {               // session-wide preferences — apply across all movements today
+    trackRpe: true,
+    aiRecOn: true,
+  },
   movements: [
     {
       id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength',
       priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
-      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target' },
@@ -792,7 +795,6 @@ const state = {
     {
       id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume',
       priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
-      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current' },
         { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target' },
@@ -803,7 +805,6 @@ const state = {
     {
       id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength',
       priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
-      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target' },
@@ -815,7 +816,6 @@ const state = {
     {
       id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume',
       priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
-      trackRpe: false, aiRecOn: false,
       sets: [
         { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target' },
@@ -1013,9 +1013,9 @@ function renderWorkout() {
   $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
   $('#wm-prior').textContent = mv.priorRef;
 
-  // Preference chips
-  $('#toggle-rpe').classList.toggle('on', mv.trackRpe);
-  $('#toggle-ai').classList.toggle('on', mv.aiRecOn);
+  // Preference chips (session-wide)
+  $('#toggle-rpe').classList.toggle('on', state.session.trackRpe);
+  $('#toggle-ai').classList.toggle('on', state.session.aiRecOn);
 
   // Logged (done) sets
   const logged = $('#wm-logged');
@@ -1023,7 +1023,7 @@ function renderWorkout() {
   mv.sets.filter(s => s.status === 'done').forEach(s => {
     const row = document.createElement('div');
     row.className = 'set-row done';
-    const rpeBit = (mv.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
+    const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
     row.innerHTML = `
       <span class="idx">SET ${s.idx}</span>
       <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
@@ -1035,8 +1035,8 @@ function renderWorkout() {
   // Current set (expanded)
   const cw = $('#wm-current');
   if (cur) {
-    const pickerCols = mv.trackRpe ? '1fr 1fr 1fr' : '1fr 1fr';
-    const rpePicker = mv.trackRpe ? `
+    const pickerCols = state.session.trackRpe ? '1fr 1fr 1fr' : '1fr 1fr';
+    const rpePicker = state.session.trackRpe ? `
           <div class="picker ${cur.rpe == null ? 'empty' : ''}" data-pk="rpe">
             <div class="lbl">RPE</div>
             <div class="val">${cur.rpe != null ? cur.rpe : '—'}</div>
@@ -1093,11 +1093,11 @@ function renderWorkout() {
     fut.appendChild(row);
   });
 
-  // AI recommendation (only if movement preference allows)
+  // AI recommendation (only if session preference allows)
   const rec = $('#wm-rec');
   rec.innerHTML = '';
-  if (cur && mv.aiRecOn) {
-    const r = computeRecommendation(cur, mv.trackRpe);
+  if (cur && state.session.aiRecOn) {
+    const r = computeRecommendation(cur, state.session.trackRpe);
     const recEl = document.createElement('div');
     recEl.className = 'rec' + (r.muted ? ' muted' : '');
     recEl.innerHTML = `
@@ -1155,8 +1155,8 @@ function logSet(idx) {
     openPicker('reps', idx);
     return;
   }
-  // RPE only required if the movement tracks it
-  if (mv.trackRpe && set.rpe == null) {
+  // RPE only required if the session tracks it
+  if (state.session.trackRpe && set.rpe == null) {
     showToast('Add RPE before logging.');
     openPicker('rpe', idx);
     return;
@@ -1377,8 +1377,6 @@ function commitAddMovement() {
   const newMv = {
     id: 'm' + Date.now(),
     ...newMvSeed,
-    trackRpe: true,
-    aiRecOn: true,
     sets,
     status: 'pending',
   };
@@ -1396,24 +1394,20 @@ $('#btn-skip').addEventListener('click', skipMovement);
 $('#btn-complete').addEventListener('click', completeMovement);
 $('#btn-add-movement').addEventListener('click', openAddMovement);
 
-// Workout-mode preference toggles
+// Session-wide preference toggles (apply across every movement today)
 $('#toggle-rpe').addEventListener('click', () => {
-  const mv = getActiveMovement();
-  if (!mv) return;
-  mv.trackRpe = !mv.trackRpe;
-  // Clear any RPE values on remaining unlogged sets when turning off (don't overwrite logged history)
-  if (!mv.trackRpe) {
-    mv.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; });
+  state.session.trackRpe = !state.session.trackRpe;
+  // Clear RPE on every unlogged set across all movements when turning off (don't overwrite logged history)
+  if (!state.session.trackRpe) {
+    state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
   }
   renderWorkout();
-  showToast(mv.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
+  showToast(state.session.trackRpe ? 'RPE tracking on for this session.' : 'RPE tracking off for this session.');
 });
 $('#toggle-ai').addEventListener('click', () => {
-  const mv = getActiveMovement();
-  if (!mv) return;
-  mv.aiRecOn = !mv.aiRecOn;
+  state.session.aiRecOn = !state.session.aiRecOn;
   renderWorkout();
-  showToast(mv.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
+  showToast(state.session.aiRecOn ? 'AI guidance on for this session.' : 'AI guidance off for this session.');
 });
 
 $('#pk-done').addEventListener('click', () => closePicker(true));
