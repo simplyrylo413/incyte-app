@@ -341,34 +341,11 @@
   .mv.is-complete .name { color: var(--muted); }
   .mv.is-complete .equip { opacity: 0.7; }
   .mv.is-complete .drag-handle { opacity: 0.18; }
-  /* Strip the NEXT chrome from done cards even if accidentally combined */
-  .mv.is-complete.next-up { box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.04); border-left-color: transparent; }
-  .mv.is-complete.next-up::after { display: none; }
 
-  /* "Next up" emphasis — the first movement with remaining sets gets a subtle
-     accent left-edge + slightly lifted shadow + a small NEXT chip. Tells the
-     returning user where to start without making the other cards feel inert. */
-  .mv.next-up {
-    box-shadow:
-      inset 3px 0 0 var(--accent),
-      0 1px 0 rgba(255,255,255, 1) inset,
-      0 8px 20px rgba(93,155,184, 0.14);
-    border-color: rgba(93,155,184, 0.28);
-  }
-  .mv.next-up::after {
-    content: 'NEXT';
-    position: absolute;
-    top: -7px;
-    left: 14px;
-    padding: 2px 7px;
-    background: var(--accent);
-    color: white;
-    font: 700 8px/1 'Geist Mono', ui-monospace, monospace;
-    letter-spacing: 0.18em;
-    border-radius: 999px;
-    box-shadow: 0 2px 6px rgba(93,155,184, 0.30);
-  }
   .mv { position: relative; }
+  /* (.mv.next-up treatment removed — the user picks their own next movement;
+     auto-labeling "NEXT" on the first incomplete card was paternalistic for
+     a trained lifter who built the plan.) */
 
   /* Drag handle — grippy icon at the leading edge; the card itself is the
      drag source. Reorder is restricted to within the same body-part group.
@@ -2099,17 +2076,6 @@ function renderToday() {
       document.getElementById('btn-add-movement')?.click();
     });
   } else {
-    // Identify the first uncompleted, non-skipped movement to mark "NEXT UP".
-    // Walks the movements in their declared order so reordering changes which
-    // card is highlighted.
-    const nextUpId = (() => {
-      const m = state.movements.find(mv => {
-        if (mv.status === 'skipped' || mv.status === 'complete') return false;
-        return mv.sets.some(s => s.status !== 'done');
-      });
-      return m ? m.id : null;
-    })();
-
     Object.keys(groups).forEach(bodyPart => {
       const eb = document.createElement('div');
       eb.className = 'section-eyebrow';
@@ -2146,9 +2112,7 @@ function renderToday() {
         `).join('');
 
         const card = document.createElement('div');
-        card.className = 'mv'
-          + (mv.id === nextUpId ? ' next-up' : '')
-          + (isComplete ? ' is-complete' : '');
+        card.className = 'mv' + (isComplete ? ' is-complete' : '');
         card.draggable = true;
         card.dataset.mvId = mv.id;
         card.innerHTML = `
