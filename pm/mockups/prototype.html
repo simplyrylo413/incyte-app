@@ -660,6 +660,33 @@
   .set-row.target .r-vals { color: var(--ink); }
   .set-row.target .r-vals.blank { color: var(--label); }
 
+  /* Inline edit buttons on target rows — invisible by default, tap to open
+     the matching picker. Hover/focus shows a subtle hint that they're tappable. */
+  .set-row .r-vals.editable {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .set-row .edit-num {
+    background: transparent;
+    border: none;
+    padding: 1px 4px;
+    margin: -1px -2px;
+    border-radius: 6px;
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .set-row .edit-num:hover {
+    background: rgba(93,155,184, 0.10);
+    color: var(--accent);
+  }
+  .set-row .edit-num.blank { color: var(--label); }
+  .set-row .r-vals .x { color: var(--label); font-size: 11px; }
+
   /* Check column — done = filled teal, target = ghost ring */
   .set-row .chk {
     width: 22px; height: 22px;
@@ -2040,19 +2067,28 @@ function renderWorkout() {
     const showHeader = loggedSets.length === 0;
     let html = `${showHeader ? headerHtml : ''}<div class="sets">`;
     targetSets.forEach(s => {
-      const isBlank = s.weight == null && s.reps == null;
-      const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
       const setLabel = String(s.idx).padStart(2, '0');
       const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
-      const valsCls = isBlank ? 'r-vals blank' : 'r-vals';
+      const wDisp = s.weight != null ? s.weight : '—';
+      const rDisp = s.reps != null ? s.reps : '—';
+      const wBlankCls = s.weight == null ? ' blank' : '';
+      const rBlankCls = s.reps == null ? ' blank' : '';
+      // Target rows expose weight + reps as separate editable buttons.
+      // Tapping either opens the matching picker, scoped to this set.
+      const valsHtml = `
+        <span class="r-vals editable">
+          <button class="edit-num${wBlankCls}" data-edit-w="${s.idx}" aria-label="Set ${s.idx} weight">${wDisp}</button>
+          <span class="x">×</span>
+          <button class="edit-num${rBlankCls}" data-edit-r="${s.idx}" aria-label="Set ${s.idx} reps">${rDisp}</button>
+        </span>`;
       html += `
         <div class="set-row target${animCls}" data-set-idx="${s.idx}">
           <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
           <span class="r-set">${setLabel}</span>
           <span class="r-prev">${prevFor(s.idx)}</span>
-          <span class="${valsCls}">${vals}</span>
+          ${valsHtml}
           <span class="chk">${checkSvg}</span>
           <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -2066,6 +2102,12 @@ function renderWorkout() {
     });
     futSection.querySelectorAll('[data-toggle-type]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); toggleSetType(+el.dataset.toggleType); });
+    });
+    futSection.querySelectorAll('[data-edit-w]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); openPicker('weight', +el.dataset.editW); });
+    });
+    futSection.querySelectorAll('[data-edit-r]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); openPicker('reps', +el.dataset.editR); });
     });
   } else {
     futSection.innerHTML = '';
