@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Rest timer pill options</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --accent: #5d9bb8;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1100px; margin: 0 auto; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font: 700 28px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+  .option {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .opt-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    margin: -8px 0 0;
+  }
+  .opt-tag {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    min-height: 50px;
+  }
+
+  .demo-block {
+    padding: 20px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .demo-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .state-label {
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    width: 56px;
+    flex-shrink: 0;
+  }
+
+  .notes {
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; }
+  .notes ul { margin: 6px 0 0; padding-left: 18px; }
+  .notes li { margin: 4px 0; }
+
+  /* ============================================================
+     OPTION A — Pill + inline iOS switch
+     Pill contains REST label, time, and a tiny switch.
+     The switch is the toggle.
+     ============================================================ */
+  .pill-a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 5px 4px 12px;
+    background: rgba(255,255,255, 0.72);
+    backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.05);
+  }
+  .pill-a.off {
+    background: rgba(15,22,34, 0.05);
+    border-color: rgba(15,22,34, 0.10);
+  }
+  .pill-a .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .pill-a.off .lbl { color: var(--label); }
+  .pill-a .time {
+    font: 700 12px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .pill-a.off .time { color: var(--label); }
+  .pill-a .switch {
+    width: 26px; height: 16px;
+    background: rgba(15,22,34, 0.16);
+    border-radius: 999px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pill-a .thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(15,22,34, 0.20);
+    transition: left 200ms cubic-bezier(0.32,0.72,0.30,1);
+  }
+  .pill-a:not(.off) .switch { background: var(--ink-deep); }
+  .pill-a:not(.off) .thumb { left: 12px; }
+  .pill-a.urgent {
+    background: rgba(176,128,146, 0.18);
+    border-color: rgba(176,128,146, 0.40);
+  }
+  .pill-a.urgent .lbl,
+  .pill-a.urgent .time { color: var(--bad); }
+
+  /* ============================================================
+     OPTION B — Pill IS the toggle (whole pill clickable)
+     Off: grey outlined ghost.
+     On: filled (accent), white text, live time.
+     ============================================================ */
+  .pill-b {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out;
+  }
+  .pill-b.off {
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.14);
+    color: var(--label);
+  }
+  .pill-b:not(.off) {
+    background: var(--ink-deep);
+    border: 1px solid var(--ink-deep);
+    color: white;
+    box-shadow: 0 6px 14px rgba(24,32,48, 0.22);
+  }
+  .pill-b .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .pill-b .time {
+    font: 700 13px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+  }
+  .pill-b .sep {
+    width: 1px; height: 12px;
+    background: currentColor;
+    opacity: 0.32;
+  }
+  .pill-b.urgent {
+    background: var(--bad);
+    border-color: var(--bad);
+    color: white;
+    box-shadow: 0 6px 14px rgba(176,128,146, 0.28);
+  }
+
+  /* ============================================================
+     OPTION C — Pill with play/pause icon control
+     Always visible. Off shows play, On shows pause. Time always there.
+     Media-player metaphor — clear "start / stop" affordance.
+     ============================================================ */
+  .pill-c {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 4px 4px 4px 13px;
+    background: rgba(255,255,255, 0.72);
+    backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 999px;
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.05);
+    transition: background 200ms ease-out, border-color 200ms ease-out;
+  }
+  .pill-c.off {
+    background: rgba(15,22,34, 0.05);
+    border-color: rgba(15,22,34, 0.10);
+  }
+  .pill-c .lbl {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 9px;
+  }
+  .pill-c.off .lbl { color: var(--label); }
+  .pill-c .time {
+    font: 700 12px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    margin-right: 9px;
+  }
+  .pill-c.off .time { color: var(--label); }
+  .pill-c .control {
+    width: 24px; height: 24px;
+    border-radius: 999px;
+    border: none;
+    background: var(--ink-deep);
+    color: white;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .pill-c.off .control {
+    background: rgba(15,22,34, 0.20);
+    color: white;
+  }
+  .pill-c .control svg { width: 9px; height: 9px; }
+  .pill-c.urgent {
+    background: rgba(176,128,146, 0.18);
+    border-color: rgba(176,128,146, 0.40);
+  }
+  .pill-c.urgent .lbl,
+  .pill-c.urgent .time { color: var(--bad); }
+  .pill-c.urgent .control { background: var(--bad); }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Rest timer pill — three options</h1>
+    <p>Each option shown in three states: <strong>OFF</strong> (toggle off, time = current preset), <strong>ON</strong> (running, live countdown), and <strong>URGENT</strong> (last 10 seconds — mauve alert). Pick a direction.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ===== OPTION A — Inline switch ===== -->
+    <div class="option">
+      <span class="opt-label">A</span>
+      <h2 class="opt-name">Inline switch</h2>
+      <p class="opt-tag">Pill contains REST label + time + a tiny iOS switch at the right end. The switch IS the toggle. Most "settings-like" affordance.</p>
+      <div class="demo-block">
+        <div class="demo-row">
+          <span class="state-label">OFF</span>
+          <span class="pill-a off"><span class="lbl">REST</span><span class="time">2:00</span><span class="switch"><span class="thumb"></span></span></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">ON</span>
+          <span class="pill-a"><span class="lbl">REST</span><span class="time">1:47</span><span class="switch"><span class="thumb"></span></span></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">URGENT</span>
+          <span class="pill-a urgent"><span class="lbl">REST</span><span class="time">0:08</span><span class="switch"><span class="thumb"></span></span></span>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Feels like a "settings widget" — the switch is the explicit toggle, time is shown for reference. Easy mental model.
+        <ul>
+          <li>Tap the switch (or anywhere on the pill) to flip on/off</li>
+          <li>Off: light grey background, grey text, switch off</li>
+          <li>On: white glass, ink text, switch on with dark track</li>
+          <li>Urgent: mauve tint when remaining ≤ 10s</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== OPTION B — Pill is the toggle ===== -->
+    <div class="option">
+      <span class="opt-label">B</span>
+      <h2 class="opt-name">Pill toggle</h2>
+      <p class="opt-tag">The whole pill is the toggle button — no inner switch. Off = grey outlined ghost. On = solid filled dark. The state IS the visual.</p>
+      <div class="demo-block">
+        <div class="demo-row">
+          <span class="state-label">OFF</span>
+          <span class="pill-b off"><span class="lbl">REST</span><span class="sep"></span><span class="time">2:00</span></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">ON</span>
+          <span class="pill-b"><span class="lbl">REST</span><span class="sep"></span><span class="time">1:47</span></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">URGENT</span>
+          <span class="pill-b urgent"><span class="lbl">REST</span><span class="sep"></span><span class="time">0:08</span></span>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Cleanest, most decisive. The pill's surface is its state — no inner controls, no ambiguity.
+        <ul>
+          <li>Tap anywhere on the pill to start/stop</li>
+          <li>Off: hairline outline, muted text (clearly inactive)</li>
+          <li>On: filled --ink-deep, white text, dark shadow lift</li>
+          <li>Urgent: filled --bad mauve, white text</li>
+          <li>Smallest visual footprint of the three</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== OPTION C — Play/pause control ===== -->
+    <div class="option">
+      <span class="opt-label">C</span>
+      <h2 class="opt-name">Play / pause</h2>
+      <p class="opt-tag">Media-player metaphor. REST label + time + a small circular play/pause button at the right. Most universally understood "start the timer" affordance.</p>
+      <div class="demo-block">
+        <div class="demo-row">
+          <span class="state-label">OFF</span>
+          <span class="pill-c off"><span class="lbl">REST</span><span class="time">2:00</span><button class="control"><svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 1.5 L8 5 L2 8.5 Z"/></svg></button></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">ON</span>
+          <span class="pill-c"><span class="lbl">REST</span><span class="time">1:47</span><button class="control"><svg viewBox="0 0 10 10" fill="currentColor"><rect x="2" y="1.5" width="2" height="7"/><rect x="6" y="1.5" width="2" height="7"/></svg></button></span>
+        </div>
+        <div class="demo-row">
+          <span class="state-label">URGENT</span>
+          <span class="pill-c urgent"><span class="lbl">REST</span><span class="time">0:08</span><button class="control"><svg viewBox="0 0 10 10" fill="currentColor"><rect x="2" y="1.5" width="2" height="7"/><rect x="6" y="1.5" width="2" height="7"/></svg></button></span>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Media-player aesthetic. The play/pause icon is universally understood — no learning required.
+        <ul>
+          <li>Tap the play icon to start; tap pause to stop</li>
+          <li>Off: grey background, grey text, grey play icon</li>
+          <li>On: white glass, dark text, dark pause button</li>
+          <li>Urgent: mauve everywhere, dark pause button</li>
+          <li>Strongest "this is a timer" signal of the three</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
