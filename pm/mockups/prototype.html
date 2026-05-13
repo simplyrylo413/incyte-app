@@ -544,27 +544,29 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — soft tinted card. Compressed further per
-     user feedback to reduce vertical footprint while keeping the premium
-     card aesthetic (rounded, soft gradient, white pill button). */
+  /* Inline AI recommendation — center-aligned, consolidated layout.
+     Action + reason on one line (bold action, regular reason), next-set
+     value centered below, single 'Apply' button centered. */
   .rec-inline {
     margin: 6px 0 8px 12px;
-    padding: 9px 12px 10px;
+    padding: 11px 14px 13px;
     background:
       linear-gradient(155deg, rgba(93,155,184,0.12) 0%, rgba(155,130,200,0.09) 55%, rgba(201,160,190,0.07) 100%);
     border: 1px solid rgba(93,155,184,0.20);
     border-radius: 12px;
     box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+    text-align: center;
   }
   .rec-inline .eyebrow {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
     color: var(--accent);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
   .rec-inline .eyebrow::before {
     content: '';
@@ -573,37 +575,33 @@
     background: var(--accent);
     border-radius: 50%;
   }
-  .rec-inline .row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 2px;
+  .rec-inline .action-reason {
+    display: block;
+    font: 500 12px/1.45 'Inter Tight',sans-serif;
+    color: var(--muted);
+    letter-spacing: -0.005em;
+    margin-bottom: 4px;
   }
-  .rec-inline .action {
-    font: 700 13.5px/1.1 'Inter Tight',sans-serif;
-    letter-spacing: -0.02em;
+  .rec-inline .action-reason .action {
+    font-weight: 700;
     color: var(--ink);
   }
   .rec-inline .next {
-    font: 600 10.5px/1 'Geist Mono',ui-monospace,monospace;
+    display: block;
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
-    letter-spacing: 0.02em;
-  }
-  .rec-inline .reason {
-    font: 500 10px/1.4 'Inter Tight',sans-serif;
-    color: var(--muted);
-    margin: 3px 0 7px;
+    letter-spacing: 0.04em;
+    margin-bottom: 11px;
   }
   .rec-inline .apply {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 5px 11px 5px 10px;
+    padding: 6px 14px 6px 13px;
     background: white;
     border: 1px solid rgba(255,255,255,0.7);
     border-radius: 999px;
-    font: 600 10px/1 'Inter Tight',sans-serif;
+    font: 600 11px/1 'Inter Tight',sans-serif;
     color: var(--ink);
     cursor: pointer;
     box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 3px rgba(15,22,34,0.05);
@@ -616,7 +614,7 @@
     transform: translateY(-1px);
   }
   .rec-inline .apply:hover svg { transform: translateX(2px); }
-  .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
+  .rec-inline .apply svg { width: 10px; height: 10px; transition: transform 180ms ease-out; }
 
   /* Add-set affordance — dashed-outline button at the end of UPCOMING */
   .add-set-btn {
@@ -1457,15 +1455,21 @@ function renderWorkout() {
             ? `NEXT · FROM SET ${s.idx}`
             : `NEXT TIME · FROM SET ${s.idx}`;
           const showApply = moreToDo;
+          // Strip the "RPE X — " or "{r} reps — " prefix from reason copy.
+          // The eyebrow "NEXT · FROM SET N" already attributes the source,
+          // and the user can see the set's full values in the LOGGED row.
+          const cleanReason = r.reason
+            .replace(/^RPE\s*\d+(?:\.\d+)?(?:\s+at\s+\d+\s+reps)?\s*[—–-]\s*/i, '')
+            .replace(/^\d+\s*reps?\s*[—–-]\s*/i, '')
+            .replace(/\s*Enable RPE for sharper guidance\.$/i, '');
+          // Capitalize the first letter since we stripped a prefix
+          const reasonText = cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1);
           html += `
             <div class="rec-inline" data-rec-base="${s.idx}">
               <span class="eyebrow">${eyebrowText}</span>
-              <div class="row">
-                <span class="action">${r.action}</span>
-                <span class="next">→ ${r.next}</span>
-              </div>
-              <div class="reason">${r.reason}</div>
-              ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
+              <p class="action-reason"><span class="action">${r.action}.</span> ${reasonText}</p>
+              <span class="next">→ ${r.next}</span>
+              ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
             </div>`;
         }
       }
