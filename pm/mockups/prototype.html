@@ -365,9 +365,11 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Big-type hero — all three values (weight × reps × RPE) inline on one
-     line. Numbers slightly smaller than before so all three fit comfortably
-     on phone width. Tap any number to open the picker. */
+  /* Big-type hero — all three values inline as a single statement with
+     units directly adjacent to each number:
+            185 LB × 10 REPS × RPE 7
+     Numbers sized down slightly to accommodate inline units on phone
+     width. Units in muted small caps mono. */
   .hero-statement {
     text-align: center;
     padding: 6px 0 4px;
@@ -376,44 +378,40 @@
     display: flex;
     align-items: baseline;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 8px;
+    gap: 8px;
   }
   .hero-num {
     background: transparent;
     border: none;
-    font: 700 46px/1 'Inter Tight',sans-serif;
+    font: 700 40px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.05em;
     color: var(--ink);
     padding: 2px 4px;
     cursor: pointer;
     border-radius: 8px;
     transition: background 180ms ease-out;
+    white-space: nowrap;
   }
   .hero-num:hover { background: rgba(93,155,184,0.08); }
   .hero-num.empty { color: var(--label); }
-  .hero-sep {
-    font: 500 26px/1 'Inter Tight',sans-serif;
-    color: var(--label);
-    letter-spacing: -0.02em;
-  }
-  .hero-units-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.18em;
+  .hero-num .hero-unit {
+    display: inline-block;
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--label);
-    margin-top: 12px;
-    padding-top: 11px;
-    border-top: 1px solid var(--hairline);
+    margin-left: 5px;
+    vertical-align: baseline;
+    transform: translateY(-4px);
   }
-  .hero-units-bar span:not(:first-child)::before {
-    content: '·';
-    margin-right: 18px;
+  .hero-num .hero-unit.prefix {
+    margin-left: 0;
+    margin-right: 5px;
+  }
+  .hero-sep {
+    font: 500 22px/1 'Inter Tight',sans-serif;
     color: var(--label);
+    letter-spacing: -0.02em;
   }
 
   /* Hero primary action — solid black pill. Centered, content-width with
@@ -1497,14 +1495,13 @@ function renderWorkout() {
     const repsCls = cur.reps == null ? 'empty' : '';
     const rpeCls = cur.rpe == null ? 'empty' : '';
 
-    // Big-type hero: all three values inline as '185 × 10 × 7'.
-    // RPE only renders when session tracking is on.
+    // Big-type hero: all three values inline with units adjacent to each:
+    //    185 LB × 10 REPS × RPE 7
+    // RPE only renders when session tracking is on. 'RPE' is a prefix unit
+    // (conventional in lifter speak), the others are suffix units.
     const rpeInline = state.session.trackRpe
-      ? `<span class="hero-sep">×</span><button class="hero-num ${rpeCls}" data-pk="rpe">${rpe}</button>`
+      ? `<span class="hero-sep">×</span><button class="hero-num ${rpeCls}" data-pk="rpe"><span class="hero-unit prefix">RPE</span>${rpe}</button>`
       : '';
-    const unitsBar = state.session.trackRpe
-      ? '<span>LB</span><span>REPS</span><span>RPE</span>'
-      : '<span>LB</span><span>REPS</span>';
 
     hero.innerHTML = `
       <div class="hero">
@@ -1514,12 +1511,11 @@ function renderWorkout() {
         </div>
         <div class="hero-statement">
           <div class="hero-primary">
-            <button class="hero-num ${weightCls}" data-pk="weight">${weight}</button>
+            <button class="hero-num ${weightCls}" data-pk="weight">${weight}<span class="hero-unit">LB</span></button>
             <span class="hero-sep">×</span>
-            <button class="hero-num ${repsCls}" data-pk="reps">${reps}</button>
+            <button class="hero-num ${repsCls}" data-pk="reps">${reps}<span class="hero-unit">REPS</span></button>
             ${rpeInline}
           </div>
-          <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
