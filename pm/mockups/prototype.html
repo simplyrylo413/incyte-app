@@ -586,93 +586,79 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — center-aligned glass card. Turned-up
-     prismatic gradient + backdrop-blur + multi-layer shadow stack. */
+  /* Inline AI recommendation — single-line pill for one-handed scanning.
+     Dot indicator + action + next-set value + Apply pill. Minimal height. */
   .rec-inline {
-    margin: 6px 0 8px 12px;
-    padding: 12px 14px 14px;
+    margin: 5px 0 8px 12px;
+    padding: 5px 5px 5px 13px;
     background:
-      linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.10) 100%);
-    backdrop-filter: blur(28px) saturate(1.5);
-    -webkit-backdrop-filter: blur(28px) saturate(1.5);
-    border: 1px solid rgba(93,155,184,0.32);
-    border-radius: 14px;
+      linear-gradient(90deg, rgba(93,155,184,0.14) 0%, rgba(155,130,200,0.10) 55%, rgba(201,160,190,0.08) 100%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(93,155,184,0.22);
+    border-radius: 999px;
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.85) inset,
-      0 0 0 1px rgba(255,255,255,0.4) inset,
-      0 8px 22px rgba(93,155,184,0.12),
-      0 2px 6px rgba(15,22,34,0.04);
-    text-align: center;
-    position: relative;
-  }
-  .rec-inline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 18%;
-    right: 18%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
-    pointer-events: none;
-  }
-  .rec-inline .eyebrow {
-    display: inline-flex;
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 2px 6px rgba(93,155,184,0.08);
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 8px;
+    gap: 8px;
+    overflow: hidden;
   }
-  .rec-inline .eyebrow::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    background: var(--accent);
+  .rec-inline .live-dot {
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
   }
-  .rec-inline .action-reason {
-    display: block;
-    font: 500 12px/1.45 'Inter Tight',sans-serif;
+  .rec-inline .summary {
+    flex: 1;
+    min-width: 0;
+    font: 500 11.5px/1.2 'Inter Tight',sans-serif;
     color: var(--muted);
     letter-spacing: -0.005em;
-    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .rec-inline .action-reason .action {
+  .rec-inline .summary .action {
     font-weight: 700;
     color: var(--ink);
   }
-  .rec-inline .next {
-    display: block;
-    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+  .rec-inline .summary .arrow {
+    margin: 0 4px;
+    color: var(--label);
+  }
+  .rec-inline .summary .next {
+    font-family: 'Geist Mono',ui-monospace,monospace;
+    font-size: 11px;
     color: var(--muted);
-    letter-spacing: 0.04em;
-    margin-bottom: 11px;
+    letter-spacing: 0.02em;
   }
   .rec-inline .apply {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 14px 6px 13px;
+    gap: 4px;
+    padding: 5px 11px 5px 11px;
     background: white;
     border: 1px solid rgba(255,255,255,0.7);
     border-radius: 999px;
-    font: 600 11px/1 'Inter Tight',sans-serif;
+    font: 600 10.5px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
     color: var(--ink);
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 3px rgba(15,22,34,0.05);
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.05);
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
   }
   .rec-inline .apply:hover {
     background: var(--ink-deep);
     color: white;
     border-color: var(--ink-deep);
-    transform: translateY(-1px);
   }
   .rec-inline .apply:hover svg { transform: translateX(2px); }
-  .rec-inline .apply svg { width: 10px; height: 10px; transition: transform 180ms ease-out; }
+  .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
 
   /* Add-set affordance — dashed-outline button at the end of UPCOMING */
   .add-set-btn {
@@ -1575,16 +1561,10 @@ function renderWorkout() {
     if (hasAllValues) {
       const r = computeRecommendation(cur, state.session.trackRpe);
       if (!r.muted) {
-        const cleanReason = r.reason
-          .replace(/^RPE\s*\d+(?:\.\d+)?(?:\s+at\s+\d+\s+reps)?\s*[—–-]\s*/i, '')
-          .replace(/^\d+\s*reps?\s*[—–-]\s*/i, '')
-          .replace(/\s*Enable RPE for sharper guidance\.$/i, '');
-        const reasonText = cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1);
         liveRecEl.innerHTML = `
           <div class="rec-inline" style="margin: 0 22px 12px;">
-            <span class="eyebrow">NEXT SET · PREVIEW</span>
-            <p class="action-reason"><span class="action">${r.action}.</span> ${reasonText}</p>
-            <span class="next">→ ${r.next}</span>
+            <span class="live-dot"></span>
+            <span class="summary"><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></span>
             <button class="apply" id="btn-live-apply">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>`;
         $('#btn-live-apply').addEventListener('click', () => applyRecommendation(r));
@@ -1610,31 +1590,18 @@ function renderWorkout() {
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           </button>
         </div>`;
-      // Inline AI recommendation attached to the last logged set
+      // Inline AI recommendation attached to the last logged set — single
+      // line pill: dot + action + → + next-set + Apply button (if there's a
+      // next set to apply to).
       if (isLast && state.session.aiRecOn) {
         const r = computeRecommendation(s, state.session.trackRpe);
         if (!r.muted) {
-          // Eyebrow attributes the rec to the source set so the user can see
-          // exactly what data the AI is reasoning from.
           const moreToDo = mv.sets.some(x => x.status !== 'done');
-          const eyebrowText = moreToDo
-            ? `NEXT · FROM SET ${s.idx}`
-            : `NEXT TIME · FROM SET ${s.idx}`;
           const showApply = moreToDo;
-          // Strip the "RPE X — " or "{r} reps — " prefix from reason copy.
-          // The eyebrow "NEXT · FROM SET N" already attributes the source,
-          // and the user can see the set's full values in the LOGGED row.
-          const cleanReason = r.reason
-            .replace(/^RPE\s*\d+(?:\.\d+)?(?:\s+at\s+\d+\s+reps)?\s*[—–-]\s*/i, '')
-            .replace(/^\d+\s*reps?\s*[—–-]\s*/i, '')
-            .replace(/\s*Enable RPE for sharper guidance\.$/i, '');
-          // Capitalize the first letter since we stripped a prefix
-          const reasonText = cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1);
           html += `
             <div class="rec-inline" data-rec-base="${s.idx}">
-              <span class="eyebrow">${eyebrowText}</span>
-              <p class="action-reason"><span class="action">${r.action}.</span> ${reasonText}</p>
-              <span class="next">→ ${r.next}</span>
+              <span class="live-dot"></span>
+              <span class="summary"><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></span>
               ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
             </div>`;
         }
