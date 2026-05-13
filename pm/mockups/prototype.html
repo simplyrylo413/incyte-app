@@ -1735,10 +1735,16 @@ function renderToday() {
         else if (isComplete) { chipClass = 'done'; chipText = 'DONE'; }
         else if (isPartial) { chipClass = 'partial'; }
 
-        let refText = `Last: ${mv.priorRef.split(' · ').slice(0, 3).join(' · ')}`;
+        // Compact single-line treatment: only show a status note when the
+        // movement is skipped or fully complete (those are state cues, not
+        // history). For the default case, the prior history is reachable
+        // once you tap into the movement; no need on the card.
+        let refText = '';
         let refClass = '';
-        if (isSkipped) { refText = `Skipped today · last: ${mv.priorRef.split(' · ')[0]}`; refClass = 'skipped'; }
+        if (isSkipped) { refText = 'Skipped today'; refClass = 'skipped'; }
         else if (isComplete) { refText = `Done · ${mv.sets.map(s => `${s.weight}×${s.reps}`).join(' · ')}`; refClass = 'done'; }
+
+        const refHtml = refText ? `<div class="ref ${refClass}">${refText}</div>` : '';
 
         const card = document.createElement('div');
         card.className = 'mv';
@@ -1748,7 +1754,7 @@ function renderToday() {
               <span class="name">${mv.name}</span>
               <span class="type ${mv.type}">${mv.type.toUpperCase()}</span>
             </div>
-            <div class="ref ${refClass}">${refText}</div>
+            ${refHtml}
           </div>
           <span class="progress-chip ${chipClass}">${chipText}</span>
           <button class="remove" data-remove="${mv.id}" aria-label="Remove">
