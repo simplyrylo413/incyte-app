@@ -292,41 +292,46 @@
     color: var(--ink);
   }
 
-  /* Toggle chips — minimal, no glass. Just outlined pills with a dot. */
+  /* Toggle chips — compact, clear state. Filled when on, hollow when off. */
   .prefs {
-    padding: 0 22px 16px;
+    padding: 0 22px 18px;
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
   }
   .pref-chip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px 8px 12px;
+    gap: 6px;
+    padding: 5px 10px 5px 8px;
     background: transparent;
     border: 1px solid var(--hairline);
     border-radius: 999px;
-    font: 600 11px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.005em;
-    color: var(--muted);
+    font: 600 10px/1 'Inter Tight',sans-serif;
+    letter-spacing: 0.005em;
+    color: var(--label);
     cursor: pointer;
     transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
   }
   .pref-chip .dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: var(--label);
-    transition: background 180ms ease-out;
+    background: transparent;
+    border: 1.5px solid var(--label);
+    box-sizing: border-box;
+    transition: background 180ms ease-out, border-color 180ms ease-out;
   }
   .pref-chip.on {
-    background: white;
-    border-color: rgba(15,22,34,0.18);
+    background: rgba(93,155,184,0.10);
+    border-color: rgba(93,155,184,0.32);
     color: var(--ink);
   }
-  .pref-chip.on .dot { background: var(--ink); }
-  .pref-chip:active { transform: scale(0.97); }
+  .pref-chip.on .dot {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .pref-chip:active { transform: scale(0.96); }
 
   /* Hero card — the central focal point. Single typographic statement. */
   .hero {
@@ -545,68 +550,66 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* AI recommendation — editorial register. Hairline separator above,
-     no card chrome, just structured type. */
-  .rec {
-    margin: 0 22px;
-    padding: 16px 0 14px;
-    border-top: 1px solid rgba(15,22,34,0.08);
-    flex-shrink: 0;
+  /* Inline AI recommendation — small, attached directly under the
+     just-completed set row. Indented to show it's tied to the set above. */
+  .rec-inline {
+    margin: 6px 0 8px 12px;
+    padding: 11px 14px 12px;
+    background: rgba(93,155,184,0.05);
+    border: 1px solid rgba(93,155,184,0.18);
+    border-left: 2px solid var(--accent);
+    border-radius: 10px;
   }
-  .rec .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .rec .eyebrow {
-    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .rec .live-dot {
-    width: 5px;
-    height: 5px;
-    background: var(--accent);
-    border-radius: 50%;
-  }
-  .rec .row {
+  .rec-inline .head {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 10px;
     margin-bottom: 4px;
   }
-  .rec .action {
-    font: 700 22px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.03em;
+  .rec-inline .eyebrow {
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .rec-inline .row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .rec-inline .action {
+    font: 700 15px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
     color: var(--ink);
   }
-  .rec .next {
-    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+  .rec-inline .next {
+    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--muted);
     letter-spacing: 0.02em;
   }
-  .rec .reason {
-    font: 500 12px/1.5 'Inter Tight',sans-serif;
+  .rec-inline .reason {
+    font: 500 11px/1.4 'Inter Tight',sans-serif;
     color: var(--muted);
-    margin: 6px 0 12px;
+    margin: 2px 0 8px;
   }
-  .rec .apply {
+  .rec-inline .apply {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 16px 9px 14px;
+    gap: 6px;
+    padding: 6px 12px 6px 11px;
     background: transparent;
     border: 1px solid var(--ink);
     border-radius: 999px;
-    font: 600 12px/1 'Inter Tight',sans-serif;
+    font: 600 11px/1 'Inter Tight',sans-serif;
     color: var(--ink);
     cursor: pointer;
     transition: background 180ms ease-out, color 180ms ease-out;
   }
-  .rec .apply:hover { background: var(--ink); color: white; }
-  .rec .apply:hover svg { transform: translateX(2px); }
-  .rec .apply svg { width: 12px; height: 12px; transition: transform 180ms ease-out; }
+  .rec-inline .apply:hover { background: var(--ink); color: white; }
+  .rec-inline .apply:hover svg { transform: translateX(2px); }
+  .rec-inline .apply svg { width: 10px; height: 10px; transition: transform 180ms ease-out; }
 
   .wm-actions {
     position: absolute;
@@ -961,12 +964,10 @@
       <span class="vals" id="wm-prior">—</span>
     </div>
 
-    <!-- Logged + upcoming sets (editorial lines) -->
+    <!-- Logged + upcoming sets (editorial lines).
+         AI recommendation now renders INLINE under the last logged set. -->
     <div id="wm-logged-section"></div>
     <div id="wm-future-section"></div>
-
-    <!-- AI recommendation -->
-    <div id="wm-rec"></div>
 
     <!-- Bottom action bar -->
     <div class="wm-actions">
@@ -1372,12 +1373,14 @@ function renderWorkout() {
       </div>`;
   }
 
-  // === LOGGED sets — editorial section below the prior reference ===
+  // === LOGGED sets — editorial section. AI rec renders inline below the
+  // most recently logged set (only if AI guidance is on). ===
   const loggedSection = $('#wm-logged-section');
   const loggedSets = mv.sets.filter(s => s.status === 'done');
   if (loggedSets.length > 0) {
     let html = `<div class="sets-eyebrow">LOGGED</div><div class="sets">`;
-    loggedSets.forEach(s => {
+    loggedSets.forEach((s, idx) => {
+      const isLast = idx === loggedSets.length - 1;
       const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
       html += `
         <div class="set-row done" data-reopen-set="${s.idx}">
@@ -1388,9 +1391,30 @@ function renderWorkout() {
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           </button>
         </div>`;
+      // Inline AI recommendation attached to the last logged set
+      if (isLast && state.session.aiRecOn) {
+        const r = computeRecommendation(s, state.session.trackRpe);
+        if (!r.muted) {
+          // Eyebrow text: NEXT SET if more sets remain, NEXT TIME if movement complete
+          const moreToDo = mv.sets.some(x => x.status !== 'done');
+          const eyebrowText = moreToDo ? 'NEXT SET' : 'NEXT TIME';
+          const showApply = moreToDo;
+          html += `
+            <div class="rec-inline" data-rec-base="${s.idx}">
+              <div class="head"><span class="eyebrow">${eyebrowText}</span></div>
+              <div class="row">
+                <span class="action">${r.action}</span>
+                <span class="next">→ ${r.next}</span>
+              </div>
+              <div class="reason">${r.reason}</div>
+              ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
+            </div>`;
+        }
+      }
     });
     html += `</div>`;
     loggedSection.innerHTML = html;
+    // Wire up reopen + remove handlers
     loggedSection.querySelectorAll('[data-reopen-set]').forEach(el => {
       el.querySelector('.idx').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
       el.querySelector('.vals').addEventListener('click', () => reopenSet(+el.dataset.reopenSet));
@@ -1398,6 +1422,16 @@ function renderWorkout() {
     });
     loggedSection.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); removeSet(+el.dataset.removeSet); });
+    });
+    // Wire up Apply target on the inline rec
+    loggedSection.querySelectorAll('[data-rec-apply]').forEach(el => {
+      el.addEventListener('click', () => {
+        const baseIdx = +el.dataset.recApply;
+        const baseSet = mv.sets.find(x => x.idx === baseIdx);
+        if (!baseSet) return;
+        const r = computeRecommendation(baseSet, state.session.trackRpe);
+        if (!r.muted) applyRecommendation(r);
+      });
     });
   } else {
     loggedSection.innerHTML = '';
