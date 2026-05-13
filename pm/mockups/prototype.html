@@ -206,6 +206,28 @@
     transition: transform 150ms ease-out, box-shadow 150ms ease-out;
   }
   .mv:active { transform: scale(0.99); box-shadow: var(--depth-1); }
+
+  /* Drag handle — grippy icon at the leading edge; the card itself is the
+     drag source. Reorder is restricted to within the same body-part group. */
+  .mv .drag-handle {
+    width: 16px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    color: var(--label);
+    opacity: 0.5;
+    cursor: grab;
+    flex-shrink: 0;
+    margin-left: -6px;
+    transition: opacity 150ms ease-out, color 150ms ease-out;
+  }
+  .mv:hover .drag-handle { opacity: 1; color: var(--muted); }
+  .mv .drag-handle:active { cursor: grabbing; }
+  .mv .drag-handle svg { width: 10px; height: 14px; }
+  .mv.dragging { opacity: 0.45; transform: scale(0.98); }
+  .mv.drop-target-before { box-shadow: 0 -2px 0 var(--accent), var(--depth-1); }
+  .mv.drop-target-after  { box-shadow: 0 2px 0 var(--accent), var(--depth-1); }
+
   .mv .body { flex: 1; min-width: 0; }
   .mv .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
@@ -1808,7 +1830,19 @@ function renderToday() {
 
         const card = document.createElement('div');
         card.className = 'mv';
+        card.draggable = true;
+        card.dataset.mvId = mv.id;
         card.innerHTML = `
+          <span class="drag-handle" aria-label="Drag to reorder" title="Drag to reorder">
+            <svg viewBox="0 0 10 14" fill="none" aria-hidden="true">
+              <circle cx="2" cy="2"  r="1.2" fill="currentColor"/>
+              <circle cx="8" cy="2"  r="1.2" fill="currentColor"/>
+              <circle cx="2" cy="7"  r="1.2" fill="currentColor"/>
+              <circle cx="8" cy="7"  r="1.2" fill="currentColor"/>
+              <circle cx="2" cy="12" r="1.2" fill="currentColor"/>
+              <circle cx="8" cy="12" r="1.2" fill="currentColor"/>
+            </svg>
+          </span>
           <div class="body">
             <div class="row1">
               <span class="name">${mv.name}</span>
@@ -1851,6 +1885,8 @@ function renderToday() {
             showToast(`${mv.name} → ${mv.equipment}.`);
           });
         });
+        // Drag-and-drop reordering within the same body-part group.
+        wireDragReorder(card, mv);
         scroll.appendChild(card);
       });
     });
@@ -2557,6 +2593,64 @@ function removeMovement(id) {
   state.movements = state.movements.filter(m => m.id !== id);
   renderToday();
   showToast('Movement removed.');
+}
+
+// ============================================================
+// REORDER — drag-and-drop within the same body-part group.
+// Reorder updates state.movements in place; re-render after drop.
+// ============================================================
+let _dragMvId = null;
+function wireDragReorder(card, mv) {
+  card.addEventListener('dragstart', (e) => {
+    _dragMvId = mv.id;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    // Some browsers require setData to start a drag
+    try { e.dataTransfer.setData('text/plain', mv.id); } catch (err) {}
+  });
+  card.addEventListener('dragend', () => {
+    _dragMvId = null;
+    document.querySelectorAll('.mv.dragging,.mv.drop-target-before,.mv.drop-target-after')
+      .forEach(el => el.classList.remove('dragging', 'drop-target-before', 'drop-target-after'));
+  });
+  card.addEventListener('dragover', (e) => {
+    if (!_dragMvId || _dragMvId === mv.id) return;
+    // Only allow reorder within the same body part group
+    const src = state.movements.find(m => m.id === _dragMvId);
+    if (!src || src.bodyPart !== mv.bodyPart) return;
+    e.preventDefault();
+    const rect = card.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    card.classList.toggle('drop-target-before', e.clientY < midpoint);
+    card.classList.toggle('drop-target-after',  e.clientY >= midpoint);
+  });
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('drop-target-before', 'drop-target-after');
+  });
+  card.addEventListener('drop', (e) => {
+    if (!_dragMvId || _dragMvId === mv.id) return;
+    const src = state.movements.find(m => m.id === _dragMvId);
+    if (!src || src.bodyPart !== mv.bodyPart) return;
+    e.preventDefault();
+    const rect = card.getBoundingClientRect();
+    const before = e.clientY < rect.top + rect.height / 2;
+    reorderMovement(_dragMvId, mv.id, before);
+  });
+}
+function reorderMovement(srcId, targetId, insertBefore) {
+  const srcIdx = state.movements.findIndex(m => m.id === srcId);
+  if (srcIdx === -1) return;
+  const [src] = state.movements.splice(srcIdx, 1);
+  let targetIdx = state.movements.findIndex(m => m.id === targetId);
+  if (targetIdx === -1) {
+    // Target vanished — put src back where it was
+    state.movements.splice(srcIdx, 0, src);
+    return;
+  }
+  const insertAt = insertBefore ? targetIdx : targetIdx + 1;
+  state.movements.splice(insertAt, 0, src);
+  renderToday();
+  showToast(`${src.name} reordered.`);
 }
 
 // ============================================================
