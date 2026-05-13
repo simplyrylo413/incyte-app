@@ -442,10 +442,14 @@
   .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 26px rgba(24,32,48,0.36); }
   .hero-cta:active { transform: translateY(0); }
 
-  /* Prior reference — two-line block layout. Eyebrow names the source
-     (e.g. "LAST SESSION · MAY 5") so it's unambiguously historical data. */
+  /* Prior reference — soft pink panel so it stands out as historical data,
+     not current/active. Two-line layout: source+date eyebrow, then values. */
   .prior {
-    padding: 0 22px 6px;
+    margin: 0 22px 10px;
+    padding: 10px 14px 11px;
+    background: rgba(201,160,190, 0.13);
+    border: 1px solid rgba(201,160,190, 0.30);
+    border-radius: 11px;
     flex-shrink: 0;
   }
   .prior .lbl {
@@ -453,13 +457,13 @@
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
-    color: var(--label);
+    color: var(--bad);
     margin-bottom: 6px;
   }
   .prior .vals {
     display: block;
     font: 500 12px/1.4 'Geist Mono',ui-monospace,monospace;
-    color: var(--muted);
+    color: var(--ink);
     word-break: break-word;
   }
 
@@ -1357,7 +1361,9 @@ function renderWorkout() {
   $('#wm-set-total').textContent = mv.sets.length;
   const cur = getCurrentSet(mv);
   $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
-  $('#wm-prior').textContent = mv.priorRef;
+  // Strip "@RPE" tokens from the prior reference — the previous session's
+  // RPE isn't relevant for today's planning; only the load and reps are.
+  $('#wm-prior').textContent = mv.priorRef.replace(/\s*@\d+(?:\.\d+)?/g, '');
   $('#wm-prior-label').textContent = mv.priorDate
     ? `LAST SESSION · ${mv.priorDate.toUpperCase()}`
     : 'LAST SESSION';
