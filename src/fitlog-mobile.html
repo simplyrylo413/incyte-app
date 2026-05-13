@@ -8406,6 +8406,36 @@
   body.theme-dark .history-row.hist-pill-b .hpb-resume { background: rgba(255,255,255, 0.92); color: var(--ink); }
   body.theme-dark .history-row.hist-pill-b .hpb-del { background: rgba(255,255,255, 0.06); border-color: rgba(255,255,255, 0.18); color: rgba(255,255,255, 0.55); }
 
+  /* "✓ N completed today" pill — renders at the bottom of Today's list when
+     any movements are hidden because they're complete. Tap → go('history'). */
+  .today-completed-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px auto 4px;
+    padding: 7px 14px 7px 8px;
+    background: rgba(79,154,168, 0.10);
+    border: 1px solid rgba(79,154,168, 0.30);
+    border-radius: 999px;
+    font: 600 11px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ok);
+    cursor: pointer;
+    transition: background 150ms ease-out, border-color 150ms ease-out;
+  }
+  .today-completed-pill:hover { background: rgba(79,154,168, 0.18); border-color: rgba(79,154,168, 0.50); }
+  .today-completed-pill .tcp-chk {
+    width: 18px; height: 18px;
+    background: var(--ok);
+    color: white;
+    border-radius: 50%;
+    display: grid; place-items: center;
+  }
+  .today-completed-pill .tcp-chk svg { width: 10px; height: 10px; }
+  .today-completed-pill .tcp-chev { color: var(--ok); opacity: 0.55; font-size: 14px; line-height: 1; margin-left: 2px; }
+  body.theme-dark .today-completed-pill { background: rgba(79,154,168, 0.16); border-color: rgba(79,154,168, 0.40); color: rgba(255,255,255, 0.92); }
+  body.theme-dark .today-completed-pill .tcp-chev { color: rgba(255,255,255, 0.55); }
+
   /* ============================================================
      INSIGHTS CAROUSEL — horizontal swipe-scroll of the 4 hero cards
      (Readiness, Fatigue, Stimulus, PRs). Ported from mobile331.html
@@ -13088,7 +13118,21 @@ function renderTodayV2() {
     ...plan.map(p => ({ p, mv: (typeof getMv === 'function') ? getMv(p.mid) : null, entry: getEntryFor(p) })),
     ...adhocEntries.map(e => ({ p: { id: e.planId || ('adhoc-' + e.movementId), mid: e.movementId, muscle: e.muscle }, mv: (typeof getMv === 'function') ? getMv(e.movementId) : null, entry: e })),
   ];
+  // Hide completed movements from the active Today list — they're considered
+  // done for the day and belong in History. Per user direction 2026-05-13:
+  // completed = go away from Today, stay in the day's History record. We
+  // count completed movements separately so the user sees a "✓ N completed"
+  // pill at the bottom for context (and to expand-review if needed later).
+  let completedCount = 0;
+  const visibleItems = [];
   allItems.forEach(item => {
+    const sets = (item.entry && item.entry.sets) || [];
+    const done = sets.filter(s => s.done).length;
+    const total = sets.length || (item.p && item.p.targetSets) || 0;
+    if (total > 0 && done === total) { completedCount++; return; }
+    visibleItems.push(item);
+  });
+  visibleItems.forEach(item => {
     const bp = (item.mv && (item.mv.bodyPart || item.mv.muscle || item.mv.category)) || (item.p && item.p.muscle) || 'Other';
     if (!groups[bp]) groups[bp] = [];
     groups[bp].push(item);
@@ -13215,6 +13259,25 @@ function renderTodayV2() {
     if (trigger) trigger.click();
   });
   scrollEl.appendChild(addBtn);
+
+  // Small "✓ N completed" footer pill — completed movements were filtered out
+  // of the active list above. Tap to jump to History where today's record
+  // shows the consolidated detail (via the same-day merger).
+  if (completedCount > 0) {
+    const doneFooter = document.createElement('button');
+    doneFooter.className = 'today-completed-pill';
+    doneFooter.type = 'button';
+    doneFooter.innerHTML = `
+      <span class="tcp-chk">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="tcp-text">${completedCount} completed today</span>
+      <span class="tcp-chev">›</span>`;
+    doneFooter.addEventListener('click', () => {
+      if (typeof go === 'function') go('history');
+    });
+    scrollEl.appendChild(doneFooter);
+  }
 }
 
 // Tiny escape helper for the names (production may already have one; this is
