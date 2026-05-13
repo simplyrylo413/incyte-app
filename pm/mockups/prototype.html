@@ -640,7 +640,10 @@
     grid-template-columns: 36px 0.9fr 1.05fr 22px 16px;
     align-items: center;
     gap: 10px;
-    padding: 0 13px 6px;
+    /* 22px outer (matches .sets padding) + 13px inner (matches each row's
+       12px padding + 1px border) = 35px so labels sit directly over the row
+       content. */
+    padding: 0 35px 6px;
     font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
