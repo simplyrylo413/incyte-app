@@ -378,15 +378,16 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .picker-card {
-    /* Force equal widths reliably across browsers — buttons can carry
-       user-agent min-width / appearance styles that resist grid sizing. */
+    /* Force equal widths reliably across browsers. Markup switched from
+       <button> to <div role="button"> because user-agent button styles
+       (min-width / intrinsic sizing) were resisting grid distribution in
+       Chrome. overflow:hidden ensures content can never expand the cell. */
     display: block;
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     box-sizing: border-box;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    overflow: hidden;
     background: rgba(255,255,255,0.70);
     backdrop-filter: blur(20px) saturate(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(1.3);
@@ -1548,11 +1549,11 @@ function renderWorkout() {
     // weight + reps stay strictly equal).
     const gridClass = state.session.trackRpe ? '' : ' no-rpe';
     const rpePicker = state.session.trackRpe ? `
-        <button class="picker-card ${rpeCls}" data-pk="rpe">
+        <div class="picker-card ${rpeCls}" role="button" tabindex="0" data-pk="rpe">
           <div class="lbl">RPE</div>
           <div class="val">${rpe}</div>
           <div class="unit">Effort</div>
-        </button>` : '';
+        </div>` : '';
 
     hero.innerHTML = `
       <div class="hero">
@@ -1561,16 +1562,16 @@ function renderWorkout() {
           <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
         <div class="hero-pickers${gridClass}">
-          <button class="picker-card ${weightCls}" data-pk="weight">
+          <div class="picker-card ${weightCls}" role="button" tabindex="0" data-pk="weight">
             <div class="lbl">Weight</div>
             <div class="val">${weight}</div>
             <div class="unit">LB</div>
-          </button>
-          <button class="picker-card ${repsCls}" data-pk="reps">
+          </div>
+          <div class="picker-card ${repsCls}" role="button" tabindex="0" data-pk="reps">
             <div class="lbl">Reps</div>
             <div class="val">${reps}</div>
             <div class="unit">Reps</div>
-          </button>
+          </div>
           ${rpePicker}
         </div>
         <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
