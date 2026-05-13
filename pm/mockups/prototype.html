@@ -391,7 +391,19 @@
   .hero-eyebrow .now-marker .dot {
     width: 5px; height: 5px;
     border-radius: 50%;
-    background: var(--ink);
+    background: var(--bad);
+    box-shadow: 0 0 0 3px rgba(176, 128, 146, 0.18);
+  }
+  /* Active-set token — red+bold so the eye locks onto the current set immediately.
+     Uses --bad (desaturated mauve from the INCYTE palette) as the system's red. */
+  .hero-eyebrow .now-marker .active-set {
+    color: var(--bad);
+    font-weight: 800;
+    letter-spacing: 0.16em;
+  }
+  .hero-eyebrow .now-marker .active-set + .sep,
+  .hero-eyebrow .now-marker .now-tail {
+    color: var(--label);
   }
   .hero-eyebrow .head-remove {
     background: transparent;
@@ -574,7 +586,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 9px 12px 9px 14px;
+    padding: 5px 10px 5px 12px;
     background: rgba(255,255,255, 0.55);
     backdrop-filter: blur(24px) saturate(1.4);
     -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -596,21 +608,21 @@
   }
   }
   .set-row .idx {
-    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--label);
-    width: 38px;
+    width: 34px;
     flex-shrink: 0;
   }
   .set-row .vals {
     flex: 1;
-    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 10.5px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--ink);
     letter-spacing: 0.01em;
   }
   .set-row .meta {
-    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 8px/1 'Geist Mono',ui-monospace,monospace;
     color: var(--label);
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -625,30 +637,40 @@
   .set-row.done .vals { color: var(--ink); }
   .set-row.done .meta {
     color: var(--ok);
-    padding: 2px 8px;
+    padding: 2px 7px;
     background: rgba(79,154,168, 0.12);
     border: 1px solid rgba(79,154,168, 0.26);
     border-radius: 999px;
-    font-size: 8.5px;
+    font-size: 8px;
   }
   .set-row.target .vals { color: var(--muted); }
 
-  /* Working/Warmup toggle chip inside each set row.
-     Tap to flip between 'working' (accent blue) and 'warmup' (warn slate). */
-  .set-row .set-type {
-    font: 700 8.5px/1 'Geist Mono', ui-monospace, monospace;
+  /* Set row group — wraps the standalone WORK/WARM pill + the main set pill
+     in one flex line. The toggle pill is detached (gap, no shared border). */
+  .set-row-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .set-row-group .set-row { flex: 1; min-width: 0; }
+
+  /* Standalone WORK/WARM pill — sits to the left of the set row, detached.
+     Working = accent blue ghost. Warmup = warn slate ghost. */
+  .set-type-pill {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    padding: 3px 8px;
+    padding: 7px 11px;
     background: rgba(93,155,184, 0.12);
     border: 1px solid rgba(93,155,184, 0.28);
     border-radius: 999px;
     color: var(--accent);
     cursor: pointer;
     flex-shrink: 0;
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 100ms var(--ease-out-cubic);
   }
-  .set-row .set-type.warmup {
+  .set-type-pill:active { transform: scale(0.96); }
+  .set-type-pill.warmup {
     background: rgba(142,155,176, 0.14);
     border-color: rgba(142,155,176, 0.32);
     color: var(--warn);
@@ -656,8 +678,8 @@
 
   /* Per-set remove — simple ghost icon button */
   .set-row .row-remove {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     border-radius: 999px;
     border: none;
     background: transparent;
@@ -836,11 +858,27 @@
     text-transform: uppercase;
     color: var(--label);
     cursor: pointer;
-    transition: color 180ms ease-out;
+    transition: color 180ms ease-out, background 200ms ease-out, border-color 200ms ease-out;
   }
 
-  /* iOS-style toggle switches: label + track + thumb */
-  .foot-btn.toggle.on { color: var(--ink); }
+  /* Ghost-outline pill toggle — the pill IS the indicator (no inner switch).
+     Off = ghost outline + muted label. On = solid dark fill, white label.
+     Matches the rest pill so the three controls read as one family. */
+  .foot-btn.toggle {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid rgba(15,22,34, 0.18);
+    border-radius: 999px;
+    gap: 0;
+    letter-spacing: 0.12em;
+  }
+  .foot-btn.toggle .toggle-track { display: none; }
+  .foot-btn.toggle.on {
+    color: white;
+    background: var(--ink-deep);
+    border-color: var(--ink-deep);
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 2px 8px rgba(15,22,34, 0.18);
+  }
   .foot-btn.toggle .toggle-track {
     width: 30px;
     height: 18px;
@@ -1732,7 +1770,7 @@ function renderWorkout() {
     hero.innerHTML = `
       <div class="hero">
         <div class="hero-eyebrow">
-          <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span><span class="sep"> · </span><span class="now-tail">NOW</span></span>
           ${timerPill}
         </div>
         <div class="hero-statement">
@@ -1872,14 +1910,16 @@ function renderWorkout() {
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
-        <div class="set-row done${animCls}" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
-          <span class="idx">SET ${s.idx}</span>
-          <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
-          <button class="set-type${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <span class="meta">DONE</span>
-          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          </button>
+        <div class="set-row-group${animCls}">
+          <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
+          <div class="set-row done" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
+            <span class="idx">SET ${s.idx}</span>
+            <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
+            <span class="meta">DONE</span>
+            <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
         </div>`;
       // Inline AI recommendation attached to the last logged set — 2-line
       // pill: dot + (action / AI reason) + Apply button.
@@ -1943,14 +1983,16 @@ function renderWorkout() {
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
-        <div class="set-row target${animCls}" data-set-idx="${s.idx}">
-          <span class="idx">SET ${s.idx}</span>
-          <span class="vals">${vals}</span>
-          <button class="set-type${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <span class="meta">${meta}</span>
-          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          </button>
+        <div class="set-row-group${animCls}">
+          <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
+          <div class="set-row target" data-set-idx="${s.idx}">
+            <span class="idx">SET ${s.idx}</span>
+            <span class="vals">${vals}</span>
+            <span class="meta">${meta}</span>
+            <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
         </div>`;
     });
     html += `</div>`;

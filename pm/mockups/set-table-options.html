@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Set table options</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
+    --accent: #5d9bb8;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font: 700 28px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    max-width: 760px;
+    margin: 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 1040px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+  .option { display: flex; flex-direction: column; gap: 16px; }
+  .opt-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    margin: -8px 0 0;
+  }
+  .opt-tag {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    min-height: 70px;
+  }
+  .stage {
+    padding: 16px 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255, 0.55), rgba(255,255,255, 0.35));
+    backdrop-filter: blur(30px) saturate(1.4);
+    -webkit-backdrop-filter: blur(30px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.75);
+    border-radius: 22px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255, 0.9) inset,
+      0 18px 36px rgba(15,22,34, 0.08);
+    min-height: 420px;
+  }
+  .notes {
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; }
+
+  /* Shared check icon */
+  .chk {
+    width: 22px; height: 22px;
+    display: inline-grid; place-items: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .chk svg { width: 11px; height: 11px; }
+
+  /* ───────────────── OPTION A — Editorial ledger ───────────────── */
+  .ledger {
+    background: white;
+    border-radius: 14px;
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+  }
+  .ledger-head, .ledger-row {
+    display: grid;
+    grid-template-columns: 38px 1.2fr 0.9fr 0.6fr 28px;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .ledger-head {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--hairline-strong);
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .ledger-head .h-right { text-align: right; }
+  .ledger-row {
+    border-bottom: 1px solid var(--hairline);
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row .l-set {
+    font-weight: 800;
+    color: var(--muted);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .ledger-row .l-prev {
+    color: var(--label);
+    font-weight: 500;
+  }
+  .ledger-row .l-vals {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    text-align: right;
+  }
+  .ledger-row .l-rpe { color: var(--muted); font-size: 10px; }
+  .ledger-row.done .l-vals { color: var(--muted); }
+  .ledger-row.done .l-prev { text-decoration: line-through; opacity: 0.55; }
+  .ledger-row.current {
+    background: linear-gradient(90deg, rgba(93,155,184, 0.10), rgba(93,155,184, 0.04));
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .ledger-row.current .l-set { color: var(--bad); }
+  .ledger-row .chk.done { background: var(--ok); color: white; }
+  .ledger-row .chk.target { background: var(--paper-2); color: var(--label); border: 1px solid var(--hairline); }
+  .ledger-row .chk.current {
+    background: white;
+    color: var(--accent);
+    border: 1px dashed var(--accent);
+  }
+
+  /* ───────────────── OPTION B — Glass pill rows with column header ───────────────── */
+  .columnar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .col-head {
+    display: grid;
+    grid-template-columns: 44px 1.2fr 1fr 24px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px 4px;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .col-head .h-right { text-align: right; }
+  .pill-row {
+    display: grid;
+    grid-template-columns: 44px 1.2fr 1fr 24px;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 10px rgba(15,22,34, 0.04);
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+  }
+  .pill-row .r-set {
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pill-row .r-prev {
+    color: var(--label);
+    font-weight: 500;
+    font-size: 10.5px;
+  }
+  .pill-row .r-vals {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    text-align: right;
+    color: var(--ink);
+  }
+  .pill-row.done {
+    background: rgba(79,154,168, 0.07);
+    border-color: rgba(79,154,168, 0.20);
+  }
+  .pill-row.done .r-vals { color: var(--muted); }
+  .pill-row.current {
+    background: linear-gradient(150deg, rgba(93,155,184, 0.20), rgba(155,130,200, 0.12));
+    border-color: rgba(93,155,184, 0.40);
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 6px 18px rgba(93,155,184, 0.18);
+  }
+  .pill-row.current .r-set { color: var(--bad); }
+  .pill-row .chk.done { background: var(--ok); color: white; }
+  .pill-row .chk.target {
+    background: white;
+    color: var(--label);
+    border: 1px solid var(--hairline-strong);
+  }
+  .pill-row .chk.current {
+    background: var(--ink-deep);
+    color: white;
+  }
+
+  /* ───────────────── OPTION C — Inline typographic ledger ───────────────── */
+  .inline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 0;
+  }
+  .inline-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto 26px;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .inline-row:last-child { border-bottom: none; }
+  .inline-row .i-set {
+    font: 800 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .inline-row .i-set .num { font-size: 18px; letter-spacing: -0.01em; }
+  .inline-row .i-vals {
+    font: 700 16px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .inline-row .i-vals .unit {
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--label);
+    letter-spacing: 0.16em;
+    margin-left: 4px;
+  }
+  .inline-row .i-prev {
+    font: 500 10px/1.3 'Geist Mono',ui-monospace,monospace;
+    color: var(--label);
+    text-align: right;
+  }
+  .inline-row .i-prev .pl {
+    display: block;
+    font-size: 7.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--label);
+    opacity: 0.7;
+    margin-bottom: 3px;
+  }
+  .inline-row.done .i-vals { color: var(--muted); }
+  .inline-row.done .i-set { color: var(--muted); }
+  .inline-row.current {
+    background: rgba(93,155,184, 0.06);
+    border-radius: 10px;
+    border-bottom-color: transparent;
+    margin: 2px -4px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .inline-row.current .i-set { color: var(--bad); }
+  .inline-row.current .i-vals { color: var(--ink); font-size: 19px; }
+  .inline-row .chk.done { background: var(--ok); color: white; }
+  .inline-row .chk.target { background: transparent; color: var(--label); border: 1px solid var(--hairline-strong); }
+  .inline-row .chk.current { background: var(--ink-deep); color: white; }
+
+  /* check svg */
+  .check { content: ''; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Set table — 3 design directions</h1>
+    <p>Three reinterpretations of the table-style set tracker inside INCYTE's design language: cool blue palette, glass surfaces, mono numerics. Each option shows the same 4 sets (2 done, 1 current, 1 upcoming) so the state treatments compare directly.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ───────── A — Editorial ledger ───────── -->
+    <div class="option">
+      <span class="opt-label">A</span>
+      <h2 class="opt-name">Editorial ledger</h2>
+      <p class="opt-tag">Strict table inside a single card. Hairline rules between rows, mono numerics, columnar headers. The most data-dense option — feels like a lab sheet. Current row is marked by a left-edge accent bar and soft blue tint.</p>
+      <div class="stage">
+        <div class="ledger">
+          <div class="ledger-head">
+            <span>Set</span>
+            <span>Previous</span>
+            <span class="h-right">Weight × Reps</span>
+            <span>RPE</span>
+            <span></span>
+          </div>
+          <div class="ledger-row done">
+            <span class="l-set">1</span>
+            <span class="l-prev">60 × 5</span>
+            <span class="l-vals">60 × 5</span>
+            <span class="l-rpe">7</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="ledger-row done">
+            <span class="l-set">2</span>
+            <span class="l-prev">100 × 3</span>
+            <span class="l-vals">100 × 3</span>
+            <span class="l-rpe">8</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="ledger-row current">
+            <span class="l-set">3</span>
+            <span class="l-prev">120 × 1</span>
+            <span class="l-vals">120 × 1</span>
+            <span class="l-rpe">—</span>
+            <span class="chk current">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="ledger-row">
+            <span class="l-set">4</span>
+            <span class="l-prev">137 × 5</span>
+            <span class="l-vals">130 × 5</span>
+            <span class="l-rpe">—</span>
+            <span class="chk target">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Densest. Best for lifters who want to scan all their sets at once. Tradeoff: more visual noise per row; column headers eat vertical space. Compatible with adding a "Δ" delta column (today vs. previous) without restructuring.
+      </div>
+    </div>
+
+    <!-- ───────── B — Glass pill rows with column header ───────── -->
+    <div class="option">
+      <span class="opt-label">B</span>
+      <h2 class="opt-name">Pill rows, columnar</h2>
+      <p class="opt-tag">Keeps INCYTE's glass-pill row aesthetic but adopts the reference's column discipline. Header sits above as a mono eyebrow. Done rows are tinted teal; the current row has the prismatic gradient hero treatment.</p>
+      <div class="stage">
+        <div class="columnar">
+          <div class="col-head">
+            <span>Set</span>
+            <span>Previous</span>
+            <span class="h-right">Today</span>
+            <span></span>
+          </div>
+          <div class="pill-row done">
+            <span class="r-set">01</span>
+            <span class="r-prev">60 × 5</span>
+            <span class="r-vals">60 × 5</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="pill-row done">
+            <span class="r-set">02</span>
+            <span class="r-prev">100 × 3</span>
+            <span class="r-vals">100 × 3</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="pill-row current">
+            <span class="r-set">03</span>
+            <span class="r-prev">120 × 1</span>
+            <span class="r-vals">120 × 1</span>
+            <span class="chk current">
+              <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="2.5" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="pill-row">
+            <span class="r-set">04</span>
+            <span class="r-prev">137 × 5</span>
+            <span class="r-vals">130 × 5</span>
+            <span class="chk target">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most consistent with the existing prototype's aesthetic. The current row borrows the hero's prismatic gradient so the "this is now" cue is unmistakable. Tradeoff: slightly less dense than A; column headers feel slightly redundant since pill structure already separates rows.
+      </div>
+    </div>
+
+    <!-- ───────── C — Inline typographic ledger ───────── -->
+    <div class="option">
+      <span class="opt-label">C</span>
+      <h2 class="opt-name">Typographic ledger</h2>
+      <p class="opt-tag">No card containers, no column headers. Just typography. Set number and today's value carry the visual weight; "previous" sits as a small mono subscript on the right. The least UI, most content.</p>
+      <div class="stage">
+        <div class="inline-list">
+          <div class="inline-row done">
+            <span class="i-set"><span class="num">01</span></span>
+            <span class="i-vals">60<span class="unit">LB</span> × 5<span class="unit">R</span></span>
+            <span class="i-prev"><span class="pl">last</span>60 × 5</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="inline-row done">
+            <span class="i-set"><span class="num">02</span></span>
+            <span class="i-vals">100<span class="unit">LB</span> × 3<span class="unit">R</span></span>
+            <span class="i-prev"><span class="pl">last</span>100 × 3</span>
+            <span class="chk done">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="inline-row current">
+            <span class="i-set"><span class="num">03</span></span>
+            <span class="i-vals">120<span class="unit">LB</span> × 1<span class="unit">R</span></span>
+            <span class="i-prev"><span class="pl">last</span>120 × 1</span>
+            <span class="chk current">
+              <svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="2.5" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="inline-row">
+            <span class="i-set"><span class="num">04</span></span>
+            <span class="i-vals">130<span class="unit">LB</span> × 5<span class="unit">R</span></span>
+            <span class="i-prev"><span class="pl">last</span>137 × 5</span>
+            <span class="chk target">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <strong>Character</strong>
+        Most editorial. Closest in spirit to the hero's typographic statement — the rows feel like content, not UI chrome. Tradeoff: lighter visual separation between rows; tap targets rely on row padding rather than a card boundary. Best paired with subtle hover/press states.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
