@@ -51,7 +51,11 @@
     width: 393px;
     height: 852px;
     border-radius: 44px;
-    background: var(--paper);
+    /* Ambient color bleed for glass surfaces to refract */
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
     box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
     border: 1px solid var(--hairline);
     overflow: hidden;
@@ -255,15 +259,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 999px;
-    background: transparent;
-    border: 1px solid var(--hairline);
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.75);
     cursor: pointer;
-    transition: background 180ms ease-out, border-color 180ms ease-out;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 4px 12px rgba(15,22,34,0.06);
+    transition: background 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  .back-chip:hover { background: white; border-color: rgba(15,22,34,0.18); }
+  .back-chip:hover { background: rgba(255,255,255,0.85); transform: translateY(-1px); }
   .back-chip svg { width: 14px; height: 14px; color: var(--ink); }
   .back-chip span { display: none; }   /* hidden by default; revealed via aria-label */
 
@@ -323,28 +330,48 @@
     transition: background 180ms ease-out, border-color 180ms ease-out;
   }
   .pref-chip.on {
-    background: rgba(93,155,184,0.10);
-    border-color: rgba(93,155,184,0.32);
+    background: rgba(93,155,184,0.14);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-color: rgba(93,155,184,0.40);
     color: var(--ink);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
   }
   .pref-chip.on .dot {
     background: var(--accent);
     border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(93,155,184,0.40);
   }
   .pref-chip:active { transform: scale(0.96); }
 
-  /* Hero card — the central focal point. Single typographic statement. */
+  /* Hero card — the central focal point. Full glass treatment:
+     backdrop-blur, multi-layer shadow stack, specular top edge highlight. */
   .hero {
     margin: 0 22px 18px;
-    padding: 26px 24px 22px;
-    background: white;
-    border: 1px solid var(--hairline);
-    border-radius: 22px;
+    padding: 22px 20px 18px;
+    background: linear-gradient(155deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.65) 100%);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 24px;
     box-shadow:
-      0 1px 0 rgba(255,255,255,1) inset,
-      0 1px 2px rgba(15,22,34,0.04),
-      0 12px 28px rgba(15,22,34,0.06);
+      0 2px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.5) inset,
+      0 0 0 1px rgba(15,22,34,0.03),
+      0 24px 50px rgba(15,22,34,0.10),
+      0 8px 18px rgba(15,22,34,0.06);
     position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+    border-radius: 1px;
+    pointer-events: none;
   }
   .hero-eyebrow {
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
@@ -389,19 +416,28 @@
     margin-bottom: 18px;
   }
   .picker-card {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: 13px;
-    padding: 12px 8px 11px;
+    background: rgba(255,255,255,0.70);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 13px 8px 12px;
     text-align: center;
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(15,22,34,0.03);
-    transition: background 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(15,22,34,0.03),
+      0 4px 12px rgba(15,22,34,0.04);
+    transition: background 200ms ease-out, border-color 200ms ease-out, transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease-out;
   }
   .picker-card:hover {
-    background: white;
-    border-color: rgba(93,155,184,0.32);
-    transform: translateY(-1px);
+    background: rgba(255,255,255,0.92);
+    border-color: rgba(93,155,184,0.42);
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 3px rgba(93,155,184,0.08),
+      0 10px 22px rgba(15,22,34,0.06);
   }
   .picker-card:active { transform: translateY(0); }
   .picker-card .lbl {
@@ -442,14 +478,20 @@
   .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 26px rgba(24,32,48,0.36); }
   .hero-cta:active { transform: translateY(0); }
 
-  /* Prior reference — soft pink panel so it stands out as historical data,
-     not current/active. Two-line layout: source+date eyebrow, then values. */
+  /* Prior reference — pink glass panel. Soft mauve-pink with backdrop-blur
+     and inset highlight, so it stands out as historical data with premium feel. */
   .prior {
-    margin: 0 22px 10px;
-    padding: 10px 14px 11px;
-    background: rgba(201,160,190, 0.13);
-    border: 1px solid rgba(201,160,190, 0.30);
-    border-radius: 11px;
+    margin: 0 22px 12px;
+    padding: 12px 16px 13px;
+    background: linear-gradient(155deg, rgba(201,160,190, 0.22) 0%, rgba(201,160,190, 0.12) 100%);
+    backdrop-filter: blur(22px) saturate(1.3);
+    -webkit-backdrop-filter: blur(22px) saturate(1.3);
+    border: 1px solid rgba(201,160,190, 0.36);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.65) inset,
+      0 0 0 1px rgba(255,255,255,0.3) inset,
+      0 6px 18px rgba(201,160,190, 0.10);
     flex-shrink: 0;
   }
   .prior .lbl {
@@ -477,27 +519,38 @@
     flex-shrink: 0;
   }
 
-  /* Set rows — editorial, no cards. Just hairline-divided lines. */
+  /* Set rows — individual glass cards (no hairlines). Each row is its own
+     premium surface with backdrop-blur, inset highlight, multi-layer shadow. */
   .sets {
     padding: 0 22px;
     display: flex;
     flex-direction: column;
+    gap: 8px;
     flex-shrink: 0;
   }
   .set-row {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 13px 0;
-    border-bottom: 1px solid rgba(15,22,34,0.06);
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.60);
+    backdrop-filter: blur(22px) saturate(1.4);
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.78);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.95) inset,
+      0 0 0 1px rgba(15,22,34,0.03),
+      0 4px 14px rgba(15,22,34,0.04);
+    transition: transform 220ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 220ms ease-out;
   }
-  .set-row:last-child { border-bottom: none; }
   .set-row .idx {
     font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--label);
     width: 44px;
+    flex-shrink: 0;
   }
   .set-row .vals {
     flex: 1;
@@ -512,50 +565,75 @@
   }
   .set-row.done {
     cursor: pointer;
-    transition: padding 180ms ease-out;
   }
-  .set-row.done:hover { padding-left: 4px; }
+  .set-row.done:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.95) inset,
+      0 8px 20px rgba(15,22,34,0.08);
+  }
   .set-row.done .vals { color: var(--ink); }
   .set-row.done .meta {
     color: var(--ok);
-    padding: 4px 10px;
-    background: rgba(79,154,168,0.08);
-    border: 1px solid rgba(79,154,168,0.18);
+    padding: 5px 11px;
+    background: rgba(79,154,168,0.12);
+    border: 1px solid rgba(79,154,168,0.28);
     border-radius: 999px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset;
   }
   .set-row.target .vals { color: var(--muted); }
 
-  /* Per-set remove — tiny, subtle, always visible */
+  /* Per-set remove — small ghost button on the right edge of each card */
   .set-row .row-remove {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
     border: 1px solid transparent;
     background: transparent;
     display: grid;
     place-items: center;
     color: var(--label);
     cursor: pointer;
-    transition: color 150ms ease-out, background 150ms ease-out;
+    transition: color 150ms ease-out, background 150ms ease-out, border-color 150ms ease-out;
     flex-shrink: 0;
   }
-  .set-row .row-remove:hover { color: var(--bad); background: rgba(176,128,146,0.08); }
-  .set-row .row-remove svg { width: 10px; height: 10px; }
+  .set-row .row-remove:hover {
+    color: var(--bad);
+    background: rgba(176,128,146,0.10);
+    border-color: rgba(176,128,146,0.28);
+  }
+  .set-row .row-remove svg { width: 11px; height: 11px; }
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — center-aligned, consolidated layout.
-     Action + reason on one line (bold action, regular reason), next-set
-     value centered below, single 'Apply' button centered. */
+  /* Inline AI recommendation — center-aligned glass card. Turned-up
+     prismatic gradient + backdrop-blur + multi-layer shadow stack. */
   .rec-inline {
     margin: 6px 0 8px 12px;
-    padding: 11px 14px 13px;
+    padding: 12px 14px 14px;
     background:
-      linear-gradient(155deg, rgba(93,155,184,0.12) 0%, rgba(155,130,200,0.09) 55%, rgba(201,160,190,0.07) 100%);
-    border: 1px solid rgba(93,155,184,0.20);
-    border-radius: 12px;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
+      linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.10) 100%);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    border: 1px solid rgba(93,155,184,0.32);
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.85) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 8px 22px rgba(93,155,184,0.12),
+      0 2px 6px rgba(15,22,34,0.04);
     text-align: center;
+    position: relative;
+  }
+  .rec-inline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 18%;
+    right: 18%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent);
+    pointer-events: none;
   }
   .rec-inline .eyebrow {
     display: inline-flex;
@@ -651,10 +729,16 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    background: white;
-    border: 1px solid var(--hairline);
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(36px) saturate(1.5);
+    -webkit-backdrop-filter: blur(36px) saturate(1.5);
+    border: 1px solid rgba(255,255,255,0.85);
     border-radius: 999px;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 8px 24px rgba(15,22,34,0.08);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(15,22,34,0.04),
+      0 14px 36px rgba(15,22,34,0.12),
+      0 4px 10px rgba(15,22,34,0.06);
     z-index: 5;
   }
   .wm-actions button { background: none; border: none; font: 600 12px/1 'Inter Tight',sans-serif; cursor: pointer; letter-spacing: -0.005em; }
