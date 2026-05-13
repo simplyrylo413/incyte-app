@@ -731,23 +731,23 @@
   }
   .add-set-btn svg { width: 11px; height: 11px; }
 
-  /* Footer action bar — Track RPE toggle, AI toggle, Skip Today, Log Set.
-     All buttons same height; widths flex to content with Log Set taking the
-     remaining space. Glass pill container. */
+  /* Footer action bar — RPE + AI as iOS-style toggle switches.
+     Content-sized buttons centered in a glass pill. */
   .wm-actions {
     position: absolute;
     left: 14px;
     right: 14px;
     bottom: 14px;
     display: flex;
-    align-items: stretch;
-    gap: 5px;
-    padding: 6px;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 8px 18px;
     background: rgba(255,255,255,0.78);
     backdrop-filter: blur(36px) saturate(1.5);
     -webkit-backdrop-filter: blur(36px) saturate(1.5);
     border: 1px solid rgba(255,255,255,0.85);
-    border-radius: 22px;
+    border-radius: 999px;
     box-shadow:
       0 1px 0 rgba(255,255,255,1) inset,
       0 0 0 1px rgba(15,22,34,0.04),
@@ -760,38 +760,46 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    height: 44px;
-    padding: 0 14px;
-    background: white;
-    border: 1px solid rgba(15,22,34,0.10);
-    border-radius: 14px;
-    font: 600 12px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.005em;
-    color: var(--ink);
+    gap: 8px;
+    height: 36px;
+    padding: 0 6px;
+    background: transparent;
+    border: none;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
     cursor: pointer;
-    flex: 1 1 0;
-    min-width: 0;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.03);
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+    transition: color 180ms ease-out;
   }
-  .foot-btn:active { transform: scale(0.97); }
 
-  /* Unified toggle treatment for RPE + AI footer buttons.
-     Mono uppercase label. Solid black when selected, white-ghost when off. */
-  .foot-btn.toggle {
-    padding: 0 14px;
-    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.10em;
-    color: var(--muted);
+  /* iOS-style toggle switches: label + track + thumb */
+  .foot-btn.toggle.on { color: var(--ink); }
+  .foot-btn.toggle .toggle-track {
+    width: 30px;
+    height: 18px;
+    background: rgba(15,22,34, 0.12);
+    border-radius: 999px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 200ms var(--ease-out-cubic);
   }
-  .foot-btn.toggle.on {
+  .foot-btn.toggle .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(15,22,34, 0.20), 0 0 0 1px rgba(15,22,34, 0.04);
+    transition: left 220ms var(--ease-out-cubic);
+  }
+  .foot-btn.toggle.on .toggle-track {
     background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.15) inset,
-      0 4px 10px rgba(24,32,48,0.25);
+  }
+  .foot-btn.toggle.on .toggle-thumb {
+    left: 14px;
   }
 
   /* (.foot-btn.skip removed — Skip is handled via the Today × button) */
@@ -1710,8 +1718,14 @@ function renderWorkout() {
   const trackOn = state.session.trackRpe;
   const aiOn = state.session.aiRecOn;
   footer.innerHTML = `
-    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">RPE</button>
-    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>`;
+    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+      <span>RPE</span>
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+    </button>
+    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
+      <span>AI</span>
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+    </button>`;
 
   $('#toggle-rpe').addEventListener('click', () => {
     state.session.trackRpe = !state.session.trackRpe;
