@@ -149,3 +149,51 @@ Append-only record of meaningful PM decisions. Each entry captures what was deci
 - The right time to decide between the three resolutions is when scoping A-01, not now.
 
 **Revisit when:** A-01 is being scoped. Update this entry with the chosen resolution.
+
+---
+
+## 2026-05-12 — Light mode vs. dark-default contradiction (FLAGGED, NOT RESOLVED)
+
+**Decision:** Pending. Two recent sources of design direction contradict on the base theme.
+
+**Context:**
+- **INCYTE_Handoff.docx (mobile294, May 11):** *"Mobile-first layout, dark theme by default with light theme toggle."*
+- **UX Rationale doc (pasted by user May 12):** *"Light frosted glass foundation. Pale blue-gray surfaces. Restrained blue-gray accents. Dark navy primary actions."*
+
+The newer rationale doc describes a light-mode experience. The handoff baseline (`mobile294.html`, currently committed at `~/fitness-app/src/fitlog-mobile.html`) ships dark-by-default.
+
+**Three plausible resolutions:**
+- **A. Switch to light-default** per the rationale doc, retire dark-default. The light-mode mockups (`~/fitness-app/pm/mockups/01-03`) become the design baseline.
+- **B. Keep dark-default**, treat the rationale doc as describing the light-mode variant. Build dark equivalents of the three mockups.
+- **C. Make the toggle real and equal-priority**, with no canonical "default" — both themes are first-class. Slightly more work but matches premium-app convention.
+
+**Rationale (proposed, not final):** Option **A** is most likely correct given:
+- The rationale doc is more recent than the handoff
+- Light glass + blue-gray + dark navy primary is harder to get wrong than a dark theme with accent gradients (lower visual risk for App Store screenshots)
+- Light mode reads as "premium / calm" more cleanly to App Store reviewers and users browsing the store; dark mode tends to read as "gaming / dev tool"
+- The trained-lifter audience using INCYTE in well-lit gym environments benefits from a light surface
+
+But this is a real product decision and the user should make the call.
+
+**Mockups rendered in light direction:** `~/fitness-app/pm/mockups/01-today-overview.html`, `02-workout-mode.html`, `03-add-movement-sheet.html` reflect Option A. If the call goes to B or C, the dark variants need to be built.
+
+**Revisit when:** User makes the call. Update this entry with the chosen option and decommission the wrong-direction mockup variants.
+
+---
+
+## 2026-05-12 — Tab structure naming inconsistency (FLAGGED, NOT RESOLVED)
+
+**Decision:** Pending. Two recent sources name the tabs differently.
+
+**Context:**
+- **INCYTE_Handoff.docx (mobile294, May 11):** Tabs are **Week / Momentum / Library / Insights**.
+- **UX Rationale doc (May 12):** Names the active surface **Today** and describes Workout Mode as a focused secondary state. Doesn't enumerate all four tabs.
+
+The mockups use **Today / Plan / Momentum / Library** as a working interpretation. The "Today" surface inside the rationale doc may map to "Week" in the handoff (the current week's session view), with Insights renamed or absorbed.
+
+**Resolutions to choose between:**
+- Keep handoff names: Week / Momentum / Library / Insights
+- Adopt rationale-doc naming: Today / Plan / Momentum / Library (+ Insights as a fifth or merge into Momentum)
+- Pick a new canonical set
+
+**Revisit when:** User confirms canonical tab names. Update mockups, roadmap, and handoff to match.

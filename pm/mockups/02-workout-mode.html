@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>INCYTE — Workout Mode (Bench Press · Set 2)</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --glass: rgba(255,255,255,0.65);
+    --glass-2: rgba(255,255,255,0.85);
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
+
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --accent-3: #9eb5cb;
+    --ok: #4f9aa8;
+    --warn: #8e9bb0;
+    --bad: #b08092;
+
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+
+    --depth-1: 0 1px 0 rgba(255,255,255,0.7) inset, 0 1px 2px rgba(15,22,34,0.04);
+    --depth-2: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px rgba(15,22,34,0.05), 0 1px 3px rgba(15,22,34,0.04);
+    --depth-3: 0 1px 0 rgba(255,255,255,0.9) inset, 0 14px 30px rgba(15,22,34,0.09), 0 2px 6px rgba(15,22,34,0.05);
+
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --r-xl: 22px;
+    --r-pill: 999px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color: var(--ink);
+    background: radial-gradient(140% 80% at 50% -10%, #e6ecf5 0%, var(--paper) 50%, var(--paper-2) 100%);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: start center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .device {
+    width: 393px;
+    height: 852px;
+    border-radius: 44px;
+    background: var(--paper);
+    box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .statusbar {
+    height: 44px;
+    padding: 0 24px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font: 600 14px/1 'Inter Tight',sans-serif;
+  }
+  .statusbar .sig { display:flex; gap:4px; align-items:flex-end; opacity:.85; }
+  .statusbar .sig span { width:3px; background:var(--ink); border-radius:1px; }
+  .statusbar .sig span:nth-child(1){height:5px}.statusbar .sig span:nth-child(2){height:7px}
+  .statusbar .sig span:nth-child(3){height:9px}.statusbar .sig span:nth-child(4){height:11px}
+
+  /* Top bar with back chevron + movement identity */
+  .topbar {
+    padding: 6px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    padding: 8px 12px 8px 8px;
+    box-shadow: var(--depth-1);
+    cursor: pointer;
+  }
+  .back-chip svg { width: 14px; height: 14px; color: var(--ink); }
+  .back-chip span {
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .identity {
+    flex: 1;
+    min-width: 0;
+  }
+  .identity .body-part {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 4px;
+  }
+  .identity .name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .set-counter {
+    text-align: right;
+  }
+  .set-counter .now {
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .set-counter .of {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.10em;
+    color: var(--label);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  /* Prior reference pill */
+  .prior {
+    margin: 0 18px 14px;
+    padding: 10px 14px;
+    background: var(--glass);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .prior .lbl {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    flex-shrink: 0;
+  }
+  .prior .vals {
+    font: 500 12px/1.3 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Set list region */
+  .sets {
+    padding: 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Compact set row (logged or future target) */
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    box-shadow: var(--depth-1);
+  }
+  .set-row .idx {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    width: 40px;
+  }
+  .set-row .vals {
+    flex: 1;
+    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .set-row .meta {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .set-row.done .vals { color: var(--ok); }
+  .set-row.done .meta { color: var(--ok); }
+  .set-row.target .vals { color: var(--muted); }
+
+  /* Current set — expanded */
+  .current {
+    margin: 8px 18px;
+    padding: 16px 16px 14px;
+    background: white;
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--depth-3);
+  }
+  .current .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .current .eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .current .eyebrow .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .current .set-label {
+    font: 700 16px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* Picker pills row */
+  .pickers {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .picker {
+    border: 1px solid var(--hairline-strong);
+    background: var(--paper);
+    border-radius: var(--r-md);
+    padding: 10px 12px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .picker .lbl {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .picker .val {
+    font: 700 22px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .picker .unit {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .picker.empty .val { color: var(--label); }
+
+  .log-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 20px rgba(24,32,48,0.30), 0 2px 4px rgba(24,32,48,0.20);
+    cursor: pointer;
+  }
+
+  /* AI recommendation card */
+  .rec {
+    margin: 12px 18px 0;
+    padding: 14px 14px 12px;
+    background: linear-gradient(160deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.08) 60%, rgba(201,160,190,0.08) 100%);
+    border: 1px solid rgba(93,155,184,0.25);
+    border-radius: var(--r-lg);
+    box-shadow: var(--depth-2);
+  }
+  .rec .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .rec .eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rec .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(93,155,184,0.20);
+  }
+  .rec .row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .rec .action {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .rec .next {
+    font: 600 13px/1.2 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .rec .reason {
+    font: 500 12px/1.45 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 6px 0 12px;
+  }
+  .rec .apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px 8px 12px;
+    background: rgba(15,22,34,0.06);
+    border: 1px solid rgba(15,22,34,0.08);
+    border-radius: var(--r-pill);
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .rec .apply svg { width: 12px; height: 12px; }
+
+  /* Bottom action bar */
+  .actions {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--glass-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    box-shadow: var(--depth-3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .actions button {
+    background: none;
+    border: none;
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    cursor: pointer;
+  }
+  .actions .skip {
+    color: var(--bad);
+    padding: 8px 4px;
+  }
+  .actions .complete {
+    color: var(--ink);
+    padding: 8px 14px;
+    background: var(--paper-2);
+    border-radius: var(--r-pill);
+    border: 1px solid var(--hairline);
+  }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="statusbar">
+      <span>9:43</span>
+      <div class="sig"><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="back-chip">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Today</span>
+      </div>
+      <div class="identity">
+        <div class="body-part">CHEST · STRENGTH</div>
+        <div class="name">Bench Press</div>
+      </div>
+      <div class="set-counter">
+        <div class="now">2</div>
+        <div class="of">OF 4</div>
+      </div>
+    </div>
+
+    <!-- Prior reference -->
+    <div class="prior">
+      <span class="lbl">LAST TIME</span>
+      <span class="vals">185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5</span>
+    </div>
+
+    <!-- Logged set 1 (compact) -->
+    <div class="sets">
+      <div class="set-row done">
+        <span class="idx">SET 1</span>
+        <span class="vals">185 × 10 · RPE 7</span>
+        <span class="meta">DONE</span>
+      </div>
+    </div>
+
+    <!-- Current set (expanded) -->
+    <div class="current">
+      <div class="header">
+        <span class="eyebrow"><span class="dot"></span>SET 2 · NOW</span>
+        <span class="set-label">Working set</span>
+      </div>
+      <div class="pickers">
+        <div class="picker">
+          <div class="lbl">WEIGHT</div>
+          <div class="val">185</div>
+          <div class="unit">LB</div>
+        </div>
+        <div class="picker">
+          <div class="lbl">REPS</div>
+          <div class="val">10</div>
+          <div class="unit">REPS</div>
+        </div>
+        <div class="picker empty">
+          <div class="lbl">RPE</div>
+          <div class="val">—</div>
+          <div class="unit">EFFORT</div>
+        </div>
+      </div>
+      <button class="log-btn">Log set 2</button>
+    </div>
+
+    <!-- Future targets (compact) -->
+    <div class="sets" style="margin-top: 8px;">
+      <div class="set-row target">
+        <span class="idx">SET 3</span>
+        <span class="vals">185 × 9</span>
+        <span class="meta">TARGET</span>
+      </div>
+      <div class="set-row target">
+        <span class="idx">SET 4</span>
+        <span class="vals">180 × 10</span>
+        <span class="meta">TARGET</span>
+      </div>
+    </div>
+
+    <!-- AI Recommendation card -->
+    <div class="rec">
+      <div class="head">
+        <span class="eyebrow"><span class="live-dot"></span>RECOMMENDATION · LIVE</span>
+      </div>
+      <div class="row">
+        <span class="action">Add 5 lb</span>
+        <span class="next">→ 190 × 10</span>
+      </div>
+      <div class="reason">Effort stayed controlled. Add a small amount of weight.</div>
+      <button class="apply">
+        Apply target
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Bottom action bar (replaces nav while in Workout Mode) -->
+    <div class="actions">
+      <button class="skip">Skip movement</button>
+      <button class="complete">Complete</button>
+    </div>
+
+  </div>
+</body>
+</html>
