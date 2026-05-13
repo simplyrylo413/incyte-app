@@ -344,22 +344,22 @@
   }
   .pref-chip:active { transform: scale(0.96); }
 
-  /* Hero card — the central focal point. Full glass treatment:
-     backdrop-blur, multi-layer shadow stack, specular top edge highlight. */
+  /* Hero card — central focal point. Compressed sizing while keeping
+     the full glass treatment (backdrop-blur, multi-layer shadows, specular). */
   .hero {
-    margin: 0 22px 18px;
-    padding: 22px 20px 18px;
+    margin: 0 22px 12px;
+    padding: 16px 16px 14px;
     background: linear-gradient(155deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.65) 100%);
     backdrop-filter: blur(40px) saturate(1.6);
     -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border: 1px solid rgba(255,255,255,0.9);
-    border-radius: 24px;
+    border-radius: 22px;
     box-shadow:
       0 2px 0 rgba(255,255,255,1) inset,
       0 0 0 1px rgba(255,255,255,0.5) inset,
       0 0 0 1px rgba(15,22,34,0.03),
-      0 24px 50px rgba(15,22,34,0.10),
-      0 8px 18px rgba(15,22,34,0.06);
+      0 20px 44px rgba(15,22,34,0.09),
+      0 6px 14px rgba(15,22,34,0.05);
     position: relative;
   }
   .hero::before {
@@ -374,11 +374,11 @@
     pointer-events: none;
   }
   .hero-eyebrow {
-    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
     color: var(--label);
-    margin-bottom: 22px;
+    margin-bottom: 13px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -407,27 +407,26 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Three-picker grid inside the hero card. Each cell shows label + value
-     + unit. Tap any cell to open the picker for that field. */
+  /* Three-picker grid inside the hero card — compressed sizing. */
   .hero-pickers {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 18px;
+    gap: 6px;
+    margin-bottom: 12px;
   }
   .picker-card {
     background: rgba(255,255,255,0.70);
     backdrop-filter: blur(20px) saturate(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(1.3);
     border: 1px solid rgba(255,255,255,0.85);
-    border-radius: 14px;
-    padding: 13px 8px 12px;
+    border-radius: 12px;
+    padding: 10px 6px 9px;
     text-align: center;
     cursor: pointer;
     box-shadow:
       0 1px 0 rgba(255,255,255,1) inset,
       0 0 0 1px rgba(15,22,34,0.03),
-      0 4px 12px rgba(15,22,34,0.04);
+      0 3px 10px rgba(15,22,34,0.04);
     transition: background 200ms ease-out, border-color 200ms ease-out, transform 200ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 200ms ease-out;
   }
   .picker-card:hover {
@@ -437,42 +436,42 @@
     box-shadow:
       0 1px 0 rgba(255,255,255,1) inset,
       0 0 0 3px rgba(93,155,184,0.08),
-      0 10px 22px rgba(15,22,34,0.06);
+      0 8px 18px rgba(15,22,34,0.06);
   }
   .picker-card:active { transform: translateY(0); }
   .picker-card .lbl {
-    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--label);
-    margin-bottom: 7px;
+    margin-bottom: 5px;
   }
   .picker-card .val {
-    font: 700 26px/1 'Inter Tight',sans-serif;
+    font: 700 22px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.035em;
     color: var(--ink);
   }
   .picker-card.empty .val { color: var(--label); }
   .picker-card .unit {
-    font: 600 9px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-top: 6px;
+    margin-top: 5px;
   }
 
-  /* Hero primary action */
+  /* Hero primary action — slightly smaller */
   .hero-cta {
     width: 100%;
-    padding: 16px;
+    padding: 13px;
     background: var(--ink-deep);
     color: white;
     border: none;
-    border-radius: 14px;
-    font: 600 14px/1 'Inter Tight',sans-serif;
+    border-radius: 12px;
+    font: 600 13px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.01em;
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 18px rgba(24,32,48,0.28);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 0 6px 14px rgba(24,32,48,0.26);
     transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease-out;
   }
   .hero-cta:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 26px rgba(24,32,48,0.36); }
@@ -1073,6 +1072,9 @@
     <!-- HERO: the current set as a single typographic statement -->
     <div id="wm-hero"></div>
 
+    <!-- LIVE AI recommendation (preview, before any set is logged) -->
+    <div id="wm-live-rec"></div>
+
     <!-- Prior reference — two-line: source+date on first, values on second -->
     <div class="prior">
       <span class="lbl" id="wm-prior-label">LAST SESSION</span>
@@ -1508,6 +1510,35 @@ function renderWorkout() {
         </div>
         <p style="margin: 14px 0; color: var(--muted); font: 500 14px/1.5 'Inter Tight',sans-serif;">All sets logged. Tap Complete to return.</p>
       </div>`;
+  }
+
+  // === LIVE preview rec — shown below the hero when no sets are logged
+  // yet AND the current set has all required values. Lets the user see
+  // the AI's read on what they're about to log before they log it. ===
+  const liveRecEl = $('#wm-live-rec');
+  liveRecEl.innerHTML = '';
+  const noneLogged = mv.sets.every(s => s.status !== 'done');
+  if (cur && state.session.aiRecOn && noneLogged) {
+    const needsRpe = state.session.trackRpe;
+    const hasAllValues = cur.weight != null && cur.reps != null && (!needsRpe || cur.rpe != null);
+    if (hasAllValues) {
+      const r = computeRecommendation(cur, state.session.trackRpe);
+      if (!r.muted) {
+        const cleanReason = r.reason
+          .replace(/^RPE\s*\d+(?:\.\d+)?(?:\s+at\s+\d+\s+reps)?\s*[—–-]\s*/i, '')
+          .replace(/^\d+\s*reps?\s*[—–-]\s*/i, '')
+          .replace(/\s*Enable RPE for sharper guidance\.$/i, '');
+        const reasonText = cleanReason.charAt(0).toUpperCase() + cleanReason.slice(1);
+        liveRecEl.innerHTML = `
+          <div class="rec-inline" style="margin: 0 22px 12px;">
+            <span class="eyebrow">NEXT SET · PREVIEW</span>
+            <p class="action-reason"><span class="action">${r.action}.</span> ${reasonText}</p>
+            <span class="next">→ ${r.next}</span>
+            <button class="apply" id="btn-live-apply">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>`;
+        $('#btn-live-apply').addEventListener('click', () => applyRecommendation(r));
+      }
+    }
   }
 
   // === LOGGED sets — editorial section. AI rec renders inline below the
