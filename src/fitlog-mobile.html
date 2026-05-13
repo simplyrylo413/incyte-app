@@ -12776,19 +12776,39 @@ function getActiveWorkoutEntry() {
   const planId = ui.session.activePlanId;
   if (!mid) return null;
   let entry = (typeof activeEntryFor === 'function') ? activeEntryFor(mid, planId) : null;
-  // If no active entry yet, try ensureActiveEntry with sensible defaults.
+  // If no active entry yet, create one and seed sets so the hero has something
+  // to render. Production's defaultSetsFor(p) takes a plan item (not an id);
+  // it mirrors the last session's set count + values when available.
   if (!entry && typeof ensureActiveEntry === 'function') {
-    const mv = (typeof getMv === 'function') ? getMv(mid) : null;
-    const defaults = { sets: [], plannedReps: null };
-    // Seed with planned set count from prevW/prevR if available (production
-    // already populates these via defaultSetsFor when Today first renders).
+    let seededSets = null;
     try {
-      if (typeof defaultSetsFor === 'function' && planId) {
-        const seeded = defaultSetsFor(planId);
-        if (seeded && seeded.sets) defaults.sets = seeded.sets;
+      if (typeof defaultSetsFor === 'function') {
+        const p = (data.plans || []).find(x => x && x.id === planId)
+                || { id: planId, mid: mid };
+        const result = defaultSetsFor(p);
+        // defaultSetsFor returns an array of sets directly (production shape).
+        if (Array.isArray(result)) seededSets = result;
+        else if (result && Array.isArray(result.sets)) seededSets = result.sets;
       }
     } catch (e) {}
-    entry = ensureActiveEntry(mid, planId, defaults);
+    // Last-resort fallback: 3 blank working sets so the hero isn't empty.
+    if (!seededSets || !seededSets.length) {
+      seededSets = [
+        { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+        { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+        { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+      ];
+    }
+    entry = ensureActiveEntry(mid, planId, { sets: seededSets, plannedReps: null });
+  }
+  // If an entry exists but has no sets (edge case), inject defaults.
+  if (entry && (!entry.sets || entry.sets.length === 0)) {
+    entry.sets = [
+      { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+      { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+      { weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false },
+    ];
+    if (typeof saveData === 'function') saveData();
   }
   return entry;
 }
@@ -12822,14 +12842,23 @@ function renderWorkoutV2() {
   const nm = view.querySelector('#wm-name');
   if (nm) nm.textContent = (mv && mv.name) || '—';
 
-  // ---- History pill ----
+  // ---- History pill — only show when there's prior session data ----
   const priorEl = view.querySelector('#wm-prior');
   const priorDateEl = view.querySelector('#wm-prior-date');
+  const priorContainer = view.querySelector('.prior');
   let lastEntry = null;
   if (typeof lastSessionFor === 'function' && mid) {
-    try { lastEntry = lastSessionFor(mid); } catch (e) {}
+    try {
+      const lastSess = lastSessionFor(mid);
+      if (lastSess && lastSess.entries) {
+        lastEntry = lastSess.entries.find(e => e.movementId === mid);
+        if (lastEntry && lastSess.date) lastEntry.date = lastSess.date;
+      }
+    } catch (e) {}
   }
-  if (lastEntry && lastEntry.sets && lastEntry.sets.length) {
+  const hasPrior = lastEntry && lastEntry.sets && lastEntry.sets.some(s => s.weight != null || s.reps != null);
+  if (priorContainer) priorContainer.style.display = hasPrior ? '' : 'none';
+  if (hasPrior) {
     const wRange = (() => {
       const ws = lastEntry.sets.map(s => s.weight).filter(v => v != null);
       if (!ws.length) return '—';
@@ -12849,7 +12878,6 @@ function renderWorkoutV2() {
       priorDateEl.textContent = `· ${months[d.getMonth()].toUpperCase()} ${d.getDate()}`;
     }
   } else {
-    if (priorEl) priorEl.textContent = '—';
     if (priorDateEl) priorDateEl.textContent = '';
   }
 
@@ -12982,7 +13010,7 @@ function renderWorkoutV2() {
   const targetSets = entry.sets.map((s, i) => ({ s, i })).filter(x => !x.s.done && x.i !== cur);
   if (doneSets.length === 0 && targetSets.length === 0) {
     // nothing to render — hero is the only thing visible
-  } else if (loggedSlot) {
+  } else if (doneSets.length > 0 && loggedSlot) {
     let html = headerHtml + '<div class="sets">';
     doneSets.forEach(({ s, i }) => {
       const typeCls = s.warmup ? ' warmup' : '';
