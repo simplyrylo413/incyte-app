@@ -5403,11 +5403,16 @@
   }
   .bottom-nav-tab:not(.active):active { transform: scale(0.94); }
   .bottom-nav-tab .bn-glyph {
-    font-size: 20px;
+    font-size: 20px;       /* legacy — kept for any non-SVG fallback */
     line-height: 1;
     color: var(--muted);
     transition: color 0.24s ease;
   }
+  /* Inline-SVG variant of .bn-glyph (now the default). 20px square stroke
+     icons matching Tabler's visual weight. */
+  svg.bn-glyph { width: 22px; height: 22px; display: block; }
+  /* Popup item glyphs as SVG too. */
+  svg.bnp-glyph { width: 18px; height: 18px; display: inline-block; vertical-align: middle; }
   .bottom-nav-tab .bn-label {
     display: none;
   }
@@ -5971,7 +5976,8 @@
   }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<!-- Tabler icons CDN removed — all icons are now inline SVG so the file
+     stays self-contained for offline / Capacitor packaging. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style id="mobile-overrides">
 @media (max-width: 430px) {
@@ -9121,36 +9127,77 @@
 
 <!-- Bottom navigation — placed outside .app so backdrop-filter on .app
      does not create a new containing block that breaks position:fixed. -->
+<!-- Bottom nav — inline-SVG icons (replaces external Tabler webfont so the
+     app stays self-contained for Capacitor packaging). Icon designs mirror
+     Tabler's stroke-based style (24x24 viewBox, 1.6 stroke). -->
 <nav class="bottom-nav" id="bottom-nav" aria-label="Primary navigation">
   <button class="bottom-nav-tab" data-bn-view="today" type="button" aria-label="Today">
-    <i class="ti ti-calendar-event bn-glyph" aria-hidden="true"></i>
+    <svg class="bn-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="16" rx="2"/>
+      <path d="M16 3v4M8 3v4M4 11h16"/>
+      <circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none"/>
+    </svg>
   </button>
   <button class="bottom-nav-tab" data-bn-view="insights" type="button" aria-label="Insights">
-    <i class="ti ti-chart-bar bn-glyph" aria-hidden="true"></i>
+    <svg class="bn-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 20h16"/>
+      <rect x="6"  y="12" width="3" height="6"/>
+      <rect x="11" y="8"  width="3" height="10"/>
+      <rect x="16" y="4"  width="3" height="14"/>
+    </svg>
   </button>
   <button class="bottom-nav-tab" data-bn-view="week" type="button" aria-label="Momentum">
-    <i class="ti ti-bolt bn-glyph" aria-hidden="true"></i>
+    <svg class="bn-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M13 3 5 14h5l-1 7 8-11h-5l1-7Z"/>
+    </svg>
   </button>
   <span class="bn-divider" aria-hidden="true"></span>
   <button class="bottom-nav-tab bn-more-btn" data-bn-more type="button" aria-haspopup="true" aria-expanded="false" aria-label="More">
-    <i class="ti ti-layout-grid bn-glyph" aria-hidden="true"></i>
+    <svg class="bn-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4"  y="4"  width="7" height="7" rx="1.5"/>
+      <rect x="13" y="4"  width="7" height="7" rx="1.5"/>
+      <rect x="4"  y="13" width="7" height="7" rx="1.5"/>
+      <rect x="13" y="13" width="7" height="7" rx="1.5"/>
+    </svg>
   </button>
 </nav>
-<!-- Drop-up menu for the More tab — also outside .app for the same reason. -->
+<!-- Drop-up menu for the More tab — also outside .app so backdrop-filter
+     on .app doesn't break position:fixed. -->
 <div class="bottom-nav-popup" id="bottom-nav-popup" role="menu" aria-hidden="true">
-  <button class="bnp-item" data-bn-view="plan" type="button" role="menuitem"><span class="bnp-glyph">▦</span>Plan</button>
+  <button class="bnp-item" data-bn-view="plan" type="button" role="menuitem">
+    <svg class="bnp-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="5" y="4" width="14" height="17" rx="2"/>
+      <path d="M9 3h6v3H9zM8 11h8M8 15h6M8 7h.01"/>
+    </svg>
+    <span class="bnp-label">Plan</span>
+  </button>
   <button class="bnp-item" data-bn-view="history" type="button" role="menuitem">
-    <span class="bnp-glyph">☰</span><span class="bnp-label">History</span>
+    <svg class="bnp-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 8v4l3 2"/>
+      <circle cx="12" cy="12" r="8"/>
+      <path d="M4 12a8 8 0 1 1 2.34 5.66" />
+    </svg>
+    <span class="bnp-label">History</span>
   </button>
   <button class="bnp-item" data-bn-view="library" type="button" role="menuitem">
-    <span class="bnp-glyph">♥</span><span class="bnp-label">Library</span>
+    <svg class="bnp-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 4h4v16H5zM10 4h4v16h-4zM15 5l3 0 2 14-3 1Z"/>
+    </svg>
+    <span class="bnp-label">Library</span>
   </button>
   <button class="bnp-item" data-bn-view="generate" type="button" role="menuitem">
-    <span class="bnp-glyph">⚡</span><span class="bnp-label">Generate</span>
+    <svg class="bnp-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 21 18 9l-3-3L3 18Z"/>
+      <path d="M15 6l3 3M18 4l1 1M21 7l1 1M18 12l-1 1"/>
+    </svg>
+    <span class="bnp-label">Generate</span>
   </button>
   <div class="bnp-divider" aria-hidden="true"></div>
   <button class="bnp-item" data-bn-action="theme" type="button" role="menuitem">
-    <span class="bnp-glyph" id="bnp-theme-glyph">☀</span><span class="bnp-label" id="bnp-theme-label">Light mode</span>
+    <svg class="bnp-glyph" id="bnp-theme-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.8A8 8 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8Z"/>
+    </svg>
+    <span class="bnp-label" id="bnp-theme-label">Light mode</span>
   </button>
 </div>
 
@@ -20446,7 +20493,13 @@ function wireBottomNav() {
       const lbl = document.getElementById('bnp-theme-label');
       const gly = document.getElementById('bnp-theme-glyph');
       if (lbl) lbl.textContent = isDark ? 'Light mode' : 'Dark mode';
-      if (gly) gly.textContent = isDark ? '☀' : '☾';
+      // SVG path swap — sun when dark (advertising switch to light), moon
+      // when light. Stroke-only style to match the other nav glyphs.
+      if (gly) {
+        gly.innerHTML = isDark
+          ? '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4 12H2M22 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4l1.4-1.4M17 7l1.4-1.4"/>'
+          : '<path d="M21 12.8A8 8 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8Z"/>';
+      }
     };
     syncTheme();
     popup.querySelectorAll('[data-bn-action]').forEach(btn => {
