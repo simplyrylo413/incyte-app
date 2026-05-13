@@ -8406,8 +8406,23 @@
   body.theme-dark .history-row.hist-pill-b .hpb-resume { background: rgba(255,255,255, 0.92); color: var(--ink); }
   body.theme-dark .history-row.hist-pill-b .hpb-del { background: rgba(255,255,255, 0.06); border-color: rgba(255,255,255, 0.18); color: rgba(255,255,255, 0.55); }
 
-  /* "✓ N completed today" pill — renders at the bottom of Today's list when
-     any movements are hidden because they're complete. Tap → go('history'). */
+  /* Today tab toggle — Remaining / Completed. Reuses the .mom-period-toggle
+     styling for visual consistency with the Momentum Week/3 Weeks/Lifetime
+     toggle. Small bottom margin so the body-part eyebrows breathe below. */
+  .today-tab-toggle {
+    margin: 0 22px 12px;
+  }
+  .today-tab-empty {
+    text-align: center;
+    margin: 28px 22px;
+    font: 500 12.5px/1.5 'Inter Tight', sans-serif;
+    color: var(--muted);
+    font-style: italic;
+  }
+  body.theme-dark .today-tab-empty { color: rgba(255,255,255, 0.55); }
+
+  /* "✓ N completed today" pill — retired (kept the rule in case any legacy
+     instances are still rendered somewhere). */
   .today-completed-pill {
     display: inline-flex;
     align-items: center;
@@ -13118,25 +13133,44 @@ function renderTodayV2() {
     ...plan.map(p => ({ p, mv: (typeof getMv === 'function') ? getMv(p.mid) : null, entry: getEntryFor(p) })),
     ...adhocEntries.map(e => ({ p: { id: e.planId || ('adhoc-' + e.movementId), mid: e.movementId, muscle: e.muscle }, mv: (typeof getMv === 'function') ? getMv(e.movementId) : null, entry: e })),
   ];
-  // Hide completed movements from the active Today list — they're considered
-  // done for the day and belong in History. Per user direction 2026-05-13:
-  // completed = go away from Today, stay in the day's History record. We
-  // count completed movements separately so the user sees a "✓ N completed"
-  // pill at the bottom for context (and to expand-review if needed later).
-  let completedCount = 0;
-  const visibleItems = [];
+  // Split items into REMAINING vs COMPLETED. The active tab drives what's
+  // visible. Per user direction 2026-05-13: completed items don't clutter
+  // the active todo list but remain accessible via the toggle.
+  if (typeof ui !== 'undefined' && !ui.todayTab) ui.todayTab = 'remaining';
+  const activeTab = (typeof ui !== 'undefined' && ui.todayTab) || 'remaining';
+  const remainingItems = [];
+  const completedItems = [];
   allItems.forEach(item => {
     const sets = (item.entry && item.entry.sets) || [];
     const done = sets.filter(s => s.done).length;
     const total = sets.length || (item.p && item.p.targetSets) || 0;
-    if (total > 0 && done === total) { completedCount++; return; }
-    visibleItems.push(item);
+    if (total > 0 && done === total) completedItems.push(item);
+    else remainingItems.push(item);
   });
+  const visibleItems = activeTab === 'completed' ? completedItems : remainingItems;
   visibleItems.forEach(item => {
     const bp = (item.mv && (item.mv.bodyPart || item.mv.muscle || item.mv.category)) || (item.p && item.p.muscle) || 'Other';
     if (!groups[bp]) groups[bp] = [];
     groups[bp].push(item);
   });
+
+  // Render the toggle pill BEFORE the body-part groups. Reuses the existing
+  // .mom-period-toggle / .mom-period-btn styling so the visual language is
+  // consistent with the Momentum tab's Week/3 Weeks/Lifetime pill.
+  const toggleEl = document.createElement('div');
+  toggleEl.className = 'mom-period-toggle today-tab-toggle';
+  toggleEl.setAttribute('role', 'group');
+  toggleEl.setAttribute('aria-label', 'Today filter');
+  toggleEl.innerHTML = `
+    <button class="mom-period-btn${activeTab === 'remaining' ? ' active' : ''}" data-today-tab="remaining" type="button">Remaining${remainingItems.length ? ' · ' + remainingItems.length : ''}</button>
+    <button class="mom-period-btn${activeTab === 'completed' ? ' active' : ''}" data-today-tab="completed" type="button">Completed${completedItems.length ? ' · ' + completedItems.length : ''}</button>`;
+  toggleEl.querySelectorAll('[data-today-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (typeof ui !== 'undefined') ui.todayTab = btn.dataset.todayTab;
+      renderTodayV2();
+    });
+  });
+  scrollEl.appendChild(toggleEl);
   Object.keys(groups).forEach(bp => {
     const eb = document.createElement('div');
     eb.className = 'section-eyebrow';
@@ -13260,23 +13294,23 @@ function renderTodayV2() {
   });
   scrollEl.appendChild(addBtn);
 
-  // Small "✓ N completed" footer pill — completed movements were filtered out
-  // of the active list above. Tap to jump to History where today's record
-  // shows the consolidated detail (via the same-day merger).
-  if (completedCount > 0) {
-    const doneFooter = document.createElement('button');
-    doneFooter.className = 'today-completed-pill';
-    doneFooter.type = 'button';
-    doneFooter.innerHTML = `
-      <span class="tcp-chk">
-        <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      <span class="tcp-text">${completedCount} completed today</span>
-      <span class="tcp-chev">›</span>`;
-    doneFooter.addEventListener('click', () => {
-      if (typeof go === 'function') go('history');
-    });
-    scrollEl.appendChild(doneFooter);
+  // The legacy "✓ N completed today" footer pill is retired — the
+  // Remaining/Completed toggle above the list replaces its function.
+
+  // Per-tab empty state — shown inline so the user knows the tab exists
+  // but is genuinely empty (not just slow to load).
+  if (visibleItems.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'today-tab-empty';
+    if (activeTab === 'remaining') {
+      empty.textContent = (completedItems.length > 0)
+        ? 'All movements complete — switch to Completed to review.'
+        : 'No movements remaining. Add one to get started.';
+    } else {
+      empty.textContent = 'No completed movements yet. Log a set to start.';
+    }
+    // Insert AFTER the toggle but BEFORE the add-movement button.
+    scrollEl.insertBefore(empty, addBtn);
   }
 }
 
