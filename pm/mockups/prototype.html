@@ -155,29 +155,85 @@
   }
 
   /* === Progress strip === */
+  /* Session hero — 3-stat card at the top of Today: Volume, Avg RPE, Complete %.
+     Subtle prismatic wash + glass surface; columns separated by hairline rules. */
   .progress {
     margin: 4px 22px 12px;
-    padding: 14px 16px;
-    background: var(--glass);
-    border: 1px solid var(--hairline);
-    border-radius: var(--r-lg);
-    box-shadow: var(--depth-2);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    padding: 14px 8px 12px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.06) 55%, rgba(201,160,190,0.04) 100%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 14px rgba(15,22,34, 0.05);
     flex-shrink: 0;
   }
-  .progress .row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 10px;
+  .progress .stats-row {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 0;
   }
-  .progress .lhs { display: flex; align-items: baseline; gap: 8px; }
-  .progress .big { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
-  .progress .of { font: 500 12px/1 'Inter Tight',sans-serif; color: var(--muted); }
-  .progress .label { font: 500 11px/1 'Inter Tight',sans-serif; color: var(--label); }
-  .progress .bar { height: 6px; background: var(--paper-2); border-radius: var(--r-pill); overflow: hidden; border: 1px solid var(--hairline); }
-  .progress .fill { height: 100%; background: linear-gradient(90deg,#5d9bb8 0%,#9b82c8 55%,#c9a0be 100%); border-radius: var(--r-pill); transition: width 250ms ease-out; }
+  .progress .stat {
+    padding: 2px 12px;
+    position: relative;
+    min-width: 0;
+  }
+  .progress .stat + .stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 1px;
+    background: rgba(15,22,34, 0.08);
+  }
+  .progress .stat-label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .progress .stat-value {
+    font: 700 22px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .progress .stat-unit {
+    font: 600 11px/1 'Inter Tight', sans-serif;
+    color: var(--muted);
+    margin-left: 3px;
+    letter-spacing: 0;
+  }
+  .progress .vol-parts {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font: 500 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .progress .vol-parts span em {
+    font-style: normal;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .progress .mini-bar {
+    margin-top: 6px;
+    height: 4px;
+    background: rgba(15,22,34, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress .mini-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg,#5d9bb8 0%,#9b82c8 55%,#c9a0be 100%);
+    border-radius: 999px;
+    transition: width 280ms var(--ease-out-cubic);
+  }
 
   /* === Scroll area === */
   .scroll { flex: 1; overflow-y: auto; padding-bottom: 110px; }
@@ -1488,14 +1544,22 @@
     </div>
 
     <div class="progress">
-      <div class="row">
-        <div class="lhs">
-          <span class="big" id="prog-done">0</span>
-          <span class="of">of <span id="prog-total">0</span> sets</span>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-label">Volume</div>
+          <div class="stat-value"><span id="stat-volume">0</span><span class="stat-unit">lb</span></div>
+          <div class="vol-parts" id="stat-volume-parts"></div>
         </div>
-        <span class="label" id="prog-left">0 SETS LEFT</span>
+        <div class="stat">
+          <div class="stat-label">Avg RPE</div>
+          <div class="stat-value" id="stat-rpe">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Complete</div>
+          <div class="stat-value"><span id="stat-pct">0</span><span class="stat-unit">%</span></div>
+          <div class="mini-bar"><div class="fill" id="stat-pct-fill" style="width: 0%"></div></div>
+        </div>
       </div>
-      <div class="bar"><div class="fill" id="prog-fill" style="width: 0%"></div></div>
     </div>
 
     <div class="scroll" id="today-scroll"></div>
@@ -1972,13 +2036,43 @@ function renderToday() {
     });
   }
 
-  // Progress stats
+  // === Session stats: Volume (with body-part breakdown) · Avg RPE · Complete % ===
   const totalSets = state.movements.reduce((s, m) => s + m.sets.length, 0);
   const doneSets = state.movements.reduce((s, m) => s + m.sets.filter(x => x.status === 'done').length, 0);
-  $('#prog-done').textContent = doneSets;
-  $('#prog-total').textContent = totalSets;
-  $('#prog-left').textContent = `${totalSets - doneSets} SETS LEFT`;
-  $('#prog-fill').style.width = totalSets > 0 ? `${(doneSets / totalSets) * 100}%` : '0%';
+
+  let totalVolume = 0;
+  let rpeSum = 0, rpeCount = 0;
+  const volumeByPart = {};
+  state.movements.forEach(m => {
+    let mvVol = 0;
+    m.sets.forEach(s => {
+      if (s.status === 'done' && s.weight != null && s.reps != null) {
+        const vol = s.weight * s.reps;
+        mvVol += vol;
+        totalVolume += vol;
+        if (s.rpe != null) { rpeSum += s.rpe; rpeCount++; }
+      }
+    });
+    if (mvVol > 0) volumeByPart[m.bodyPart] = (volumeByPart[m.bodyPart] || 0) + mvVol;
+  });
+  const avgRpe = rpeCount > 0 ? (rpeSum / rpeCount) : null;
+  const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
+
+  // Render the 3 stats.
+  $('#stat-volume').textContent = totalVolume.toLocaleString();
+  $('#stat-rpe').textContent = avgRpe != null ? avgRpe.toFixed(1) : '—';
+  $('#stat-pct').textContent = pct;
+  $('#stat-pct-fill').style.width = pct + '%';
+
+  // Volume breakdown by body part — small mono list under the volume number.
+  const partsEl = $('#stat-volume-parts');
+  if (Object.keys(volumeByPart).length === 0) {
+    partsEl.innerHTML = '';
+  } else {
+    partsEl.innerHTML = Object.entries(volumeByPart)
+      .map(([part, vol]) => `<span><em>${part}</em>${vol.toLocaleString()}</span>`)
+      .join('');
+  }
 }
 
 // ============================================================
