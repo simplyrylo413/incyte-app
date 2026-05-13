@@ -407,8 +407,32 @@
     font-size: 14px; line-height: 1;
   }
 
-  /* Hide the floating Add Movement CTA when the empty card is rendering */
-  #view-today.today-empty .add-cta { display: none; }
+  /* The floating Add Movement CTA is fully retired in favor of an inline
+     button at the end of the movement list (matches the workout-mode
+     "+ ADD SET" treatment). Keep the rule for any legacy markup. */
+  .add-cta { display: none !important; }
+
+  /* Inline "+ ADD MOVEMENT" button rendered after the last movement card.
+     Same visual language as .add-set-btn from Workout Mode. */
+  .add-mv-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 14px auto 4px;
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out;
+  }
+  .add-mv-btn:hover { background: var(--paper-2); color: var(--ink); }
+  .add-mv-btn svg { width: 11px; height: 11px; }
 
   /* === Add CTA + Nav === */
   .add-cta {
@@ -1538,9 +1562,8 @@
   <!-- TODAY VIEW -->
   <div class="view active" id="view-today">
     <div class="head-today">
-      <div class="eyebrow" id="today-eyebrow">TODAY · TUE</div>
       <h1>Build today's session.</h1>
-      <div class="date" id="today-date">May 12 · Push + Pull</div>
+      <div class="date" id="today-date">Tuesday May 12 · Push + Pull</div>
     </div>
 
     <div class="progress">
@@ -2034,6 +2057,18 @@ function renderToday() {
         scroll.appendChild(card);
       });
     });
+
+    // Inline "+ ADD MOVEMENT" button after the last card — same treatment
+    // as the workout-mode ADD SET button. Replaces the old floating CTA.
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-mv-btn';
+    addBtn.innerHTML = `
+      <svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Add movement`;
+    addBtn.addEventListener('click', () => {
+      document.getElementById('btn-add-movement')?.click();
+    });
+    scroll.appendChild(addBtn);
   }
 
   // === Session stats: Volume (with body-part breakdown) · Avg RPE · Complete % ===
