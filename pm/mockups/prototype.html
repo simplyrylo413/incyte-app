@@ -364,17 +364,29 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Three-picker row inside the hero card. Flex with flex:1 + min-width:0
-     on each card guarantees identical widths regardless of content
-     (the grid layout was producing visually narrower RPE in some browsers). */
+  /* Three-picker grid inside the hero card. CSS Grid with
+     repeat(3, minmax(0, 1fr)) — the 0 minimum forces strictly equal
+     columns regardless of content (default 'auto' minimum lets intrinsic
+     content widen a column, which is what was making RPE look narrower). */
   .hero-pickers {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     margin-bottom: 10px;
   }
+  .hero-pickers.no-rpe {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .picker-card {
-    flex: 1 1 0;
+    /* Force equal widths reliably across browsers — buttons can carry
+       user-agent min-width / appearance styles that resist grid sizing. */
+    display: block;
+    width: 100%;
     min-width: 0;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     background: rgba(255,255,255,0.70);
     backdrop-filter: blur(20px) saturate(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(1.3);
@@ -1528,9 +1540,10 @@ function renderWorkout() {
     const repsCls = cur.reps == null ? 'empty' : '';
     const rpeCls = cur.rpe == null ? 'empty' : '';
 
-    // RPE picker only renders when session tracks RPE. When off, grid drops
-    // to two columns and weight/reps stretch to fill.
-    const gridCols = state.session.trackRpe ? '1fr 1fr 1fr' : '1fr 1fr';
+    // RPE picker only renders when session tracks RPE. When off, the grid
+    // drops to two columns via the .no-rpe class (still minmax(0, 1fr) so
+    // weight + reps stay strictly equal).
+    const gridClass = state.session.trackRpe ? '' : ' no-rpe';
     const rpePicker = state.session.trackRpe ? `
         <button class="picker-card ${rpeCls}" data-pk="rpe">
           <div class="lbl">RPE</div>
@@ -1544,7 +1557,7 @@ function renderWorkout() {
           <span class="now-marker"><span class="dot"></span>SET ${cur.idx} · NOW</span>
           <button class="head-remove" id="btn-remove-current">Remove set</button>
         </div>
-        <div class="hero-pickers">
+        <div class="hero-pickers${gridClass}">
           <button class="picker-card ${weightCls}" data-pk="weight">
             <div class="lbl">Weight</div>
             <div class="val">${weight}</div>
