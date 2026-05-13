@@ -587,7 +587,7 @@
      Done rows = teal-tinted. Target rows = white glass. */
   .col-head {
     display: grid;
-    grid-template-columns: 54px 28px 0.9fr 1.05fr 22px 16px;
+    grid-template-columns: 36px 0.9fr 1.05fr 22px 16px;
     align-items: center;
     gap: 10px;
     padding: 0 13px 6px;
@@ -600,7 +600,7 @@
 
   .set-row {
     display: grid;
-    grid-template-columns: 54px 28px 0.9fr 1.05fr 22px 16px;
+    grid-template-columns: 36px 0.9fr 1.05fr 22px 16px;
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
@@ -706,29 +706,27 @@
     border: 1px solid rgba(15,22,34, 0.14);
   }
 
-  /* .set-row-group removed — the WORK/WARM pill is now the row's first column. */
-
-  /* WORK/WARM pill — first column inside the row.
-     Working = accent blue ghost. Warmup = warn slate ghost. */
-  .set-type-pill {
-    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
-    letter-spacing: 0.16em;
+  /* SET number doubles as the working/warmup toggle.
+     Default (working) = teal-green (--ok). Tap → warmup = red (--bad).
+     The number itself IS the indicator; no separate pill. */
+  .set-row .r-set-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    border-radius: 6px;
+    font: 800 11px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    padding: 6px 10px;
-    background: rgba(93,155,184, 0.12);
-    border: 1px solid rgba(93,155,184, 0.28);
-    border-radius: 999px;
-    color: var(--accent);
+    color: var(--ok);
     cursor: pointer;
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 100ms var(--ease-out-cubic);
+    transition: color 180ms ease-out, background 180ms ease-out, transform 100ms var(--ease-out-cubic);
+    text-align: left;
     justify-self: start;
   }
-  .set-type-pill:active { transform: scale(0.96); }
-  .set-type-pill.warmup {
-    background: rgba(142,155,176, 0.14);
-    border-color: rgba(142,155,176, 0.32);
-    color: var(--warn);
-  }
+  .set-row .r-set-btn:hover { background: rgba(15,22,34, 0.04); }
+  .set-row .r-set-btn:active { transform: scale(0.96); }
+  .set-row .r-set-btn.warmup { color: var(--bad); }
 
   /* Per-set remove — simple ghost icon button */
   .set-row .row-remove {
@@ -1986,7 +1984,6 @@ function renderWorkout() {
   const targetSetsForHeader = mv.sets.filter(s => s.status === 'target');
   const headerHtml = (loggedSets.length + targetSetsForHeader.length) > 0 ? `
     <div class="col-head">
-      <span></span>
       <span>Set</span>
       <span>Previous</span>
       <span class="h-today">Today</span>
@@ -2004,8 +2001,7 @@ function renderWorkout() {
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
         <div class="set-row done${animCls}" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
-          <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <span class="r-set">${setLabel}</span>
+          <button class="r-set-btn${typeCls}" data-toggle-type="${s.idx}" aria-label="Set ${s.idx} — tap to toggle warmup/working">${setLabel}</button>
           <span class="r-prev">${prevFor(s.idx)}</span>
           <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
           <span class="chk">${checkSvg}</span>
@@ -2091,8 +2087,7 @@ function renderWorkout() {
         </span>`;
       html += `
         <div class="set-row target${animCls}" data-set-idx="${s.idx}">
-          <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <span class="r-set">${setLabel}</span>
+          <button class="r-set-btn${typeCls}" data-toggle-type="${s.idx}" aria-label="Set ${s.idx} — tap to toggle warmup/working">${setLabel}</button>
           <span class="r-prev">${prevFor(s.idx)}</span>
           ${valsHtml}
           <span class="chk">${checkSvg}</span>
