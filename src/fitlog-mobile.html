@@ -12431,6 +12431,124 @@ function renderToday() {
   renderWeekParts();
 }
 
+// =============================================================
+// Same-day history merger
+// Collapses multiple finished sessions on the same calendar date into a
+// single consolidated workout record. Without this, multi-session days
+// (e.g., AM strength + PM accessories) scatter into separate rows in
+// History, and progress / volume rollups undercount.
+//
+// Algorithm:
+//   1. Group data.workouts by YYYY-MM-DD of their .date (or .savedAt).
+//   2. For each group with >1 workout:
+//      a. Pick the EARLIEST-finished one as the primary keeper.
+//      b. For each secondary workout, walk its .entries:
+//          - If primary has an entry with the same movementId AND planId,
+//            APPEND its sets to that entry.
+//          - Otherwise push the entry as a new one on primary.
+//      c. Update primary's completed_at / savedAt to the LATEST timestamp.
+//      d. Sum durationMin across all sessions in the group.
+//      e. Concatenate notes (if any) with a divider.
+//      f. Remove the secondaries from data.workouts (and from tombstones
+//         so cloud sync doesn't try to delete the primary).
+//   3. Return true if anything changed (caller may want to save + sync).
+// =============================================================
+function mergeSameDayHistorySessions() {
+  if (!data || !Array.isArray(data.workouts) || data.workouts.length < 2) return false;
+  const dayKey = (w) => {
+    const iso = w && (w.date || w.savedAt || w.completed_at);
+    if (!iso) return null;
+    try { return new Date(iso).toISOString().slice(0, 10); } catch (_) { return null; }
+  };
+  // Bucket workouts by day, considering only completed (non-active) ones.
+  const buckets = {};
+  data.workouts.forEach(w => {
+    if (!w || w.workout_status === 'paused' || w.finished === false) return;
+    const k = dayKey(w);
+    if (!k) return;
+    (buckets[k] = buckets[k] || []).push(w);
+  });
+  let changed = false;
+  Object.keys(buckets).forEach(day => {
+    const ws = buckets[day];
+    if (ws.length < 2) return;
+    // Sort by completion time ascending — keep the earliest as primary.
+    ws.sort((a, b) => {
+      const ta = new Date(a.completed_at || a.savedAt || a.date || 0).getTime();
+      const tb = new Date(b.completed_at || b.savedAt || b.date || 0).getTime();
+      return ta - tb;
+    });
+    const primary = ws[0];
+    primary.entries = primary.entries || [];
+    let mergedDurationMin = +primary.durationMin || 0;
+    let latestStamp = primary.completed_at || primary.savedAt || primary.date;
+    const notes = primary.notes ? [primary.notes] : [];
+    for (let i = 1; i < ws.length; i++) {
+      const sec = ws[i];
+      (sec.entries || []).forEach(secEntry => {
+        // Match by movementId + planId (planId may be null/undefined; treat as same group).
+        const match = primary.entries.find(pe =>
+          pe.movementId === secEntry.movementId &&
+          (pe.planId || null) === (secEntry.planId || null)
+        );
+        if (match) {
+          // Append sets, preserving the order they were logged in.
+          match.sets = (match.sets || []).concat(secEntry.sets || []);
+          // Skipped status: only stays true if BOTH were skipped.
+          if (match.skipped && !secEntry.skipped) match.skipped = false;
+          // Equipment: keep the primary's unless it's missing.
+          if (!match.equipmentType && secEntry.equipmentType) match.equipmentType = secEntry.equipmentType;
+        } else {
+          primary.entries.push(secEntry);
+        }
+      });
+      mergedDurationMin += +sec.durationMin || 0;
+      const secStamp = sec.completed_at || sec.savedAt || sec.date;
+      if (secStamp && new Date(secStamp).getTime() > new Date(latestStamp || 0).getTime()) {
+        latestStamp = secStamp;
+      }
+      if (sec.notes) notes.push(sec.notes);
+      // Tombstone the secondary so cloud sync removes it on the server side
+      // (production has a tombstones.workouts array for this).
+      try {
+        if (data.tombstones && Array.isArray(data.tombstones.workouts)) {
+          if (!data.tombstones.workouts.includes(sec.id)) data.tombstones.workouts.push(sec.id);
+        }
+      } catch (_) {}
+      changed = true;
+    }
+    primary.durationMin = mergedDurationMin;
+    if (latestStamp) {
+      primary.completed_at = latestStamp;
+      primary.savedAt = latestStamp;
+    }
+    primary.notes = notes.length ? notes.join('\n— —\n') : (primary.notes || '');
+    // Drop the secondaries from data.workouts.
+    const secIds = new Set(ws.slice(1).map(w => w.id));
+    data.workouts = data.workouts.filter(w => !secIds.has(w.id));
+  });
+  return changed;
+}
+window.mergeSameDayHistorySessions = mergeSameDayHistorySessions;
+
+// Run one merge pass at page load so any existing scattered same-day
+// records get consolidated immediately. Deferred until after data is loaded.
+(function scheduleInitialMerge(){
+  const tryMerge = () => {
+    if (typeof data === 'undefined' || !data) return;
+    const changed = mergeSameDayHistorySessions();
+    if (changed) {
+      try { if (typeof saveData === 'function') saveData(); } catch (_) {}
+      try { if (typeof renderToday === 'function') renderToday(); } catch (_) {}
+    }
+  };
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(tryMerge, 800);
+  } else {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(tryMerge, 800));
+  }
+})();
+
 // Equipment options surfaced in the Today-card popover. Keep this short so
 // the picker stays compact; covers the most common lifter equipment types.
 const EQUIPMENT_OPTIONS_V2 = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'];
@@ -16306,6 +16424,10 @@ async function finishActiveWorkout({ auto = false } = {}) {
   const finished = data.active;
   data.workouts.push(finished);
   data.active = null;
+  // Merge any other finished sessions on the same date into one record so
+  // multi-session days show up as a single consolidated workout. See
+  // mergeSameDayHistorySessions() near the V2 module for the algorithm.
+  try { if (typeof mergeSameDayHistorySessions === 'function') mergeSameDayHistorySessions(); } catch (_) {}
   saveData();
   renderToday();
   // If the user is on the Week/Momentum tab right now, refresh it immediately
