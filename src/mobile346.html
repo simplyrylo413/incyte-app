@@ -25,8 +25,8 @@
     --ink-2:   #2c3548;   /* gunmetal */
     --muted:   #5e6a82;   /* steel slate */
     --label:   #8893a8;   /* cool grey */
-    --hairline:      rgba(15, 22, 34, 0.25);
-    --hairline-soft: rgba(15, 22, 34, 0.11);
+    --hairline:      rgba(15, 22, 34, 0.18);
+    --hairline-soft: rgba(15, 22, 34, 0.08);
     --card-border:   rgba(255, 255, 255, 0.55);
     --accent:   #5d9bb8;            /* cool steel-blue */
     --accent-2: #7fa5c7;            /* icy lavender-blue */
@@ -87,7 +87,7 @@
      *   --text-2xl      22px  — section titles
      *   --text-3xl      28px  — hero numerics (Readiness 82%, Fatigue 44)
      *   --text-display  34px  — top-level view titles (THIS WEEK, INSIGHTS) */
-    --text-eyebrow: 12px;
+    --text-eyebrow: 10px;
     --text-xs:      11px;
     --text-sm:      12px;
     --text-base:    13px;
@@ -189,7 +189,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px clamp(16px, 3vw, 44px) 16px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     flex-shrink: 0;
     background: var(--paper);
     z-index: 100;
@@ -286,7 +286,7 @@
     align-items: center;
     gap: 10px;
     padding: 4px 10px 4px 4px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     background: var(--paper-2);
   }
@@ -401,14 +401,14 @@
   body.theme-dark .tup::after { mix-blend-mode: overlay; opacity: 0.7; }
   .tup-top { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 16px 0; }
   .tup-stats { display: flex; align-items: flex-end; gap: 0; }
-  .tup-stat { display: flex; flex-direction: column; gap: 2px; padding-left: 14px; border-left: 1.2px solid var(--hairline-soft); }
+  .tup-stat { display: flex; flex-direction: column; gap: 2px; padding-left: 14px; border-left: 1px solid var(--hairline-soft); }
   .tup-stat:first-child { border-left: none; padding-left: 0; }
   .tup-stat-row { display: flex; align-items: baseline; gap: 3px; }
   .tup-val { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; line-height: 1; }
   .tup-unit { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--muted); }
   .tup-lbl { font-family: var(--font-mono); font-size: var(--text-eyebrow); text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
   .tup-right { display: flex; align-items: center; gap: 5px; padding-top: 4px; }
-  .tup-meta-txt { font-family: var(--font-mono); font-size: var(--text-eyebrow); text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
+  .tup-meta-txt { font-family: var(--font-mono); font-size: var(--text-eyebrow); text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
   .tup-dot { display: none !important; } /* replaced by Option B layout */
   /* Option B sub-line */
   .tup-sub { display: flex; align-items: center; gap: 12px; padding: 8px 16px 10px; }
@@ -535,7 +535,7 @@
   .chart-callout {
     position: absolute;
     background: var(--paper-2);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     padding: 10px 12px;
     font-size: 11px;
@@ -575,7 +575,7 @@
     position: relative;
     margin-top: 14px;
     padding: 14px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 8px;
     background: var(--paper-2);
     height: 200px;
@@ -585,7 +585,7 @@
   /* ========== SIDEBAR CARDS ========== */
   .side-card {
     background: var(--paper);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     padding: 14px 16px;
     /* Bolder drop so the side stat cards (EST. EQUIPMENT PR, etc.) lift
@@ -663,7 +663,7 @@
     font-weight: 500;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     letter-spacing: 0.5px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     padding-bottom: 5px;
     margin-bottom: 4px;
   }
@@ -924,7 +924,7 @@
     flex-shrink: 0;
     padding: 5px 13px;
     border-radius: 20px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     background: rgba(255,255,255,0.6);
     font-family: var(--font-mono);
     font-size: 10px;
@@ -998,7 +998,7 @@
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     padding: 3px 9px;
     border-radius: 4px;
     text-transform: uppercase;
@@ -1038,7 +1038,7 @@
   }
   .w-mv-card {
     background: var(--paper);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     padding: 16px 18px;
     margin-bottom: 10px;
@@ -1094,7 +1094,7 @@
     letter-spacing: 0.5px;
     padding: 6px 0;
     text-align: left;
-    border-bottom: 1.2px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
   }
   .sets-table th.c, .sets-table td.c { text-align: center; }
   .sets-table td {
@@ -1107,7 +1107,7 @@
   .sets-table input[type=number] {
     width: 72px;
     padding: 6px 8px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     font-size: 13px;
     font-family: inherit;
@@ -1162,7 +1162,7 @@
   }
   .pg-select {
     padding: 8px 12px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 8px;
     background: var(--paper-2);
     font-family: inherit;
@@ -1197,7 +1197,7 @@
      expand/collapse without measuring heights. Mobile-first: dropdowns are
      full-width with 44px+ touch targets. */
   .mv-details {
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     background: var(--paper-2);
     margin-top: 12px;
@@ -1271,7 +1271,7 @@
     width: 100%;
     min-height: 44px;
     padding: 10px 12px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 8px;
     background: var(--paper);
     font-family: inherit;
@@ -1293,7 +1293,7 @@
     min-width: 0;
     min-height: 44px;
     padding: 10px 12px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 8px;
     background: var(--paper);
     font-family: inherit;
@@ -1304,7 +1304,7 @@
     flex-shrink: 0;
     width: 44px;
     min-height: 44px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 8px;
     background: var(--paper);
     color: var(--ink-2, var(--ink));
@@ -1458,7 +1458,7 @@
   .history-inline-header input[type=date] {
     width: 100%;
     padding: 6px 10px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     background: var(--paper);
     font-family: 'JetBrains Mono', monospace;
@@ -1485,7 +1485,7 @@
   }
   .history-collapse-btn {
     background: none;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 4px;
     padding: 4px 10px;
     font-size: 11px;
@@ -1630,7 +1630,7 @@
   .modal-bd.open { display: flex; }
   .modal {
     background: var(--paper);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     padding: 20px 22px;
     width: 440px;
@@ -1657,7 +1657,7 @@
   .modal input, .modal select, .modal textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     font-size: 13px;
     font-family: inherit;
@@ -1677,7 +1677,7 @@
     width: 100%;
     min-height: 140px;
     padding: 10px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 12px;
@@ -1806,7 +1806,7 @@
     padding: 12px 14px;
     border-radius: 12px;
     background: rgba(255,255,255,0.04);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     box-shadow: var(--depth-1);
     display: flex; flex-direction: column; gap: 4px;
   }
@@ -1895,7 +1895,7 @@
   .td-impact {
     padding: 12px 14px;
     border-radius: 12px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     background: rgba(255,255,255,0.04);
     box-shadow: var(--depth-1);
     margin-bottom: 14px;
@@ -1936,7 +1936,7 @@
     gap: 6px 8px;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
     font-variant-numeric: tabular-nums;
   }
   .td-impact-meta-before, .td-impact-meta-after {
@@ -2096,7 +2096,7 @@
   }
   .gen-mv-swap {
     font-size: 11px; padding: 3px 8px; border-radius: 4px;
-    border: 1.2px solid var(--hairline); background: transparent; color: var(--muted);
+    border: 1px solid var(--hairline); background: transparent; color: var(--muted);
     cursor: pointer; flex-shrink: 0;
   }
   .gen-mv-swap:hover { border-color: var(--ink); color: var(--ink); }
@@ -2112,7 +2112,7 @@
     gap: 12px;
     padding: 18px 0 10px;
     margin-bottom: 14px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     position: relative;
   }
   /* Accent rule along the left edge of the header — cyan → magenta → purple. */
@@ -2204,7 +2204,7 @@
     display: flex; flex-direction: column; gap: 6px;
     padding: 6px 22px 10px;
     background: var(--paper);
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .today-progress-meta {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -2256,7 +2256,7 @@
     flex-shrink: 0;
     padding: 5px 13px;
     border-radius: 20px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     background: rgba(255,255,255,0.6);
     font-family: var(--font-mono);
     font-size: 10px;
@@ -2493,7 +2493,7 @@
     align-items: center;
     gap: 6px;
     background: var(--paper-2);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 999px;
     padding: 4px 10px;
     font-size: 11px;
@@ -2516,7 +2516,6 @@
   .muscle-section-chip .chip-meta {
     font-family: 'JetBrains Mono', monospace;
     font-size: var(--text-eyebrow);
-    font-weight: 700;
     opacity: 0.7;
   }
   /* History row + entry pulse so the user sees where they landed after a chip click */
@@ -2530,7 +2529,7 @@
   .mv-block.skipped { background: repeating-linear-gradient(135deg, var(--paper-2), var(--paper-2) 6px, var(--paper-3) 6px, var(--paper-3) 12px); border-color: var(--bad); }
   .mv-block-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .mv-block-name { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
-  .mv-block-tag { font-size: var(--text-eyebrow); color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; font-weight: 700; }
+  .mv-block-tag { font-size: var(--text-eyebrow); color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; margin-top: 2px; }
   .mv-block-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); padding: 6px 0 0; }
   .mv-block-meta b { color: var(--ink); font-weight: 600; }
   .mv-block-last { font-size: 11px; padding: 8px 12px; background: var(--paper); border: 1px dashed var(--hairline-soft); border-radius: 8px; margin-top: 10px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -2564,7 +2563,7 @@
   .mv-coach {
     margin-top: 6px;
     padding: 8px 12px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 8px;
     background: var(--paper);
     font-size: 11px;
@@ -2572,12 +2571,11 @@
   .mv-coach-row { display: flex; align-items: center; gap: 10px; }
   .mv-coach-glyph { font-weight: 800; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; min-width: 14px; text-align: center; }
   .mv-coach-label { font-weight: 700; letter-spacing: 0.4px; color: var(--ink); }
-  .mv-coach-msg { color: var(--muted); flex: 1; text-align: right; font-size: var(--text-eyebrow); font-weight: 700; }
+  .mv-coach-msg { color: var(--muted); flex: 1; text-align: right; font-size: var(--text-eyebrow); }
   .mv-coach-basis {
     margin-top: 4px;
     padding-left: 24px;
     font-size: var(--text-eyebrow);
-    font-weight: 700;
     color: var(--muted);
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     letter-spacing: 0.2px;
@@ -2592,11 +2590,11 @@
   }
 
   .sets-table-2 { width: 100%; margin-top: 12px; border-collapse: collapse; }
-  .sets-table-2 th { font-size: var(--text-eyebrow); letter-spacing: 1.4px; text-transform: uppercase; color: var(--label); text-align: left; padding: 6px 8px; border-bottom: 1.2px solid var(--hairline-soft); font-weight: 700; }
+  .sets-table-2 th { font-size: var(--text-eyebrow); letter-spacing: 1.4px; text-transform: uppercase; color: var(--label); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--hairline-soft); font-weight: 700; }
   .sets-table-2 th.c { text-align: center; }
   .sets-table-2 td { padding: 4px 6px; font-size: 13px; vertical-align: middle; border-bottom: 1px dashed var(--hairline-soft); }
   .sets-table-2 td.c { text-align: center; }
-  .sets-table-2 input { width: 70px; padding: 6px 8px; border: 1.2px solid var(--hairline-soft); border-radius: 6px; background: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: var(--ink); }
+  .sets-table-2 input { width: 70px; padding: 6px 8px; border: 1px solid var(--hairline-soft); border-radius: 6px; background: var(--paper); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: var(--ink); }
   .sets-table-2 input:focus { outline: none; border-color: var(--ink); background: var(--paper-2); }
   /* Cardio time cell wrapper — flex-aligns the time input + the N/A
    * checkbox (swimming only). When N/A is checked, .is-na visually fades
@@ -2619,7 +2617,6 @@
     cursor: pointer;
     font-family: var(--font-mono);
     font-size: var(--text-eyebrow);
-    font-weight: 700;
     letter-spacing: 0.6px;
     text-transform: uppercase;
     color: var(--muted);
@@ -2664,7 +2661,7 @@
   .set-check.done { background: var(--ink); color: var(--paper); border-style: solid; }
   .set-btn-add { background: transparent; border: 1px dashed var(--hairline-soft); border-radius: 8px; padding: 8px 14px; font-size: 11px; letter-spacing: 1.2px; color: var(--muted); cursor: pointer; font-family: inherit; font-weight: 600; margin-top: 8px; }
   .set-btn-add:hover { border-color: var(--ink); color: var(--ink); }
-  .set-skip-btn { background: transparent; border: 1.2px solid var(--hairline-soft); border-radius: 6px; padding: 4px 10px; font-size: 10px; color: var(--muted); cursor: pointer; }
+  .set-skip-btn { background: transparent; border: 1px solid var(--hairline-soft); border-radius: 6px; padding: 4px 10px; font-size: 10px; color: var(--muted); cursor: pointer; }
   .set-skip-btn:hover { border-color: var(--bad); color: var(--bad); }
   .mv-remove-btn { background: transparent; border: 1px dashed var(--hairline-soft); border-radius: 6px; padding: 4px 8px; font-size: 10px; color: var(--muted); cursor: pointer; font-weight: 600; }
   .mv-remove-btn:hover { border-color: var(--bad); border-style: solid; color: var(--bad); }
@@ -3050,7 +3047,6 @@
   .part-summary-line {
     font-family: 'JetBrains Mono', monospace;
     font-size: var(--text-eyebrow);
-    font-weight: 700;
     letter-spacing: 0.6px;
     text-transform: uppercase;
     color: var(--muted);
@@ -3105,7 +3101,7 @@
     gap: 2px;
     padding: 8px 4px;
     border: 0;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     background: transparent;
     border-radius: 0;
     cursor: pointer;
@@ -3125,7 +3121,6 @@
   .part-done-link .pdl-meta {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: var(--text-eyebrow);
-    font-weight: 700;
     color: var(--muted);
     line-height: 1.4;
   }
@@ -3159,7 +3154,7 @@
   .part-done-link .pdl-action:active { transform: translateY(1px); }
   .part-done-link .pdl-skip {
     background: transparent;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     color: var(--muted);
   }
   .part-done-link .pdl-skip:hover {
@@ -3207,7 +3202,7 @@
     padding: 2px 6px;
     border-radius: 999px;
     background: var(--paper);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     color: var(--ink-2);
     line-height: 1;
   }
@@ -3271,7 +3266,7 @@
       radial-gradient(ellipse at 100% 100%, rgba(215, 123, 168, 0.18) 0%, transparent 55%),
       radial-gradient(ellipse at 50% 50%,  rgba(183, 142, 215, 0.10) 0%, transparent 70%),
       var(--paper);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     padding: 14px 16px;
     box-shadow:
@@ -3326,7 +3321,7 @@
   /* === Muscle Stimulus card (refactored) ============================== */
   .ms-subtitle {
     font-size: 12px;
-    color: var(--ink);
+    color: var(--muted);
     margin: -2px 0 18px;
     letter-spacing: 0.1px;
   }
@@ -3393,7 +3388,7 @@
     gap: 8px;
     margin-bottom: 22px;
     padding-bottom: 18px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .ms-pill {
     display: inline-flex;
@@ -3401,7 +3396,7 @@
     gap: 6px;
     padding: 6px 12px;
     border-radius: 999px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     background: var(--paper);
     font-size: 12px;
     font-weight: 500;
@@ -3434,7 +3429,7 @@
   .ms-insights {
     margin-top: 22px;
     padding-top: 18px;
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -3669,7 +3664,7 @@
   .syl-grid-secondary {
     margin-top: 22px;
     padding-top: 18px;
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
   }
   .syl-cell {
     background: transparent;
@@ -3678,7 +3673,7 @@
     padding: 4px 0;
     text-align: center;
   }
-  .syl-cell + .syl-cell { border-left: 1.2px solid var(--hairline-soft); }
+  .syl-cell + .syl-cell { border-left: 1px solid var(--hairline-soft); }
   body.theme-dark .syl-cell + .syl-cell { border-left-color: var(--hairline); }
   .syl-cell .label {
     font-family: 'JetBrains Mono', monospace;
@@ -3713,7 +3708,7 @@
 
   /* Edit-session modal */
   .es-entry {
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 8px;
     padding: 10px 12px;
     margin-bottom: 10px;
@@ -3740,7 +3735,7 @@
   }
   .mv-block-collapse-btn {
     background: transparent;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 6px;
     width: 26px; height: 26px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -3763,7 +3758,7 @@
   .mv-block.collapsed .mv-block-summary { display: block; }
   .mv-block-summary .pill {
     display: inline-block; padding: 2px 8px; border-radius: 999px;
-    background: var(--paper); border: 1.2px solid var(--hairline-soft);
+    background: var(--paper); border: 1px solid var(--hairline-soft);
     font-size: 10px; letter-spacing: 0.6px; margin-right: 6px;
   }
   .mv-block-tt-row {
@@ -3774,7 +3769,7 @@
   }
   .mv-block-tt-row select,
   .mv-block-tt-row input {
-    padding: 5px 22px 5px 8px; border: 1.2px solid var(--hairline-soft);
+    padding: 5px 22px 5px 8px; border: 1px solid var(--hairline-soft);
     border-radius: 6px; background: var(--paper);
     font-family: inherit; font-size: 11px; color: var(--ink);
     letter-spacing: 0.4px; text-transform: none; font-weight: 500;
@@ -3842,7 +3837,7 @@
     text-transform: uppercase;
     padding: 2px 8px;
     border-radius: 999px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     background: var(--paper);
     color: var(--muted);
     font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -3874,7 +3869,7 @@
   .plan-mv-name-line .mv-id-chip { font-size: 9px; padding: 1px 6px; }
   .es-entry-del {
     background: transparent;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 6px;
     padding: 3px 8px;
     font-size: 11px;
@@ -3895,7 +3890,7 @@
     align-items: center;
     gap: 6px;
     padding: 2px 6px 2px 8px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 6px;
     background: var(--paper-2);
   }
@@ -3919,7 +3914,7 @@
   }
   .es-entry-edit {
     background: transparent;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 6px;
     padding: 3px 8px;
     font-size: 11px;
@@ -4026,7 +4021,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     border-radius: 6px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
@@ -4061,7 +4056,7 @@
   .es-set-row input[type="number"], .es-set-row input[type="text"] {
     width: 100%;
     padding: 6px 8px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 4px;
     font-size: 12px;
     background: var(--paper);
@@ -4071,7 +4066,7 @@
     display: flex; justify-content: center; align-items: center;
     width: 24px; height: 24px;
     border-radius: 4px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     background: var(--paper);
     cursor: pointer;
     font-size: 12px;
@@ -4124,7 +4119,7 @@
   .recent-date { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
   .recent-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .recent-vol { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); font-weight: 600; }
-  .recent-week-divider { font-size: var(--text-eyebrow); letter-spacing: 1.4px; text-transform: uppercase; color: var(--label); font-weight: 700; padding: 8px 0 4px; border-bottom: 1.2px solid var(--hairline-soft); margin-top: 6px; }
+  .recent-week-divider { font-size: var(--text-eyebrow); letter-spacing: 1.4px; text-transform: uppercase; color: var(--label); font-weight: 700; padding: 8px 0 4px; border-bottom: 1px solid var(--hairline-soft); margin-top: 6px; }
   .recent-week-divider:first-child { margin-top: 0; }
 
   /* =========================================================================
@@ -4160,7 +4155,7 @@
   .plan-swap-panel {
     margin-top: 12px;
     padding: 14px 16px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 12px;
     background: rgba(255,255,255,0.04);
     box-shadow: var(--depth-1);
@@ -4186,7 +4181,7 @@
   .plan-swap-field select {
     min-height: 40px;
     padding: 8px 10px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 8px;
     background: var(--paper);
     font-family: inherit;
@@ -4277,7 +4272,7 @@
    * a no-op so any leftover references don't error. */
   .plan-day-header {
     padding: 16px 18px 10px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .plan-day-eyebrow {
     font-size: 10px; letter-spacing: 1.4px; color: var(--label);
@@ -4309,7 +4304,7 @@
     color: var(--muted);
     padding: 3px 8px;
     border-radius: 999px;
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     background: rgba(0,0,0,0.02);
     white-space: nowrap;
   }
@@ -4322,7 +4317,7 @@
   .plan-day-servings {
     display: flex; justify-content: space-between; align-items: baseline;
     padding: 8px 18px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     font-size: 11px; font-weight: 600;
     color: var(--ink-2);
   }
@@ -4418,7 +4413,7 @@
   .plan-mv-row.is-undone .plan-mv-name { color: #3a7a9c; font-weight: 700; }
   body.theme-dark .plan-mv-row.is-undone .plan-mv-name { color: #6ec6e0; font-weight: 700; }
   .plan-day-footer {
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
     padding: 8px 18px;
     font-size: 10px; color: var(--muted);
     font-family: var(--font-mono); letter-spacing: 0.3px;
@@ -4581,8 +4576,8 @@
     --ink-2:   #d4dae3;   /* light silver */
     --muted:   #8d96a5;   /* steel-grey */
     --label:   #6a7384;   /* darker grey label */
-    --hairline:      rgba(255, 255, 255, 0.28);
-    --hairline-soft: rgba(255, 255, 255, 0.11);
+    --hairline:      rgba(255, 255, 255, 0.20);
+    --hairline-soft: rgba(255, 255, 255, 0.08);
     --card-border:   rgba(255, 255, 255, 0.16);
     --accent:   #4dd0e1;            /* cyan — primary action */
     --accent-2: #d77ba8;            /* magenta — secondary */
@@ -4635,7 +4630,7 @@
     border: 1px solid var(--glass-stroke);
     box-shadow: var(--depth-3);
   }
-  body.theme-dark .top-rail { background: transparent; border-bottom: 1.2px solid var(--hairline-soft); }
+  body.theme-dark .top-rail { background: transparent; border-bottom: 1px solid var(--hairline-soft); }
   body.theme-dark .brand-name { color: var(--ink); text-shadow: 0 0 8px rgba(143, 185, 211, 0.20); }
   body.theme-dark .brand-mark, body.theme-dark .brand-mark::before, body.theme-dark .brand-mark::after { border-color: #8fb9d3; }
   body.theme-dark .tab { color: var(--ink-2); }
@@ -4765,7 +4760,7 @@
     display: flex; align-items: center; justify-content: center;
     width: 36px; height: 36px;
     border-radius: 999px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     background: var(--paper-2);
     cursor: pointer;
     font-family: inherit;
@@ -4933,7 +4928,7 @@
   .rd-recommendation {
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
   }
   .rd-rec-head {
     display: flex;
@@ -5077,7 +5072,7 @@
     line-height: 1.45;
     color: var(--ink-2);
     padding-top: 14px;
-    border-top: 1.2px solid var(--hairline-soft);
+    border-top: 1px solid var(--hairline-soft);
   }
   .readiness-insight strong { color: var(--accent); font-weight: 600; }
 
@@ -5094,7 +5089,7 @@
     padding: 10px 12px;
     border-radius: 12px;
     background: rgba(255,255,255,0.04);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     box-shadow: var(--depth-1);
   }
   .insight-summary { line-height: 1.3; font-size: 13px; }
@@ -5232,7 +5227,7 @@
     padding: 10px 12px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     box-shadow: var(--depth-1);
     transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms ease, background 200ms ease;
   }
@@ -5367,7 +5362,7 @@
     padding: 12px 14px;
     border-radius: 16px;
     background: rgba(255,255,255,0.04);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     box-shadow: var(--depth-1);
     display: flex; flex-direction: column; gap: 4px;
     scroll-snap-align: start;
@@ -5397,7 +5392,7 @@
     text-overflow: ellipsis;
   }
   .pr-badge .sub {
-    font-size: var(--text-eyebrow); font-weight: 700; color: var(--muted);
+    font-size: var(--text-eyebrow); color: var(--muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5417,8 +5412,7 @@
     position: fixed;
     bottom: calc(env(safe-area-inset-bottom) + 16px);
     left: 50%;
-    transform: translateX(-50%) scale(1.15);
-    transform-origin: bottom center;
+    transform: translateX(-50%);
     z-index: 200;
     display: flex;
     gap: 2px;
@@ -5656,11 +5650,11 @@
     font-weight: 700;
     padding: 0 6px 5px;
     text-align: left;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .plan-sets-table thead th.c { text-align: center; }
   .plan-sets-table tbody tr {
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .plan-sets-table tbody tr:last-child { border-bottom: none; }
   .plan-sets-table td {
@@ -5671,7 +5665,7 @@
   .plan-sets-table input[type=number] {
     width: 64px;
     padding: 5px 7px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 6px;
     background: var(--paper);
     font-family: var(--font-mono);
@@ -5749,7 +5743,7 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     background: transparent;
     display: flex;
     align-items: center;
@@ -6021,7 +6015,7 @@
   }
   .parts-section-label .pct-count {
     background: var(--paper-2);
-    border: 1.2px solid var(--hairline-soft);
+    border: 1px solid var(--hairline-soft);
     border-radius: 999px;
     padding: 1px 8px;
     font-size: 10px;
@@ -6236,7 +6230,7 @@
     align-items: flex-start;
     gap: 11px;
     padding: 11px 0;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .mom-insight-item:last-child { border-bottom: none; }
   .mom-insight-dot {
@@ -6306,7 +6300,7 @@
   .mom-mv-select {
     width: 100%;
     padding: 10px 14px;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 10px;
     background: var(--paper-2);
     font-family: inherit;
@@ -6366,7 +6360,7 @@
   .mom-prog-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .mom-prog-table td {
     padding: 7px 6px;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
     color: var(--label);
     vertical-align: middle;
   }
@@ -6440,7 +6434,7 @@
   .mom-period-toggle {
     display: flex;
     background: rgba(0,0,0,0.04);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 11px;
     padding: 3px;
     gap: 2px;
@@ -6481,7 +6475,7 @@
     align-items: center;
     gap: 12px;
     padding: 10px 0;
-    border-bottom: 1.2px solid var(--hairline-soft);
+    border-bottom: 1px solid var(--hairline-soft);
   }
   .mom-pr-row:last-child { border-bottom: none; }
   .mom-pr-rank {
@@ -6548,8 +6542,8 @@
     --paper-2: #eef1f7;
     --glass: rgba(255,255,255,0.65);
     --glass-2: rgba(255,255,255,0.85);
-    --hairline: rgba(15,22,34,0.11);
-    --hairline-strong: rgba(15,22,34,0.20);
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.14);
 
     --accent: #5d9bb8;
     --accent-2: #7fa5c7;
@@ -6628,7 +6622,7 @@
       radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
       linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
     box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     overflow: hidden;
     position: relative;
     display: flex;
@@ -6677,7 +6671,6 @@
     margin: 0;
     font: 700 26px/1.1 'Inter Tight',sans-serif;
     letter-spacing: -0.02em;
-    max-width: 75%;
   }
   .head-today .date {
     margin-top: 4px;
@@ -6691,38 +6684,19 @@
      Auto-collapses to a thin "ready to start" strip pre-workout (when no sets
      are logged) and expands once the first set is logged. */
   .progress {
-    position: relative;
     margin: 4px 22px 12px;
     padding: 14px 8px 12px;
     transition: padding 220ms var(--ease-out-cubic);
-    background:
-      linear-gradient(155deg, rgba(93,155,184,0.24) 0%, rgba(155,130,200,0.17) 55%, rgba(201,160,190,0.12) 100%),
-      rgba(255,255,255, 0.50);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border: 1.2px solid rgba(255,255,255, 0.85);
-    border-radius: 22px;
-    isolation: isolate;
-    overflow: hidden;
+    background: linear-gradient(155deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.06) 55%, rgba(201,160,190,0.04) 100%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.85);
+    border-radius: 16px;
     box-shadow:
-      0 1px 0 rgba(255,255,255, 0.95) inset,
-      0 0 0 1px rgba(93,155,184, 0.10),
-      0 12px 26px rgba(93,155,184, 0.18),
-      0 4px 8px rgba(15,22,34, 0.08);
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 4px 14px rgba(15,22,34, 0.05);
     flex-shrink: 0;
   }
-  .progress::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255,255,255, 0.55) 0%, rgba(255,255,255, 0.0) 50%);
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: 0.65;
-    z-index: 0;
-  }
-  .progress > * { position: relative; z-index: 1; }
   .progress .wm-stats-row {
     display: grid;
     grid-template-columns: 1.15fr 1fr 1fr;
@@ -6741,10 +6715,10 @@
     background: rgba(15,22,34, 0.08);
   }
   .progress .wm-stat-label {
-    font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
-    letter-spacing: 0.12em;
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     margin-bottom: 6px;
   }
   .progress .wm-stat-value {
@@ -6848,7 +6822,7 @@
     font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--label);
     padding: 12px 26px 6px;
   }
 
@@ -6922,7 +6896,7 @@
 
   .mv .body { flex: 1; min-width: 0; }
   .mv .row1 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 4px; }
-  .mv .name { font: 600 16px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .mv .name { font: 600 14px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
   /* Equipment pill — neutral ghost outline, tappable to change. Sits inline
      with the movement name. Tap opens a small popover with equipment chips. */
   .mv .equip-wrap { position: relative; display: inline-block; }
@@ -6988,11 +6962,11 @@
   .mv .ref { font: 500 11px/1.3 'Geist Mono',ui-monospace,monospace; color: var(--label); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mv .ref.skipped { color: var(--bad); }
   .mv .ref.done { color: var(--ok); }
-  .mv .progress-chip { font: 600 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); background: var(--paper-2); border: 1.2px solid var(--hairline); border-radius: var(--r-pill); padding: 6px 10px; min-width: 44px; text-align: center; }
+  .mv .progress-chip { font: 600 12px/1 'Geist Mono',ui-monospace,monospace; color: var(--ink); background: var(--paper-2); border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 6px 10px; min-width: 44px; text-align: center; }
   .mv .progress-chip.done { color: var(--ok); background: rgba(79,154,168,0.10); border-color: rgba(79,154,168,0.20); }
   .mv .progress-chip.skipped { color: var(--bad); background: rgba(176,128,146,0.10); border-color: rgba(176,128,146,0.20); }
   .mv .progress-chip.partial { color: var(--accent); background: rgba(93,155,184,0.10); border-color: rgba(93,155,184,0.20); }
-  .mv .remove { width: 28px; height: 28px; border-radius: var(--r-pill); border: 1.2px solid var(--hairline); background: transparent; display: grid; place-items: center; color: var(--label); cursor: pointer; flex-shrink: 0; }
+  .mv .remove { width: 28px; height: 28px; border-radius: var(--r-pill); border: 1px solid var(--hairline); background: transparent; display: grid; place-items: center; color: var(--label); cursor: pointer; flex-shrink: 0; }
   .mv .remove:hover { color: var(--bad); border-color: rgba(176,128,146,0.30); }
   .mv .remove svg { width: 12px; height: 12px; }
 
@@ -7055,7 +7029,7 @@
     margin: 14px auto 4px;
     padding: 9px 18px;
     background: transparent;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     font: 700 10px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.18em;
@@ -7097,7 +7071,7 @@
     bottom: 14px;
     height: 62px;
     background: var(--glass-2);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: var(--r-pill);
     box-shadow: var(--depth-3);
     backdrop-filter: blur(20px);
@@ -7128,59 +7102,19 @@
     flex-shrink: 0;
   }
   .back-chip {
-    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 999px;
-    background:
-      linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
-      rgba(255,255,255, 0.55);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border: 1.5px solid var(--accent);
-    color: var(--accent);
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--ink);
     cursor: pointer;
-    isolation: isolate;
-    overflow: hidden;
-    box-shadow:
-      0 1px 0 rgba(255,255,255, 0.9) inset,
-      0 0 0 1px rgba(93,155,184, 0.18),
-      0 10px 22px rgba(93,155,184, 0.24),
-      0 4px 8px rgba(15,22,34, 0.10);
-    transition: transform 100ms var(--ease-out-cubic), box-shadow 220ms ease-out, background 180ms ease-out;
+    transition: background 150ms ease-out;
   }
-  .back-chip::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255,255,255, 0.55) 0%, rgba(255,255,255, 0.0) 55%);
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: 0.7;
-  }
-  .back-chip:hover {
-    box-shadow:
-      0 1px 0 rgba(255,255,255, 0.9) inset,
-      0 12px 26px rgba(93,155,184, 0.24),
-      0 4px 10px rgba(15,22,34, 0.12);
-  }
-  .back-chip:active { transform: scale(0.95); }
-  body.theme-dark .back-chip {
-    background:
-      linear-gradient(155deg, rgba(93,155,184,0.30) 0%, rgba(155,130,200,0.22) 55%, rgba(201,160,190,0.16) 100%),
-      rgba(28, 34, 50, 0.55);
-    border-color: rgba(255,255,255, 0.18);
-    color: rgba(255,255,255, 0.95);
-    box-shadow:
-      0 1px 0 rgba(255,255,255, 0.10) inset,
-      0 10px 24px rgba(0,0,0, 0.40),
-      0 4px 8px rgba(0,0,0, 0.25);
-  }
-  body.theme-dark .back-chip::after { mix-blend-mode: overlay; opacity: 0.5; }
+  .back-chip:hover { background: var(--paper-2); }
   .back-chip svg { width: 14px; height: 14px; }
   .back-chip span { display: none; }   /* hidden by default; revealed via aria-label */
 
@@ -7200,7 +7134,7 @@
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--label);
     margin-bottom: 8px;
   }
   .identity .name {
@@ -7260,8 +7194,6 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 10.5px;
-    font-weight: 800;
     color: var(--ink);
   }
   .wm-hero-eyebrow .now-marker .dot {
@@ -7336,7 +7268,7 @@
   }
   .wm-hero-num:hover { background: rgba(93,155,184,0.08); }
   .wm-hero-num:active { transform: scale(0.97); transition: transform 100ms var(--ease-out-cubic); }
-  .wm-hero-num.empty { color: var(--label); }
+  .wm-hero-num.wm-empty { color: var(--label); }
   .wm-hero-sep {
     font: 500 26px/1 'Inter Tight',sans-serif;
     color: var(--label);
@@ -7347,13 +7279,13 @@
     align-items: center;
     justify-content: center;
     gap: 18px;
-    font: 800 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--label);
     margin-top: 12px;
     padding-top: 11px;
-    border-top: 1.2px solid var(--hairline);
+    border-top: 1px solid var(--hairline);
   }
   .wm-hero-units-bar span:not(:first-child)::before {
     content: '·';
@@ -7486,23 +7418,23 @@
      Done rows = teal-tinted. Target rows = white glass. */
   .col-head {
     display: grid;
-    grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+    grid-template-columns: 36px 28px 0.85fr 1fr 22px 16px;
     align-items: center;
     gap: 10px;
     /* 22px outer (matches .sets padding) + 13px inner (matches each row's
        12px padding + 1px border) = 35px so labels sit directly over the row
        content. */
     padding: 0 35px 6px;
-    font: 800 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.20em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--label);
   }
   .col-head .h-today { text-align: right; }
 
   .set-row {
     display: grid;
-    grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+    grid-template-columns: 36px 28px 0.85fr 1fr 22px 16px;
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
@@ -7607,11 +7539,7 @@
     background: var(--ok);
     color: white;
     border: none;
-    cursor: pointer;
-    transition: transform 100ms var(--ease-out-cubic), opacity 150ms ease-out;
   }
-  .set-row.done .chk:active { transform: scale(0.92); }
-  .set-row.done .chk:hover { opacity: 0.85; }
   .set-row.target .chk {
     background: white;
     color: var(--label);
@@ -7627,7 +7555,7 @@
     padding: 4px 6px;
     margin: -4px -6px;
     border-radius: 6px;
-    font: 800 12px/1 'Geist Mono', ui-monospace, monospace;
+    font: 800 11px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ok);
@@ -7643,36 +7571,14 @@
   /* BW toggle — small square box that flags the set as bodyweight.
      Off = ghost outline + muted label. On = solid dark fill.
      Same on/off treatment as the eyebrow RPE/AI pills but square-cornered. */
-  .set-row .wu-btn {
-    width: 28px;
-    height: 22px;
-    padding: 0;
-    border: 1px solid var(--ok);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--ok);
-    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    display: inline-grid;
-    place-items: center;
-    transition: color 180ms ease-out, border-color 180ms ease-out, transform 100ms var(--ease-out-cubic);
-    justify-self: center;
-  }
-  .set-row .wu-btn:active { transform: scale(0.94); }
-  .set-row .wu-btn.warmup {
-    color: var(--bad);
-    border-color: var(--bad);
-  }
-
   .set-row .bw-btn {
     width: 26px;
     height: 22px;
     padding: 0;
-    border: 1px solid var(--ink);
+    border: 1px solid rgba(15,22,34, 0.18);
     border-radius: 6px;
     background: transparent;
-    color: var(--ink);
+    color: var(--label);
     font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.08em;
     cursor: pointer;
@@ -7772,17 +7678,17 @@
   }
   .rec-inline .summary .arrow {
     margin: 0 4px;
-    color: var(--ink);
+    color: var(--label);
   }
   .rec-inline .summary .next {
     font-family: 'Geist Mono',ui-monospace,monospace;
-    font-size: 12px;
-    color: var(--ink);
+    font-size: 11px;
+    color: var(--muted);
     letter-spacing: 0.02em;
   }
   .rec-inline .reason {
-    font: 500 12px/1.3 'Inter Tight',sans-serif;
-    color: var(--ink);
+    font: 500 10px/1.3 'Inter Tight',sans-serif;
+    color: var(--muted);
     letter-spacing: -0.003em;
     white-space: nowrap;
     overflow: hidden;
@@ -7794,7 +7700,7 @@
     gap: 4px;
     padding: 6px 12px 6px 11px;
     background: transparent;
-    border: 1px solid var(--ink);
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     font: 600 10.5px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.005em;
@@ -7816,7 +7722,7 @@
     margin: 12px auto 4px;
     padding: 9px 18px;
     background: transparent;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
@@ -7941,9 +7847,9 @@
     gap: 7px;
     padding: 5px 12px 5px 10px;
     background: transparent;
-    border: 1px solid var(--ink);
+    border: 1px solid rgba(15,22,34, 0.18);
     border-radius: 999px;
-    color: var(--ink);
+    color: var(--label);
     font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.10em;
     text-transform: uppercase;
@@ -8006,7 +7912,7 @@
   .dur-chip {
     padding: 6px 10px;
     background: white;
-    border: 1.2px solid var(--hairline, rgba(15,22,34, 0.10));
+    border: 1px solid var(--hairline, rgba(15,22,34, 0.10));
     border-radius: 999px;
     font: 600 10.5px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.04em;
@@ -8087,7 +7993,7 @@
   }
   .pk-done {
     background: white;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: var(--r-pill);
     padding: 9px 18px;
     font: 600 13px/1 'Inter Tight',sans-serif;
@@ -8105,7 +8011,7 @@
     margin: 0 20px 16px;
     padding: 22px 20px;
     background: white;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 18px;
     text-align: center;
     box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 3px rgba(15,22,34,0.04);
@@ -8133,7 +8039,7 @@
   }
   .pk-steppers button {
     background: white;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 13px;
     padding: 13px 0;
     font: 700 13px/1 'Inter Tight',sans-serif;
@@ -8159,7 +8065,7 @@
   }
   .pk-presets button {
     background: white;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: 14px;
     padding: 15px 0;
     font: 600 14px/1 'Inter Tight',sans-serif;
@@ -8188,7 +8094,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     background: var(--paper-2);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: var(--r-pill);
     padding: 4px;
   }
@@ -8219,7 +8125,7 @@
     margin: 0 22px 10px;
     padding: 12px 14px;
     background: var(--paper);
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: var(--r-md);
     display: flex;
     align-items: center;
@@ -8232,7 +8138,7 @@
   .field .val { flex: 1; font: 600 14px/1 'Inter Tight',sans-serif; color: var(--ink); }
   .field .chev { width: 14px; height: 14px; color: var(--label); }
 
-  .stepper { display: flex; align-items: center; background: white; border: 1.2px solid var(--hairline); border-radius: var(--r-pill); padding: 2px; }
+  .stepper { display: flex; align-items: center; background: white; border: 1px solid var(--hairline); border-radius: var(--r-pill); padding: 2px; }
   .stepper button { width: 30px; height: 30px; border: none; background: transparent; border-radius: var(--r-pill); color: var(--ink); font: 700 14px/1 'Inter Tight',sans-serif; cursor: pointer; }
   .stepper button:hover { background: var(--paper); }
   .stepper button:active { transform: scale(0.94); }
@@ -8272,7 +8178,7 @@
     max-width: 280px;
     padding: 14px 16px;
     background: white;
-    border: 1.2px solid var(--hairline);
+    border: 1px solid var(--hairline);
     border-radius: var(--r-md);
     box-shadow: var(--depth-2);
     font: 500 12px/1.5 'Inter Tight',sans-serif;
@@ -8468,7 +8374,7 @@
   }
   .history-row.hist-pill-b .hpb-del {
     width: 22px; height: 22px;
-    background: rgba(255,255,255, 0.85); border: 1.2px solid var(--hairline);
+    background: rgba(255,255,255, 0.85); border: 1px solid var(--hairline);
     border-radius: 50%; display: grid; place-items: center;
     color: var(--label); cursor: pointer;
     transition: color 150ms ease-out, border-color 150ms ease-out;
@@ -8839,7 +8745,7 @@
          so existing internal state (finished-today panel, etc.) stays coherent
          while the user sees the new layout. -->
     <div class="head-today" id="today-v2-head">
-      <h1 id="today-v2-headline">Build today's session.</h1>
+      <h1>Build today's session.</h1>
       <div class="date" id="today-v2-date">—</div>
     </div>
 
@@ -9886,7 +9792,7 @@ function openSupabaseTestPanel() {
     width: 420px; max-width: 95vw; font-family: 'JetBrains Mono', monospace;
   `;
   panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1.2px solid var(--hairline-soft);">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--hairline-soft);">
       <span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Supabase Debug</span>
       <div style="display:flex;gap:6px;align-items:center;">
         <div id="supa-status-dot" style="width:8px;height:8px;border-radius:50%;background:#aaa;"></div>
@@ -9902,9 +9808,9 @@ function openSupabaseTestPanel() {
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button onclick="supabaseInsertTest()" style="flex:1;padding:8px 12px;background:var(--ink);color:var(--paper);border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">⬆ Insert test row</button>
         <button onclick="supabaseFetchTest()" style="flex:1;padding:8px 12px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">⬇ Fetch rows</button>
-        <button onclick="document.getElementById('supa-log').innerHTML=''" style="padding:8px 10px;background:transparent;color:var(--muted);border:1.2px solid var(--hairline);border-radius:6px;cursor:pointer;font-size:11px;">Clear</button>
+        <button onclick="document.getElementById('supa-log').innerHTML=''" style="padding:8px 10px;background:transparent;color:var(--muted);border:1px solid var(--hairline);border-radius:6px;cursor:pointer;font-size:11px;">Clear</button>
       </div>
-      <div id="supa-log" style="max-height:240px;overflow-y:auto;font-size:11px;line-height:1.6;border:1.2px solid var(--hairline-soft);border-radius:6px;padding:8px;background:var(--paper-2);">
+      <div id="supa-log" style="max-height:240px;overflow-y:auto;font-size:11px;line-height:1.6;border:1px solid var(--hairline-soft);border-radius:6px;padding:8px;background:var(--paper-2);">
         <div style="color:var(--muted);">Ready. Press Insert or Fetch to test.</div>
       </div>
     </div>`;
@@ -10069,7 +9975,7 @@ function openSyncModal() {
     </p>
     <label style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--label);">Passphrase</label>
     <input type="password" id="sync-phrase-input" placeholder="e.g. rylo-core-2026" autocomplete="off"
-      style="width:100%;margin-top:6px;padding:10px 12px;border:1.2px solid var(--hairline);border-radius:8px;
+      style="width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--hairline);border-radius:8px;
       font-family:'JetBrains Mono',monospace;font-size:14px;background:var(--paper-2);color:var(--ink);">
     ${isShared ? `<p style="font-size:11px;color:var(--ok);margin-top:8px;">✓ Currently syncing across devices</p>` : ''}
     <div style="display:flex;gap:8px;margin-top:16px;">
@@ -13093,38 +12999,9 @@ document.addEventListener('click', (e) => {
 // pending chips, etc.) remains coherent. A wrapper at the bottom calls
 // V2 after every renderToday() invocation.
 // =============================================================
-// Pool of headline copy shown on Today when at least one movement is queued.
-// Direct / calibrated register — no motivational filler, no "Crush it!" tone.
-// Per `feedback_positioning_and_voice.md` the voice is clinical and matter-of-fact.
-const TODAY_HEADLINES_V2 = [
-  "Let's work.",
-  "Time to lift.",
-  "Earn it.",
-  "Run it back.",
-  "Stack the day.",
-  "Move with intent.",
-  "Stay sharp.",
-  "Set the bar.",
-  "Train hard.",
-  "Lift heavy.",
-  "Add a plate.",
-  "Beat last week.",
-  "Outwork yesterday.",
-  "Lock in.",
-  "Under the bar.",
-  "Build the week.",
-];
-// Stable per-calendar-day pick so the headline doesn't jitter on every render.
-function todayHeadlineV2() {
-  const dKey = new Date().toDateString();
-  let h = 0;
-  for (let i = 0; i < dKey.length; i++) h = ((h * 31) + dKey.charCodeAt(i)) | 0;
-  return TODAY_HEADLINES_V2[Math.abs(h) % TODAY_HEADLINES_V2.length];
-}
 function renderTodayV2() {
   const root = document.getElementById('view-today');
   if (!root) return;
-  const headlineEl = root.querySelector('#today-v2-headline');
   const dateEl = root.querySelector('#today-v2-date');
   const planSetsEl = root.querySelector('#plan-sets');
   const planMinEl = root.querySelector('#plan-min');
@@ -13149,12 +13026,6 @@ function renderTodayV2() {
   }
   if (dateEl) dateEl.textContent = `${weekday} ${months[today.getMonth()]} ${today.getDate()}${splitLabel}`;
 
-  // Headline: when at least one movement is queued, swap "Build today's
-  // session." for a stable-per-day pick from TODAY_HEADLINES_V2. Empty plan
-  // keeps the call-to-action wording so the surface still tells the user what
-  // to do next. Set after movements are resolved (see below) — placeholder
-  // here so the var is in scope.
-
   // ---- Resolve today's movements (plan + adhoc), filtered to non-finished ----
   const finishedTodayList = (typeof finishedTodayWorkouts === 'function') ? finishedTodayWorkouts() : [];
   const finishedTodayMids = new Set();
@@ -13171,12 +13042,6 @@ function renderTodayV2() {
   const adhocEntries = (data.active && data.active.entries)
     ? data.active.entries.filter(e => (!e.planId || !planIds.has(e.planId)) && !finishedTodayMids.has(e.movementId))
     : [];
-
-  // Headline swap — see comment above the data resolution block.
-  if (headlineEl) {
-    const hasMovements = plan.length > 0 || adhocEntries.length > 0 || finishedTodayList.length > 0;
-    headlineEl.textContent = hasMovements ? todayHeadlineV2() : "Build today's session.";
-  }
 
   // ---- Compute scope stats ----
   // Audit (2026-05-13): the Complete % bar must reflect ALL currently-active
@@ -13798,13 +13663,12 @@ function renderWorkoutV2() {
     heroSlot.querySelector('#wm-btn-complete').addEventListener('click', completeMovementV2);
   } else {
     const s = entry.sets[cur];
-    const hasV = (v) => v != null && v !== '';
-    const weight = hasV(s.weight) ? s.weight : '—';
-    const reps = hasV(s.reps) ? s.reps : '—';
-    const rpe = (ui.session.trackRpe && hasV(s.rpe)) ? s.rpe : '—';
-    const wCls = hasV(s.weight) ? '' : ' empty';
-    const rCls = hasV(s.reps) ? '' : ' empty';
-    const rpeCls = hasV(s.rpe) ? '' : ' empty';
+    const weight = s.weight != null ? s.weight : '—';
+    const reps = s.reps != null ? s.reps : '—';
+    const rpe = (ui.session.trackRpe && s.rpe != null) ? s.rpe : '—';
+    const wCls = s.weight == null ? ' empty' : '';
+    const rCls = s.reps == null ? ' empty' : '';
+    const rpeCls = (s.rpe == null) ? ' empty' : '';
     const total = entry.sets.length;
     const rt = ui.session.restTimer;
     const restOn = !!rt.enabled;
@@ -13823,7 +13687,7 @@ function renderWorkoutV2() {
     heroSlot.innerHTML = `
       <div class="wm-hero">
         <div class="wm-hero-eyebrow">
-          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur + 1}/${total}</span></span>
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur + 1}</span><span class="set-of"> of ${total}</span></span>
           <span class="eyebrow-pills">
             <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="wm-toggle-rpe"><span>RPE</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
             <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="wm-toggle-ai"><span>AI</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
@@ -13856,12 +13720,9 @@ function renderWorkoutV2() {
   }
 
   // ---- DONE + TARGET set rows ----
-  // First-time-doing-this-movement detection: if no set on this entry has prior
-  // data, hide both the "Previous" header label and the per-row prev text.
-  const hasAnyPrev = (entry.sets || []).some(s => s && s.prevW != null && s.prevW !== '' && s.prevR != null && s.prevR !== '');
   const headerHtml = `
     <div class="col-head">
-      <span>Set</span><span></span><span></span><span>${hasAnyPrev ? 'Previous' : ''}</span><span class="h-today">Today</span><span></span><span></span>
+      <span>Set</span><span></span><span>Previous</span><span class="h-today">Today</span><span></span><span></span>
     </div>`;
   const checkSvg = '<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const doneSets = entry.sets.map((s, i) => ({ s, i })).filter(x => x.s.done);
@@ -13877,11 +13738,10 @@ function renderWorkoutV2() {
       html += `
         <div class="set-row done" data-set-idx="${i}">
           <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
-          <button class="wu-btn${typeCls}" data-toggle-type="${i}" type="button" title="Set type">${s.warmup ? 'WU' : 'WS'}</button>
           <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
-          <span class="r-prev">${hasAnyPrev ? prevForSetV2(entry, i) : ''}</span>
+          <span class="r-prev">${prevForSetV2(entry, i)}</span>
           <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
-          <button class="chk" data-reopen-set="${i}" type="button" aria-label="Reopen set">${checkSvg}</button>
+          <span class="chk">${checkSvg}</span>
           <button class="row-remove" data-remove-set="${i}" type="button" aria-label="Remove">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           </button>
@@ -13897,9 +13757,6 @@ function renderWorkoutV2() {
     });
     loggedSlot.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); removeSetV2(+el.dataset.removeSet); });
-    });
-    loggedSlot.querySelectorAll('[data-reopen-set]').forEach(el => {
-      el.addEventListener('click', (e) => { e.stopPropagation(); reopenSetV2(+el.dataset.reopenSet); });
     });
 
     // AI insight rec — under the last done set when AI is on. Apply updates
@@ -13935,9 +13792,8 @@ function renderWorkoutV2() {
       html += `
         <div class="set-row target" data-set-idx="${i}">
           <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
-          <button class="wu-btn${typeCls}" data-toggle-type="${i}" type="button" title="Set type">${s.warmup ? 'WU' : 'WS'}</button>
           <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
-          <span class="r-prev">${hasAnyPrev ? prevForSetV2(entry, i) : ''}</span>
+          <span class="r-prev">${prevForSetV2(entry, i)}</span>
           <span class="r-vals editable">
             <button class="edit-num" data-edit-w="${i}" type="button">${wDisp}</button>
             <span class="x">×</span>
@@ -13985,17 +13841,8 @@ function logSetV2(idx) {
   if (ui.session.trackRpe && s.rpe == null) { showToastV2('Add RPE before logging.'); openPickerV2('rpe', idx); return; }
   s.done = true;
   if (typeof saveData === 'function') saveData();
-  if (typeof renderToday === 'function') renderToday();
-  // If every set on this movement is now done, bounce back to Today
-  // automatically — the user's intent for "Log set" + all-done is "I'm done
-  // with this movement," not "stay on an empty hero." Matches the explicit
-  // Complete button behavior.
-  if (entry.sets.every(set => set.done)) {
-    showToastV2(`Set ${idx + 1} logged — movement complete.`);
-    backToTodayV2();
-    return;
-  }
   renderWorkoutV2();
+  if (typeof renderToday === 'function') renderToday();
   showToastV2(`Set ${idx + 1} logged.`);
 }
 function addSetV2() {
@@ -14034,14 +13881,6 @@ function toggleBodyweightV2(idx) {
   entry.sets[idx].bw = !entry.sets[idx].bw;
   if (typeof saveData === 'function') saveData();
   renderWorkoutV2();
-}
-function reopenSetV2(idx) {
-  const entry = getActiveWorkoutEntry();
-  if (!entry || !entry.sets || !entry.sets[idx]) return;
-  entry.sets[idx].done = false;
-  if (typeof saveData === 'function') saveData();
-  renderWorkoutV2();
-  if (typeof renderToday === 'function') renderToday();
 }
 function completeMovementV2() {
   // Production has no "complete movement" status on the entry — finishing
@@ -14096,7 +13935,7 @@ function openPickerV2(field, setIdx) {
     reps: () => [1, 3, 5, 8, 10, 12, 15],
     rpe: () => [6, 7, 7.5, 8, 8.5, 9, 9.5, 10],
   };
-  const state = { field, setIdx, value: (s[field] != null && s[field] !== '') ? +s[field] : defaults[field] };
+  const state = { field, setIdx, value: s[field] != null ? +s[field] : defaults[field] };
 
   const titleEl = overlay.querySelector('#pk-title');
   const unitEl = overlay.querySelector('#pk-unit');
@@ -14640,7 +14479,7 @@ function buildMvBlock(p, mv, entry) {
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         <button class="set-skip-btn" data-skip="${p.id}">${entry && entry.skipped ? 'Unskip' : 'Skip'}</button>
-        <button class="mv-remove-btn" data-remove-mv="${p.id}" title="Remove from today's session" style="background:transparent;border:1.2px solid var(--hairline-soft);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--muted);cursor:pointer;line-height:1;" onmouseover="this.style.borderColor='var(--bad)';this.style.color='var(--bad)'" onmouseout="this.style.borderColor='var(--hairline-soft)';this.style.color='var(--muted)'">✕</button>
+        <button class="mv-remove-btn" data-remove-mv="${p.id}" title="Remove from today's session" style="background:transparent;border:1px solid var(--hairline-soft);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--muted);cursor:pointer;line-height:1;" onmouseover="this.style.borderColor='var(--bad)';this.style.color='var(--bad)'" onmouseout="this.style.borderColor='var(--hairline-soft)';this.style.color='var(--muted)'">✕</button>
       </div>
     </div>
     <div class="mv-block-body">
@@ -18520,7 +18359,7 @@ function buildInlineEditor(wid) {
     const mapPicker = mv ? '' : `
       <label class="es-map-picker" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--label);">
         <span>Map to</span>
-        <select class="es-map-select" data-ei="${ei}" data-map-entry style="min-width:180px;padding:6px 8px;border:1.2px solid var(--hairline);border-radius:6px;background:var(--paper);font-family:inherit;font-size:12px;text-transform:none;letter-spacing:0;color:var(--ink);">
+        <select class="es-map-select" data-ei="${ei}" data-map-entry style="min-width:180px;padding:6px 8px;border:1px solid var(--hairline);border-radius:6px;background:var(--paper);font-family:inherit;font-size:12px;text-transform:none;letter-spacing:0;color:var(--ink);">
           <option value="">— choose movement —</option>
           ${movementSelectOptionsGrouped(data.movements, m => (m.equipmentType && m.equipmentType !== 'Unspecified' ? ' · ' + m.equipmentType : ''))}
         </select>
@@ -19155,7 +18994,7 @@ function openPickMovement() {
       const label = MUSCLE_LABELS[key] || (key.charAt(0).toUpperCase() + key.slice(1));
       const sorted = items.slice().sort((a, b) => a.name.localeCompare(b.name));
       return `
-        <div style="padding:8px 4px 4px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-top:1.2px solid var(--hairline-soft);">${label}</div>
+        <div style="padding:8px 4px 4px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--hairline-soft);">${label}</div>
         ${sorted.map(m => `
           <div data-pick="${m.id}" style="padding:10px 4px;border-bottom:1px dashed var(--hairline-soft);cursor:pointer;display:flex;justify-content:space-between;font-size:13px;">
             <span>${m.name}</span><span style="font-size:10px;color:var(--muted);">${m.category}</span>
