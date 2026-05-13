@@ -364,8 +364,9 @@
   }
   .hero-eyebrow .head-remove:hover { color: var(--bad); }
 
-  /* Big-type hero — one typographic statement instead of 3 picker cards.
-     Numbers are inline-baseline-aligned; tap any to open the picker. */
+  /* Big-type hero — all three values (weight × reps × RPE) inline on one
+     line. Numbers slightly smaller than before so all three fit comfortably
+     on phone width. Tap any number to open the picker. */
   .hero-statement {
     text-align: center;
     padding: 6px 0 4px;
@@ -374,45 +375,27 @@
     display: flex;
     align-items: baseline;
     justify-content: center;
-    gap: 14px;
+    gap: 10px;
     margin-bottom: 8px;
   }
   .hero-num {
     background: transparent;
     border: none;
-    font: 700 56px/1 'Inter Tight',sans-serif;
-    letter-spacing: -0.055em;
+    font: 700 46px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.05em;
     color: var(--ink);
-    padding: 2px 6px;
+    padding: 2px 4px;
     cursor: pointer;
     border-radius: 8px;
-    transition: opacity 180ms ease-out, background 180ms ease-out;
+    transition: background 180ms ease-out;
   }
   .hero-num:hover { background: rgba(93,155,184,0.08); }
   .hero-num.empty { color: var(--label); }
   .hero-sep {
-    font: 500 32px/1 'Inter Tight',sans-serif;
+    font: 500 26px/1 'Inter Tight',sans-serif;
     color: var(--label);
     letter-spacing: -0.02em;
   }
-  .hero-secondary {
-    font: 500 14px/1 'Inter Tight',sans-serif;
-    color: var(--label);
-    margin-bottom: 2px;
-  }
-  .hero-rpe-btn {
-    background: transparent;
-    border: none;
-    font: 700 17px/1 'Inter Tight',sans-serif;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: background 180ms ease-out;
-  }
-  .hero-rpe-btn:hover { background: rgba(93,155,184,0.10); }
-  .hero-rpe-btn.empty { color: var(--label); font-weight: 600; }
   .hero-units-bar {
     display: flex;
     align-items: center;
@@ -422,8 +405,8 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--label);
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: 12px;
+    padding-top: 11px;
     border-top: 1px solid var(--hairline);
   }
   .hero-units-bar span:not(:first-child)::before {
@@ -1543,14 +1526,13 @@ function renderWorkout() {
     const repsCls = cur.reps == null ? 'empty' : '';
     const rpeCls = cur.rpe == null ? 'empty' : '';
 
-    // Big-type hero: '185 × 10' as a single statement, 'at RPE 7' below
-    // (only when RPE tracking is on). Tap any number to open the picker.
-    const rpeLine = state.session.trackRpe ? `
-        <div class="hero-secondary">
-          at <button class="hero-rpe-btn ${rpeCls}" data-pk="rpe">RPE ${rpe}</button>
-        </div>` : '';
+    // Big-type hero: all three values inline as '185 × 10 × 7'.
+    // RPE only renders when session tracking is on.
+    const rpeInline = state.session.trackRpe
+      ? `<span class="hero-sep">×</span><button class="hero-num ${rpeCls}" data-pk="rpe">${rpe}</button>`
+      : '';
     const unitsBar = state.session.trackRpe
-      ? '<span>LB</span><span>REPS</span><span>EFFORT</span>'
+      ? '<span>LB</span><span>REPS</span><span>RPE</span>'
       : '<span>LB</span><span>REPS</span>';
 
     hero.innerHTML = `
@@ -1564,8 +1546,8 @@ function renderWorkout() {
             <button class="hero-num ${weightCls}" data-pk="weight">${weight}</button>
             <span class="hero-sep">×</span>
             <button class="hero-num ${repsCls}" data-pk="reps">${reps}</button>
+            ${rpeInline}
           </div>
-          ${rpeLine}
           <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
