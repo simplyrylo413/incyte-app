@@ -364,30 +364,89 @@
   .log-btn:active { transform: scale(0.98); }
   .log-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  /* AI recommendation card — refined for clinical / premium feel.
+     - No pulse animation (static indicator)
+     - Action label is the dominant typographic element
+     - Next-set value uses Geist Mono right-aligned for data emphasis
+     - Reason copy is short, mechanism-explained, no hand-holding
+     - Apply button refined to feel like a premium primary action */
   .rec {
     margin: 10px 18px 0;
-    padding: 14px;
-    background: linear-gradient(160deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.08) 60%, rgba(201,160,190,0.08) 100%);
-    border: 1px solid rgba(93,155,184,0.25);
+    padding: 16px 18px 14px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.07) 0%, rgba(245,247,251,0.40) 100%);
+    border: 1px solid rgba(93,155,184,0.18);
     border-radius: var(--r-lg);
-    box-shadow: var(--depth-2);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 6px 18px rgba(15,22,34,0.04);
     flex-shrink: 0;
   }
-  .rec .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .rec .eyebrow { font: 700 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 6px; }
-  .rec .live-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 0 3px rgba(93,155,184,0.20); animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .rec .row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
-  .rec .action { font: 700 20px/1.1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
-  .rec .next { font: 600 13px/1.2 'Geist Mono',ui-monospace,monospace; color: var(--muted); letter-spacing: 0.02em; }
-  .rec .reason { font: 500 12px/1.45 'Inter Tight',sans-serif; color: var(--muted); margin: 6px 0 12px; }
-  .rec .apply { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px 8px 12px; background: rgba(15,22,34,0.06); border: 1px solid rgba(15,22,34,0.08); border-radius: var(--r-pill); font: 600 12px/1 'Inter Tight',sans-serif; color: var(--ink); cursor: pointer; transition: background 150ms ease-out; }
-  .rec .apply:hover { background: rgba(15,22,34,0.10); }
-  .rec .apply svg { width: 12px; height: 12px; }
-  .rec.muted { background: rgba(142,155,176,0.06); border-color: rgba(142,155,176,0.18); }
-  .rec.muted .eyebrow { color: var(--muted); }
-  .rec.muted .live-dot { background: var(--muted); box-shadow: 0 0 0 3px rgba(142,155,176,0.15); animation: none; }
-  .rec.muted .action { color: var(--muted); font-size: 15px; }
+  .rec .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .rec .eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rec .live-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    /* static — no pulse animation */
+  }
+  .rec .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 6px;
+  }
+  .rec .action {
+    font: 700 24px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .rec .next {
+    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .rec .reason {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 8px 0 14px;
+    letter-spacing: -0.005em;
+  }
+  .rec .apply {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px 9px 14px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.12);
+    border-radius: var(--r-pill);
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .rec .apply:hover {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+  }
+  .rec .apply:active { transform: scale(0.98); }
+  .rec .apply svg { width: 12px; height: 12px; transition: transform 150ms ease-out; }
+  .rec .apply:hover svg { transform: translateX(2px); }
 
   .wm-actions {
     position: absolute;
@@ -870,30 +929,30 @@ function computeRecommendation(set, trackRpe = true) {
     if (r >= 15) {
       delta = 10;
       actionLabel = `Add ${delta} lb`;
-      reason = 'Rep count is well above typical working range. Add weight to find a productive load.';
+      reason = 'Volume past target range. Capacity remains.';
       nextReps = Math.max(8, r - 5);
     } else if (r >= 12) {
       delta = 5;
       actionLabel = `Add ${delta} lb`;
-      reason = 'Rep count is above typical working range. Small weight bump.';
+      reason = 'Volume above target. Small bump.';
     } else if (r >= 6) {
       delta = 0;
       actionLabel = 'Hold';
-      reason = 'Productive rep range. Repeat the same load.';
+      reason = 'Productive range. Repeat the load.';
     } else if (r >= 3) {
       delta = -5;
       actionLabel = `Drop ${Math.abs(delta)} lb`;
-      reason = 'Rep count is low. If this was intentional strength work, hold; otherwise drop weight.';
+      reason = 'Low rep count. Drop unless this was strength work.';
     } else {
       delta = -10;
       actionLabel = `Drop ${Math.abs(delta)} lb`;
-      reason = 'Very low rep count. Drop weight to clean up the next session.';
+      reason = 'Volume below target. Drop weight.';
     }
 
     return {
       action: actionLabel,
       next: `${w + delta} × ${nextReps}`,
-      reason: reason + ' Turn on RPE for sharper guidance.',
+      reason: reason + ' Enable RPE for sharper guidance.',
       weight: w + delta,
       reps: nextReps,
       rpe: null,
@@ -915,28 +974,28 @@ function computeRecommendation(set, trackRpe = true) {
   if (r <= 4 && reps >= 15) {
     delta = 10;
     actionLabel = `Add ${delta} lb`;
-    reason = `High reps at very low effort. Add weight to find a real working load.`;
+    reason = 'High volume at low effort. Find a real working load.';
     nextReps = Math.max(8, reps - 5);
   } else if (r <= 5) {
     delta = 10;
     actionLabel = `Add ${delta} lb`;
-    reason = `Set was well within capacity. Add weight on the next set.`;
+    reason = 'Well within capacity.';
   } else if (r <= 7) {
     delta = 5;
     actionLabel = `Add ${delta} lb`;
-    reason = `Effort stayed controlled. Add a small amount of weight.`;
+    reason = 'Effort controlled. Small bump.';
   } else if (r <= 8) {
     delta = 0;
     actionLabel = `Hold`;
-    reason = `Productive effort. Hold weight and repeat.`;
+    reason = 'Productive effort.';
   } else if (r <= 9) {
     delta = -5;
     actionLabel = `Drop ${Math.abs(delta)} lb`;
-    reason = `Effort is near failure. Drop weight to keep volume clean.`;
+    reason = 'Near failure. Drop to keep volume clean.';
   } else {
     delta = -10;
     actionLabel = `Drop ${Math.abs(delta)} lb`;
-    reason = `Very high effort. Drop weight and rest fully.`;
+    reason = 'Maxed out. Drop and rest.';
   }
 
   return {
@@ -1124,9 +1183,12 @@ function renderWorkout() {
     fut.appendChild(row);
   });
 
-  // AI recommendation (only if session preference allows).
-  // - If there's a CURRENT set: live recommendation for the next set in this session.
-  // - If the movement is COMPLETE: "Next time" recommendation based on the last logged set.
+  // AI recommendation card.
+  // - Render ONLY when there's a real, non-muted recommendation to show.
+  //   The toggle chip at the top already signals AI is on; a "waiting" card
+  //   adds visual noise without information value.
+  // - "Live" mode: based on the current set. "Next time" mode: based on the
+  //   last logged set, shown after the movement is complete.
   const rec = $('#wm-rec');
   rec.innerHTML = '';
   if (state.session.aiRecOn) {
@@ -1141,22 +1203,25 @@ function renderWorkout() {
     }
     if (baseSet) {
       const r = computeRecommendation(baseSet, state.session.trackRpe);
-      const eyebrowText = isNextTime ? 'NEXT TIME' : 'RECOMMENDATION · LIVE';
-      const recEl = document.createElement('div');
-      recEl.className = 'rec' + (r.muted ? ' muted' : '');
-      recEl.innerHTML = `
-        <div class="head">
-          <span class="eyebrow"><span class="live-dot"></span>${eyebrowText}</span>
-        </div>
-        <div class="row">
-          <span class="action">${r.action}</span>
-          ${r.muted ? '' : `<span class="next">→ ${r.next}</span>`}
-        </div>
-        <div class="reason">${r.reason}</div>
-        ${(r.muted || isNextTime) ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
-      rec.appendChild(recEl);
-      if (!r.muted && !isNextTime) {
-        $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
+      // Suppress the card entirely when there's nothing useful yet.
+      if (!r.muted) {
+        const eyebrowText = isNextTime ? 'NEXT TIME' : 'NEXT SET';
+        const recEl = document.createElement('div');
+        recEl.className = 'rec';
+        recEl.innerHTML = `
+          <div class="head">
+            <span class="eyebrow"><span class="live-dot"></span>${eyebrowText}</span>
+          </div>
+          <div class="row">
+            <span class="action">${r.action}</span>
+            <span class="next">${r.next}</span>
+          </div>
+          <div class="reason">${r.reason}</div>
+          ${isNextTime ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
+        rec.appendChild(recEl);
+        if (!isNextTime) {
+          $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
+        }
       }
     }
   }
