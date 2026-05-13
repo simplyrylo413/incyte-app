@@ -88,7 +88,7 @@
   }
   .view::-webkit-scrollbar { display: none; }
   .view.active { display: flex; }
-  #view-workout { padding-bottom: 100px; }
+  #view-workout { padding-bottom: 90px; }
 
   /* === Header (today view) === */
   .head-today {
@@ -299,50 +299,7 @@
     color: var(--ink);
   }
 
-  /* Toggle chips — compact, clear state. Filled when on, hollow when off. */
-  .prefs {
-    padding: 0 22px 18px;
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .pref-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px 5px 8px;
-    background: transparent;
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    font: 600 10px/1 'Inter Tight',sans-serif;
-    letter-spacing: 0.005em;
-    color: var(--label);
-    cursor: pointer;
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
-  }
-  .pref-chip .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: transparent;
-    border: 1.5px solid var(--label);
-    box-sizing: border-box;
-    transition: background 180ms ease-out, border-color 180ms ease-out;
-  }
-  .pref-chip.on {
-    background: rgba(93,155,184,0.14);
-    backdrop-filter: blur(16px) saturate(1.3);
-    -webkit-backdrop-filter: blur(16px) saturate(1.3);
-    border-color: rgba(93,155,184,0.40);
-    color: var(--ink);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset;
-  }
-  .pref-chip.on .dot {
-    background: var(--accent);
-    border-color: var(--accent);
-    box-shadow: 0 0 8px rgba(93,155,184,0.40);
-  }
-  .pref-chip:active { transform: scale(0.96); }
+  /* (.prefs row removed — Track RPE + AI now live in the footer action bar) */
 
   /* Hero card — central focal point. Compressed sizing while keeping
      the full glass treatment (backdrop-blur, multi-layer shadows, specular). */
@@ -508,15 +465,17 @@
     word-break: break-word;
   }
 
-  /* Section eyebrow for set lists */
+  /* Section eyebrow for set lists — smaller, more subtle */
   .sets-eyebrow {
-    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.20em;
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--label);
-    padding: 16px 22px 8px;
+    padding: 12px 22px 6px;
     flex-shrink: 0;
   }
+  /* Tighter spacing for upcoming-only section (sets directly inside) */
+  #wm-future-section .sets { gap: 4px; }
 
   /* Set rows — individual glass cards (no hairlines). Each row is its own
      premium surface with backdrop-blur, inset highlight, multi-layer shadow. */
@@ -580,7 +539,29 @@
     border-radius: 999px;
     box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset;
   }
-  .set-row.target .vals { color: var(--muted); }
+  /* UPCOMING (target) rows compressed — they don't add value during the
+     active phase and create visual confusion. Now much smaller, no glass
+     card treatment, just compact hairline rows. */
+  .set-row.target {
+    padding: 6px 12px;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid rgba(15,22,34,0.06);
+    border-radius: 8px;
+    box-shadow: none;
+    gap: 10px;
+  }
+  .set-row.target:hover {
+    transform: none;
+    box-shadow: none;
+    background: rgba(15,22,34,0.02);
+  }
+  .set-row.target .idx { font-size: 9px; width: 38px; }
+  .set-row.target .vals { flex: 1; font-size: 12px; color: var(--label); }
+  .set-row.target .meta { font-size: 9px; color: var(--label); }
+  .set-row.target .row-remove { width: 20px; height: 20px; border-radius: 6px; }
+  .set-row.target .row-remove svg { width: 9px; height: 9px; }
 
   /* Per-set remove — small ghost button on the right edge of each card */
   .set-row .row-remove {
@@ -719,20 +700,23 @@
   .add-set-btn:active { transform: scale(0.98); }
   .add-set-btn svg { width: 12px; height: 12px; }
 
+  /* Footer action bar — Track RPE toggle, AI toggle, Skip Today, Log Set.
+     All buttons same height; widths flex to content with Log Set taking the
+     remaining space. Glass pill container. */
   .wm-actions {
     position: absolute;
-    left: 22px;
-    right: 22px;
-    bottom: 18px;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: rgba(255,255,255,0.72);
+    align-items: stretch;
+    gap: 5px;
+    padding: 6px;
+    background: rgba(255,255,255,0.78);
     backdrop-filter: blur(36px) saturate(1.5);
     -webkit-backdrop-filter: blur(36px) saturate(1.5);
     border: 1px solid rgba(255,255,255,0.85);
-    border-radius: 999px;
+    border-radius: 22px;
     box-shadow:
       0 1px 0 rgba(255,255,255,1) inset,
       0 0 0 1px rgba(15,22,34,0.04),
@@ -740,23 +724,102 @@
       0 4px 10px rgba(15,22,34,0.06);
     z-index: 5;
   }
-  .wm-actions button { background: none; border: none; font: 600 12px/1 'Inter Tight',sans-serif; cursor: pointer; letter-spacing: -0.005em; }
-  .wm-actions .skip {
-    color: var(--bad);
-    padding: 6px 10px;
-    border-radius: 999px;
-    transition: background 180ms ease-out;
+
+  .foot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 12px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.10);
+    border-radius: 14px;
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.03);
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms cubic-bezier(0.34,1.56,0.64,1);
   }
-  .wm-actions .skip:hover { background: rgba(176,128,146,0.08); }
-  .wm-actions .complete {
+  .foot-btn:active { transform: scale(0.97); }
+
+  /* Track RPE checkbox toggle */
+  .foot-btn.toggle .check {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid rgba(15,22,34,0.30);
+    border-radius: 4px;
+    background: transparent;
+    flex-shrink: 0;
+    position: relative;
+    transition: background 180ms ease-out, border-color 180ms ease-out;
+  }
+  .foot-btn.toggle.on .check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .foot-btn.toggle.on .check::after {
+    content: '';
+    position: absolute;
+    top: 1.5px;
+    left: 4px;
+    width: 3.5px;
+    height: 7px;
+    border-right: 1.6px solid white;
+    border-bottom: 1.6px solid white;
+    transform: rotate(45deg);
+  }
+  .foot-btn.toggle:not(.on) {
+    color: var(--muted);
+  }
+
+  /* AI toggle — compact, no label icon */
+  .foot-btn.toggle-ai {
+    padding: 0 12px;
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.10em;
+  }
+  .foot-btn.toggle-ai.on {
+    background: var(--accent);
     color: white;
-    padding: 9px 18px;
-    background: var(--ink-deep);
-    border-radius: 999px;
-    transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+    border-color: var(--accent);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 10px rgba(93,155,184,0.30);
   }
-  .wm-actions .complete:hover { transform: translateY(-1px); }
-  .wm-actions .complete:disabled { background: var(--paper-2); color: var(--label); cursor: not-allowed; transform: none; }
+
+  /* Skip — muted ghost button */
+  .foot-btn.skip {
+    color: var(--bad);
+    background: transparent;
+    border-color: rgba(176,128,146,0.20);
+  }
+  .foot-btn.skip:hover {
+    background: rgba(176,128,146,0.08);
+    border-color: rgba(176,128,146,0.35);
+  }
+
+  /* Log Set — primary action, takes remaining space */
+  .foot-btn.primary {
+    flex: 1;
+    min-width: 0;
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 4px 12px rgba(24,32,48,0.25);
+  }
+  .foot-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 20px rgba(24,32,48,0.35);
+  }
+  .foot-btn.primary:disabled {
+    background: var(--paper-2);
+    color: var(--label);
+    border-color: transparent;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 
   /* === Number Picker Overlay — redesigned per user-approved screenshots === */
   .overlay {
@@ -1063,13 +1126,7 @@
       <div class="name" id="wm-name">Bench Press</div>
     </div>
 
-    <!-- Session preferences -->
-    <div class="prefs">
-      <button class="pref-chip" id="toggle-rpe"><span class="dot"></span>Track RPE</button>
-      <button class="pref-chip" id="toggle-ai"><span class="dot"></span>AI guidance</button>
-    </div>
-
-    <!-- HERO: the current set as a single typographic statement -->
+    <!-- HERO: the current set as a 3-picker grid (Log Set lives in the footer) -->
     <div id="wm-hero"></div>
 
     <!-- LIVE AI recommendation (preview, before any set is logged) -->
@@ -1089,11 +1146,8 @@
     <!-- Add-set affordance (always visible in Workout Mode) -->
     <div id="wm-add-set"></div>
 
-    <!-- Bottom action bar -->
-    <div class="wm-actions">
-      <button class="skip" id="btn-skip">Skip movement</button>
-      <button class="complete" id="btn-complete">Complete</button>
-    </div>
+    <!-- Bottom action bar — rendered dynamically by renderWorkout -->
+    <div class="wm-actions" id="wm-actions"></div>
   </div>
 
   <!-- TOAST -->
@@ -1452,9 +1506,7 @@ function renderWorkout() {
     ? `LAST SESSION · ${mv.priorDate.toUpperCase()}`
     : 'LAST SESSION';
 
-  // Preference chips (session-wide)
-  $('#toggle-rpe').classList.toggle('on', state.session.trackRpe);
-  $('#toggle-ai').classList.toggle('on', state.session.aiRecOn);
+  // (Track RPE / AI toggles now render inside the footer action bar below)
 
   // === HERO: the active set as a 3-picker grid (weight / reps / RPE) ===
   const hero = $('#wm-hero');
@@ -1495,12 +1547,10 @@ function renderWorkout() {
           </button>
           ${rpePicker}
         </div>
-        <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
     hero.querySelectorAll('[data-pk]').forEach(el => {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
-    hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
     hero.querySelector('#btn-remove-current').addEventListener('click', () => removeSet(cur.idx));
   } else {
     hero.innerHTML = `
@@ -1650,6 +1700,42 @@ function renderWorkout() {
       Add set
     </button>`;
   $('#btn-add-set').addEventListener('click', addSet);
+
+  // === Footer action bar — 4 same-height buttons:
+  //     Track RPE | AI | Skip Today | Log Set (or Complete) ===
+  const footer = $('#wm-actions');
+  const trackOn = state.session.trackRpe;
+  const aiOn = state.session.aiRecOn;
+  const primaryBtn = cur
+    ? `<button class="foot-btn primary" id="btn-log">Log Set</button>`
+    : `<button class="foot-btn primary" id="btn-complete">Complete</button>`;
+  footer.innerHTML = `
+    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+      <span class="check"></span>RPE
+    </button>
+    <button class="foot-btn toggle toggle-ai ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>
+    <button class="foot-btn skip" id="btn-skip">Skip</button>
+    ${primaryBtn}`;
+
+  $('#toggle-rpe').addEventListener('click', () => {
+    state.session.trackRpe = !state.session.trackRpe;
+    if (!state.session.trackRpe) {
+      state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
+    }
+    renderWorkout();
+    showToast(state.session.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
+  });
+  $('#toggle-ai').addEventListener('click', () => {
+    state.session.aiRecOn = !state.session.aiRecOn;
+    renderWorkout();
+    showToast(state.session.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
+  });
+  $('#btn-skip').addEventListener('click', skipMovement);
+  if (cur) {
+    $('#btn-log').addEventListener('click', () => logSet(cur.idx));
+  } else {
+    $('#btn-complete').addEventListener('click', completeMovement);
+  }
 
   // AI recommendation card.
   // - Render ONLY when there's a real, non-muted recommendation to show.
@@ -2042,25 +2128,10 @@ function commitAddMovement() {
 // EVENT HANDLERS
 // ============================================================
 $('#btn-back').addEventListener('click', backToToday);
-$('#btn-skip').addEventListener('click', skipMovement);
-$('#btn-complete').addEventListener('click', completeMovement);
 $('#btn-add-movement').addEventListener('click', openAddMovement);
-
-// Session-wide preference toggles (apply across every movement today)
-$('#toggle-rpe').addEventListener('click', () => {
-  state.session.trackRpe = !state.session.trackRpe;
-  // Clear RPE on every unlogged set across all movements when turning off (don't overwrite logged history)
-  if (!state.session.trackRpe) {
-    state.movements.forEach(m => m.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; }));
-  }
-  renderWorkout();
-  showToast(state.session.trackRpe ? 'RPE tracking on for this session.' : 'RPE tracking off for this session.');
-});
-$('#toggle-ai').addEventListener('click', () => {
-  state.session.aiRecOn = !state.session.aiRecOn;
-  renderWorkout();
-  showToast(state.session.aiRecOn ? 'AI guidance on for this session.' : 'AI guidance off for this session.');
-});
+// Footer action handlers (Track RPE / AI / Skip Today / Log Set) and the
+// per-movement preference toggles are wired up inside renderWorkout() since
+// those elements are rendered dynamically.
 
 $('#pk-done').addEventListener('click', () => closePicker(true));
 // Tap outside the sheet (on the dimmed backdrop) to dismiss without saving
