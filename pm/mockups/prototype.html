@@ -746,47 +746,21 @@
   }
   .foot-btn:active { transform: scale(0.97); }
 
-  /* Track RPE checkbox toggle */
-  .foot-btn.toggle .check {
-    width: 14px;
-    height: 14px;
-    border: 1.5px solid rgba(15,22,34,0.30);
-    border-radius: 4px;
-    background: transparent;
-    flex-shrink: 0;
-    position: relative;
-    transition: background 180ms ease-out, border-color 180ms ease-out;
-  }
-  .foot-btn.toggle.on .check {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .foot-btn.toggle.on .check::after {
-    content: '';
-    position: absolute;
-    top: 1.5px;
-    left: 4px;
-    width: 3.5px;
-    height: 7px;
-    border-right: 1.6px solid white;
-    border-bottom: 1.6px solid white;
-    transform: rotate(45deg);
-  }
-  .foot-btn.toggle:not(.on) {
-    color: var(--muted);
-  }
-
-  /* AI toggle — compact, no label icon */
-  .foot-btn.toggle-ai {
-    padding: 0 12px;
+  /* Unified toggle treatment for RPE + AI footer buttons.
+     Mono uppercase label. Solid black when selected, white-ghost when off. */
+  .foot-btn.toggle {
+    padding: 0 14px;
     font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.10em;
+    color: var(--muted);
   }
-  .foot-btn.toggle-ai.on {
-    background: var(--accent);
+  .foot-btn.toggle.on {
+    background: var(--ink-deep);
     color: white;
-    border-color: var(--accent);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 10px rgba(93,155,184,0.30);
+    border-color: var(--ink-deep);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.15) inset,
+      0 4px 10px rgba(24,32,48,0.25);
   }
 
   /* Skip — muted ghost button */
@@ -1709,10 +1683,8 @@ function renderWorkout() {
   const trackOn = state.session.trackRpe;
   const aiOn = state.session.aiRecOn;
   footer.innerHTML = `
-    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
-      <span class="check"></span>RPE
-    </button>
-    <button class="foot-btn toggle toggle-ai ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>
+    <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">RPE</button>
+    <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">AI</button>
     <button class="foot-btn skip" id="btn-skip">Skip</button>`;
 
   $('#toggle-rpe').addEventListener('click', () => {
