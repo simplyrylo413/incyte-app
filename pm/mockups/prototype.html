@@ -330,6 +330,21 @@
   }
   .mv:active { transform: scale(0.99); }
 
+  /* Completed movement — same light-grey treatment as done set rows.
+     Dim the name + equip + drag handle so the card recedes; keep the
+     progress chip's "DONE" visible as the completion cue. */
+  .mv.is-complete {
+    background: rgba(15,22,34, 0.04);
+    border-color: rgba(15,22,34, 0.08);
+    box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.04);
+  }
+  .mv.is-complete .name { color: var(--muted); }
+  .mv.is-complete .equip { opacity: 0.7; }
+  .mv.is-complete .drag-handle { opacity: 0.18; }
+  /* Strip the NEXT chrome from done cards even if accidentally combined */
+  .mv.is-complete.next-up { box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 2px 6px rgba(15,22,34, 0.04); border-left-color: transparent; }
+  .mv.is-complete.next-up::after { display: none; }
+
   /* "Next up" emphasis — the first movement with remaining sets gets a subtle
      accent left-edge + slightly lifted shadow + a small NEXT chip. Tells the
      returning user where to start without making the other cards feel inert. */
@@ -761,6 +776,25 @@
   }
 
   /* Hero primary action — solid black pill */
+  /* Ghost "Finish" link — shown next to Log Set when the movement is
+     armed-complete (bonus set added). Tap finalizes without logging. */
+  .hero-finish-link {
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid rgba(15,22,34, 0.16);
+    border-radius: 999px;
+    font: 600 11.5px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .hero-finish-link:hover {
+    background: rgba(15,22,34, 0.04);
+    color: var(--ink);
+    border-color: rgba(15,22,34, 0.28);
+  }
+
   .hero-cta {
     padding: 12px 22px;
     background: var(--ink-deep);
@@ -1654,8 +1688,6 @@
         <div class="planned">
           <span class="num" id="plan-sets">0</span><span class="unit">Sets</span>
           <span class="sep">·</span>
-          <span class="num" id="plan-vol">0</span><span class="unit">lb planned</span>
-          <span class="sep">·</span>
           <span class="num" id="plan-min">0</span><span class="unit">Min est.</span>
         </div>
         <span class="ready-label"><span class="pulse"></span>Ready</span>
@@ -2101,7 +2133,9 @@ function renderToday() {
         `).join('');
 
         const card = document.createElement('div');
-        card.className = 'mv' + (mv.id === nextUpId ? ' next-up' : '');
+        card.className = 'mv'
+          + (mv.id === nextUpId ? ' next-up' : '')
+          + (isComplete ? ' is-complete' : '');
         card.draggable = true;
         card.dataset.mvId = mv.id;
         card.innerHTML = `
@@ -2215,19 +2249,12 @@ function renderToday() {
   }
 
   // === Pre-workout planned scope (shown when no sets logged) ===
-  // Planned volume = sum of targeted weight × reps across all non-done sets.
-  let plannedVol = 0;
-  state.movements.forEach(m => {
-    m.sets.forEach(s => {
-      if (s.status !== 'done' && s.weight != null && s.reps != null) {
-        plannedVol += s.weight * s.reps;
-      }
-    });
-  });
+  // Planned weight is intentionally omitted — fresh sessions often have no
+  // targets set yet, which would show a misleading 0 lb. Sets + minutes are
+  // always meaningful.
   // Estimate: ~75s per set including rest. Rough but useful for a "ready" cue.
   const planMinutes = Math.max(1, Math.round(totalSets * 75 / 60));
   $('#plan-sets').textContent = totalSets;
-  $('#plan-vol').textContent = plannedVol.toLocaleString();
   $('#plan-min').textContent = planMinutes;
 
   // Collapse to the thin "Ready" strip when nothing has been logged yet;
@@ -2317,6 +2344,7 @@ function renderWorkout() {
           <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <div class="hero-actions">
+          ${mv._completeArmed ? `<button class="hero-finish-link" id="btn-finish-now" title="Finish without logging this bonus set">Finish</button>` : ''}
           <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
         </div>
       </div>`;
@@ -2324,6 +2352,7 @@ function renderWorkout() {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
     hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
+    hero.querySelector('#btn-finish-now')?.addEventListener('click', completeMovement);
     hero.querySelector('#toggle-rpe').addEventListener('click', () => {
       state.session.trackRpe = !state.session.trackRpe;
       if (!state.session.trackRpe) {
@@ -2957,15 +2986,51 @@ function skipMovement() {
   showToast(`${mv.name} skipped today.`);
 }
 
+// First click of Complete when all planned sets are done auto-adds a "one
+// more?" bonus set so the user has an explicit chance to extend. Second
+// click actually finishes the movement (dropping the bonus set if it was
+// never logged).
 function completeMovement() {
   const mv = getActiveMovement();
-  if (!mv.sets.every(s => s.status === 'done')) {
+  const allDone = mv.sets.every(s => s.status === 'done');
+
+  // Path A: armed by a prior click — finalize.
+  if (mv._completeArmed) {
+    // If there's an unlogged bonus set still sitting at the end, drop it.
+    while (mv.sets.length > 0 && mv.sets[mv.sets.length - 1].status !== 'done') {
+      mv.sets.pop();
+    }
+    mv._completeArmed = false;
+    mv.status = 'complete';
+    backToToday();
+    showToast(`${mv.name} complete.`);
+    return;
+  }
+
+  // Path B: not armed yet. Must have all planned sets done to arm.
+  if (!allDone) {
     showToast('Log all sets before completing.');
     return;
   }
-  mv.status = 'complete';
-  backToToday();
-  showToast(`${mv.name} complete.`);
+
+  // Arm and add a bonus set so the user has one more chance to extend.
+  mv._completeArmed = true;
+  const last = mv.sets[mv.sets.length - 1];
+  let newWeight = last.weight, newReps = last.reps;
+  const r = computeRecommendation(last, state.session.trackRpe);
+  if (r && !r.muted) { newWeight = r.weight; newReps = r.reps; }
+  const newSet = {
+    idx: mv.sets.length + 1,
+    weight: newWeight,
+    reps: newReps,
+    rpe: null,
+    status: 'current',
+    setType: 'working',
+  };
+  mv.sets.push(newSet);
+  state.session._animSetIdx = newSet.idx;
+  renderWorkout();
+  showToast(`One more? Set ${newSet.idx} added · tap Complete again to finish.`);
 }
 
 function removeMovement(id) {
