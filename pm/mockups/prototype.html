@@ -454,14 +454,15 @@
   .hero-cta:active { transform: scale(0.99); }
   .hero-cta:hover { background: rgba(255,255,255,0.82); transform: translateY(-1px); }
 
-  /* Previous reference — minimal single-line pill below the movement name.
-     Soft blue tint, label left + values right. Quiet but visible. */
+  /* Previous reference — white card style with hairline border, matching
+     the set-row treatment for visual consistency in the "data row" family. */
   .prior {
     margin: 0 22px 14px;
-    padding: 9px 14px;
-    background: rgba(93,155,184, 0.07);
-    border: 1px solid rgba(93,155,184, 0.18);
-    border-radius: 10px;
+    padding: 8px 14px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.08);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -505,27 +506,26 @@
   }
   /* (gap unified to 4px on all .sets containers) */
 
-  /* Set rows — thin soft-blue pills matching the Previous reference panel.
-     Collapsed state is as compact as possible: minimal padding, single
-     line, hairline-tinted border. Both LOGGED and TARGET use the same
-     base; the meta chip differentiates state. */
+  /* Set rows — white card style matching the Previous reference. Hairline
+     border, slight elevation, rounded corners. Same treatment for LOGGED
+     and TARGET; the meta chip differentiates state. */
   .sets {
     padding: 0 22px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     flex-shrink: 0;
   }
   .set-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 5px 12px;
-    background: rgba(93,155,184, 0.06);
-    border: 1px solid rgba(93,155,184, 0.18);
-    border-radius: 10px;
-    box-shadow: none;
-    transition: background 180ms ease-out;
+    padding: 7px 14px;
+    background: white;
+    border: 1px solid rgba(15,22,34,0.08);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
+    transition: background 180ms ease-out, box-shadow 180ms ease-out;
   }
   .set-row .idx {
     font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
@@ -550,7 +550,10 @@
   .set-row.done {
     cursor: pointer;
   }
-  .set-row.done:hover { background: rgba(93,155,184, 0.10); }
+  .set-row.done:hover {
+    box-shadow: 0 2px 6px rgba(15,22,34,0.06);
+    border-color: rgba(15,22,34,0.12);
+  }
   .set-row.done .vals { color: var(--ink); }
   .set-row.done .meta {
     color: var(--ok);
