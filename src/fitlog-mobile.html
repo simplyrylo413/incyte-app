@@ -5179,13 +5179,20 @@
   body.theme-dark .fatigue-col-label { color: var(--accent); border-bottom-color: rgba(255,255,255,0.08); }
   body.theme-dark .fatigue-col-label:hover { background: none; }
   body.theme-dark .fatigue-col-rightlabel { color: var(--muted); }
+  /* Two-column grid inside each section — matches mobile331's layout.
+     6 upper body parts split 3+3 (Chest/Shoulders/Triceps left,
+     Back/Biceps/Core right). Lower section: 4 muscles + Cardio; the
+     Cardio row spans both columns as the final row. */
   .fatigue-col-body {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
   /* Section-collapsed: hide all rows in the column, leave just the header. */
   [data-fatigue-section].is-section-collapsed .fatigue-col-body { display: none; }
+  /* Cardio row spans both columns when present (always the last row in
+     the lower section). */
+  .fatigue-col-lower .fatigue-col-body .fatigue-row:last-child { grid-column: 1 / -1; }
   .fatigue-row {
     display: flex; flex-direction: column; gap: 4px;
     cursor: pointer;
