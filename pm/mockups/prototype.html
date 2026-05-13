@@ -156,10 +156,13 @@
 
   /* === Progress strip === */
   /* Session hero — 3-stat card at the top of Today: Volume, Avg RPE, Complete %.
-     Subtle prismatic wash + glass surface; columns separated by hairline rules. */
+     Subtle prismatic wash + glass surface; columns separated by hairline rules.
+     Auto-collapses to a thin "ready to start" strip pre-workout (when no sets
+     are logged) and expands once the first set is logged. */
   .progress {
     margin: 4px 22px 12px;
     padding: 14px 8px 12px;
+    transition: padding 220ms var(--ease-out-cubic);
     background: linear-gradient(155deg, rgba(93,155,184,0.10) 0%, rgba(155,130,200,0.06) 55%, rgba(201,160,190,0.04) 100%);
     backdrop-filter: blur(20px) saturate(1.4);
     -webkit-backdrop-filter: blur(20px) saturate(1.4);
@@ -235,6 +238,58 @@
     transition: width 280ms var(--ease-out-cubic);
   }
 
+  /* Collapsed pre-workout state: thin strip showing planned scope.
+     Hides the 3-stat row, reveals the .ready-strip. */
+  .progress.compact {
+    padding: 9px 14px;
+  }
+  .progress.compact .stats-row { display: none; }
+  .progress .ready-strip { display: none; }
+  .progress.compact .ready-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .progress .ready-strip .planned {
+    font: 600 12px/1 'Inter Tight', sans-serif;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .progress .ready-strip .planned .num {
+    font: 700 15px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress .ready-strip .planned .sep {
+    color: var(--label);
+    margin: 0 2px;
+  }
+  .progress .ready-strip .planned .unit {
+    font: 500 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+  .progress .ready-strip .ready-label {
+    font: 700 9.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .progress .ready-strip .ready-label .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(93,155,184, 0.20);
+  }
+
   /* === Scroll area === */
   .scroll { flex: 1; overflow-y: auto; padding-bottom: 110px; }
   .scroll::-webkit-scrollbar { display: none; }
@@ -275,21 +330,48 @@
   }
   .mv:active { transform: scale(0.99); }
 
+  /* "Next up" emphasis — the first movement with remaining sets gets a subtle
+     accent left-edge + slightly lifted shadow + a small NEXT chip. Tells the
+     returning user where to start without making the other cards feel inert. */
+  .mv.next-up {
+    box-shadow:
+      inset 3px 0 0 var(--accent),
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 8px 20px rgba(93,155,184, 0.14);
+    border-color: rgba(93,155,184, 0.28);
+  }
+  .mv.next-up::after {
+    content: 'NEXT';
+    position: absolute;
+    top: -7px;
+    left: 14px;
+    padding: 2px 7px;
+    background: var(--accent);
+    color: white;
+    font: 700 8px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.18em;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(93,155,184, 0.30);
+  }
+  .mv { position: relative; }
+
   /* Drag handle — grippy icon at the leading edge; the card itself is the
-     drag source. Reorder is restricted to within the same body-part group. */
+     drag source. Reorder is restricted to within the same body-part group.
+     Always visible at low opacity so the affordance is discoverable on touch
+     (no :hover on iOS). */
   .mv .drag-handle {
     width: 16px;
     height: 24px;
     display: grid;
     place-items: center;
     color: var(--label);
-    opacity: 0.5;
+    opacity: 0.30;
     cursor: grab;
     flex-shrink: 0;
     margin-left: -6px;
     transition: opacity 150ms ease-out, color 150ms ease-out;
   }
-  .mv:hover .drag-handle { opacity: 1; color: var(--muted); }
+  .mv:hover .drag-handle { opacity: 0.85; color: var(--muted); }
   .mv .drag-handle:active { cursor: grabbing; }
   .mv .drag-handle svg { width: 10px; height: 14px; }
   .mv.dragging { opacity: 0.45; transform: scale(0.98); }
@@ -1566,7 +1648,19 @@
       <div class="date" id="today-date">Tuesday May 12 · Push + Pull</div>
     </div>
 
-    <div class="progress">
+    <div class="progress" id="session-hero">
+      <!-- Pre-workout: thin strip with planned scope + "ready" cue -->
+      <div class="ready-strip">
+        <div class="planned">
+          <span class="num" id="plan-sets">0</span><span class="unit">Sets</span>
+          <span class="sep">·</span>
+          <span class="num" id="plan-vol">0</span><span class="unit">lb planned</span>
+          <span class="sep">·</span>
+          <span class="num" id="plan-min">0</span><span class="unit">Min est.</span>
+        </div>
+        <span class="ready-label"><span class="pulse"></span>Ready</span>
+      </div>
+      <!-- In-progress: expanded 3-stat row -->
       <div class="stats-row">
         <div class="stat">
           <div class="stat-label">Volume</div>
@@ -1960,6 +2054,17 @@ function renderToday() {
       document.getElementById('btn-add-movement')?.click();
     });
   } else {
+    // Identify the first uncompleted, non-skipped movement to mark "NEXT UP".
+    // Walks the movements in their declared order so reordering changes which
+    // card is highlighted.
+    const nextUpId = (() => {
+      const m = state.movements.find(mv => {
+        if (mv.status === 'skipped' || mv.status === 'complete') return false;
+        return mv.sets.some(s => s.status !== 'done');
+      });
+      return m ? m.id : null;
+    })();
+
     Object.keys(groups).forEach(bodyPart => {
       const eb = document.createElement('div');
       eb.className = 'section-eyebrow';
@@ -1996,7 +2101,7 @@ function renderToday() {
         `).join('');
 
         const card = document.createElement('div');
-        card.className = 'mv';
+        card.className = 'mv' + (mv.id === nextUpId ? ' next-up' : '');
         card.draggable = true;
         card.dataset.mvId = mv.id;
         card.innerHTML = `
@@ -2108,6 +2213,26 @@ function renderToday() {
       .map(([part, vol]) => `<span><em>${part}</em>${vol.toLocaleString()}</span>`)
       .join('');
   }
+
+  // === Pre-workout planned scope (shown when no sets logged) ===
+  // Planned volume = sum of targeted weight × reps across all non-done sets.
+  let plannedVol = 0;
+  state.movements.forEach(m => {
+    m.sets.forEach(s => {
+      if (s.status !== 'done' && s.weight != null && s.reps != null) {
+        plannedVol += s.weight * s.reps;
+      }
+    });
+  });
+  // Estimate: ~75s per set including rest. Rough but useful for a "ready" cue.
+  const planMinutes = Math.max(1, Math.round(totalSets * 75 / 60));
+  $('#plan-sets').textContent = totalSets;
+  $('#plan-vol').textContent = plannedVol.toLocaleString();
+  $('#plan-min').textContent = planMinutes;
+
+  // Collapse to the thin "Ready" strip when nothing has been logged yet;
+  // expand to the 3-stat view as soon as the first set goes in.
+  $('#session-hero').classList.toggle('compact', doneSets === 0 && totalSets > 0);
 }
 
 // ============================================================
