@@ -655,34 +655,10 @@
       0 22px 48px rgba(93,155,184,0.14),
       0 8px 18px rgba(15,22,34,0.06);
     position: relative;
-    transition: padding 220ms var(--ease-out-cubic);
   }
-  /* Compact hero — after the first set is logged, the user has internalized
-     the format. Shrink numerals ~30% and tighten padding so the columnar
-     table (the real workout surface) gets the visual weight. */
-  .hero.compact { padding: 12px 14px 10px; }
-  .hero.compact .hero-eyebrow { margin-bottom: 8px; }
-  .hero.compact .hero-statement { padding: 2px 0; }
-  .hero.compact .hero-num {
-    font-size: 32px;
-    letter-spacing: -0.04em;
-  }
-  .hero.compact .hero-sep { font-size: 18px; }
-  .hero.compact .hero-units-bar {
-    margin-top: 8px;
-    padding-top: 7px;
-    font-size: 8.5px;
-    gap: 14px;
-  }
-  .hero.compact .hero-actions { padding-top: 8px; }
-  .hero.compact .hero-cta {
-    padding: 9px 18px;
-    font-size: 11px;
-  }
-  .hero.compact .hero-finish-link {
-    padding: 9px 13px;
-    font-size: 10.5px;
-  }
+  /* (Compact-hero rules removed per user direction — hero stays full size
+     for the whole movement so the active set always gets the big-type
+     treatment.) */
   .hero::before {
     content: '';
     position: absolute;
@@ -728,6 +704,14 @@
   .hero-eyebrow .now-marker .active-set + .sep,
   .hero-eyebrow .now-marker .now-tail {
     color: var(--label);
+  }
+  /* "OF N" suffix — quiet metadata, lowercase to read as a phrase. */
+  .hero-eyebrow .now-marker .set-of {
+    color: var(--label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: none;
+    margin-left: 2px;
   }
   .hero-eyebrow .head-remove {
     background: transparent;
@@ -2350,11 +2334,15 @@ function renderWorkout() {
           <div class="dur-chips" id="rest-dur-chips"></div>
         </div>
       </span>`;
-    const heroCompact = mv.sets.some(s => s.status === 'done') ? ' compact' : '';
+    // "SET N OF M" surfaces the plan denominator so the user always knows
+     // how many total sets are queued. Prevents the surprise of "where did
+     // set N+1 come from?" when the current set sits in the hero and the
+     // table shows only done + remaining targets.
+    const totalPlanned = mv.sets.length;
     hero.innerHTML = `
-      <div class="hero${heroCompact}">
+      <div class="hero">
         <div class="hero-eyebrow">
-          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span></span>
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span><span class="set-of"> of ${totalPlanned}</span></span>
           <span class="eyebrow-pills">
             <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
               <span>RPE</span>
