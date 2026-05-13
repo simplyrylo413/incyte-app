@@ -12460,25 +12460,54 @@ function mergeSameDayHistorySessions() {
     if (!iso) return null;
     try { return new Date(iso).toISOString().slice(0, 10); } catch (_) { return null; }
   };
-  // Bucket workouts by day, considering only completed (non-active) ones.
+  // Bucketing rule:
+  //   - If a day has ANY finished session, ALL same-day sessions (paused +
+  //     finished) merge into the finished one. Result: one finished record
+  //     per day, holding all the day's logged work. This is what the user
+  //     actually wants — no scattered "you also did some work" rows.
+  //   - If a day has only paused sessions (none finished), they merge with
+  //     each other and stay paused so the user can resume.
+  // The bucket key carries an effective status that respects this rule.
+  const finishedDays = new Set();
+  data.workouts.forEach(w => {
+    if (w && w.finished === true) {
+      const k = dayKey(w);
+      if (k) finishedDays.add(k);
+    }
+  });
+  const effectiveStatus = (w, k) => finishedDays.has(k) ? 'done' : ((w && w.finished === true) ? 'done' : 'paused');
   const buckets = {};
   data.workouts.forEach(w => {
-    if (!w || w.workout_status === 'paused' || w.finished === false) return;
+    if (!w) return;
     const k = dayKey(w);
     if (!k) return;
-    (buckets[k] = buckets[k] || []).push(w);
+    const bucketKey = k + '|' + effectiveStatus(w, k);
+    (buckets[bucketKey] = buckets[bucketKey] || []).push(w);
   });
   let changed = false;
   Object.keys(buckets).forEach(day => {
     const ws = buckets[day];
     if (ws.length < 2) return;
-    // Sort by completion time ascending — keep the earliest as primary.
+    // Primary-selection rule:
+    //   - Prefer a FINISHED session as the primary (so the merged record
+    //     keeps the finished state + completed_at).
+    //   - Among same-status workouts, the EARLIEST stays primary (so the
+    //     History row's date reflects when the day's work started).
     ws.sort((a, b) => {
+      const fa = (a.finished === true) ? 0 : 1;
+      const fb = (b.finished === true) ? 0 : 1;
+      if (fa !== fb) return fa - fb;
       const ta = new Date(a.completed_at || a.savedAt || a.date || 0).getTime();
       const tb = new Date(b.completed_at || b.savedAt || b.date || 0).getTime();
       return ta - tb;
     });
     const primary = ws[0];
+    // If any source was finished, the merged record is finished.
+    const anyFinished = ws.some(w => w.finished === true);
+    if (anyFinished) {
+      primary.finished = true;
+      primary.workout_status = primary.workout_status || 'completed';
+    }
     primary.entries = primary.entries || [];
     let mergedDurationMin = +primary.durationMin || 0;
     let latestStamp = primary.completed_at || primary.savedAt || primary.date;
