@@ -495,20 +495,33 @@
     transition: transform 100ms var(--ease-out-cubic);
   }
 
-  /* Previous reference — white card style with hairline border, matching
-     the set-row treatment for visual consistency in the "data row" family. */
+  /* Previous reference — Spatial Glass treatment (Option B):
+     pearl/rose tinted glass, backdrop-blur, specular top edge. */
   .prior {
     margin: 0 22px 14px;
-    padding: 8px 14px;
-    background: white;
-    border: 1px solid rgba(15,22,34,0.08);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
+    padding: 11px 14px 12px;
+    background: linear-gradient(155deg, rgba(201,160,190, 0.16) 0%, rgba(180,200,235, 0.10) 100%);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.6);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 0 0 1px rgba(255,255,255, 0.3) inset,
+      0 6px 20px rgba(155,130,200, 0.10);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-shrink: 0;
+    position: relative;
+  }
+  .prior::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 18%; right: 18%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.95), transparent);
+    pointer-events: none;
   }
   .prior .lbl {
     font: 700 12px/1 'Inter Tight',sans-serif;
@@ -547,26 +560,39 @@
   }
   /* (gap unified to 4px on all .sets containers) */
 
-  /* Set rows — white card style matching the Previous reference. Hairline
-     border, slight elevation, rounded corners. Same treatment for LOGGED
-     and TARGET; the meta chip differentiates state. */
+  /* Set rows — Spatial Glass treatment (Option B): floating glass cards
+     with backdrop-blur, specular top edge, accent-tinted ambient shadow. */
   .sets {
     padding: 0 22px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
     flex-shrink: 0;
   }
   .set-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 12px 4px 16px;
-    background: white;
-    border: 1px solid rgba(15,22,34,0.08);
-    border-radius: 999px;
-    box-shadow: 0 1px 2px rgba(15,22,34,0.03);
-    transition: background 180ms ease-out, box-shadow 180ms ease-out;
+    padding: 9px 12px 9px 14px;
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255, 0.75);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 1) inset,
+      0 0 0 1px rgba(255,255,255, 0.3) inset,
+      0 6px 18px rgba(15,22,34, 0.05);
+    transition: box-shadow 180ms ease-out;
+    position: relative;
+  }
+  .set-row::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22%; right: 22%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.95), transparent);
+    pointer-events: none;
+  }
   }
   .set-row .idx {
     font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
@@ -606,6 +632,27 @@
   }
   .set-row.target .vals { color: var(--muted); }
 
+  /* Working/Warmup toggle chip inside each set row.
+     Tap to flip between 'working' (accent blue) and 'warmup' (warn slate). */
+  .set-row .set-type {
+    font: 700 8.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    background: rgba(93,155,184, 0.12);
+    border: 1px solid rgba(93,155,184, 0.28);
+    border-radius: 999px;
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
+  }
+  .set-row .set-type.warmup {
+    background: rgba(142,155,176, 0.14);
+    border-color: rgba(142,155,176, 0.32);
+    color: var(--warn);
+  }
+
   /* Per-set remove — simple ghost icon button */
   .set-row .row-remove {
     width: 28px;
@@ -626,20 +673,33 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
 
-  /* Inline AI recommendation — 2-line pill. Quiet treatment so it
-     supports the hero rather than competing with it. White card family
-     with a faint accent tint, no saturated gradient, no specular highlight. */
+  /* Inline AI recommendation — Spatial Glass treatment (Option B):
+     prismatic gradient matching the hero family (smaller version), backdrop-blur,
+     specular top-edge highlight, accent-tinted ambient shadow. */
   .rec-inline {
-    margin: 5px 0 8px 12px;
-    padding: 7px 6px 7px 13px;
-    background: rgba(93,155,184, 0.04);
-    border: 1px solid rgba(15,22,34, 0.08);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15,22,34, 0.03);
+    margin: 6px 0 10px 12px;
+    padding: 9px 8px 9px 14px;
+    background: linear-gradient(155deg, rgba(93,155,184, 0.20) 0%, rgba(155,130,200, 0.14) 55%, rgba(201,160,190, 0.12) 100%);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    border: 1px solid rgba(93,155,184, 0.30);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 0.9) inset,
+      0 0 0 1px rgba(255,255,255, 0.4) inset,
+      0 10px 24px rgba(93,155,184, 0.12);
     display: flex;
     align-items: center;
     gap: 10px;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
+  }
+  .rec-inline::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22%; right: 22%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255, 0.95), transparent);
+    pointer-events: none;
   }
   .rec-inline .live-dot {
     width: 5px;
@@ -1248,10 +1308,10 @@ const state = {
       priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
       priorDate: 'May 5',
       sets: [
-        { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current' },
-        { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target' },
-        { idx: 3, weight: 180, reps: 10, rpe: null, status: 'target' },
-        { idx: 4, weight: 180, reps: 8,  rpe: null, status: 'target' },
+        { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current', setType: 'warmup' },
+        { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target', setType: 'working' },
+        { idx: 3, weight: 180, reps: 10, rpe: null, status: 'target', setType: 'working' },
+        { idx: 4, weight: 180, reps: 8,  rpe: null, status: 'target', setType: 'working' },
       ],
       status: 'pending',
     },
@@ -1260,9 +1320,9 @@ const state = {
       priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
       priorDate: 'May 5',
       sets: [
-        { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current' },
-        { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target' },
-        { idx: 3, weight: 55, reps: 10, rpe: null, status: 'target' },
+        { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current', setType: 'warmup' },
+        { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target', setType: 'working' },
+        { idx: 3, weight: 55, reps: 10, rpe: null, status: 'target', setType: 'working' },
       ],
       status: 'pending',
     },
@@ -1271,10 +1331,10 @@ const state = {
       priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
       priorDate: 'May 8',
       sets: [
-        { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current' },
-        { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target' },
-        { idx: 3, weight: 150, reps: 10, rpe: null, status: 'target' },
-        { idx: 4, weight: 150, reps: 8,  rpe: null, status: 'target' },
+        { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current', setType: 'warmup' },
+        { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target', setType: 'working' },
+        { idx: 3, weight: 150, reps: 10, rpe: null, status: 'target', setType: 'working' },
+        { idx: 4, weight: 150, reps: 8,  rpe: null, status: 'target', setType: 'working' },
       ],
       status: 'pending',
     },
@@ -1283,9 +1343,9 @@ const state = {
       priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
       priorDate: 'May 8',
       sets: [
-        { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current' },
-        { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target' },
-        { idx: 3, weight: 135, reps: 8,  rpe: null, status: 'target' },
+        { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current', setType: 'warmup' },
+        { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target', setType: 'working' },
+        { idx: 3, weight: 135, reps: 8,  rpe: null, status: 'target', setType: 'working' },
       ],
       status: 'pending',
     },
@@ -1667,10 +1727,13 @@ function renderWorkout() {
       const isLast = idx === loggedSets.length - 1;
       const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
       const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
+      const typeCls = s.setType === 'warmup' ? ' warmup' : '';
+      const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
         <div class="set-row done${animCls}" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
           <span class="idx">SET ${s.idx}</span>
           <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
+          <button class="set-type${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
           <span class="meta">DONE</span>
           <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -1708,6 +1771,9 @@ function renderWorkout() {
     loggedSection.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); removeSet(+el.dataset.removeSet); });
     });
+    loggedSection.querySelectorAll('[data-toggle-type]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSetType(+el.dataset.toggleType); });
+    });
     // Wire up Apply target on the inline rec
     loggedSection.querySelectorAll('[data-rec-apply]').forEach(el => {
       el.addEventListener('click', () => {
@@ -1732,10 +1798,13 @@ function renderWorkout() {
       const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
       const meta = isBlank ? 'BLANK' : 'TARGET';
       const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
+      const typeCls = s.setType === 'warmup' ? ' warmup' : '';
+      const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
         <div class="set-row target${animCls}" data-set-idx="${s.idx}">
           <span class="idx">SET ${s.idx}</span>
           <span class="vals">${vals}</span>
+          <button class="set-type${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
           <span class="meta">${meta}</span>
           <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -1746,6 +1815,9 @@ function renderWorkout() {
     futSection.innerHTML = html;
     futSection.querySelectorAll('[data-remove-set]').forEach(el => {
       el.addEventListener('click', () => removeSet(+el.dataset.removeSet));
+    });
+    futSection.querySelectorAll('[data-toggle-type]').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); toggleSetType(+el.dataset.toggleType); });
     });
   } else {
     futSection.innerHTML = '';
@@ -1821,6 +1893,16 @@ function logSet(idx) {
   showToast(`Set ${idx} logged.`);
 }
 
+function toggleSetType(idx) {
+  const mv = getActiveMovement();
+  if (!mv) return;
+  const set = mv.sets.find(s => s.idx === idx);
+  if (!set) return;
+  set.setType = set.setType === 'warmup' ? 'working' : 'warmup';
+  renderWorkout();
+  showToast(`Set ${idx} → ${set.setType === 'warmup' ? 'warmup' : 'working set'}.`);
+}
+
 function addSet() {
   const mv = getActiveMovement();
   if (!mv) return;
@@ -1850,6 +1932,7 @@ function addSet() {
     reps: newReps,
     rpe: null,
     status: hasCurrent ? 'target' : 'current',
+    setType: 'working',
   };
   mv.sets.push(newSet);
   // If the movement was previously marked complete, undo that
@@ -2095,6 +2178,8 @@ function commitAddMovement() {
   const priorSets = parsePriorRef(newMvSeed.priorRef);
   // Build today's sets
   const sets = Array.from({ length: am.sets }, (_, i) => {
+    // First set defaults to warmup, the rest are working sets (common pattern)
+    const defaultType = i === 0 ? 'warmup' : 'working';
     if (am.mode === 'last' && priorSets[i]) {
       return {
         idx: i + 1,
@@ -2102,6 +2187,7 @@ function commitAddMovement() {
         reps: priorSets[i].reps,
         rpe: null,                 // prior RPE shown in ref; today's RPE is fresh
         status: i === 0 ? 'current' : 'target',
+        setType: defaultType,
       };
     }
     // Start Blank: weight/reps null, user fills in during workout
@@ -2111,6 +2197,7 @@ function commitAddMovement() {
       reps: null,
       rpe: null,
       status: i === 0 ? 'current' : 'target',
+      setType: defaultType,
     };
   });
   const newMv = {
