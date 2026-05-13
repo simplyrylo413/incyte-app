@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Today — Fitlog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:   #EFE7D3;
+    --paper-2: #F5EEDB;
+    --paper-3: #E8DFC7;
+    --ink:     #141414;
+    --ink-2:   #2B2B2B;
+    --muted:   #6B6459;
+    --label:   #8A8270;
+    --hairline: rgba(20,20,20,0.85);
+    --hairline-soft: rgba(20,20,20,0.18);
+    --ok:  #1F5E3A;
+    --ok-bg: rgba(31,94,58,0.10);
+    --warn: #8A5A12;
+    --bad:  #8A1A1A;
+    --bad-bg: rgba(138,26,26,0.09);
+  }
+  *  { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #D8CEB3;
+    color: var(--ink);
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 16px 16px 0;
+    font-feature-settings: "ss01","cv11";
+  }
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: var(--paper);
+    min-height: calc(100vh - 16px);
+    position: relative;
+    padding: 18px 20px 100px;
+  }
+
+  /* ── TOP BAR ── */
+  .top-rail {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand-mark {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--ink); border-radius: 50%;
+    position: relative;
+  }
+  .brand-mark::before, .brand-mark::after {
+    content: ""; position: absolute; inset: 4px;
+    border: 1.5px solid var(--ink); border-radius: 50%;
+  }
+  .brand-mark::after { inset: 8px; }
+  .brand-name { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
+  .tabs { display: flex; align-items: center; gap: 2px; }
+  .tab {
+    background: transparent; border: none;
+    padding: 7px 14px; border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    color: var(--muted); cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .tab:hover { background: rgba(20,20,20,0.05); color: var(--ink); }
+  .tab.active { background: var(--ink); color: var(--paper); }
+  .top-right { display: flex; align-items: center; gap: 12px; }
+  .profile {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 10px 3px 4px;
+    border: 1px solid var(--hairline-soft);
+    border-radius: 999px; background: var(--paper-2);
+  }
+  .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--ink); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 10px;
+  }
+  .profile-name { font-size: 12px; font-weight: 500; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── TODAY ── */
+  .today-layout { display: grid; grid-template-columns: minmax(0,1.9fr) minmax(0,1fr); gap: 20px; }
+  @media (max-width: 900px) { .today-layout { grid-template-columns: 1fr; } }
+
+  .view-title {
+    font-size: 28px; font-weight: 800; letter-spacing: -0.7px; line-height: 1.05;
+  }
+  .view-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-top: 3px;
+  }
+  .today-head { margin-bottom: 16px; }
+
+  /* session stats strip */
+  .session-strip {
+    display: flex; gap: 24px; align-items: baseline;
+    padding: 10px 14px;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline-soft);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .sstat { display: flex; flex-direction: column; gap: 1px; }
+  .sstat-v { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; }
+  .sstat-l { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+
+  /* ── MOVEMENT BLOCK ── */
+  .mv-block {
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: opacity 0.2s;
+  }
+  .mv-block.all-done { opacity: 0.72; }
+
+  .mv-block-header {
+    display: flex; align-items: center;
+    gap: 10px; padding: 13px 15px;
+    cursor: pointer; user-select: none;
+  }
+  .mv-chevron {
+    flex-shrink: 0; width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--label); transition: transform 0.18s;
+  }
+  .mv-block.open .mv-chevron { transform: rotate(90deg); }
+
+  .mv-block-info { flex: 1; min-width: 0; }
+  .mv-block-row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mv-name { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+  .mv-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--hairline-soft);
+    padding: 2px 7px; border-radius: 4px;
+  }
+
+  /* Progress delta pill */
+  .delta-pill {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .delta-pill.up   { background: var(--ok-bg); color: var(--ok); }
+  .delta-pill.down { background: var(--bad-bg); color: var(--bad); }
+  .delta-pill.flat { background: rgba(20,20,20,0.07); color: var(--muted); }
+
+  .mv-block-row2 { margin-top: 3px; font-size: 11px; color: var(--muted); }
+
+  /* Inline remove confirm */
+  .mv-remove-wrap { flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .mv-remove-btn {
+    background: transparent;
+    border: none;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.12s, background 0.12s;
+  }
+  .mv-remove-btn:hover { color: var(--bad); background: var(--bad-bg); }
+  .mv-confirm-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .mv-confirm-cancel {
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    background: transparent; border: none; cursor: pointer;
+    color: var(--muted); padding: 4px 6px; border-radius: 4px;
+  }
+  .mv-confirm-cancel:hover { color: var(--ink); }
+  .mv-confirm-ok {
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    background: var(--bad-bg); border: 1px solid rgba(138,26,26,0.25);
+    color: var(--bad); padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .mv-confirm-ok:hover { background: rgba(138,26,26,0.18); }
+  .hidden { display: none !important; }
+
+  /* Expanded body */
+  .mv-block-body { border-top: 1px solid var(--hairline-soft); padding: 14px 16px 16px; display: none; }
+  .mv-block.open .mv-block-body { display: block; }
+
+  /* Training type pills */
+  .type-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .type-pill-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+  .type-pill {
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--hairline-soft);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.12s; text-transform: capitalize;
+  }
+  .type-pill:hover { border-color: var(--ink); color: var(--ink); }
+  .type-pill.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* Last session strip */
+  .last-strip {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 8px 11px;
+    background: var(--paper); border: 1px dashed var(--hairline-soft);
+    border-radius: 7px; font-size: 11px; margin-bottom: 12px;
+  }
+  .last-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--label); font-weight: 700; }
+
+  /* Sets table */
+  .sets-tbl { width: 100%; border-collapse: collapse; }
+  .sets-tbl th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--label); font-weight: 700;
+    text-align: left; padding: 5px 6px;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  .sets-tbl th.c { text-align: center; }
+  .sets-tbl td { padding: 6px 6px; vertical-align: middle; font-size: 13px; border-bottom: 1px dashed var(--hairline-soft); transition: opacity 0.15s; }
+  .sets-tbl tr.done-row td { opacity: 0.45; }
+  .sets-tbl tr:last-child td { border-bottom: none; }
+  .set-num { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; width: 22px; }
+  .sets-tbl input[type=number] {
+    width: 68px; padding: 5px 8px;
+    border: 1px solid var(--hairline-soft); border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    text-align: center; background: var(--paper); color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .sets-tbl input[type=number]:focus { outline: none; border-color: var(--ink); }
+  .set-check {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 1px dashed var(--hairline); background: transparent;
+    cursor: pointer; font-weight: 700; color: var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.12s; font-size: 13px;
+  }
+  .set-check.done { background: var(--ink); color: var(--paper); border-style: solid; }
+  .set-del-btn {
+    background: transparent; border: none; cursor: pointer;
+    width: 28px; height: 28px; border-radius: 5px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); transition: color 0.12s, background 0.12s;
+  }
+  .set-del-btn:hover { color: var(--bad); background: var(--bad-bg); }
+  .set-del-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .add-set-btn {
+    margin-top: 10px; background: transparent;
+    border: 1px dashed var(--hairline-soft); border-radius: 7px;
+    padding: 8px 14px; font-family: inherit; font-size: 11px;
+    font-weight: 600; letter-spacing: 0.6px; color: var(--muted);
+    cursor: pointer; transition: all 0.12s;
+  }
+  .add-set-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ── ADD MOVEMENT ── */
+  .add-mv-wrap { margin-top: 14px; }
+  .add-mv-btn {
+    background: transparent;
+    border: 1.5px dashed var(--hairline-soft);
+    border-radius: 10px; padding: 14px 18px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    color: var(--muted); cursor: pointer;
+    width: 100%; text-align: left;
+    transition: all 0.12s; letter-spacing: 0.4px;
+  }
+  .add-mv-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-3); }
+  .add-mv-search {
+    display: none; border: 1px solid var(--hairline); border-radius: 10px;
+    background: var(--paper-2); padding: 12px 14px;
+  }
+  .add-mv-search.open { display: block; }
+  .add-mv-search input {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--hairline-soft); border-radius: 7px;
+    font-family: inherit; font-size: 13px;
+    background: var(--paper); color: var(--ink); margin-bottom: 8px;
+  }
+  .add-mv-search input:focus { outline: none; border-color: var(--ink); }
+  .mv-list { max-height: 220px; overflow-y: auto; }
+  .mv-option {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; border-radius: 7px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background 0.1s;
+  }
+  .mv-option:hover { background: var(--paper-3); }
+  .mv-option-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--muted); }
+  .add-search-cancel {
+    background: transparent; border: none; cursor: pointer;
+    font-size: 11px; font-family: inherit; color: var(--muted);
+    padding: 4px 0; margin-top: 6px; display: block;
+  }
+  .add-search-cancel:hover { color: var(--ink); }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .side-card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .side-title { font-size: 13px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 10px; }
+  .side-sub { font-size: 11px; color: var(--muted); margin-top: -6px; margin-bottom: 10px; }
+
+  /* Streak calendar grid */
+  .streak-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 3px; margin-top: 8px;
+  }
+  .streak-cell {
+    aspect-ratio: 1; border-radius: 3px;
+    background: var(--hairline-soft);
+  }
+  .streak-cell.hit { background: var(--ink); }
+  .streak-cell.today { background: var(--ok); }
+
+  /* Leader rows */
+  .leader-row {
+    display: grid; grid-template-columns: 1fr auto auto;
+    align-items: baseline; gap: 8px;
+    padding: 5px 0; font-size: 12px;
+  }
+  .leader-row.heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--hairline-soft);
+    padding-bottom: 5px; margin-bottom: 4px;
+  }
+  .leader-name {
+    font-weight: 500; overflow: hidden; white-space: nowrap;
+    position: relative;
+  }
+  .leader-name::after {
+    content: " ···········································";
+    color: var(--hairline-soft); letter-spacing: 1px;
+  }
+  .leader-val { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; min-width: 40px; }
+  .leader-sub { font-size: 10px; color: var(--muted); text-align: right; min-width: 44px; font-variant-numeric: tabular-nums; }
+
+  /* Progress mini chart */
+  .mini-chart { position: relative; height: 64px; margin-top: 8px; }
+  .mini-chart svg { display: block; width: 100%; height: 100%; }
+
+  /* ── STICKY FOOTER ── */
+  .finish-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--paper);
+    border-top: 1px solid var(--hairline);
+    z-index: 10; padding: 0 16px;
+  }
+  .finish-bar-inner {
+    max-width: 1132px; margin: 0 auto;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+  }
+  .finish-bar-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .finish-bar-actions { display: flex; align-items: center; gap: 8px; }
+  .finish-confirm-text { font-size: 12px; color: var(--muted); }
+  .btn {
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer;
+    transition: transform 0.1s; border: 1px solid var(--hairline);
+    background: var(--paper-2); color: var(--ink);
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-dark { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-dark:hover { background: #000; }
+  .btn-ghost { background: transparent; border-color: var(--hairline-soft); }
+  .btn-ghost:hover { background: var(--paper-2); }
+  .btn-ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .btn-ok:hover { opacity: 0.9; }
+
+  /* ── OTHER VIEWS STUBS ── */
+  .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
+  .mv-card { background: var(--paper-2); border: 1px solid var(--hairline); border-radius: 8px; padding: 14px; cursor: pointer; transition: background 0.12s; }
+  .mv-card:hover { background: var(--paper-3); }
+  .mv-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .mv-card-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
+  .mv-cat { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid var(--hairline); padding: 2px 7px; border-radius: 3px; }
+  .mv-card-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; font-size: 11px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--hairline-soft); }
+  .mv-card-stats b { display: block; font-weight: 700; color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  .history-row { background: var(--paper); border: 1px solid var(--hairline); border-radius: 8px; padding: 11px 15px; margin-bottom: 8px; display: grid; grid-template-columns: 8px 1.6fr 90px 1fr auto; gap: 14px; align-items: center; }
+  .history-row:hover { background: var(--paper-2); }
+  .history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+  .history-name { font-size: 13px; font-weight: 600; }
+  .history-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .history-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+  .history-meta { font-size: 11px; color: var(--muted); }
+  .history-vol { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Progress chart */
+  .pg-select { padding: 7px 10px; border: 1px solid var(--hairline); border-radius: 7px; font-family: inherit; font-size: 12px; font-weight: 500; background: var(--paper-2); color: var(--ink); }
+  .chart-wrap { position: relative; height: 220px; margin-top: 12px; }
+  .chart-wrap svg { display: block; width: 100%; height: 100%; }
+  .chart-x { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .progress-stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 14px; }
+  .pg-stat { background: var(--paper-2); border: 1px solid var(--hairline-soft); border-radius: 8px; padding: 12px 14px; }
+  .pg-stat-v { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+  .pg-stat-l { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-top: 2px; }
+
+  /* Modal */
+  .modal-bd { position: fixed; inset: 0; background: rgba(20,20,20,0.45); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .modal-bd.open { display: flex; }
+  .modal { background: var(--paper); border: 1px solid var(--hairline); border-radius: 10px; padding: 20px 22px; width: 420px; max-width: 90vw; max-height: 88vh; overflow-y: auto; }
+  .modal h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 14px; }
+  .modal label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin-top: 12px; margin-bottom: 5px; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--hairline-soft); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--paper-2); color: var(--ink); }
+  .modal input:focus, .modal select:focus { outline: none; border-color: var(--ink); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .empty-sub { font-size: 12px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ── TOP BAR ── -->
+  <div class="top-rail">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <span class="brand-name">fitlog</span>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showView('today',this)">Today</button>
+      <button class="tab" onclick="showView('movements',this)">Movements</button>
+      <button class="tab" onclick="showView('history',this)">History</button>
+      <button class="tab" onclick="showView('progress',this)">Progress</button>
+    </div>
+    <div class="top-right">
+      <div class="profile">
+        <div class="avatar">R</div>
+        <span class="profile-name">Rylo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════ TODAY VIEW ══════════════════════════ -->
+  <div class="view active" id="view-today">
+    <div class="today-layout">
+
+      <!-- LEFT COLUMN -->
+      <div>
+        <div class="today-head">
+          <div class="view-title">Today</div>
+          <div class="view-date" id="today-date"></div>
+        </div>
+
+        <!-- Session stats strip -->
+        <div class="session-strip">
+          <div class="sstat">
+            <span class="sstat-v" id="stat-mvs">0</span>
+            <span class="sstat-l">movements</span>
+          </div>
+          <div class="sstat">
+            <span class="sstat-v" id="stat-sets">0</span>
+            <span class="sstat-l">sets done</span>
+          </div>
+          <div class="sstat">
+            <span class="sstat-v" id="stat-vol">0</span>
+            <span class="sstat-l">kg volume</span>
+          </div>
+          <div class="sstat">
+            <span class="sstat-v" id="stat-time">0:00</span>
+            <span class="sstat-l">elapsed</span>
+          </div>
+        </div>
+
+        <!-- Movement cards injected here -->
+        <div id="movement-list"></div>
+
+        <!-- Add movement -->
+        <div class="add-mv-wrap">
+          <button class="add-mv-btn" id="add-mv-toggle" onclick="toggleAddSearch()">+ Add movement</button>
+          <div class="add-mv-search" id="add-mv-search">
+            <input type="text" id="mv-search-input" placeholder="Search movements…" oninput="filterMovements()" autofocus>
+            <div class="mv-list" id="mv-list"></div>
+            <button class="add-search-cancel" onclick="toggleAddSearch()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR -->
+      <div class="sidebar">
+        <!-- Streak -->
+        <div class="side-card">
+          <div class="side-title">Streak</div>
+          <div class="streak-grid" id="streak-grid"></div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
+            <span>28d window</span>
+            <span id="streak-count" style="font-weight:700;color:var(--ink);">12 day streak</span>
+          </div>
+        </div>
+
+        <!-- PR table -->
+        <div class="side-card">
+          <div class="side-title">Top sets this week</div>
+          <div class="leader-row heading"><span>Movement</span><span>Weight</span><span>Reps</span></div>
+          <div class="leader-row"><span class="leader-name">Bench Press</span><span class="leader-val">100</span><span class="leader-sub">× 5</span></div>
+          <div class="leader-row"><span class="leader-name">Squat</span><span class="leader-val">130</span><span class="leader-sub">× 3</span></div>
+          <div class="leader-row"><span class="leader-name">Deadlift</span><span class="leader-val">160</span><span class="leader-sub">× 2</span></div>
+          <div class="leader-row"><span class="leader-name">OHP</span><span class="leader-val">62.5</span><span class="leader-sub">× 6</span></div>
+        </div>
+
+        <!-- Volume mini chart -->
+        <div class="side-card">
+          <div class="side-title">Volume — 8 weeks</div>
+          <div class="mini-chart">
+            <svg viewBox="0 0 220 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="0,52 28,46 56,38 84,40 112,22 140,28 168,14 220,18"
+                stroke="var(--ink)" stroke-width="1.75" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+              <polyline points="0,52 28,46 56,38 84,40 112,22 140,28 168,14 220,18 220,64 0,64"
+                fill="rgba(20,20,20,0.06)" stroke="none"/>
+            </svg>
+          </div>
+          <div class="chart-x" style="margin-top:4px;">
+            <span>W1</span><span>W2</span><span>W3</span><span>W4</span>
+            <span>W5</span><span>W6</span><span>W7</span><span>W8</span>
+          </div>
+        </div>
+
+        <!-- Upcoming movements -->
+        <div class="side-card">
+          <div class="side-title">Due soon</div>
+          <div class="side-sub">Movements not logged in 7+ days</div>
+          <div class="leader-row heading"><span>Movement</span><span style="grid-column:span 2">Last done</span></div>
+          <div class="leader-row"><span class="leader-name">Pull-ups</span><span class="leader-val" style="color:var(--bad)">9d</span><span class="leader-sub">ago</span></div>
+          <div class="leader-row"><span class="leader-name">Romanian DL</span><span class="leader-val" style="color:var(--warn)">7d</span><span class="leader-sub">ago</span></div>
+          <div class="leader-row"><span class="leader-name">Face Pulls</span><span class="leader-val">7d</span><span class="leader-sub">ago</span></div>
+        </div>
+      </div>
+
+    </div><!-- /today-layout -->
+  </div><!-- /view-today -->
+
+  <!-- ══════════════════════════ MOVEMENTS VIEW ══════════════════════════ -->
+  <div class="view" id="view-movements">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">
+      <div>
+        <div class="view-title">Movements</div>
+        <div class="view-date" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;">8 movements in library</div>
+      </div>
+      <button class="btn btn-dark" onclick="document.getElementById('modal-new-mv').classList.add('open')">+ New movement</button>
+    </div>
+    <div class="lib-grid">
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">Bench Press</span><span class="mv-cat">Weight</span></div><div class="mv-card-stats"><div><b>100</b>PR (kg)</div><div><b>24</b>Sessions</div><div><b>3d</b>Last</div></div></div>
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">Squat</span><span class="mv-cat">Weight</span></div><div class="mv-card-stats"><div><b>130</b>PR (kg)</div><div><b>20</b>Sessions</div><div><b>5d</b>Last</div></div></div>
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">Deadlift</span><span class="mv-cat">Weight</span></div><div class="mv-card-stats"><div><b>160</b>PR (kg)</div><div><b>16</b>Sessions</div><div><b>6d</b>Last</div></div></div>
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">OHP</span><span class="mv-cat">Weight</span></div><div class="mv-card-stats"><div><b>62.5</b>PR (kg)</div><div><b>18</b>Sessions</div><div><b>3d</b>Last</div></div></div>
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">Pull-ups</span><span class="mv-cat">Weight</span></div><div class="mv-card-stats"><div><b>BW+20</b>PR (kg)</div><div><b>14</b>Sessions</div><div><b>9d</b>Last</div></div></div>
+      <div class="mv-card"><div class="mv-card-head"><span class="mv-card-name">5k Run</span><span class="mv-cat">Cardio</span></div><div class="mv-card-stats"><div><b>22:14</b>PR</div><div><b>10</b>Sessions</div><div><b>4d</b>Last</div></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════ HISTORY VIEW ══════════════════════════ -->
+  <div class="view" id="view-history">
+    <div style="margin-bottom:14px;">
+      <div class="view-title">History</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;">47 sessions logged</div>
+    </div>
+    <div class="history-row" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);background:transparent;border:none;padding-bottom:4px;"><span></span><span>Movement</span><span>Date</span><span>Sets</span><span>Top set</span></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">Bench Press</div><div class="history-sub">hypertrophy</div></div><div class="history-date">May 07</div><div class="history-meta">4 sets · 3 done</div><div class="history-vol">95 × 8</div></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">Squat</div><div class="history-sub">strength</div></div><div class="history-date">May 07</div><div class="history-meta">5 sets · 5 done</div><div class="history-vol">125 × 5</div></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">OHP</div><div class="history-sub">hypertrophy</div></div><div class="history-date">May 05</div><div class="history-meta">4 sets · 4 done</div><div class="history-vol">60 × 8</div></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">Deadlift</div><div class="history-sub">strength</div></div><div class="history-date">May 04</div><div class="history-meta">3 sets · 3 done</div><div class="history-vol">155 × 3</div></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">5k Run</div><div class="history-sub">cardio</div></div><div class="history-date">May 04</div><div class="history-meta">1 interval</div><div class="history-vol">5km · 24min</div></div>
+    <div class="history-row"><div class="history-dot"></div><div><div class="history-name">Bench Press</div><div class="history-sub">hypertrophy</div></div><div class="history-date">May 01</div><div class="history-meta">4 sets · 4 done</div><div class="history-vol">92.5 × 8</div></div>
+  </div>
+
+  <!-- ══════════════════════════ PROGRESS VIEW ══════════════════════════ -->
+  <div class="view" id="view-progress">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px;">
+      <div>
+        <div class="view-title">Progress</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;">Tracking since Jan 2025</div>
+      </div>
+      <select class="pg-select">
+        <option>Bench Press</option>
+        <option>Squat</option>
+        <option>Deadlift</option>
+        <option>OHP</option>
+      </select>
+    </div>
+    <div class="progress-stats-row">
+      <div class="pg-stat"><div class="pg-stat-v">100 kg</div><div class="pg-stat-l">All-time PR</div></div>
+      <div class="pg-stat"><div class="pg-stat-v">+12.5 kg</div><div class="pg-stat-l">90-day gain</div></div>
+      <div class="pg-stat"><div class="pg-stat-v">24</div><div class="pg-stat-l">Sessions logged</div></div>
+    </div>
+    <div class="side-card" style="margin-bottom:0;">
+      <div class="side-title" style="margin-bottom:0">Top set weight — Bench Press</div>
+      <div class="chart-wrap">
+        <svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+          <line x1="0" y1="0" x2="0" y2="180" stroke="var(--hairline-soft)" stroke-width="1"/>
+          <line x1="0" y1="180" x2="600" y2="180" stroke="var(--hairline-soft)" stroke-width="1"/>
+          <!-- grid lines -->
+          <line x1="0" y1="135" x2="600" y2="135" stroke="var(--hairline-soft)" stroke-dasharray="3,3" stroke-width="1"/>
+          <line x1="0" y1="90" x2="600" y2="90" stroke="var(--hairline-soft)" stroke-dasharray="3,3" stroke-width="1"/>
+          <line x1="0" y1="45" x2="600" y2="45" stroke="var(--hairline-soft)" stroke-dasharray="3,3" stroke-width="1"/>
+          <!-- y-labels -->
+          <text x="-6" y="184" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--muted)" text-anchor="end">75</text>
+          <text x="-6" y="139" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--muted)" text-anchor="end">82.5</text>
+          <text x="-6" y="94" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--muted)" text-anchor="end">90</text>
+          <text x="-6" y="49" font-family="JetBrains Mono,monospace" font-size="10" fill="var(--muted)" text-anchor="end">97.5</text>
+          <!-- area fill -->
+          <polyline points="0,162 50,157 100,148 150,140 200,140 250,128 300,120 350,112 400,104 450,104 500,90 550,82 600,72"
+            fill="rgba(20,20,20,0.06)" stroke="none"/>
+          <polygon points="0,162 50,157 100,148 150,140 200,140 250,128 300,120 350,112 400,104 450,104 500,90 550,82 600,72 600,180 0,180"
+            fill="rgba(20,20,20,0.06)" stroke="none"/>
+          <!-- line -->
+          <polyline points="0,162 50,157 100,148 150,140 200,140 250,128 300,120 350,112 400,104 450,104 500,90 550,82 600,72"
+            stroke="var(--ink)" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- dots -->
+          <circle cx="600" cy="72" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+          <circle cx="500" cy="90" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="chart-x">
+        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+      </div>
+    </div>
+  </div>
+</div><!-- /app -->
+
+<!-- ── STICKY FINISH BAR ── -->
+<div class="finish-bar" id="finish-bar">
+  <div class="finish-bar-inner">
+    <span class="finish-bar-label" id="finish-bar-label">0 movements logged</span>
+    <div class="finish-bar-actions" id="finish-bar-actions">
+      <button class="btn btn-ok" onclick="showFinishConfirm()">Finish workout</button>
+    </div>
+    <div class="finish-bar-actions hidden" id="finish-bar-confirm">
+      <span class="finish-confirm-text">Finish session?</span>
+      <button class="btn btn-ghost" onclick="hideFinishConfirm()">Cancel</button>
+      <button class="btn btn-dark" onclick="finishWorkout()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: New movement ── -->
+<div class="modal-bd" id="modal-new-mv" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <h3>New movement</h3>
+    <label>Name</label>
+    <input type="text" placeholder="e.g. Bench Press">
+    <label>Type</label>
+    <select>
+      <option>Weight</option>
+      <option>Cardio</option>
+    </select>
+    <label>Training type (weight only)</label>
+    <select>
+      <option>hypertrophy</option>
+      <option>strength</option>
+      <option>power</option>
+      <option>mobility</option>
+      <option>endurance</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-new-mv').classList.remove('open')">Cancel</button>
+      <button class="btn btn-dark" onclick="document.getElementById('modal-new-mv').classList.remove('open')">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const MOVEMENT_LIBRARY = [
+  { id: 1, name: "Bench Press", kind: "weight", defaultType: "hypertrophy" },
+  { id: 2, name: "Squat",       kind: "weight", defaultType: "strength"    },
+  { id: 3, name: "Deadlift",    kind: "weight", defaultType: "strength"    },
+  { id: 4, name: "OHP",         kind: "weight", defaultType: "hypertrophy" },
+  { id: 5, name: "Pull-ups",    kind: "weight", defaultType: "hypertrophy" },
+  { id: 6, name: "Romanian DL", kind: "weight", defaultType: "hypertrophy" },
+  { id: 7, name: "Face Pulls",  kind: "weight", defaultType: "hypertrophy" },
+  { id: 8, name: "5k Run",      kind: "cardio",  unit: "km"               },
+];
+
+// Prior session data for hints + progress delta
+const LAST_SESSION = {
+  1: { date: "2026-05-07", topSet: { weight: 95, reps: 8 },  sets: [{weight:90,reps:8},{weight:92.5,reps:8},{weight:95,reps:8},{weight:95,reps:7}] },
+  2: { date: "2026-05-05", topSet: { weight: 125, reps: 5 }, sets: [{weight:115,reps:5},{weight:120,reps:5},{weight:125,reps:5},{weight:125,reps:4},{weight:120,reps:5}] },
+  3: { date: "2026-05-04", topSet: { weight: 155, reps: 3 }, sets: [{weight:140,reps:5},{weight:150,reps:3},{weight:155,reps:3}] },
+  4: { date: "2026-05-07", topSet: { weight: 60, reps: 8 },  sets: [{weight:55,reps:10},{weight:57.5,reps:8},{weight:60,reps:8},{weight:60,reps:7}] },
+};
+
+const TYPES = ["strength","hypertrophy","power","mobility","endurance"];
+
+// Today's session state
+let session = [
+  {
+    mvId: 1,
+    trainingType: "hypertrophy",
+    sets: [
+      { weight: 92.5, reps: 8, done: true },
+      { weight: 95,   reps: 8, done: true },
+      { weight: 97.5, reps: 8, done: false },
+      { weight: 97.5, reps: 7, done: false },
+    ]
+  },
+  {
+    mvId: 4,
+    trainingType: "hypertrophy",
+    sets: [
+      { weight: 60,  reps: 8, done: true },
+      { weight: 62.5,reps: 8, done: false },
+      { weight: 62.5,reps: 8, done: false },
+    ]
+  },
+  {
+    mvId: 2,
+    trainingType: "strength",
+    sets: [
+      { weight: 120, reps: 5, done: false },
+      { weight: 125, reps: 5, done: false },
+      { weight: 130, reps: 5, done: false },
+      { weight: 130, reps: 3, done: false },
+      { weight: 130, reps: 3, done: false },
+    ]
+  }
+];
+
+/* ── INIT ── */
+document.addEventListener("DOMContentLoaded", () => {
+  const now = new Date();
+  document.getElementById("today-date").textContent =
+    now.toLocaleDateString("en-GB", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  renderStreak();
+  renderAll();
+  startTimer();
+});
+
+let startTime = Date.now();
+function startTimer() {
+  setInterval(() => {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(s / 60), ss = s % 60;
+    document.getElementById("stat-time").textContent = m + ":" + String(ss).padStart(2,"0");
+  }, 1000);
+}
+
+/* ── RENDER ── */
+function renderAll() {
+  const list = document.getElementById("movement-list");
+  list.innerHTML = "";
+  session.forEach((entry, idx) => {
+    const mv = MOVEMENT_LIBRARY.find(m => m.id === entry.mvId);
+    if (!mv) return;
+    list.appendChild(buildCard(entry, mv, idx, idx === session.length - 1));
+  });
+  updateStats();
+}
+
+function buildCard(entry, mv, idx, defaultOpen) {
+  const last = LAST_SESSION[mv.id] || null;
+  const allDone = entry.sets.length > 0 && entry.sets.every(s => s.done);
+  const doneSets = entry.sets.filter(s => s.done).length;
+  const total = entry.sets.length;
+  const delta = computeDelta(entry, last, mv);
+
+  const card = document.createElement("div");
+  card.className = "mv-block" + (allDone ? " all-done" : "") + (defaultOpen ? " open" : "");
+  card.id = "card-" + idx;
+
+  // ── HEADER ──
+  const header = document.createElement("div");
+  header.className = "mv-block-header";
+  header.onclick = () => toggleCard(card);
+
+  header.innerHTML = `
+    <span class="mv-chevron">
+      <svg width="9" height="14" viewBox="0 0 9 14" fill="none">
+        <path d="M1.5 1.5l6 5.5-6 5.5" stroke="currentColor" stroke-width="1.75"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <div class="mv-block-info">
+      <div class="mv-block-row1">
+        <span class="mv-name" style="${allDone ? 'color:var(--ok)' : ''}">${mv.name}</span>
+        ${mv.kind === "cardio"
+          ? `<span class="mv-tag">cardio · ${mv.unit}</span>`
+          : `<span class="mv-tag">${entry.trainingType}</span>`}
+        ${delta ? `<span class="delta-pill ${delta.cls}">${delta.label}</span>` : ""}
+      </div>
+      <div class="mv-block-row2">${buildSubtitle(entry, mv, last, doneSets, total, allDone)}</div>
+    </div>`;
+
+  // Remove button with inline confirm
+  const removeWrap = document.createElement("div");
+  removeWrap.className = "mv-remove-wrap";
+  removeWrap.onclick = e => e.stopPropagation();
+  removeWrap.innerHTML = `
+    <button class="mv-remove-btn" title="Remove ${mv.name}" onclick="showRemoveConfirm(this, ${idx})">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+        <path d="M1.5 1.5l8 8M9.5 1.5l-8 8" stroke="currentColor" stroke-width="1.75"
+          stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="hidden" id="confirm-${idx}">
+      <span class="mv-confirm-label">Remove?</span>
+      <button class="mv-confirm-cancel" onclick="hideRemoveConfirm(${idx})">Cancel</button>
+      <button class="mv-confirm-ok" onclick="removeEntry(${idx})">Remove</button>
+    </div>`;
+
+  header.appendChild(removeWrap);
+  card.appendChild(header);
+
+  // ── BODY ──
+  const body = document.createElement("div");
+  body.className = "mv-block-body";
+  body.id = "body-" + idx;
+
+  // Training type pills
+  if (mv.kind === "weight") {
+    const pillWrap = document.createElement("div");
+    pillWrap.className = "type-pills";
+    pillWrap.innerHTML = `<span class="type-pill-label">Type</span>`;
+    TYPES.forEach(t => {
+      const pill = document.createElement("button");
+      pill.className = "type-pill" + (entry.trainingType === t ? " active" : "");
+      pill.textContent = t;
+      pill.onclick = () => {
+        entry.trainingType = t;
+        pillWrap.querySelectorAll(".type-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        // Update the collapsed tag
+        const tagEl = card.querySelector(".mv-tag");
+        if (tagEl) tagEl.textContent = t;
+      };
+      pillWrap.appendChild(pill);
+    });
+    body.appendChild(pillWrap);
+  }
+
+  // Last session strip
+  if (last) {
+    const strip = document.createElement("div");
+    strip.className = "last-strip";
+    if (mv.kind === "weight" && last.topSet) {
+      strip.innerHTML = `
+        <span><span class="last-lbl">Last</span> ${relativeDate(last.date)}</span>
+        <span><span class="last-lbl">Top set</span> ${last.topSet.weight} × ${last.topSet.reps}</span>
+        ${delta ? `<span style="font-weight:700;color:var(--${delta.cls==='up'?'ok':'bad'});">${delta.label}</span>` : ""}`;
+    }
+    body.appendChild(strip);
+  } else {
+    const noLog = document.createElement("div");
+    noLog.style.cssText = "font-size:11px;color:var(--muted);font-style:italic;margin-bottom:10px;";
+    noLog.textContent = "No prior log — this will be your baseline.";
+    body.appendChild(noLog);
+  }
+
+  // Sets table
+  const tableWrap = document.createElement("div");
+  tableWrap.id = "table-" + idx;
+  tableWrap.innerHTML = buildSetsTable(entry, mv, last, idx);
+  body.appendChild(tableWrap);
+
+  // Add set button
+  const addBtn = document.createElement("button");
+  addBtn.className = "add-set-btn";
+  addBtn.textContent = `+ Add ${mv.kind === "cardio" ? "interval" : "set"}`;
+  addBtn.onclick = () => { addSet(entry, mv, last, idx); };
+  body.appendChild(addBtn);
+
+  card.appendChild(body);
+  return card;
+}
+
+function buildSetsTable(entry, mv, last, idx) {
+  const isCardio = mv.kind === "cardio";
+  const rows = entry.sets.map((s, i) => {
+    const prev = last?.sets?.[i];
+    const phWeight = prev?.weight ?? "";
+    const phReps   = prev?.reps   ?? "";
+    const doneClass = s.done ? "done-row" : "";
+    if (isCardio) {
+      return `<tr class="${doneClass}" id="row-${idx}-${i}">
+        <td class="set-num">${i+1}</td>
+        <td><input type="number" step="0.01" value="${s.distance ?? ""}" placeholder="${prev?.distance ?? ""}" aria-label="Set ${i+1} distance" onchange="updateSet(${idx},${i},'distance',this.value)"></td>
+        <td><input type="number" value="${s.time ?? ""}" placeholder="${prev?.time ?? ""}" aria-label="Set ${i+1} time" onchange="updateSet(${idx},${i},'time',this.value)"></td>
+        <td class="c"><button class="set-check${s.done?' done':''}" onclick="toggleDone(${idx},${i})" aria-label="Mark set ${i+1} done">${s.done ? "✓" : ""}</button></td>
+        <td class="c"><button class="set-del-btn" onclick="deleteSet(${idx},${i})" ${entry.sets.length<=1?"disabled":""} aria-label="Delete set ${i+1}">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        </button></td>
+      </tr>`;
+    }
+    return `<tr class="${doneClass}" id="row-${idx}-${i}">
+      <td class="set-num">${i+1}</td>
+      <td><input type="number" step="0.5" value="${s.weight ?? ""}" placeholder="${phWeight}" aria-label="Set ${i+1} weight" onchange="updateSet(${idx},${i},'weight',this.value)"></td>
+      <td><input type="number" value="${s.reps ?? ""}" placeholder="${phReps}" aria-label="Set ${i+1} reps" onchange="updateSet(${idx},${i},'reps',this.value)"></td>
+      <td class="c"><button class="set-check${s.done?' done':''}" onclick="toggleDone(${idx},${i})" aria-label="Mark set ${i+1} done">${s.done ? "✓" : ""}</button></td>
+      <td class="c"><button class="set-del-btn" onclick="deleteSet(${idx},${i})" ${entry.sets.length<=1?"disabled":""} aria-label="Delete set ${i+1}">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+      </button></td>
+    </tr>`;
+  }).join("");
+
+  const isC = isCardio;
+  return `<table class="sets-tbl">
+    <thead><tr>
+      <th style="width:22px">#</th>
+      ${isC ? `<th>Dist (${mv.unit})</th><th>Min</th>` : `<th>Weight (kg)</th><th>Reps</th>`}
+      <th class="c" style="width:44px">Done</th>
+      <th style="width:36px"></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function buildSubtitle(entry, mv, last, doneSets, total, allDone) {
+  const countStr = `<span style="${allDone ? 'color:var(--ok);font-weight:600' : ''}">${doneSets}/${total} set${total!==1?"s":""}</span>`;
+  if (!last) return countStr + " · no prior log";
+  const rel = relativeDate(last.date);
+  if (mv.kind === "weight" && last.topSet) {
+    return `${countStr} · ${rel} · ${last.topSet.weight} × ${last.topSet.reps}`;
+  }
+  return `${countStr} · ${rel}`;
+}
+
+/* ── DELTA ── */
+function computeDelta(entry, last, mv) {
+  if (mv.kind === "cardio" || !last?.topSet) return null;
+  const cur = entry.sets.reduce((best, s) =>
+    (s.weight ?? 0) > (best?.weight ?? -1) ? s : best, null);
+  if (!cur?.weight) return null;
+  const diff = cur.weight - last.topSet.weight;
+  if (diff > 0) return { cls: "up",   label: `▲ +${diff}` };
+  if (diff < 0) return { cls: "down", label: `▼ ${diff}` };
+  return { cls: "flat", label: "= same" };
+}
+
+/* ── HELPERS ── */
+function relativeDate(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today - d) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff < 7)  return diff + "d ago";
+  if (diff < 14) return "Last week";
+  return Math.round(diff/7) + "w ago";
+}
+
+/* ── INTERACTIONS ── */
+function toggleCard(card) {
+  card.classList.toggle("open");
+}
+
+function showRemoveConfirm(btn, idx) {
+  btn.classList.add("hidden");
+  document.getElementById("confirm-" + idx).classList.remove("hidden");
+}
+function hideRemoveConfirm(idx) {
+  const card = document.getElementById("card-" + idx);
+  const btn = card?.querySelector(".mv-remove-btn");
+  if (btn) btn.classList.remove("hidden");
+  document.getElementById("confirm-" + idx).classList.add("hidden");
+}
+function removeEntry(idx) {
+  session.splice(idx, 1);
+  renderAll();
+}
+
+function toggleDone(idx, setIdx) {
+  session[idx].sets[setIdx].done = !session[idx].sets[setIdx].done;
+  renderAll();
+}
+
+function updateSet(idx, setIdx, field, value) {
+  session[idx].sets[setIdx][field] = value === "" ? null : Number(value);
+  // Re-render only stats + header delta (lightweight)
+  updateStats();
+}
+
+function addSet(entry, mv, last, idx) {
+  entry.sets.push(mv.kind === "cardio"
+    ? { distance: null, time: null, done: false }
+    : { weight: null, reps: null, done: false });
+  const tableWrap = document.getElementById("table-" + idx);
+  if (tableWrap) tableWrap.innerHTML = buildSetsTable(entry, mv, last, idx);
+  updateStats();
+}
+
+function deleteSet(idx, setIdx) {
+  if (session[idx].sets.length <= 1) return;
+  session[idx].sets.splice(setIdx, 1);
+  const mv = MOVEMENT_LIBRARY.find(m => m.id === session[idx].mvId);
+  const last = LAST_SESSION[mv.id] || null;
+  const tableWrap = document.getElementById("table-" + idx);
+  if (tableWrap) tableWrap.innerHTML = buildSetsTable(session[idx], mv, last, idx);
+  updateStats();
+}
+
+function updateStats() {
+  const mvCount = session.length;
+  let doneSets = 0, totalVol = 0;
+  session.forEach(e => {
+    e.sets.forEach(s => {
+      if (s.done) { doneSets++; totalVol += (s.weight ?? 0) * (s.reps ?? 0); }
+    });
+  });
+  document.getElementById("stat-mvs").textContent = mvCount;
+  document.getElementById("stat-sets").textContent = doneSets;
+  document.getElementById("stat-vol").textContent = Math.round(totalVol).toLocaleString();
+  document.getElementById("finish-bar-label").textContent =
+    mvCount + " movement" + (mvCount !== 1 ? "s" : "") + " logged";
+}
+
+/* ── FINISH WORKOUT ── */
+function showFinishConfirm() {
+  document.getElementById("finish-bar-actions").classList.add("hidden");
+  document.getElementById("finish-bar-confirm").classList.remove("hidden");
+}
+function hideFinishConfirm() {
+  document.getElementById("finish-bar-confirm").classList.add("hidden");
+  document.getElementById("finish-bar-actions").classList.remove("hidden");
+}
+function finishWorkout() {
+  alert("Workout saved! Great session.");
+  hideFinishConfirm();
+}
+
+/* ── ADD MOVEMENT ── */
+function toggleAddSearch() {
+  const btn = document.getElementById("add-mv-toggle");
+  const panel = document.getElementById("add-mv-search");
+  const isOpen = panel.classList.toggle("open");
+  btn.style.display = isOpen ? "none" : "block";
+  if (isOpen) {
+    filterMovements();
+    document.getElementById("mv-search-input").value = "";
+    document.getElementById("mv-search-input").focus();
+  }
+}
+
+function filterMovements() {
+  const q = document.getElementById("mv-search-input").value.toLowerCase();
+  const existing = new Set(session.map(e => e.mvId));
+  const list = document.getElementById("mv-list");
+  list.innerHTML = "";
+  MOVEMENT_LIBRARY.filter(m => !existing.has(m.id) && m.name.toLowerCase().includes(q))
+    .forEach(mv => {
+      const el = document.createElement("div");
+      el.className = "mv-option";
+      el.innerHTML = `<span>${mv.name}</span><span class="mv-option-tag">${mv.kind}</span>`;
+      el.onclick = () => addMovement(mv);
+      list.appendChild(el);
+    });
+  if (list.children.length === 0) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:10px 10px;font-style:italic;">No matches. Add from Movements tab.</div>`;
+  }
+}
+
+function addMovement(mv) {
+  const sets = mv.kind === "cardio"
+    ? [{ distance: null, time: null, done: false }]
+    : [
+        { weight: null, reps: null, done: false },
+        { weight: null, reps: null, done: false },
+        { weight: null, reps: null, done: false },
+      ];
+  session.push({ mvId: mv.id, trainingType: mv.defaultType || "hypertrophy", sets });
+  toggleAddSearch();
+  document.getElementById("add-mv-toggle").style.display = "block";
+  renderAll();
+  // Scroll to new card
+  const newCard = document.getElementById("card-" + (session.length - 1));
+  if (newCard) newCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ── STREAK ── */
+function renderStreak() {
+  const grid = document.getElementById("streak-grid");
+  const hits = new Set([1,2,4,5,6,8,9,11,12,13,15,16,19,20,22,25,26,27]);
+  for (let i = 0; i < 28; i++) {
+    const cell = document.createElement("div");
+    const isToday = i === 27;
+    cell.className = "streak-cell" + (isToday ? " today" : hits.has(i) ? " hit" : "");
+    cell.title = isToday ? "Today" : "";
+    grid.appendChild(cell);
+  }
+}
+
+/* ── VIEW SWITCHING ── */
+function showView(name, tabEl) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  tabEl.classList.add("active");
+  // Only show finish bar on Today
+  document.getElementById("finish-bar").style.display = name === "today" ? "block" : "none";
+}
+</script>
+</body>
+</html>
