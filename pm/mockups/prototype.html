@@ -308,17 +308,51 @@
   .mv .remove svg { width: 12px; height: 12px; }
 
   /* Empty state (Today with no movements) */
+  /* Empty-state card — consolidates the "nothing planned" message with the
+     Add Movement action. When this is showing, the floating .add-cta is
+     hidden via .today-empty on #view-today. One affordance, not two. */
   .empty {
-    margin: 20px 22px;
-    padding: 28px 18px;
+    margin: 28px 22px;
+    padding: 28px 22px;
     background: var(--glass);
     border: 1px dashed var(--hairline-strong);
     border-radius: var(--r-lg);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
   }
-  .empty .eb { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; color: var(--label); text-transform: uppercase; margin-bottom: 10px; }
-  .empty h3 { margin: 0 0 6px; font: 600 16px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
-  .empty p { margin: 0; font: 500 13px/1.45 'Inter Tight',sans-serif; color: var(--muted); }
+  .empty .eb { font: 600 10px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.16em; color: var(--label); text-transform: uppercase; }
+  .empty h3 { margin: 0; font: 600 18px/1.2 'Inter Tight',sans-serif; letter-spacing: -0.01em; }
+  .empty p { margin: 0; font: 500 13px/1.45 'Inter Tight',sans-serif; color: var(--muted); max-width: 280px; }
+  .empty .empty-cta {
+    margin-top: 6px;
+    padding: 12px 22px;
+    background: var(--ink-deep);
+    color: white;
+    border: none;
+    border-radius: var(--r-pill);
+    font: 600 14px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 22px rgba(24,32,48, 0.25), 0 2px 4px rgba(24,32,48, 0.15);
+    transition: transform 150ms var(--ease-out-cubic), box-shadow 200ms ease-out;
+  }
+  .empty .empty-cta:hover { transform: translateY(-1px); }
+  .empty .empty-cta .plus {
+    width: 18px; height: 18px;
+    border-radius: var(--r-pill);
+    background: rgba(255,255,255, 0.18);
+    display: grid; place-items: center;
+    font-size: 14px; line-height: 1;
+  }
+
+  /* Hide the floating Add Movement CTA when the empty card is rendering */
+  #view-today.today-empty .add-cta { display: none; }
 
   /* === Add CTA + Nav === */
   .add-cta {
@@ -871,7 +905,7 @@
      prismatic gradient matching the hero family (smaller version), backdrop-blur,
      specular top-edge highlight, accent-tinted ambient shadow. */
   .rec-inline {
-    margin: 6px 0 10px 12px;
+    margin: 6px 0 10px 0;
     padding: 9px 8px 9px 14px;
     background: linear-gradient(155deg, rgba(93,155,184, 0.20) 0%, rgba(155,130,200, 0.14) 55%, rgba(201,160,190, 0.12) 100%);
     backdrop-filter: blur(30px) saturate(1.5);
@@ -1830,13 +1864,25 @@ function renderToday() {
     groups[m.bodyPart].push(m);
   });
 
+  // Toggle empty-state class on the Today view so the floating Add CTA is
+  // hidden while the empty card carries the action.
+  const todayView = document.getElementById('view-today');
+  if (todayView) todayView.classList.toggle('today-empty', state.movements.length === 0);
+
   if (state.movements.length === 0) {
     scroll.innerHTML = `
       <div class="empty">
         <div class="eb">NO MOVEMENTS PLANNED</div>
-        <h3>Build the session.</h3>
+        <h3>Build today's session.</h3>
         <p>Group movements by body part. Add one at a time.</p>
+        <button class="empty-cta" id="btn-empty-add">
+          <span class="plus">+</span>
+          Add movement
+        </button>
       </div>`;
+    scroll.querySelector('#btn-empty-add')?.addEventListener('click', () => {
+      document.getElementById('btn-add-movement')?.click();
+    });
   } else {
     Object.keys(groups).forEach(bodyPart => {
       const eb = document.createElement('div');
