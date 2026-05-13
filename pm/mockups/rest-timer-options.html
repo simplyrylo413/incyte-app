@@ -215,8 +215,53 @@
     border-radius: 999px;
     color: var(--label);
     cursor: pointer;
-    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out;
+    transition: background 200ms ease-out, color 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out, transform 200ms ease-out;
+    -webkit-touch-callout: none;
   }
+  .pill-b.holding {
+    transform: scale(0.97);
+  }
+
+  /* Duration picker — pops up after long-press on Option B. */
+  .duration-picker {
+    margin-top: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .duration-picker.open { display: flex; }
+  .duration-picker .picker-label {
+    font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .duration-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .duration-chip {
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    font: 600 11px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out, transform 100ms ease-out;
+    font-variant-numeric: tabular-nums;
+  }
+  .duration-chip:hover { background: var(--paper-2); }
+  .duration-chip.active {
+    background: var(--ink-deep);
+    color: white;
+    border-color: var(--ink-deep);
+  }
+  .duration-chip:active { transform: scale(0.96); }
   .pill-b .lbl {
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
@@ -339,7 +384,7 @@
     <div class="option">
       <span class="opt-label">B</span>
       <h2 class="opt-name">Pill toggle</h2>
-      <p class="opt-tag">The whole pill IS the button. No inner control. Off = grey outlined ghost. On = filled solid dark. The state IS the visual.</p>
+      <p class="opt-tag">The whole pill IS the button. Tap to start/stop. <strong>Long-press</strong> to change duration — picker pops up below.</p>
       <div class="stage">
         <span class="now-marker"><span class="dot"></span>SET 1 · NOW</span>
         <span class="pill-b" id="pill-b">
@@ -348,10 +393,14 @@
           <span class="time" id="time-b">2:00</span>
         </span>
       </div>
-      <p class="hint" id="hint-b">Tap to start</p>
+      <p class="hint" id="hint-b">Tap to start · Long-press to change duration</p>
+      <div class="duration-picker" id="picker-b">
+        <span class="picker-label">REST DURATION</span>
+        <div class="duration-chips" id="chips-b"></div>
+      </div>
       <div class="notes">
         <strong>Character</strong>
-        Most decisive and minimal. No ambiguity — the pill's surface IS its state. Smallest visual footprint.
+        Most decisive and minimal. The pill's surface IS its state. Duration changes via long-press — clean primary tap, hidden secondary gesture (standard iOS pattern).
       </div>
     </div>
 
@@ -379,7 +428,12 @@
 </div>
 
 <script>
-const DEMO_DURATION = 20; // seconds — short so urgent state shows fast
+// Demo duration default. Short for A/C so urgent appears quickly.
+// Option B's pill is wired with a long-press picker that lets you pick
+// the duration from real-world presets (1:00, 1:30, 2:00, 3:00, 5:00),
+// so its demo respects the chosen duration.
+const DEMO_DURATION_DEFAULT = 20;
+const REAL_PRESETS = [60, 90, 120, 180, 300];
 
 const PLAY_SVG = '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 1.5 L8 5 L2 8.5 Z"/></svg>';
 const PAUSE_SVG = '<svg viewBox="0 0 10 10" fill="currentColor"><rect x="2" y="1.5" width="2" height="7"/><rect x="6" y="1.5" width="2" height="7"/></svg>';
@@ -391,18 +445,18 @@ function fmt(s) {
   return m + ':' + sec.toString().padStart(2, '0');
 }
 
-function makeTimer(opt, pillEl, timeEl, hintEl, onStateChange) {
-  let state = 'off'; // 'off' | 'on' | 'urgent'
-  let remaining = DEMO_DURATION;
+function makeTimer(opt, pillEl, timeEl, hintEl, onStateChange, getDuration, baseHint) {
+  let state = 'off';
+  let remaining = getDuration();
   let intervalId = null;
 
   function paint() {
     pillEl.classList.remove('on', 'urgent');
     if (state === 'on') pillEl.classList.add('on');
     if (state === 'urgent') pillEl.classList.add('on', 'urgent');
-    timeEl.textContent = state === 'off' ? '2:00' : fmt(remaining);
+    timeEl.textContent = state === 'off' ? fmt(getDuration()) : fmt(remaining);
     if (hintEl) {
-      if (state === 'off') hintEl.innerHTML = opt === 'C' ? 'Tap play to start' : 'Tap to start';
+      if (state === 'off') hintEl.innerHTML = baseHint;
       else if (state === 'urgent') hintEl.innerHTML = '<strong>Last 10 seconds</strong>';
       else hintEl.innerHTML = 'Running… tap to stop';
     }
@@ -411,17 +465,14 @@ function makeTimer(opt, pillEl, timeEl, hintEl, onStateChange) {
 
   function tick() {
     remaining--;
-    if (remaining <= 0) {
-      stop(true);
-      return;
-    }
+    if (remaining <= 0) { stop(true); return; }
     if (remaining <= 10 && state !== 'urgent') state = 'urgent';
     paint();
   }
 
   function start() {
     state = 'on';
-    remaining = DEMO_DURATION;
+    remaining = getDuration();
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(tick, 1000);
     paint();
@@ -431,7 +482,7 @@ function makeTimer(opt, pillEl, timeEl, hintEl, onStateChange) {
     if (intervalId) clearInterval(intervalId);
     intervalId = null;
     state = 'off';
-    remaining = DEMO_DURATION;
+    remaining = getDuration();
     paint();
     if (hintEl && completed) hintEl.innerHTML = '<strong>Rest complete.</strong>';
   }
@@ -442,19 +493,94 @@ function makeTimer(opt, pillEl, timeEl, hintEl, onStateChange) {
   }
 
   paint();
-  return { toggle };
+  return { toggle, paint, isOn: () => state !== 'off' };
 }
 
-const timerA = makeTimer('A', document.getElementById('pill-a'), document.getElementById('time-a'), document.getElementById('hint-a'));
+// --- Option A — quick demo (20s) ---
+const timerA = makeTimer('A',
+  document.getElementById('pill-a'),
+  document.getElementById('time-a'),
+  document.getElementById('hint-a'),
+  null,
+  () => DEMO_DURATION_DEFAULT,
+  'Tap to start');
 document.getElementById('pill-a').addEventListener('click', timerA.toggle);
 
-const timerB = makeTimer('B', document.getElementById('pill-b'), document.getElementById('time-b'), document.getElementById('hint-b'));
-document.getElementById('pill-b').addEventListener('click', timerB.toggle);
-
-const iconC = document.getElementById('icon-c');
-const timerC = makeTimer('C', document.getElementById('pill-c'), document.getElementById('time-c'), document.getElementById('hint-c'), (state) => {
-  iconC.outerHTML = (state === 'off') ? PLAY_SVG.replace('<svg', '<svg id="icon-c"') : PAUSE_SVG.replace('<svg', '<svg id="icon-c"');
+// --- Option B — long-press for duration picker ---
+let bDuration = 120; // default 2:00
+const pickerB = document.getElementById('picker-b');
+const chipsB = document.getElementById('chips-b');
+REAL_PRESETS.forEach(secs => {
+  const chip = document.createElement('button');
+  chip.className = 'duration-chip' + (secs === bDuration ? ' active' : '');
+  chip.textContent = fmt(secs);
+  chip.dataset.secs = secs;
+  chip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    bDuration = secs;
+    [...chipsB.querySelectorAll('.duration-chip')].forEach(c => c.classList.toggle('active', +c.dataset.secs === bDuration));
+    timerB.paint();
+    pickerB.classList.remove('open');
+  });
+  chipsB.appendChild(chip);
 });
+
+const timerB = makeTimer('B',
+  document.getElementById('pill-b'),
+  document.getElementById('time-b'),
+  document.getElementById('hint-b'),
+  null,
+  () => bDuration,
+  'Tap to start · <strong>long-press</strong> to change duration');
+
+// Long-press detection on pill-b
+let pressTimer = null;
+let longPressFired = false;
+const pillB = document.getElementById('pill-b');
+const LONG_PRESS_MS = 450;
+
+function pressStart() {
+  longPressFired = false;
+  pillB.classList.add('holding');
+  pressTimer = setTimeout(() => {
+    longPressFired = true;
+    pickerB.classList.add('open');
+    pillB.classList.remove('holding');
+  }, LONG_PRESS_MS);
+}
+function pressEnd(e) {
+  pillB.classList.remove('holding');
+  if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  if (longPressFired) { e?.preventDefault?.(); return; }
+  timerB.toggle();
+}
+function pressCancel() {
+  pillB.classList.remove('holding');
+  if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+}
+pillB.addEventListener('pointerdown', (e) => { e.preventDefault(); pressStart(); });
+pillB.addEventListener('pointerup', (e) => { e.preventDefault(); pressEnd(e); });
+pillB.addEventListener('pointerleave', pressCancel);
+pillB.addEventListener('pointercancel', pressCancel);
+
+// Close the picker if user taps anywhere outside
+document.addEventListener('click', (e) => {
+  if (!pickerB.classList.contains('open')) return;
+  if (pickerB.contains(e.target) || pillB.contains(e.target)) return;
+  pickerB.classList.remove('open');
+});
+
+// --- Option C — play/pause demo (20s) ---
+const iconC = document.getElementById('icon-c');
+const timerC = makeTimer('C',
+  document.getElementById('pill-c'),
+  document.getElementById('time-c'),
+  document.getElementById('hint-c'),
+  (state) => {
+    iconC.outerHTML = (state === 'off') ? PLAY_SVG.replace('<svg', '<svg id="icon-c"') : PAUSE_SVG.replace('<svg', '<svg id="icon-c"');
+  },
+  () => DEMO_DURATION_DEFAULT,
+  'Tap play to start');
 document.getElementById('pill-c').addEventListener('click', timerC.toggle);
 </script>
 
