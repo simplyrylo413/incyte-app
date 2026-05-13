@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>INCYTE — Section treatment options</title>
+<style>
+  :root {
+    --paper: #f5f7fb;
+    --paper-2: #eef1f7;
+    --hairline: rgba(15,22,34,0.08);
+    --hairline-strong: rgba(15,22,34,0.16);
+    --accent: #5d9bb8;
+    --ink: #0f1622;
+    --ink-deep: #182030;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1400px; margin: 0 auto; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font: 700 28px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
+  }
+  .page-header p {
+    font: 500 14px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    max-width: 700px;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  @media (max-width: 1280px) { .grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; } }
+
+  .col { display: flex; flex-direction: column; gap: 16px; }
+  .col-label {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+  .col-name {
+    font: 700 22px/1.1 'Inter Tight',sans-serif;
+    letter-spacing: -0.025em;
+    margin: -8px 0 0;
+  }
+  .col-tag {
+    font: 500 12px/1.5 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin: 0;
+    min-height: 40px;
+  }
+
+  .device {
+    width: 393px;
+    height: auto;
+    min-height: 760px;
+    border-radius: 44px;
+    border: 1px solid rgba(15,22,34,0.10);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px rgba(15,22,34,0.12), 0 6px 18px rgba(15,22,34,0.06);
+    background:
+      radial-gradient(120% 60% at 80% -10%, rgba(255,205,180,0.18) 0%, transparent 50%),
+      radial-gradient(120% 70% at 20% 110%, rgba(180,200,235,0.28) 0%, transparent 55%),
+      linear-gradient(180deg, #eef1f7 0%, #e6ecf4 100%);
+    padding: 20px 0 28px;
+  }
+
+  /* ==== Movement title (same across all) ==== */
+  .identity {
+    padding: 0 22px 12px;
+  }
+  .identity .body-part {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 8px;
+  }
+  .identity .name {
+    font: 700 28px/1.05 'Inter Tight',sans-serif;
+    letter-spacing: -0.035em;
+  }
+
+  /* ==== Hero card — LOCKED (same in every option) ==== */
+  .hero {
+    margin: 12px 22px;
+    padding: 16px 16px 14px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
+    border: 1px solid rgba(93,155,184,0.30);
+    border-radius: 22px;
+    box-shadow:
+      0 2px 0 rgba(255,255,255,0.85) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 0 0 1px rgba(93,155,184,0.04),
+      0 22px 48px rgba(93,155,184,0.14),
+      0 8px 18px rgba(15,22,34,0.06);
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12%; right: 12%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  }
+  .hero-eyebrow {
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 13px;
+  }
+  .hero-eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+  .hero-primary {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .hero-num {
+    font: 700 46px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.05em;
+    color: var(--ink);
+  }
+  .hero-sep {
+    font: 500 26px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+  }
+  .hero-units {
+    display: flex; justify-content: center; gap: 18px;
+    font: 600 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid var(--hairline);
+  }
+  .hero-units span:not(:first-child)::before {
+    content: '·'; margin-right: 18px;
+  }
+  .hero-cta-row {
+    display: flex; justify-content: center; gap: 14px; align-items: center;
+    margin-top: 16px;
+  }
+  .hero-toggle {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: none;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer; padding: 0;
+  }
+  .hero-toggle .track {
+    width: 30px; height: 18px; background: var(--ink-deep);
+    border-radius: 999px; position: relative;
+  }
+  .hero-toggle .thumb {
+    position: absolute; top: 2px; left: 14px;
+    width: 14px; height: 14px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(15,22,34,0.20);
+  }
+  .hero-cta {
+    padding: 11px 24px;
+    background: var(--ink-deep); color: white; border: none;
+    border-radius: 999px;
+    font: 600 12px/1 'Inter Tight',sans-serif;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(24,32,48,0.28);
+  }
+
+  /* Notes section under each phone */
+  .notes {
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    font: 500 12px/1.55 'Inter Tight',sans-serif;
+    color: var(--muted);
+  }
+  .notes strong { color: var(--ink); display: block; margin-bottom: 6px; }
+  .notes ul { margin: 6px 0 0; padding-left: 18px; }
+  .notes li { margin: 4px 0; }
+
+  /* ============================================================
+     OPTION A — EDITORIAL
+     Type-driven, hairline dividers, no card chrome on supporting
+     elements. Reads like a sophisticated magazine layout.
+     ============================================================ */
+  .opt-a .prev-block {
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--hairline-strong);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .opt-a .prev-block .prev-label {
+    font: 700 italic 14px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+  }
+  .opt-a .prev-block .prev-date {
+    font: 500 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.08em;
+    color: var(--label);
+  }
+  .opt-a .prev-block .prev-vals {
+    flex: 1;
+    text-align: right;
+    font: 500 13px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .opt-a .section-head {
+    font: 700 italic 16px/1.1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    padding: 16px 22px 8px;
+    letter-spacing: -0.01em;
+  }
+  .opt-a .set-line {
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .opt-a .set-line .num {
+    font: 700 italic 22px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+    width: 32px;
+  }
+  .opt-a .set-line .vals {
+    flex: 1;
+    font: 500 14px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+  }
+  .opt-a .set-line .meta {
+    font: 500 italic 12px/1 'Inter Tight',sans-serif;
+    color: var(--label);
+  }
+  .opt-a .set-line.done .meta { color: var(--ok); font-style: italic; }
+  .opt-a .set-line .x {
+    background: none; border: none; color: var(--label);
+    cursor: pointer; padding: 0 0 0 12px; font: 500 14px/1;
+  }
+  .opt-a .ai-note {
+    margin: 8px 22px 14px;
+    padding: 12px 0 12px 16px;
+    border-left: 2px solid var(--accent);
+  }
+  .opt-a .ai-note .lbl {
+    font: 700 italic 12px/1 'Inter Tight',sans-serif;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .opt-a .ai-note .action {
+    font: 700 italic 18px/1.2 'Inter Tight',sans-serif;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .opt-a .ai-note .next {
+    font: 500 12px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+  .opt-a .ai-note .reason {
+    font: 500 italic 12px/1.45 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .opt-a .ai-note .apply {
+    background: none; border: none;
+    font: 700 italic 12px/1 'Inter Tight',sans-serif;
+    color: var(--accent);
+    cursor: pointer; padding: 8px 0 0; margin-top: 4px;
+  }
+  .opt-a .add-set {
+    margin: 14px 22px 0;
+    padding: 12px 0;
+    border-top: 1px solid var(--hairline);
+    font: 700 italic 13px/1 'Inter Tight',sans-serif;
+    color: var(--accent);
+    text-align: center;
+    cursor: pointer;
+    background: none; border-bottom: none; border-left: none; border-right: none;
+    width: calc(100% - 44px);
+  }
+
+  /* ============================================================
+     OPTION B — SPATIAL GLASS
+     Heavy backdrop-blur, prismatic edges, layered translucency,
+     specular highlights. Vision Pro / iOS 26 territory.
+     ============================================================ */
+  .opt-b .prev-card {
+    margin: 0 22px 14px;
+    padding: 12px 14px;
+    background:
+      linear-gradient(155deg, rgba(201,160,190,0.16) 0%, rgba(180,200,235,0.10) 100%);
+    backdrop-filter: blur(28px) saturate(1.4);
+    -webkit-backdrop-filter: blur(28px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.3) inset,
+      0 6px 20px rgba(155,130,200,0.10);
+    position: relative;
+  }
+  .opt-b .prev-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 18%; right: 18%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  }
+  .opt-b .prev-card .head {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;
+  }
+  .opt-b .prev-card .label {
+    font: 700 11px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .opt-b .prev-card .date {
+    font: 500 10px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .opt-b .prev-card .vals {
+    font: 500 12px/1.4 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+  }
+  .opt-b .section-eyebrow {
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 12px 22px 8px;
+  }
+  .opt-b .sets { padding: 0 22px; display: flex; flex-direction: column; gap: 6px; }
+  .opt-b .set-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,1) inset,
+      0 0 0 1px rgba(255,255,255,0.3) inset,
+      0 6px 18px rgba(15,22,34,0.05);
+    position: relative;
+  }
+  .opt-b .set-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 22%; right: 22%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  }
+  .opt-b .set-card .idx {
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--label);
+    width: 38px;
+  }
+  .opt-b .set-card .vals {
+    flex: 1;
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+  }
+  .opt-b .set-card .meta {
+    font: 700 9px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--label);
+  }
+  .opt-b .set-card.done .meta {
+    color: var(--ok);
+    padding: 4px 10px;
+    background: rgba(79,154,168,0.14);
+    border: 1px solid rgba(79,154,168,0.32);
+    border-radius: 999px;
+  }
+  .opt-b .set-card .x {
+    width: 24px; height: 24px; border-radius: 999px;
+    background: transparent; border: none; color: var(--label);
+    display: grid; place-items: center; cursor: pointer;
+    font: 400 14px/1;
+  }
+  .opt-b .ai-card {
+    margin: 8px 22px 14px;
+    padding: 12px 14px;
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.12) 100%);
+    backdrop-filter: blur(30px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    border: 1px solid rgba(93,155,184,0.30);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.9) inset,
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 10px 24px rgba(93,155,184,0.12);
+    position: relative;
+  }
+  .opt-b .ai-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 22%; right: 22%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  }
+  .opt-b .ai-card .lbl {
+    font: 700 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .opt-b .ai-card .row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  }
+  .opt-b .ai-card .action {
+    font: 700 15px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .opt-b .ai-card .next {
+    font: 600 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--muted);
+  }
+  .opt-b .ai-card .reason {
+    font: 500 11px/1.4 'Inter Tight',sans-serif;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .opt-b .ai-card .apply {
+    margin-top: 10px;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 999px;
+    font: 600 10.5px/1 'Inter Tight',sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .opt-b .add-set {
+    margin: 12px auto 0;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 999px;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.95) inset, 0 4px 12px rgba(15,22,34,0.06);
+  }
+
+  /* ============================================================
+     OPTION C — TERMINAL / MONO
+     Sharp edges, monospace everything, high contrast, status glyphs.
+     Power-user / technical aesthetic.
+     ============================================================ */
+  .opt-c .prev-row {
+    margin: 0 22px 16px;
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Geist Mono',ui-monospace,monospace;
+  }
+  .opt-c .prev-row .bracket {
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: 0.08em;
+  }
+  .opt-c .prev-row .vals {
+    flex: 1;
+    font: 600 12px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .opt-c .section-eyebrow {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 16px 22px 8px;
+    border-top: 2px solid var(--ink);
+    margin: 0 22px;
+    width: calc(100% - 44px);
+    padding-left: 0; padding-right: 0;
+  }
+  .opt-c .sets { padding: 0 22px; }
+  .opt-c .set-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-family: 'Geist Mono',ui-monospace,monospace;
+  }
+  .opt-c .set-row .glyph {
+    width: 14px;
+    text-align: center;
+    color: var(--ink);
+    font: 700 14px/1 'Geist Mono',ui-monospace,monospace;
+  }
+  .opt-c .set-row.done .glyph { color: var(--ok); }
+  .opt-c .set-row.target .glyph { color: var(--label); }
+  .opt-c .set-row .idx {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.12em;
+    color: var(--label);
+    width: 40px;
+  }
+  .opt-c .set-row .vals {
+    flex: 1;
+    font: 600 13px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .opt-c .set-row .meta {
+    font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.14em;
+    color: var(--label);
+  }
+  .opt-c .set-row.done .meta { color: var(--ok); }
+  .opt-c .set-row .x {
+    background: none; border: none; color: var(--ink);
+    font: 600 14px/1 'Geist Mono',ui-monospace,monospace;
+    cursor: pointer; padding: 0 4px;
+  }
+  .opt-c .ai-log {
+    margin: 14px 22px;
+    padding: 10px 12px;
+    background: var(--ink);
+    color: white;
+    border-radius: 0;
+    font-family: 'Geist Mono',ui-monospace,monospace;
+  }
+  .opt-c .ai-log .head {
+    display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;
+  }
+  .opt-c .ai-log .prompt {
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .opt-c .ai-log .timestamp {
+    font: 500 9.5px/1 'Geist Mono',ui-monospace,monospace;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+  }
+  .opt-c .ai-log .action {
+    font: 700 14px/1.2 'Geist Mono',ui-monospace,monospace;
+    color: white;
+    letter-spacing: 0.02em;
+  }
+  .opt-c .ai-log .action .arrow {
+    color: var(--accent); margin: 0 6px;
+  }
+  .opt-c .ai-log .reason {
+    font: 500 11px/1.4 'Geist Mono',ui-monospace,monospace;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+  .opt-c .ai-log .apply {
+    margin-top: 8px;
+    padding: 5px 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 0;
+    font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .opt-c .add-set {
+    margin: 16px 22px 0;
+    padding: 10px 0;
+    background: transparent;
+    border: 1px dashed var(--ink);
+    border-radius: 0;
+    font: 700 11px/1 'Geist Mono',ui-monospace,monospace;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    width: calc(100% - 44px);
+  }
+  .opt-c .add-set::before { content: '[ + ]  '; color: var(--ink); }
+
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>INCYTE — Treatment options for sets / AI insight / Previous</h1>
+    <p>Three distinct directions. Hero card stays locked in each. Pick a direction (or hybrid). I'll port it into the prototype.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ===== OPTION A — EDITORIAL ===== -->
+    <div class="col">
+      <span class="col-label">A</span>
+      <h2 class="col-name">Editorial</h2>
+      <p class="col-tag">Magazine-layout sensibility. Italic serifs for emphasis, hairline rules instead of cards, deep type hierarchy. Quiet, sophisticated, "long-form" feel.</p>
+      <div class="device opt-a">
+        <div class="identity">
+          <div class="body-part">CHEST · STRENGTH</div>
+          <div class="name">Bench Press</div>
+        </div>
+        <div class="prev-block">
+          <span class="prev-label">Previous</span>
+          <span class="prev-date">MAY 5</span>
+          <span class="prev-vals">180–185 lb · 8–10 reps</span>
+        </div>
+        <div class="hero">
+          <div class="hero-eyebrow"><span class="dot"></span>SET 1 · NOW</div>
+          <div class="hero-primary">
+            <span class="hero-num">185</span><span class="hero-sep">×</span><span class="hero-num">10</span><span class="hero-sep">×</span><span class="hero-num">7</span>
+          </div>
+          <div class="hero-units"><span>LB</span><span>REPS</span><span>RPE</span></div>
+          <div class="hero-cta-row">
+            <button class="hero-toggle">RPE <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-toggle">AI <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-cta">Log set 1</button>
+          </div>
+        </div>
+        <div class="section-head">Logged</div>
+        <div class="set-line done">
+          <span class="num">I.</span>
+          <span class="vals">185 × 10 · RPE 7</span>
+          <span class="meta">done</span>
+          <button class="x">×</button>
+        </div>
+        <div class="ai-note">
+          <div class="lbl">AI insight</div>
+          <div><span class="action">Add 5 lb</span><span class="next">→ 190 × 10</span></div>
+          <div class="reason">"RPE 7 — effort controlled. A small bump keeps the set productive without crossing into failure."</div>
+          <button class="apply">Apply →</button>
+        </div>
+        <div class="section-head">Upcoming</div>
+        <div class="set-line">
+          <span class="num">II.</span>
+          <span class="vals">185 × 9</span>
+          <span class="meta">target</span>
+          <button class="x">×</button>
+        </div>
+        <div class="set-line">
+          <span class="num">III.</span>
+          <span class="vals">180 × 10</span>
+          <span class="meta">target</span>
+          <button class="x">×</button>
+        </div>
+        <button class="add-set">+ Add set</button>
+      </div>
+      <div class="notes">
+        <strong>Personality</strong>
+        Quiet, sophisticated, type-driven. Reads more like a thoughtful long-form interface than an app.
+        <ul>
+          <li>Italic serif emphasis ("Previous", "Logged", "Upcoming")</li>
+          <li>Roman numerals for sets (I, II, III)</li>
+          <li>Hairlines instead of cards — no chrome</li>
+          <li>AI as a pull-quote with accent left-border</li>
+          <li>Premium "publication" feel</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== OPTION B — SPATIAL GLASS ===== -->
+    <div class="col">
+      <span class="col-label">B</span>
+      <h2 class="col-name">Spatial Glass</h2>
+      <p class="col-tag">Heavy backdrop-blur on every card. Pearl + rose Previous, prismatic AI insight matching the hero. Specular edge highlights throughout. Vision Pro / iOS 26.</p>
+      <div class="device opt-b">
+        <div class="identity">
+          <div class="body-part">CHEST · STRENGTH</div>
+          <div class="name">Bench Press</div>
+        </div>
+        <div class="prev-card">
+          <div class="head"><span class="label">Previous</span><span class="date">MAY 5</span></div>
+          <div class="vals">180–185 lb · 8–10 reps</div>
+        </div>
+        <div class="hero">
+          <div class="hero-eyebrow"><span class="dot"></span>SET 1 · NOW</div>
+          <div class="hero-primary">
+            <span class="hero-num">185</span><span class="hero-sep">×</span><span class="hero-num">10</span><span class="hero-sep">×</span><span class="hero-num">7</span>
+          </div>
+          <div class="hero-units"><span>LB</span><span>REPS</span><span>RPE</span></div>
+          <div class="hero-cta-row">
+            <button class="hero-toggle">RPE <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-toggle">AI <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-cta">Log set 1</button>
+          </div>
+        </div>
+        <div class="section-eyebrow">Logged</div>
+        <div class="sets">
+          <div class="set-card done">
+            <span class="idx">SET 1</span>
+            <span class="vals">185 × 10 · RPE 7</span>
+            <span class="meta">DONE</span>
+            <button class="x">×</button>
+          </div>
+        </div>
+        <div class="ai-card">
+          <div class="lbl">● AI insight</div>
+          <div class="row"><span class="action">Add 5 lb</span><span class="next">→ 190 × 10</span></div>
+          <div class="reason">RPE 7 — effort controlled.</div>
+          <button class="apply">Apply →</button>
+        </div>
+        <div class="section-eyebrow">Upcoming</div>
+        <div class="sets">
+          <div class="set-card">
+            <span class="idx">SET 2</span>
+            <span class="vals">185 × 9</span>
+            <span class="meta">TARGET</span>
+            <button class="x">×</button>
+          </div>
+          <div class="set-card">
+            <span class="idx">SET 3</span>
+            <span class="vals">180 × 10</span>
+            <span class="meta">TARGET</span>
+            <button class="x">×</button>
+          </div>
+        </div>
+        <button class="add-set">+ Add set</button>
+      </div>
+      <div class="notes">
+        <strong>Personality</strong>
+        Premium tech aesthetic. Every supporting surface is its own glass card with depth and refraction.
+        <ul>
+          <li>Backdrop-blur on every element</li>
+          <li>Pearl/rose tint on Previous, prismatic on AI</li>
+          <li>Specular top-edge highlight on all cards</li>
+          <li>Soft accent-tinted shadows</li>
+          <li>Vision Pro / iOS 26 register</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== OPTION C — TERMINAL / MONO ===== -->
+    <div class="col">
+      <span class="col-label">C</span>
+      <h2 class="col-name">Terminal</h2>
+      <p class="col-tag">Sharp edges, monospace everything, high contrast. Status glyphs (●, ○, ■) instead of pills. AI as a "log entry" on dark surface. Power-user / technical.</p>
+      <div class="device opt-c">
+        <div class="identity">
+          <div class="body-part">CHEST · STRENGTH</div>
+          <div class="name">Bench Press</div>
+        </div>
+        <div class="prev-row">
+          <span class="bracket">[ PREV · MAY 5 ]</span>
+          <span class="vals">180–185 lb · 8–10 reps</span>
+        </div>
+        <div class="hero">
+          <div class="hero-eyebrow"><span class="dot"></span>SET 1 · NOW</div>
+          <div class="hero-primary">
+            <span class="hero-num">185</span><span class="hero-sep">×</span><span class="hero-num">10</span><span class="hero-sep">×</span><span class="hero-num">7</span>
+          </div>
+          <div class="hero-units"><span>LB</span><span>REPS</span><span>RPE</span></div>
+          <div class="hero-cta-row">
+            <button class="hero-toggle">RPE <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-toggle">AI <span class="track"><span class="thumb"></span></span></button>
+            <button class="hero-cta">Log set 1</button>
+          </div>
+        </div>
+        <div class="section-eyebrow">LOGGED</div>
+        <div class="sets">
+          <div class="set-row done">
+            <span class="glyph">●</span>
+            <span class="idx">SET 1</span>
+            <span class="vals">185 × 10 · 7</span>
+            <span class="meta">DONE</span>
+            <button class="x">×</button>
+          </div>
+        </div>
+        <div class="ai-log">
+          <div class="head"><span class="prompt">→ AI INSIGHT</span><span class="timestamp">FROM SET 1</span></div>
+          <div class="action">Add 5 lb<span class="arrow">→</span>190 × 10</div>
+          <div class="reason">RPE 7 — effort controlled.</div>
+          <button class="apply">Apply</button>
+        </div>
+        <div class="section-eyebrow">UPCOMING</div>
+        <div class="sets">
+          <div class="set-row target">
+            <span class="glyph">○</span>
+            <span class="idx">SET 2</span>
+            <span class="vals">185 × 9</span>
+            <span class="meta">TARGET</span>
+            <button class="x">×</button>
+          </div>
+          <div class="set-row target">
+            <span class="glyph">○</span>
+            <span class="idx">SET 3</span>
+            <span class="vals">180 × 10</span>
+            <span class="meta">TARGET</span>
+            <button class="x">×</button>
+          </div>
+        </div>
+        <button class="add-set">ADD SET</button>
+      </div>
+      <div class="notes">
+        <strong>Personality</strong>
+        Power-user / technical. Reads as a "lifter's terminal." Coherent, no-frills, every pixel carries information.
+        <ul>
+          <li>Geist Mono everywhere</li>
+          <li>Sharp 0-radius edges</li>
+          <li>Status glyphs (●, ○) instead of meta chips</li>
+          <li>AI = inverted dark "log entry" with → prompt prefix</li>
+          <li>Brutalist + Linear engineering register</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
