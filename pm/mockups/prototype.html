@@ -1224,8 +1224,11 @@ function removeMovement(id) {
 // PICKER
 // ============================================================
 const PICKER_CONFIG = {
-  weight: { label: 'WEIGHT', unit: 'LB', steps: [-10, -5, -1, 1, 5, 10], presets: [], min: 0 },
-  reps:   { label: 'REPS',   unit: 'REPS', steps: [-5, -1, 1, 5], presets: [5, 6, 7, 8, 10, 12, 15, 20], min: 0 },
+  // Weight presets cover the common range from empty bar / small DBs through
+  // heavy compound loads. Pre-loaded barbell increments (45/95/135/185/225/275)
+  // plus low-end accessory / DB starting points (10/25/45).
+  weight: { label: 'WEIGHT', unit: 'LB', steps: [-10, -5, -1, 1, 5, 10], presets: [10, 25, 45, 65, 95, 135, 185, 225, 275], min: 0 },
+  reps:   { label: 'REPS',   unit: 'REPS',   steps: [-5, -1, 1, 5], presets: [5, 6, 7, 8, 10, 12, 15, 20], min: 0 },
   rpe:    { label: 'RPE',    unit: 'EFFORT', steps: [-0.5, 0.5], presets: [4, 5, 6, 7, 7.5, 8, 8.5, 9, 9.5], min: 0, max: 10 },
 };
 
