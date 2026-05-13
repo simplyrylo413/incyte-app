@@ -303,19 +303,13 @@
     width: 36px;
     height: 36px;
     border-radius: 999px;
-    background: white;
-    border: 1px solid rgba(15,22,34, 0.10);
+    background: transparent;
+    border: 1px solid var(--hairline);
     color: var(--ink);
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34, 0.05);
-    transition: background 180ms var(--ease-out-cubic), color 180ms var(--ease-out-cubic), border-color 180ms var(--ease-out-cubic), transform 100ms var(--ease-out-cubic);
+    transition: background 150ms ease-out;
   }
-  .back-chip:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-  }
-  .back-chip:active { transform: scale(0.97); }
+  .back-chip:hover { background: var(--paper-2); }
   .back-chip svg { width: 14px; height: 14px; }
   .back-chip span { display: none; }   /* hidden by default; revealed via aria-label */
 
@@ -399,27 +393,18 @@
     border-radius: 50%;
     background: var(--ink);
   }
-  /* White pill secondary-action style — matches the Apply button.
-     Inverts to dark navy on hover. Apply across all non-primary buttons. */
   .hero-eyebrow .head-remove {
-    background: white;
-    border: 1px solid rgba(15,22,34, 0.10);
-    border-radius: 999px;
+    background: transparent;
+    border: none;
     font: 600 10px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink);
-    padding: 7px 12px;
+    color: var(--label);
+    padding: 6px 8px;
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34, 0.05);
-    transition: background 180ms var(--ease-out-cubic), color 180ms var(--ease-out-cubic), border-color 180ms var(--ease-out-cubic), transform 100ms var(--ease-out-cubic);
+    transition: color 150ms ease-out;
   }
-  .hero-eyebrow .head-remove:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-  }
-  .hero-eyebrow .head-remove:active { transform: scale(0.97); }
+  .hero-eyebrow .head-remove:hover { color: var(--ink); }
 
   /* Big-type hero — all three values inline on one line (weight × reps × RPE)
      with the unit labels in a small mono uppercase row at the bottom of the
@@ -615,29 +600,22 @@
   }
   .set-row.target .vals { color: var(--muted); }
 
-  /* Per-set remove — white pill icon (Apply-style), 36×36 tap target.
-     Visible by default, inverts to dark navy on hover. */
+  /* Per-set remove — simple ghost icon button, 32×32 tap target */
   .set-row .row-remove {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    border: 1px solid rgba(15,22,34, 0.10);
-    background: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
     display: grid;
     place-items: center;
-    color: var(--ink);
+    color: var(--label);
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34, 0.04);
-    transition: background 180ms var(--ease-out-cubic), color 180ms var(--ease-out-cubic), border-color 180ms var(--ease-out-cubic), transform 100ms var(--ease-out-cubic);
+    transition: color 150ms ease-out;
     flex-shrink: 0;
-    margin-right: -6px;
+    margin-right: -4px;
   }
-  .set-row .row-remove:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-  }
-  .set-row .row-remove:active { transform: scale(0.97); }
+  .set-row .row-remove:hover { color: var(--bad); }
   .set-row .row-remove svg { width: 11px; height: 11px; }
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .hero block above) */
@@ -714,8 +692,8 @@
     align-items: center;
     gap: 4px;
     padding: 6px 12px 6px 11px;
-    background: white;
-    border: 1px solid rgba(255,255,255,0.7);
+    background: transparent;
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     font: 600 10.5px/1 'Inter Tight',sans-serif;
     letter-spacing: -0.005em;
@@ -723,43 +701,33 @@
     cursor: pointer;
     flex-shrink: 0;
     align-self: center;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34,0.05);
-    transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out;
+    transition: background 150ms ease-out;
   }
-  .rec-inline .apply:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
-  }
-  .rec-inline .apply:hover svg { transform: translateX(2px); }
-  .rec-inline .apply svg { width: 9px; height: 9px; transition: transform 180ms ease-out; }
+  .rec-inline .apply:hover { background: var(--paper-2); }
+  .rec-inline .apply svg { width: 9px; height: 9px; }
 
-  /* Add-set affordance — white pill secondary-action (Apply style).
-     Inverts to dark navy on hover. */
+  /* Add-set affordance — simple outlined pill */
   .add-set-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
     margin: 12px auto 4px;
-    padding: 10px 20px;
-    background: white;
-    border: 1px solid rgba(15,22,34, 0.10);
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--hairline);
     border-radius: 999px;
     font: 700 10px/1 'Geist Mono',ui-monospace,monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--muted);
     cursor: pointer;
-    box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 1px 2px rgba(15,22,34, 0.04);
-    transition: background 180ms var(--ease-out-cubic), color 180ms var(--ease-out-cubic), border-color 180ms var(--ease-out-cubic), transform 100ms var(--ease-out-cubic);
+    transition: background 150ms ease-out, color 150ms ease-out;
   }
   .add-set-btn:hover {
-    background: var(--ink-deep);
-    color: white;
-    border-color: var(--ink-deep);
+    background: var(--paper-2);
+    color: var(--ink);
   }
-  .add-set-btn:active { transform: scale(0.97); }
   .add-set-btn svg { width: 11px; height: 11px; }
 
   /* Footer action bar — Track RPE toggle, AI toggle, Skip Today, Log Set.
