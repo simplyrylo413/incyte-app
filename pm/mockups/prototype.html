@@ -37,6 +37,39 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
+
+  /* === Premium motion (Jakub Krehel's enter recipe + exit < enter rule) ===
+     Enter: opacity 0->1, translateY 8px->0, blur 4px->0, spring 450ms.
+     Exit (subtler): translateY 4px, blur 2px, 260ms.
+     Applied via .premium-enter / .premium-exit classes on specific
+     state transitions (set logged, set added, rec card appearance).
+     A11y: prefers-reduced-motion kills all of it globally. */
+  @keyframes premium-enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+  }
+  @keyframes premium-exit {
+    from { opacity: 1; transform: translateY(0);   filter: blur(0); }
+    to   { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+  }
+  .premium-enter {
+    animation: premium-enter 420ms cubic-bezier(0.32, 0.72, 0.30, 1);
+  }
+  .premium-exit {
+    animation: premium-exit 260ms cubic-bezier(0.32, 0.72, 0.30, 1) forwards;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   body {
     font-family: 'Inter Tight','Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
     color: var(--ink);
@@ -1201,6 +1234,9 @@ const state = {
   session: {               // session-wide preferences — apply across all movements today
     trackRpe: true,
     aiRecOn: true,
+    // Animation triggers — set by user actions, consumed + cleared by renderWorkout
+    _animSetIdx: null,     // set this idx had a status transition; animate its row enter
+    _animRec: false,       // rec card just newly appeared; animate it enter
   },
   movements: [
     {
@@ -1556,8 +1592,9 @@ function renderWorkout() {
       const r = computeRecommendation(cur, state.session.trackRpe);
       if (!r.muted) {
         const reasonText = (r.reason || '').replace(/\s*Enable RPE for sharper guidance\.$/i, '');
+        const liveAnimCls = state.session._animRec ? ' premium-enter' : '';
         liveRecEl.innerHTML = `
-          <div class="rec-inline" style="margin: 0 22px 12px;">
+          <div class="rec-inline${liveAnimCls}" style="margin: 0 22px 12px;">
             <span class="live-dot"></span>
             <div class="body">
               <div class="summary"><span class="coach-tag">AI insight:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
@@ -1579,8 +1616,9 @@ function renderWorkout() {
     loggedSets.forEach((s, idx) => {
       const isLast = idx === loggedSets.length - 1;
       const rpeBit = (state.session.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
+      const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
       html += `
-        <div class="set-row done" data-reopen-set="${s.idx}">
+        <div class="set-row done${animCls}" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
           <span class="idx">SET ${s.idx}</span>
           <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
           <span class="meta">DONE</span>
@@ -1596,8 +1634,9 @@ function renderWorkout() {
           const moreToDo = mv.sets.some(x => x.status !== 'done');
           const showApply = moreToDo;
           const reasonText = (r.reason || '').replace(/\s*Enable RPE for sharper guidance\.$/i, '');
+          const recAnimCls = state.session._animRec ? ' premium-enter' : '';
           html += `
-            <div class="rec-inline" data-rec-base="${s.idx}">
+            <div class="rec-inline${recAnimCls}" data-rec-base="${s.idx}">
               <span class="live-dot"></span>
               <div class="body">
                 <div class="summary"><span class="coach-tag">AI insight:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
@@ -1642,8 +1681,9 @@ function renderWorkout() {
       const isBlank = s.weight == null && s.reps == null;
       const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
       const meta = isBlank ? 'BLANK' : 'TARGET';
+      const animCls = (s.idx === state.session._animSetIdx) ? ' premium-enter' : '';
       html += `
-        <div class="set-row target">
+        <div class="set-row target${animCls}" data-set-idx="${s.idx}">
           <span class="idx">SET ${s.idx}</span>
           <span class="vals">${vals}</span>
           <span class="meta">${meta}</span>
@@ -1696,52 +1736,11 @@ function renderWorkout() {
   // the movement from the Today list (× button on the movement card)
   // before entering Workout Mode instead.
 
-  // AI recommendation card.
-  // - Render ONLY when there's a real, non-muted recommendation to show.
-  //   The toggle chip at the top already signals AI is on; a "waiting" card
-  //   adds visual noise without information value.
-  // - "Live" mode: based on the current set. "Next time" mode: based on the
-  //   last logged set, shown after the movement is complete.
-  const rec = $('#wm-rec');
-  rec.innerHTML = '';
-  if (state.session.aiRecOn) {
-    let baseSet = cur;
-    let isNextTime = false;
-    if (!baseSet) {
-      const logged = mv.sets.filter(s => s.status === 'done');
-      if (logged.length > 0) {
-        baseSet = logged[logged.length - 1];
-        isNextTime = true;
-      }
-    }
-    if (baseSet) {
-      const r = computeRecommendation(baseSet, state.session.trackRpe);
-      // Suppress the card entirely when there's nothing useful yet.
-      if (!r.muted) {
-        const eyebrowText = isNextTime ? 'NEXT TIME' : 'NEXT SET';
-        const recEl = document.createElement('div');
-        recEl.className = 'rec';
-        recEl.innerHTML = `
-          <div class="head">
-            <span class="eyebrow"><span class="live-dot"></span>${eyebrowText}</span>
-          </div>
-          <div class="row">
-            <span class="action">${r.action}</span>
-            <span class="next">${r.next}</span>
-          </div>
-          <div class="reason">${r.reason}</div>
-          ${isNextTime ? '' : `<button class="apply" id="btn-apply">Apply target<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`}`;
-        rec.appendChild(recEl);
-        if (!isNextTime) {
-          $('#btn-apply').addEventListener('click', () => applyRecommendation(r));
-        }
-      }
-    }
-  }
-
-  // Complete button enable/disable
-  const allDone = mv.sets.every(s => s.status === 'done');
-  $('#btn-complete').disabled = !allDone;
+  // Clear one-shot animation flags. They were consumed by .premium-enter
+  // class additions during this render; clearing prevents re-animating on
+  // the next render (which is triggered by picker open/close, etc.).
+  state.session._animSetIdx = null;
+  state.session._animRec = false;
 }
 
 // ============================================================
@@ -1787,6 +1786,9 @@ function logSet(idx) {
   set.status = 'done';
   const next = mv.sets.find(s => s.status === 'target');
   if (next) next.status = 'current';
+  // Trigger entrance animation for the newly-logged row + the rec card
+  state.session._animSetIdx = idx;
+  state.session._animRec = true;
   renderWorkout();
   showToast(`Set ${idx} logged.`);
 }
@@ -1824,6 +1826,8 @@ function addSet() {
   mv.sets.push(newSet);
   // If the movement was previously marked complete, undo that
   if (mv.status === 'complete') mv.status = 'pending';
+  // Animate the new set's row entering
+  state.session._animSetIdx = newSet.idx;
   renderWorkout();
   showToast(`Set ${newSet.idx} added.`);
 }
@@ -1845,17 +1849,27 @@ function removeSet(idx) {
   }
 
   const wasCurrent = set.status === 'current';
-  // Drop the set
-  mv.sets = mv.sets.filter(s => s.idx !== idx);
-  // Renumber remaining sets sequentially
-  mv.sets.forEach((s, i) => { s.idx = i + 1; });
-  // If the current set was removed, promote the first remaining target (if any)
-  if (wasCurrent) {
-    const nextTarget = mv.sets.find(s => s.status === 'target');
-    if (nextTarget) nextTarget.status = 'current';
+  const commitRemoval = () => {
+    mv.sets = mv.sets.filter(s => s.idx !== idx);
+    mv.sets.forEach((s, i) => { s.idx = i + 1; });
+    if (wasCurrent) {
+      const nextTarget = mv.sets.find(s => s.status === 'target');
+      if (nextTarget) nextTarget.status = 'current';
+    }
+    renderWorkout();
+    showToast(`Set removed.`);
+  };
+
+  // Animate the row out before committing (only works for logged/target rows,
+  // current set is removed via the hero — that just re-renders).
+  const rowEl = document.querySelector(`[data-set-idx="${idx}"]`);
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (rowEl && !reducedMotion) {
+    rowEl.classList.add('premium-exit');
+    setTimeout(commitRemoval, 240);
+  } else {
+    commitRemoval();
   }
-  renderWorkout();
-  showToast(`Set removed.`);
 }
 
 function reopenSet(idx) {
