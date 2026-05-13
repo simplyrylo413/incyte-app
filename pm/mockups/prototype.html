@@ -734,16 +734,22 @@
     color: var(--label);
     margin-left: 3px;
   }
+  /* Done row — light grey wash + dimmed values. The row stays visible so the
+     user can compare against upcoming sets; the filled check carries the
+     "completed" cue. (Was teal-tinted; greyed per user feedback so the row
+     reads as "in the past" without screaming success.) */
   .set-row.done {
-    background: rgba(79,154,168, 0.07);
-    border-color: rgba(79,154,168, 0.20);
+    background: rgba(15,22,34, 0.04);
+    border-color: rgba(15,22,34, 0.08);
     cursor: pointer;
   }
   .set-row.done:hover {
     box-shadow: 0 2px 6px rgba(15,22,34,0.06);
-    border-color: rgba(79,154,168, 0.35);
+    border-color: rgba(15,22,34, 0.18);
   }
   .set-row.done .r-vals { color: var(--muted); }
+  .set-row.done .r-prev { opacity: 0.7; }
+  .set-row.done .r-set-btn { opacity: 0.75; }
   .set-row.target .r-vals { color: var(--ink); }
   .set-row.target .r-vals.blank { color: var(--label); }
 
