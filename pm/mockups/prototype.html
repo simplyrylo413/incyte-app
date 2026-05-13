@@ -587,7 +587,7 @@
      Done rows = teal-tinted. Target rows = white glass. */
   .col-head {
     display: grid;
-    grid-template-columns: 32px 1fr 1.15fr 24px 18px;
+    grid-template-columns: auto 28px 0.9fr 1.05fr 22px 16px;
     align-items: center;
     gap: 10px;
     padding: 0 14px 6px;
@@ -600,7 +600,7 @@
 
   .set-row {
     display: grid;
-    grid-template-columns: 32px 1fr 1.15fr 24px 18px;
+    grid-template-columns: auto 28px 0.9fr 1.05fr 22px 16px;
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
@@ -679,29 +679,22 @@
     border: 1px solid rgba(15,22,34, 0.14);
   }
 
-  /* Set row group — wraps the standalone WORK/WARM pill + the main set pill
-     in one flex line. The toggle pill is detached (gap, no shared border). */
-  .set-row-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .set-row-group .set-row { flex: 1; min-width: 0; }
+  /* .set-row-group removed — the WORK/WARM pill is now the row's first column. */
 
-  /* Standalone WORK/WARM pill — sits to the left of the set row, detached.
+  /* WORK/WARM pill — first column inside the row.
      Working = accent blue ghost. Warmup = warn slate ghost. */
   .set-type-pill {
     font: 700 9px/1 'Geist Mono', ui-monospace, monospace;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    padding: 7px 11px;
+    padding: 6px 10px;
     background: rgba(93,155,184, 0.12);
     border: 1px solid rgba(93,155,184, 0.28);
     border-radius: 999px;
     color: var(--accent);
     cursor: pointer;
-    flex-shrink: 0;
     transition: background 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 100ms var(--ease-out-cubic);
+    justify-self: start;
   }
   .set-type-pill:active { transform: scale(0.96); }
   .set-type-pill.warmup {
@@ -1813,7 +1806,7 @@ function renderWorkout() {
     hero.innerHTML = `
       <div class="hero">
         <div class="hero-eyebrow">
-          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span><span class="sep"> · </span><span class="now-tail">NOW</span></span>
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span></span>
           <span class="eyebrow-pills">
             <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
               <span>RPE</span>
@@ -1960,6 +1953,7 @@ function renderWorkout() {
   const targetSetsForHeader = mv.sets.filter(s => s.status === 'target');
   const headerHtml = (loggedSets.length + targetSetsForHeader.length) > 0 ? `
     <div class="col-head">
+      <span></span>
       <span>Set</span>
       <span>Previous</span>
       <span class="h-today">Today</span>
@@ -1976,17 +1970,15 @@ function renderWorkout() {
       const typeCls = s.setType === 'warmup' ? ' warmup' : '';
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       html += `
-        <div class="set-row-group${animCls}">
+        <div class="set-row done${animCls}" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
           <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <div class="set-row done" data-set-idx="${s.idx}" data-reopen-set="${s.idx}">
-            <span class="r-set">${setLabel}</span>
-            <span class="r-prev">${prevFor(s.idx)}</span>
-            <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
-            <span class="chk">${checkSvg}</span>
-            <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-              <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            </button>
-          </div>
+          <span class="r-set">${setLabel}</span>
+          <span class="r-prev">${prevFor(s.idx)}</span>
+          <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
+          <span class="chk">${checkSvg}</span>
+          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
         </div>`;
       // Inline AI recommendation attached to the last logged set — 2-line
       // pill: dot + (action / AI reason) + Apply button.
@@ -2056,17 +2048,15 @@ function renderWorkout() {
       const typeLabel = s.setType === 'warmup' ? 'WARM' : 'WORK';
       const valsCls = isBlank ? 'r-vals blank' : 'r-vals';
       html += `
-        <div class="set-row-group${animCls}">
+        <div class="set-row target${animCls}" data-set-idx="${s.idx}">
           <button class="set-type-pill${typeCls}" data-toggle-type="${s.idx}" aria-label="Toggle set type">${typeLabel}</button>
-          <div class="set-row target" data-set-idx="${s.idx}">
-            <span class="r-set">${setLabel}</span>
-            <span class="r-prev">${prevFor(s.idx)}</span>
-            <span class="${valsCls}">${vals}</span>
-            <span class="chk">${checkSvg}</span>
-            <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
-              <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            </button>
-          </div>
+          <span class="r-set">${setLabel}</span>
+          <span class="r-prev">${prevFor(s.idx)}</span>
+          <span class="${valsCls}">${vals}</span>
+          <span class="chk">${checkSvg}</span>
+          <button class="row-remove" data-remove-set="${s.idx}" aria-label="Remove set ${s.idx}">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
         </div>`;
     });
     html += `</div>`;
