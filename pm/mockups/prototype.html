@@ -655,6 +655,33 @@
       0 22px 48px rgba(93,155,184,0.14),
       0 8px 18px rgba(15,22,34,0.06);
     position: relative;
+    transition: padding 220ms var(--ease-out-cubic);
+  }
+  /* Compact hero — after the first set is logged, the user has internalized
+     the format. Shrink numerals ~30% and tighten padding so the columnar
+     table (the real workout surface) gets the visual weight. */
+  .hero.compact { padding: 12px 14px 10px; }
+  .hero.compact .hero-eyebrow { margin-bottom: 8px; }
+  .hero.compact .hero-statement { padding: 2px 0; }
+  .hero.compact .hero-num {
+    font-size: 32px;
+    letter-spacing: -0.04em;
+  }
+  .hero.compact .hero-sep { font-size: 18px; }
+  .hero.compact .hero-units-bar {
+    margin-top: 8px;
+    padding-top: 7px;
+    font-size: 8.5px;
+    gap: 14px;
+  }
+  .hero.compact .hero-actions { padding-top: 8px; }
+  .hero.compact .hero-cta {
+    padding: 9px 18px;
+    font-size: 11px;
+  }
+  .hero.compact .hero-finish-link {
+    padding: 9px 13px;
+    font-size: 10.5px;
   }
   .hero::before {
     content: '';
@@ -686,13 +713,15 @@
   .hero-eyebrow .now-marker .dot {
     width: 5px; height: 5px;
     border-radius: 50%;
-    background: var(--bad);
-    box-shadow: 0 0 0 3px rgba(176, 128, 146, 0.18);
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(93, 155, 184, 0.20);
   }
-  /* Active-set token — red+bold so the eye locks onto the current set immediately.
-     Uses --bad (desaturated mauve from the INCYTE palette) as the system's red. */
+  /* Active-set token — accent steel blue + bold. (Was --bad red; moved to
+     --accent so red is reserved for warmup/destructive cues. Matches the
+     Today screen's NEXT chip color so "this is current" reads consistently
+     across screens.) */
   .hero-eyebrow .now-marker .active-set {
-    color: var(--bad);
+    color: var(--accent);
     font-weight: 800;
     letter-spacing: 0.16em;
   }
@@ -1738,7 +1767,7 @@
 
     <!-- Movement identity — its own quiet block -->
     <div class="identity">
-      <div class="body-part" id="wm-body-part">CHEST · STRENGTH</div>
+      <div class="body-part" id="wm-body-part">CHEST · BARBELL</div>
       <div class="name" id="wm-name">Bench Press</div>
     </div>
 
@@ -2269,7 +2298,10 @@ function renderWorkout() {
   const mv = getActiveMovement();
   if (!mv) return;
 
-  $('#wm-body-part').textContent = `${mv.bodyPart.toUpperCase()} · ${mv.type.toUpperCase()}`;
+  // Breadcrumb shows equipment (the user-meaningful classifier) instead of
+  // the abstract strength/volume type tag.
+  const equipLabel = (mv.equipment || 'barbell').toUpperCase();
+  $('#wm-body-part').textContent = `${mv.bodyPart.toUpperCase()} · ${equipLabel}`;
   $('#wm-name').textContent = mv.name;
   const cur = getCurrentSet(mv);
   // Previous reference: date + summarized range. The date corresponds to
@@ -2318,8 +2350,9 @@ function renderWorkout() {
           <div class="dur-chips" id="rest-dur-chips"></div>
         </div>
       </span>`;
+    const heroCompact = mv.sets.some(s => s.status === 'done') ? ' compact' : '';
     hero.innerHTML = `
-      <div class="hero">
+      <div class="hero${heroCompact}">
         <div class="hero-eyebrow">
           <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span></span>
           <span class="eyebrow-pills">
