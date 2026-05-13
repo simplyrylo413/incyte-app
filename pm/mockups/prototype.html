@@ -896,14 +896,16 @@
 
   /* Ghost-outline pill toggle — the pill IS the indicator (no inner switch).
      Off = ghost outline + muted label. On = solid dark fill, white label.
-     Matches the rest pill so the three controls read as one family. */
+     Sized to match the rest pill exactly so all three eyebrow controls read
+     as a single family. */
   .foot-btn.toggle {
-    height: 28px;
-    padding: 0 12px;
+    height: auto;
+    padding: 5px 12px;
     border: 1px solid rgba(15,22,34, 0.18);
     border-radius: 999px;
     gap: 0;
-    letter-spacing: 0.12em;
+    font: 700 10.5px/1 'Geist Mono', ui-monospace, monospace;
+    letter-spacing: 0.10em;
   }
   .foot-btn.toggle .toggle-track { display: none; }
   .foot-btn.toggle.on {
@@ -911,6 +913,14 @@
     background: var(--ink-deep);
     border-color: var(--ink-deep);
     box-shadow: 0 1px 0 rgba(255,255,255, 0.10) inset, 0 2px 8px rgba(15,22,34, 0.18);
+  }
+
+  /* Eyebrow control cluster — RPE + AI + Rest pill sit together on the
+     right of the hero eyebrow. */
+  .hero-eyebrow .eyebrow-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   .foot-btn.toggle .toggle-track {
     width: 30px;
@@ -1804,7 +1814,17 @@ function renderWorkout() {
       <div class="hero">
         <div class="hero-eyebrow">
           <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur.idx}</span><span class="sep"> · </span><span class="now-tail">NOW</span></span>
-          ${timerPill}
+          <span class="eyebrow-pills">
+            <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+              <span>RPE</span>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </button>
+            <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
+              <span>AI</span>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </button>
+            ${timerPill}
+          </span>
         </div>
         <div class="hero-statement">
           <div class="hero-primary">
@@ -1816,14 +1836,6 @@ function renderWorkout() {
           <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <div class="hero-actions">
-          <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
-            <span>RPE</span>
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
-          <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
-            <span>AI</span>
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
           <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
         </div>
       </div>`;
@@ -1870,18 +1882,20 @@ function renderWorkout() {
       <div class="hero" style="text-align: center;">
         <div class="hero-eyebrow" style="justify-content: space-between;">
           <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
-          ${timerPill}
+          <span class="eyebrow-pills">
+            <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
+              <span>RPE</span>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </button>
+            <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
+              <span>AI</span>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </button>
+            ${timerPill}
+          </span>
         </div>
         <p style="margin: 10px 0 4px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
         <div class="hero-actions">
-          <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="toggle-rpe">
-            <span>RPE</span>
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
-          <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="toggle-ai">
-            <span>AI</span>
-            <span class="toggle-track"><span class="toggle-thumb"></span></span>
-          </button>
           <button class="hero-cta" id="btn-complete-hero">Complete</button>
         </div>
       </div>`;
