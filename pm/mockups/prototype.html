@@ -2377,7 +2377,6 @@ function renderWorkout() {
           <div class="hero-units-bar">${unitsBar}</div>
         </div>
         <div class="hero-actions">
-          ${mv._completeArmed ? `<button class="hero-finish-link" id="btn-finish-now" title="Finish without logging this bonus set">Finish</button>` : ''}
           <button class="hero-cta" id="btn-log">Log set ${cur.idx}</button>
         </div>
       </div>`;
@@ -2385,7 +2384,6 @@ function renderWorkout() {
       el.addEventListener('click', () => openPicker(el.dataset.pk, cur.idx));
     });
     hero.querySelector('#btn-log').addEventListener('click', () => logSet(cur.idx));
-    hero.querySelector('#btn-finish-now')?.addEventListener('click', completeMovement);
     hero.querySelector('#toggle-rpe').addEventListener('click', () => {
       state.session.trackRpe = !state.session.trackRpe;
       if (!state.session.trackRpe) {
@@ -3019,51 +3017,21 @@ function skipMovement() {
   showToast(`${mv.name} skipped today.`);
 }
 
-// First click of Complete when all planned sets are done auto-adds a "one
-// more?" bonus set so the user has an explicit chance to extend. Second
-// click actually finishes the movement (dropping the bonus set if it was
-// never logged).
+// Complete a movement. Used to auto-add a bonus set on first click — that
+// caused surprise "Log set N+1" prompts for users who only intended N sets.
+// Reverted to plain finish-on-click. Users who want one more set can still:
+//   - tap "+ ADD SET" below the list, or
+//   - tap Apply on the AI insight when all sets are done (creates a new
+//     set seeded with the AI's recommended values).
 function completeMovement() {
   const mv = getActiveMovement();
-  const allDone = mv.sets.every(s => s.status === 'done');
-
-  // Path A: armed by a prior click — finalize.
-  if (mv._completeArmed) {
-    // If there's an unlogged bonus set still sitting at the end, drop it.
-    while (mv.sets.length > 0 && mv.sets[mv.sets.length - 1].status !== 'done') {
-      mv.sets.pop();
-    }
-    mv._completeArmed = false;
-    mv.status = 'complete';
-    backToToday();
-    showToast(`${mv.name} complete.`);
-    return;
-  }
-
-  // Path B: not armed yet. Must have all planned sets done to arm.
-  if (!allDone) {
+  if (!mv.sets.every(s => s.status === 'done')) {
     showToast('Log all sets before completing.');
     return;
   }
-
-  // Arm and add a bonus set so the user has one more chance to extend.
-  mv._completeArmed = true;
-  const last = mv.sets[mv.sets.length - 1];
-  let newWeight = last.weight, newReps = last.reps;
-  const r = computeRecommendation(last, state.session.trackRpe);
-  if (r && !r.muted) { newWeight = r.weight; newReps = r.reps; }
-  const newSet = {
-    idx: mv.sets.length + 1,
-    weight: newWeight,
-    reps: newReps,
-    rpe: null,
-    status: 'current',
-    setType: 'working',
-  };
-  mv.sets.push(newSet);
-  state.session._animSetIdx = newSet.idx;
-  renderWorkout();
-  showToast(`One more? Set ${newSet.idx} added · tap Complete again to finish.`);
+  mv.status = 'complete';
+  backToToday();
+  showToast(`${mv.name} complete.`);
 }
 
 function removeMovement(id) {
