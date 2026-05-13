@@ -263,6 +263,46 @@
   .set-counter .now { font: 700 22px/1 'Inter Tight',sans-serif; letter-spacing: -0.02em; }
   .set-counter .of { font: 500 11px/1 'Geist Mono',ui-monospace,monospace; letter-spacing: 0.10em; color: var(--label); text-transform: uppercase; margin-top: 3px; }
 
+  /* Workout Mode preferences (toggle chips) */
+  .prefs {
+    padding: 0 18px 10px;
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .pref-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px 7px 9px;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-pill);
+    font: 600 11px/1 'Inter Tight',sans-serif;
+    letter-spacing: -0.01em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .pref-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--label);
+    box-shadow: 0 0 0 0 transparent;
+    transition: background 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  .pref-chip.on {
+    background: rgba(93,155,184,0.10);
+    border-color: rgba(93,155,184,0.30);
+    color: var(--ink);
+  }
+  .pref-chip.on .dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(93,155,184,0.20);
+  }
+  .pref-chip:active { transform: scale(0.98); }
+
   .prior {
     margin: 0 18px 12px;
     padding: 10px 14px;
@@ -628,6 +668,18 @@
       </div>
     </div>
 
+    <!-- Workout preferences (per movement) -->
+    <div class="prefs">
+      <button class="pref-chip" id="toggle-rpe">
+        <span class="dot"></span>
+        Track RPE
+      </button>
+      <button class="pref-chip" id="toggle-ai">
+        <span class="dot"></span>
+        AI guidance
+      </button>
+    </div>
+
     <div class="prior">
       <span class="lbl">LAST TIME</span>
       <span class="vals" id="wm-prior">—</span>
@@ -708,34 +760,6 @@
         </div>
       </div>
 
-      <div class="field-num">
-        <span class="lbl">STARTING WEIGHT</span>
-        <div class="stepper">
-          <button data-am-step="weight" data-am-delta="-5">−</button>
-          <span class="v" id="am-weight">95</span>
-          <span class="u">LB</span>
-          <button data-am-step="weight" data-am-delta="5">+</button>
-        </div>
-      </div>
-
-      <div class="field-num">
-        <span class="lbl">TARGET REPS</span>
-        <div class="stepper">
-          <button data-am-step="reps" data-am-delta="-1">−</button>
-          <span class="v" id="am-reps">8</span>
-          <button data-am-step="reps" data-am-delta="1">+</button>
-        </div>
-      </div>
-
-      <div class="field-num">
-        <span class="lbl">TARGET RPE</span>
-        <div class="stepper">
-          <button data-am-step="rpe" data-am-delta="-0.5">−</button>
-          <span class="v" id="am-rpe">7</span>
-          <button data-am-step="rpe" data-am-delta="0.5">+</button>
-        </div>
-      </div>
-
       <div class="cta-wrap">
         <button class="cta" id="am-add">Add to today</button>
         <button class="cta-cancel" id="am-cancel">Cancel</button>
@@ -756,6 +780,7 @@ const state = {
     {
       id: 'm1', bodyPart: 'Chest', name: 'Bench Press', type: 'strength',
       priorRef: '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5',
+      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 185, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 185, reps: 9,  rpe: null, status: 'target' },
@@ -767,6 +792,7 @@ const state = {
     {
       id: 'm2', bodyPart: 'Chest', name: 'Incline DB Press', type: 'volume',
       priorRef: '60×12 @7 · 60×10 @8 · 55×10 @8',
+      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 60, reps: 12, rpe: null, status: 'current' },
         { idx: 2, weight: 60, reps: 10, rpe: null, status: 'target' },
@@ -777,6 +803,7 @@ const state = {
     {
       id: 'm3', bodyPart: 'Back', name: 'Lat Pulldown', type: 'strength',
       priorRef: '160×10 @8 · 160×8 @8.5 · 150×10 @8',
+      trackRpe: true, aiRecOn: true,
       sets: [
         { idx: 1, weight: 160, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 160, reps: 8,  rpe: null, status: 'target' },
@@ -788,6 +815,7 @@ const state = {
     {
       id: 'm4', bodyPart: 'Back', name: 'Barbell Row', type: 'volume',
       priorRef: '135×10 @7.5 · 135×9 @8 · 135×8 @8.5',
+      trackRpe: false, aiRecOn: false,
       sets: [
         { idx: 1, weight: 135, reps: 10, rpe: null, status: 'current' },
         { idx: 2, weight: 135, reps: 9,  rpe: null, status: 'target' },
@@ -797,7 +825,7 @@ const state = {
     },
   ],
   picker: null,    // { field: 'weight'|'reps'|'rpe', setIdx: int, value: number }
-  addMovement: { mode: 'last', sets: 3, weight: 95, reps: 8, rpe: 7 },
+  addMovement: { mode: 'last', sets: 3 },
 };
 
 // ============================================================
@@ -825,7 +853,22 @@ function getCurrentSet(mv) {
 // AI recommendation logic (per UX rationale):
 //   low RPE → add weight; high RPE → drop; mid → hold
 //   very high reps + low RPE → big add
-function computeRecommendation(set) {
+function computeRecommendation(set, trackRpe = true) {
+  // When RPE isn't tracked, fall back to a rep-only heuristic
+  if (!trackRpe) {
+    if (set.weight == null || set.reps == null) {
+      return { action: 'Log weight + reps', next: 'Recommendation activates after set 1', reason: 'Log this set to get a next-set suggestion.', muted: true };
+    }
+    return {
+      action: 'Hold',
+      next: `${set.weight} × ${set.reps}`,
+      reason: 'Repeat the same weight and reps. Turn on RPE for sharper guidance.',
+      weight: set.weight,
+      reps: set.reps,
+      rpe: null,
+      muted: false,
+    };
+  }
   if (set.rpe == null) {
     return { action: 'Log current set', next: 'Add RPE to get a recommendation', reason: 'RPE is required for next-set guidance.', muted: true };
   }
@@ -970,15 +1013,20 @@ function renderWorkout() {
   $('#wm-set-now').textContent = cur ? cur.idx : mv.sets.length;
   $('#wm-prior').textContent = mv.priorRef;
 
+  // Preference chips
+  $('#toggle-rpe').classList.toggle('on', mv.trackRpe);
+  $('#toggle-ai').classList.toggle('on', mv.aiRecOn);
+
   // Logged (done) sets
   const logged = $('#wm-logged');
   logged.innerHTML = '';
   mv.sets.filter(s => s.status === 'done').forEach(s => {
     const row = document.createElement('div');
     row.className = 'set-row done';
+    const rpeBit = (mv.trackRpe && s.rpe != null) ? ` · RPE ${s.rpe}` : '';
     row.innerHTML = `
       <span class="idx">SET ${s.idx}</span>
-      <span class="vals">${s.weight} × ${s.reps}${s.rpe != null ? ` · RPE ${s.rpe}` : ''}</span>
+      <span class="vals">${s.weight} × ${s.reps}${rpeBit}</span>
       <span class="meta">DONE</span>`;
     row.addEventListener('click', () => reopenSet(s.idx));
     logged.appendChild(row);
@@ -987,28 +1035,31 @@ function renderWorkout() {
   // Current set (expanded)
   const cw = $('#wm-current');
   if (cur) {
+    const pickerCols = mv.trackRpe ? '1fr 1fr 1fr' : '1fr 1fr';
+    const rpePicker = mv.trackRpe ? `
+          <div class="picker ${cur.rpe == null ? 'empty' : ''}" data-pk="rpe">
+            <div class="lbl">RPE</div>
+            <div class="val">${cur.rpe != null ? cur.rpe : '—'}</div>
+            <div class="unit">EFFORT</div>
+          </div>` : '';
     cw.innerHTML = `
       <div class="current">
         <div class="head">
           <span class="eyebrow"><span class="dot"></span>SET ${cur.idx} · NOW</span>
           <span class="set-label">Working set</span>
         </div>
-        <div class="pickers">
-          <div class="picker" data-pk="weight">
+        <div class="pickers" style="grid-template-columns: ${pickerCols};">
+          <div class="picker ${cur.weight == null ? 'empty' : ''}" data-pk="weight">
             <div class="lbl">WEIGHT</div>
-            <div class="val">${cur.weight}</div>
+            <div class="val">${cur.weight != null ? cur.weight : '—'}</div>
             <div class="unit">LB</div>
           </div>
-          <div class="picker" data-pk="reps">
+          <div class="picker ${cur.reps == null ? 'empty' : ''}" data-pk="reps">
             <div class="lbl">REPS</div>
-            <div class="val">${cur.reps}</div>
+            <div class="val">${cur.reps != null ? cur.reps : '—'}</div>
             <div class="unit">REPS</div>
           </div>
-          <div class="picker ${cur.rpe == null ? 'empty' : ''}" data-pk="rpe">
-            <div class="lbl">RPE</div>
-            <div class="val">${cur.rpe != null ? cur.rpe : '—'}</div>
-            <div class="unit">EFFORT</div>
-          </div>
+          ${rpePicker}
         </div>
         <button class="log-btn" id="btn-log">Log set ${cur.idx}</button>
       </div>`;
@@ -1032,18 +1083,21 @@ function renderWorkout() {
   mv.sets.filter(s => s.status === 'target').forEach(s => {
     const row = document.createElement('div');
     row.className = 'set-row target';
+    const isBlank = s.weight == null && s.reps == null;
+    const vals = isBlank ? '—' : `${s.weight != null ? s.weight : '—'} × ${s.reps != null ? s.reps : '—'}`;
+    const meta = isBlank ? 'BLANK' : 'TARGET';
     row.innerHTML = `
       <span class="idx">SET ${s.idx}</span>
-      <span class="vals">${s.weight} × ${s.reps}</span>
-      <span class="meta">TARGET</span>`;
+      <span class="vals">${vals}</span>
+      <span class="meta">${meta}</span>`;
     fut.appendChild(row);
   });
 
-  // AI recommendation
+  // AI recommendation (only if movement preference allows)
   const rec = $('#wm-rec');
   rec.innerHTML = '';
-  if (cur) {
-    const r = computeRecommendation(cur);
+  if (cur && mv.aiRecOn) {
+    const r = computeRecommendation(cur, mv.trackRpe);
     const recEl = document.createElement('div');
     recEl.className = 'rec' + (r.muted ? ' muted' : '');
     recEl.innerHTML = `
@@ -1090,8 +1144,20 @@ function logSet(idx) {
   const mv = getActiveMovement();
   const set = mv.sets.find(s => s.idx === idx);
   if (!set) return;
-  if (set.rpe == null) {
-    showToast('Add RPE before logging the set.');
+  // Weight and reps are always required
+  if (set.weight == null) {
+    showToast('Add weight before logging.');
+    openPicker('weight', idx);
+    return;
+  }
+  if (set.reps == null) {
+    showToast('Add reps before logging.');
+    openPicker('reps', idx);
+    return;
+  }
+  // RPE only required if the movement tracks it
+  if (mv.trackRpe && set.rpe == null) {
+    showToast('Add RPE before logging.');
     openPicker('rpe', idx);
     return;
   }
@@ -1166,7 +1232,16 @@ const PICKER_CONFIG = {
 function openPicker(field, setIdx) {
   const mv = getActiveMovement();
   const set = mv.sets.find(s => s.idx === setIdx);
-  state.picker = { field, setIdx, value: set[field] != null ? set[field] : (field === 'rpe' ? 7 : (field === 'reps' ? 10 : 185)) };
+  // Smart defaults: use prior reference if the set is blank
+  let defaultVal;
+  if (field === 'rpe') defaultVal = 7;
+  else if (field === 'reps') defaultVal = 10;
+  else {
+    // Weight: try to infer from prior reference, fall back to 95
+    const priorMatch = mv.priorRef.match(/(\d+)/);
+    defaultVal = priorMatch ? parseInt(priorMatch[1], 10) : 95;
+  }
+  state.picker = { field, setIdx, value: set[field] != null ? set[field] : defaultVal };
   renderPicker();
   $('#picker-overlay').classList.add('active');
 }
@@ -1244,35 +1319,67 @@ function clearPickerValue() {
 // ADD MOVEMENT SHEET
 // ============================================================
 function openAddMovement() {
-  state.addMovement = { mode: 'last', sets: 3, weight: 95, reps: 8, rpe: 7 };
+  state.addMovement = { mode: 'last', sets: 3 };
   renderAddMovementForm();
   $('#am-overlay').classList.add('active');
 }
 
 function renderAddMovementForm() {
   $('#am-sets').textContent = state.addMovement.sets;
-  $('#am-weight').textContent = state.addMovement.weight;
-  $('#am-reps').textContent = state.addMovement.reps;
-  $('#am-rpe').textContent = state.addMovement.rpe;
   $$('#am-seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === state.addMovement.mode));
   $('#am-prior').classList.toggle('hidden', state.addMovement.mode !== 'last');
 }
 
+// Parse a priorRef like "185×10 @7 · 185×9 @8 · 180×10 @8" into an array of {weight, reps, rpe}
+function parsePriorRef(ref) {
+  if (!ref || ref === '—') return [];
+  return ref.split(' · ').map(seg => {
+    const m = seg.trim().match(/(\d+(?:\.\d+)?)\s*×\s*(\d+)(?:\s*@\s*(\d+(?:\.\d+)?))?/);
+    if (!m) return { weight: null, reps: null, rpe: null };
+    return {
+      weight: parseFloat(m[1]),
+      reps: parseInt(m[2], 10),
+      rpe: m[3] ? parseFloat(m[3]) : null,
+    };
+  });
+}
+
 function commitAddMovement() {
   const am = state.addMovement;
-  const newMv = {
-    id: 'm' + Date.now(),
+  // Demo: fixed example new movement (in real app would come from search/library)
+  const newMvSeed = {
     bodyPart: 'Shoulders',
     name: 'Overhead Press',
     type: 'strength',
-    priorRef: am.mode === 'last' ? '185×10 @7 · 185×9 @8 · 180×10 @8 · 180×8 @8.5' : '—',
-    sets: Array.from({ length: am.sets }, (_, i) => ({
+    priorRef: '95×8 @7 · 95×7 @8 · 90×8 @8',
+  };
+  const priorSets = parsePriorRef(newMvSeed.priorRef);
+  // Build today's sets
+  const sets = Array.from({ length: am.sets }, (_, i) => {
+    if (am.mode === 'last' && priorSets[i]) {
+      return {
+        idx: i + 1,
+        weight: priorSets[i].weight,
+        reps: priorSets[i].reps,
+        rpe: null,                 // prior RPE shown in ref; today's RPE is fresh
+        status: i === 0 ? 'current' : 'target',
+      };
+    }
+    // Start Blank: weight/reps null, user fills in during workout
+    return {
       idx: i + 1,
-      weight: am.weight,
-      reps: am.reps,
+      weight: null,
+      reps: null,
       rpe: null,
       status: i === 0 ? 'current' : 'target',
-    })),
+    };
+  });
+  const newMv = {
+    id: 'm' + Date.now(),
+    ...newMvSeed,
+    trackRpe: true,
+    aiRecOn: true,
+    sets,
     status: 'pending',
   };
   state.movements.push(newMv);
@@ -1288,6 +1395,26 @@ $('#btn-back').addEventListener('click', backToToday);
 $('#btn-skip').addEventListener('click', skipMovement);
 $('#btn-complete').addEventListener('click', completeMovement);
 $('#btn-add-movement').addEventListener('click', openAddMovement);
+
+// Workout-mode preference toggles
+$('#toggle-rpe').addEventListener('click', () => {
+  const mv = getActiveMovement();
+  if (!mv) return;
+  mv.trackRpe = !mv.trackRpe;
+  // Clear any RPE values on remaining unlogged sets when turning off (don't overwrite logged history)
+  if (!mv.trackRpe) {
+    mv.sets.forEach(s => { if (s.status !== 'done') s.rpe = null; });
+  }
+  renderWorkout();
+  showToast(mv.trackRpe ? 'RPE tracking on.' : 'RPE tracking off.');
+});
+$('#toggle-ai').addEventListener('click', () => {
+  const mv = getActiveMovement();
+  if (!mv) return;
+  mv.aiRecOn = !mv.aiRecOn;
+  renderWorkout();
+  showToast(mv.aiRecOn ? 'AI guidance on.' : 'AI guidance off.');
+});
 
 $('#pk-done').addEventListener('click', () => closePicker(true));
 $('#pk-clear').addEventListener('click', clearPickerValue);

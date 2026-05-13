@@ -18,16 +18,20 @@ Static HTML mockups of the three load-bearing screens in the new Training-OS UX 
 Click-through-able flows you can exercise:
 
 1. **Today → tap movement → Workout Mode** opens with that movement's sets ready.
-2. **Tap weight / reps / RPE picker pill** → number picker bottom sheet rises with `-10/-5/-1/+1/+5/+10` steppers (weight) and field-specific presets (reps: 5/6/7/8/10/12/15/20 — RPE: 4/5/6/7/7.5/8/8.5/9/9.5).
-3. **Adjust RPE** → AI recommendation card live-updates: low RPE → "Add 5/10 lb"; mid RPE → "Hold"; high RPE → "Drop 5/10 lb"; very-high reps + very-low RPE → "Add 10 lb" with capped rep target. Reason copy explains the mechanism in clinical voice.
-4. **Tap "Apply target"** → the AI rec's weight/reps populate the next future set's target.
-5. **Tap "Log set N"** → current set marks Done (compact row), next target promotes to current.
-6. **Tap a "Done" chip on a logged set** → set reopens for editing (no separate edit mode).
-7. **Skip movement** → returns to Today with movement marked `SKIP` in the progress chip.
-8. **Complete movement** (enabled only when all sets logged) → returns to Today with `DONE` chip.
-9. **Add movement → bottom sheet** → toggle Use Last Time / Start Blank (prior reference shows/hides), tune sets / weight / reps / RPE with steppers, Add to today → new movement appears in the list.
-10. **Remove movement** (x button on each card) → confirms then drops it.
-11. **Top progress strip** updates as sets get logged — gradient fill, sets-remaining count.
+2. **Per-movement preference toggles** at the top of Workout Mode:
+   - **Track RPE** — when off, the RPE picker pill disappears and Log Set works without it
+   - **AI guidance** — when off, the recommendation card disappears entirely
+   - Try Barbell Row in the seed data — it starts with both toggles OFF to show the minimal-logging UX
+3. **Tap weight / reps / RPE picker pill** → number picker bottom sheet rises with `-10/-5/-1/+1/+5/+10` steppers (weight) and field-specific presets (reps: 5/6/7/8/10/12/15/20 — RPE: 4/5/6/7/7.5/8/8.5/9/9.5).
+4. **Adjust RPE** → AI recommendation card live-updates: low RPE → "Add 5/10 lb"; mid RPE → "Hold"; high RPE → "Drop 5/10 lb"; very-high reps + very-low RPE → "Add 10 lb" with capped rep target. Reason copy explains the mechanism in clinical voice.
+5. **Tap "Apply target"** → the AI rec's weight/reps populate the next future set's target.
+6. **Tap "Log set N"** → current set marks Done (compact row), next target promotes to current.
+7. **Tap a "Done" chip on a logged set** → set reopens for editing (no separate edit mode).
+8. **Skip movement** → returns to Today with movement marked `SKIP` in the progress chip.
+9. **Complete movement** (enabled only when all sets logged) → returns to Today with `DONE` chip.
+10. **Add movement → bottom sheet** → simplified setup: just Body Part / Movement / Sets count. Toggle Use Last Time / Start Blank — Use Last Time pre-populates sets from prior reference; Start Blank creates `—` blank sets the user fills in during workout. No starting weight / target reps / target RPE entry in setup.
+11. **Remove movement** (x button on each card) → confirms then drops it.
+12. **Top progress strip** updates as sets get logged — gradient fill, sets-remaining count.
 
 ## Viewport
 
