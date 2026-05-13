@@ -12988,6 +12988,16 @@ function renderTodayV2() {
   plan.forEach(p => collectStats(getEntryFor(p) || { sets: [] }, (typeof getMv === 'function') ? getMv(p.mid) : null));
   adhocEntries.forEach(e => collectStats(e, (typeof getMv === 'function') ? getMv(e.movementId) : null));
 
+  // Also accumulate stats from any sessions ALREADY FINISHED today so the
+  // hero matches History's daily total. Without this, finishing a session
+  // resets the Today stats to 0 even though History still shows the work.
+  finishedTodayList.forEach(w => {
+    (w.entries || []).forEach(entry => {
+      const mvForEntry = (typeof getMv === 'function') ? getMv(entry.movementId) : null;
+      collectStats(entry, mvForEntry);
+    });
+  });
+
   // ---- Paint scope + stats ----
   const avgRpe = rpeCount > 0 ? (rpeSum / rpeCount) : null;
   const pct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
