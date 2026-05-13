@@ -616,6 +616,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .rec-inline .summary .coach-tag {
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.005em;
+    margin-right: 6px;
+  }
   .rec-inline .summary .action {
     font-weight: 700;
     color: var(--ink);
@@ -637,13 +643,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .rec-inline .reason .ai-tag {
-    font: 700 8.5px/1 'Geist Mono',ui-monospace,monospace;
-    letter-spacing: 0.18em;
-    color: var(--accent);
-    margin-right: 6px;
-    text-transform: uppercase;
   }
   .rec-inline .apply {
     display: inline-flex;
@@ -1594,8 +1593,8 @@ function renderWorkout() {
           <div class="rec-inline" style="margin: 0 22px 12px;">
             <span class="live-dot"></span>
             <div class="body">
-              <div class="summary"><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
-              <div class="reason"><span class="ai-tag">AI</span>${reasonText}</div>
+              <div class="summary"><span class="coach-tag">AI Coach:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
+              <div class="reason">${reasonText}</div>
             </div>
             <button class="apply" id="btn-live-apply">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>`;
@@ -1634,8 +1633,8 @@ function renderWorkout() {
             <div class="rec-inline" data-rec-base="${s.idx}">
               <span class="live-dot"></span>
               <div class="body">
-                <div class="summary"><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
-                <div class="reason"><span class="ai-tag">AI</span>${reasonText}</div>
+                <div class="summary"><span class="coach-tag">AI Coach:</span><span class="action">${r.action}</span><span class="arrow">→</span><span class="next">${r.next}</span></div>
+                <div class="reason">${reasonText}</div>
               </div>
               ${showApply ? `<button class="apply" data-rec-apply="${s.idx}">Apply<svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ''}
             </div>`;
