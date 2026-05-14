@@ -13319,12 +13319,26 @@ function renderTodayV2() {
   const activeTab = (typeof ui !== 'undefined' && ui.todayTab) || 'remaining';
   const remainingItems = [];
   const completedItems = [];
+  // "Session done today" = user has finished at least one workout today AND
+  // is not currently working on another. In that state any plan item that
+  // didn't make it into the finished session (mid mismatch, alias, or just
+  // not logged) is functionally skipped — it should NOT show up in Remaining
+  // as if it's still actionable. Push these into Completed with a `skipped`
+  // flag so the user can see what they didn't do without it reading as
+  // "still to do." See user report 2026-05-13.
+  const sessionDoneToday = !data.active && finishedTodayList.length > 0;
   allItems.forEach(item => {
     const sets = (item.entry && item.entry.sets) || [];
     const done = sets.filter(s => s.done).length;
     const total = sets.length || (item.p && item.p.targetSets) || 0;
-    if (total > 0 && done === total) completedItems.push(item);
-    else remainingItems.push(item);
+    if (total > 0 && done === total) {
+      completedItems.push(item);
+    } else if (sessionDoneToday && done === 0) {
+      item.skipped = true;
+      completedItems.push(item);
+    } else {
+      remainingItems.push(item);
+    }
   });
   // Also surface movements completed in earlier finished-today sessions
   // (History). These were filtered out of plan/adhoc above so they don't
@@ -13345,6 +13359,7 @@ function renderTodayV2() {
         mv,
         entry,
         fromHistory: true,
+        sourceWorkoutId: w.id,
       });
       seenCompletedMids.add(entry.movementId);
     });
@@ -13384,10 +13399,11 @@ function renderTodayV2() {
       const total = sets.length || (item.p.targetSets || 0) || 0;
       const equip = ((item.entry && item.entry.equipmentType) || (item.p && item.p.equipmentType) || (item.mv && item.mv.equipment) || 'unspecified').toString().toLowerCase();
       const isComplete = total > 0 && done === total;
+      const isSkipped = !!item.skipped;
       const name = (item.mv && item.mv.name) || (item.entry && item.entry.name) || '—';
       const fromHistory = !!item.fromHistory;
       const card = document.createElement('div');
-      card.className = 'mv' + (isComplete ? ' is-complete' : '') + (fromHistory ? ' from-history' : '');
+      card.className = 'mv' + (isComplete ? ' is-complete' : '') + (fromHistory ? ' from-history' : '') + (isSkipped ? ' is-skipped' : '');
       card.dataset.planId = item.p.id;
       card.dataset.mid = item.p.mid;
       card.innerHTML = `
@@ -13405,32 +13421,52 @@ function renderTodayV2() {
           <div class="row1">
             <span class="name">${escapeHtmlSafe(name)}</span>
             <span class="equip-wrap">
-              ${fromHistory
-                ? `<span class="equip" aria-label="Equipment: ${equip}">${equip.toUpperCase()}</span>`
-                : `<button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
-              <div class="equip-pop" data-equip-pop>${EQUIPMENT_OPTIONS_V2.map(opt => `<button class="equip-chip${opt === equip ? ' active' : ''}" type="button" data-equip="${opt}">${opt}</button>`).join('')}</div>`}
+              <button class="equip" type="button" data-equip-toggle aria-label="Equipment: ${equip}">${equip.toUpperCase()}</button>
+              <div class="equip-pop" data-equip-pop>${EQUIPMENT_OPTIONS_V2.map(opt => `<button class="equip-chip${opt === equip ? ' active' : ''}" type="button" data-equip="${opt}">${opt}</button>`).join('')}</div>
             </span>
           </div>
         </div>
-        <span class="progress-chip${isComplete ? ' done' : ''}">${isComplete ? 'DONE' : `${done}/${total}`}</span>
-        ${fromHistory ? '' : `<button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
+        <span class="progress-chip${isComplete ? ' done' : ''}${isSkipped ? ' skipped' : ''}">${isComplete ? 'DONE' : (isSkipped ? 'SKIP' : `${done}/${total}`)}</span>
+        <button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
           <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        </button>`}`;
-      // Tap card body → enter workout mode (skip the equipment area).
-      // History-sourced cards are read-only — tap does nothing.
-      if (!fromHistory) {
-        card.querySelector('.body').addEventListener('click', (e) => {
-          if (e.target.closest('.equip-wrap')) return;
-          if (typeof openWorkoutMode === 'function') openWorkoutMode(item.p.mid, item.p.id);
-          else go('workout');
-        });
-      }
-      // Removal mirrors production's logic in buildMvBlock (line ~14027):
-      // adhoc entries get filtered from data.active.entries; plan items get
-      // their planId pushed to data.active.hiddenPlanIds so they stay hidden
-      // for this session without disturbing the underlying plan template.
-      if (!fromHistory) card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
+        </button>`;
+      // Tap card body → open Workout Mode. For active items the entry lives
+      // in data.active; for history-sourced items we pass sourceWorkoutId so
+      // edits write directly to the archived entry in data.workouts (and
+      // sync to Supabase).
+      card.querySelector('.body').addEventListener('click', (e) => {
+        if (e.target.closest('.equip-wrap')) return;
+        if (typeof openWorkoutModeV2 === 'function') {
+          openWorkoutModeV2(item.p.mid, item.p.id, item.sourceWorkoutId || null);
+        } else if (typeof openWorkoutMode === 'function') {
+          openWorkoutMode(item.p.mid, item.p.id);
+        } else if (typeof go === 'function') {
+          go('workout');
+        }
+      });
+      // Removal:
+      //   - active plan items: hidden via hiddenPlanIds (legacy behavior)
+      //   - active adhoc entries: spliced from data.active.entries
+      //   - history-sourced entries: spliced from the source workout in
+      //     data.workouts, then synced to Supabase (per user request:
+      //     "if a movement is later edited or deleted make that correction
+      //     in the session data")
+      card.querySelector('[data-remove-mv]').addEventListener('click', (e) => {
         e.stopPropagation();
+        if (fromHistory) {
+          if (!confirm("Remove this completed movement from today's history?")) return;
+          const w = (data.workouts || []).find(x => x && x.id === item.sourceWorkoutId);
+          if (w) {
+            w.entries = (w.entries || []).filter(en => en !== item.entry);
+            w.edited_at = new Date().toISOString();
+            if (typeof saveData === 'function') saveData();
+            if (typeof supabaseSyncWorkout === 'function') {
+              try { supabaseSyncWorkout(w); } catch (_) {}
+            }
+          }
+          if (typeof renderToday === 'function') renderToday();
+          return;
+        }
         const pid = item.p.id;
         if (!confirm("Remove this movement from today's session only? It stays in your plan.")) return;
         if (typeof ensureActiveSession === 'function') ensureActiveSession();
@@ -13451,15 +13487,14 @@ function renderTodayV2() {
         if (typeof syncActiveSession === 'function') syncActiveSession();
         if (typeof renderToday === 'function') renderToday();
       });
-      // Equipment popover: tap pill → toggle; tap chip → set + close. Writes
-      // to entry.equipmentType only, per port-plan decision 2026-05-13.
-      // History-sourced cards render a non-interactive equip label (no popover).
-      const equipBtn = fromHistory ? null : card.querySelector('[data-equip-toggle]');
-      const equipPop = fromHistory ? null : card.querySelector('[data-equip-pop]');
+      // Equipment popover. For active entries we write to entry.equipmentType
+      // on the active session. For history-sourced entries we write directly
+      // to the archived entry inside data.workouts[sourceWorkoutId] and sync.
+      const equipBtn = card.querySelector('[data-equip-toggle]');
+      const equipPop = card.querySelector('[data-equip-pop]');
       if (equipBtn && equipPop) {
         equipBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Close any other popovers + drop their .equip-open lift class.
           document.querySelectorAll('.equip-pop.open').forEach(p => {
             if (p !== equipPop) {
               p.classList.remove('open');
@@ -13474,14 +13509,25 @@ function renderTodayV2() {
           chip.addEventListener('click', (e) => {
             e.stopPropagation();
             const newEq = chip.dataset.equip;
-            // Find/create the active entry and update its equipmentType.
-            let activeEntry = (typeof activeEntryFor === 'function') ? activeEntryFor(item.p.mid, item.p.id) : null;
-            if (!activeEntry && typeof ensureActiveEntry === 'function') {
-              try { activeEntry = ensureActiveEntry(item.p.mid, item.p.id, { sets: [], plannedReps: null }); } catch (err) {}
-            }
-            if (activeEntry) {
-              activeEntry.equipmentType = newEq;
-              if (typeof saveData === 'function') saveData();
+            if (fromHistory && item.entry) {
+              item.entry.equipmentType = newEq;
+              const w = (data.workouts || []).find(x => x && x.id === item.sourceWorkoutId);
+              if (w) {
+                w.edited_at = new Date().toISOString();
+                if (typeof saveData === 'function') saveData();
+                if (typeof supabaseSyncWorkout === 'function') {
+                  try { supabaseSyncWorkout(w); } catch (_) {}
+                }
+              }
+            } else {
+              let activeEntry = (typeof activeEntryFor === 'function') ? activeEntryFor(item.p.mid, item.p.id) : null;
+              if (!activeEntry && typeof ensureActiveEntry === 'function') {
+                try { activeEntry = ensureActiveEntry(item.p.mid, item.p.id, { sets: [], plannedReps: null }); } catch (err) {}
+              }
+              if (activeEntry) {
+                activeEntry.equipmentType = newEq;
+                if (typeof saveData === 'function') saveData();
+              }
             }
             equipPop.classList.remove('open');
             renderTodayV2();
@@ -13613,11 +13659,108 @@ function formatTimeWm(sec) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function openWorkoutModeV2(mid, planId) {
+function openWorkoutModeV2(mid, planId, sourceWorkoutId) {
   ui.session.activeMid = mid;
   ui.session.activePlanId = planId;
+  // Per-movement edit-after-archive (2026-05-13): when sourceWorkoutId is set,
+  // the entry being edited lives in data.workouts[sourceWorkoutId].entries
+  // rather than data.active.entries. All set ops + the remove handler check
+  // this flag and write directly to the historical workout, then
+  // supabaseSyncWorkout pushes the corrected session to the cloud.
+  ui.session.activeSourceWorkoutId = sourceWorkoutId || null;
   if (typeof go === 'function') go('workout');
   setTimeout(renderWorkoutV2, 0);
+}
+
+// Find today's existing finished session in data.workouts, if any. Used by
+// the per-movement auto-archive so consecutive completions merge into a
+// single day record rather than each carving its own session row.
+function findFinishedTodaySessionV2() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tombs = new Set(((data.tombstones && data.tombstones.workouts) || []));
+  return (data.workouts || []).find(w =>
+    w && w.finished && !tombs.has(w.id) &&
+    (w.date || w.savedAt) && sameDay(new Date(w.date || w.savedAt), today)
+  ) || null;
+}
+
+// Archive a freshly-completed movement to today's history record.
+//   - Finds the existing finished session for today, OR creates one.
+//   - Merges the entry in (dedup by movementId; most recent values win).
+//   - Removes the entry from data.active.entries so it doesn't double-render.
+//   - Pushes to Supabase via supabaseSyncWorkout.
+//   - Returns the target session so callers can update ui state.
+// Bug being fixed: previously you had to hit "Finish Session" before
+// anything persisted. If you completed one movement and never finished, the
+// data could be lost (the user's "skull crushers" case 2026-05-13).
+function archiveMovementToTodayV2(entry) {
+  if (!entry || !entry.movementId || !entry.sets || !entry.sets.length) return null;
+  let session = findFinishedTodaySessionV2();
+  const nowIso = new Date().toISOString();
+  if (!session) {
+    const today = new Date();
+    session = {
+      id: (typeof uid === 'function') ? uid() : ('w' + Date.now()),
+      name: ((typeof dowName === 'function') ? dowName(today.getDay()) : '') + ' session',
+      date: today.toISOString(),
+      entries: [],
+      finished: true,
+      workout_status: 'completed',
+      completed_at: nowIso,
+      savedAt: nowIso,
+      durationMin: 0,
+      autoArchived: true,
+    };
+    data.workouts.push(session);
+  } else {
+    session.completed_at = nowIso;
+    session.savedAt = nowIso;
+    session.edited_at = nowIso;
+  }
+  // Strip any references that would only be valid within data.active (planId,
+  // baseline flags, etc.) — the archived entry stands on its own. Keep the
+  // identity fields (movementId, canonicalMovement, equipmentType, variant)
+  // and the sets array.
+  const archived = {
+    movementId: entry.movementId,
+    canonicalMovement: entry.canonicalMovement,
+    equipmentType: entry.equipmentType,
+    variant: entry.variant,
+    muscle: entry.muscle,
+    name: entry.name,
+    sets: (entry.sets || []).map(s => ({ ...s })),
+    skipped: false,
+    archivedAt: nowIso,
+  };
+  const existingIdx = session.entries.findIndex(e => e && e.movementId === archived.movementId);
+  if (existingIdx >= 0) {
+    // Merge: concatenate the new sets onto the prior. Handles same-day
+    // re-completions — e.g. user did 3 sets of Bench at lunch (archived),
+    // then 2 more sets in the evening — all 5 sets are preserved in the
+    // day's record rather than the later run clobbering the earlier one.
+    const prior = session.entries[existingIdx];
+    session.entries[existingIdx] = {
+      ...prior,
+      ...archived,
+      sets: [...(prior.sets || []), ...archived.sets],
+    };
+  } else {
+    session.entries.push(archived);
+  }
+  // Pull the entry out of data.active so Today's Remaining doesn't keep
+  // showing it as if it's still in progress. Keep data.active alive even
+  // when its entries go empty — the user is still mid-session and may
+  // start another movement. Clearing data.active here would flip the
+  // "session done" routing on Today and mis-classify their remaining plan
+  // items as SKIPPED. data.active is cleared only on explicit Finish.
+  if (data.active && data.active.entries) {
+    data.active.entries = data.active.entries.filter(e => e !== entry);
+  }
+  if (typeof saveData === 'function') saveData();
+  if (typeof supabaseSyncWorkout === 'function') {
+    try { supabaseSyncWorkout(session); } catch (_) {}
+  }
+  return session;
 }
 
 function backToTodayV2() {
@@ -13629,6 +13772,26 @@ function getActiveWorkoutEntry() {
   const mid = ui.session.activeMid;
   const planId = ui.session.activePlanId;
   if (!mid) return null;
+  // Source-workout mode: entry lives inside a finished history workout,
+  // not data.active. Used when the user re-opens a completed movement
+  // from the Completed tab to edit it. Edits write through to the
+  // source workout directly via syncSourceWorkoutV2 below.
+  const srcId = ui.session.activeSourceWorkoutId;
+  if (srcId) {
+    const w = (data.workouts || []).find(x => x && x.id === srcId);
+    if (w) {
+      const sourceEntry = (w.entries || []).find(e => e && e.movementId === mid);
+      if (sourceEntry) {
+        if (!sourceEntry.sets || sourceEntry.sets.length === 0) {
+          sourceEntry.sets = [{ weight: null, reps: null, rpe: null, done: false, warmup: false, bw: false }];
+          if (typeof saveData === 'function') saveData();
+        }
+        return sourceEntry;
+      }
+    }
+    // Source disappeared — fall through and try data.active so we don't crash.
+    ui.session.activeSourceWorkoutId = null;
+  }
   let entry = (typeof activeEntryFor === 'function') ? activeEntryFor(mid, planId) : null;
   // If no active entry yet, create one and seed sets so the hero has something
   // to render. Production's defaultSetsFor(p) takes a plan item (not an id);
@@ -13976,6 +14139,22 @@ function renderWorkoutV2() {
 }
 
 // --- Set actions ---
+// Persist after any in-Workout-Mode edit. Local save always; if the entry
+// being edited belongs to a finished/archived workout (sourceWorkoutId set
+// by openWorkoutModeV2 when tapping a Completed-tab item), also push the
+// updated session to Supabase so the cloud copy matches.
+function persistWorkoutEditV2() {
+  if (typeof saveData === 'function') saveData();
+  const srcId = ui.session.activeSourceWorkoutId;
+  if (!srcId) return;
+  const w = (data.workouts || []).find(x => x && x.id === srcId);
+  if (!w) return;
+  w.edited_at = new Date().toISOString();
+  if (typeof supabaseSyncWorkout === 'function') {
+    try { supabaseSyncWorkout(w); } catch (_) {}
+  }
+}
+
 function logSetV2(idx) {
   const entry = getActiveWorkoutEntry();
   if (!entry || !entry.sets || !entry.sets[idx]) return;
@@ -13984,13 +14163,23 @@ function logSetV2(idx) {
   if (s.reps == null) { showToastV2('Add reps before logging.'); openPickerV2('reps', idx); return; }
   if (ui.session.trackRpe && s.rpe == null) { showToastV2('Add RPE before logging.'); openPickerV2('rpe', idx); return; }
   s.done = true;
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   if (typeof renderToday === 'function') renderToday();
-  // If every set on this movement is now done, bounce back to Today
-  // automatically — the user's intent for "Log set" + all-done is "I'm done
-  // with this movement," not "stay on an empty hero." Matches the explicit
-  // Complete button behavior.
+  // If every set on this movement is now done, auto-archive the entry to
+  // today's history session (merging if one exists, creating one if not)
+  // and bounce back to Today. Fixes the "you must hit Finish Session
+  // before anything saves" loophole — completing a single movement (e.g.
+  // a newly-added "Skull Crushers") now persists immediately.
   if (entry.sets.every(set => set.done)) {
+    if (!ui.session.activeSourceWorkoutId) {
+      // Active-session entry: archive into today's history record.
+      try { archiveMovementToTodayV2(entry); } catch (_) {}
+    } else {
+      // Already-archived entry being re-completed (user reopened a set,
+      // edited, re-logged): just sync the source workout — no duplicate
+      // archive needed since it already lives in data.workouts.
+      persistWorkoutEditV2();
+    }
     showToastV2(`Set ${idx + 1} logged — movement complete.`);
     backToTodayV2();
     return;
@@ -14008,7 +14197,7 @@ function addSetV2() {
     reps: last ? last.reps : null,
     rpe: null, done: false, warmup: false, bw: false,
   });
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   renderWorkoutV2();
 }
 function removeSetV2(idx) {
@@ -14017,7 +14206,7 @@ function removeSetV2(idx) {
   if (entry.sets.length <= 1) { showToastV2('Movement needs at least one set.'); return; }
   if (entry.sets[idx].done && !confirm(`Remove logged set ${idx + 1}?`)) return;
   entry.sets.splice(idx, 1);
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   renderWorkoutV2();
   if (typeof renderToday === 'function') renderToday();
 }
@@ -14025,28 +14214,32 @@ function toggleSetTypeV2(idx) {
   const entry = getActiveWorkoutEntry();
   if (!entry || !entry.sets || !entry.sets[idx]) return;
   entry.sets[idx].warmup = !entry.sets[idx].warmup;
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   renderWorkoutV2();
 }
 function toggleBodyweightV2(idx) {
   const entry = getActiveWorkoutEntry();
   if (!entry || !entry.sets || !entry.sets[idx]) return;
   entry.sets[idx].bw = !entry.sets[idx].bw;
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   renderWorkoutV2();
 }
 function reopenSetV2(idx) {
   const entry = getActiveWorkoutEntry();
   if (!entry || !entry.sets || !entry.sets[idx]) return;
   entry.sets[idx].done = false;
-  if (typeof saveData === 'function') saveData();
+  persistWorkoutEditV2();
   renderWorkoutV2();
   if (typeof renderToday === 'function') renderToday();
 }
 function completeMovementV2() {
-  // Production has no "complete movement" status on the entry — finishing
-  // the whole session is the existing flow. For V2 we just go back to Today;
-  // the user's progress is already persisted.
+  // "Complete" button handler (separate from auto-complete via Log Set on
+  // the last target row). If the entry is in the active session, archive
+  // it to today's history record so it persists immediately.
+  const entry = getActiveWorkoutEntry();
+  if (entry && !ui.session.activeSourceWorkoutId) {
+    try { archiveMovementToTodayV2(entry); } catch (_) {}
+  }
   backToTodayV2();
 }
 
@@ -14143,7 +14336,8 @@ function openPickerV2(field, setIdx) {
   const close = (commit) => {
     if (commit) {
       entry.sets[setIdx][field] = state.value;
-      if (typeof saveData === 'function') saveData();
+      if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
+      else if (typeof saveData === 'function') saveData();
       renderWorkoutV2();
     }
     overlay.classList.remove('active');
@@ -17143,6 +17337,18 @@ async function finishActiveWorkout({ auto = false } = {}) {
   if (!data.active) return false;
   const kept = data.active.entries.filter(e => !e.skipped && e.sets.some(s => s.done));
   if (kept.length === 0) {
+    // No remaining work in the active session — either nothing was started
+    // OR every completed movement already auto-archived to today's history
+    // record. If a finished session for today exists in data.workouts,
+    // treat Finish as "wrap the day": clear data.active silently so the
+    // Today screen flips to the "session done" state.
+    const finishedToday = (typeof finishedTodayWorkouts === 'function') ? finishedTodayWorkouts() : [];
+    if (finishedToday.length > 0) {
+      data.active = null;
+      if (typeof saveData === 'function') saveData();
+      if (typeof renderToday === 'function') renderToday();
+      return true;
+    }
     if (auto) return false;
     alert('Mark at least one set done before finishing.');
     return false;
