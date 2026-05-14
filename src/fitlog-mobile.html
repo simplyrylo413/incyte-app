@@ -6858,6 +6858,7 @@
      Tighter padding/margins than the previous card style so it reads as a
      compact list of pills, not big cards. */
   .mv {
+    position: relative;
     margin: 4px 22px;
     padding: 9px 14px;
     background: rgba(255,255,255, 0.55);
@@ -6873,6 +6874,34 @@
     gap: 12px;
     cursor: pointer;
     transition: transform 150ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+  }
+  /* Tap-origin ripple layer for .mv cards. Sits behind all content
+     (z-index 0), inherits the card's border-radius so the ripple is
+     clipped to the rounded rect, and is pointer-events:none so it never
+     intercepts clicks. The equip-pop popover is intentionally not inside
+     this layer — it lives in .body and overflows the card normally. */
+  .mv .ripple-layer {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .mv > :not(.ripple-layer) { position: relative; z-index: 1; }
+  .mv .ripple-mark {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: rgba(93, 155, 184, 0.45);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    animation: mvRippleExpand 420ms var(--ease-out-cubic) forwards;
+  }
+  @keyframes mvRippleExpand {
+    to { transform: translate(-50%, -50%) scale(28); opacity: 0; }
+  }
+  body.theme-dark .mv .ripple-mark {
+    background: rgba(127, 165, 199, 0.32);
   }
   .mv:hover {
     box-shadow: 0 1px 0 rgba(255,255,255, 1) inset, 0 6px 14px rgba(15,22,34, 0.07);
@@ -9994,12 +10023,22 @@ async function reloadFromSupabase() {
       // Skip any cloud row whose id is in the workout tombstones — protects
       // discarded sessions from re-appearing on the next realtime fetch.
       const tombWk = new Set((data.tombstones.workouts || []));
-      data.workouts = wkRes.data
+      // MERGE (2026-05-13): preserve local-only workouts whose ids the cloud
+      // hasn't received yet. Auto-archive fires its upsert fire-and-forget;
+      // if a realtime fetch lands before the upsert resolves, a clobber here
+      // would wipe the just-archived session from local memory and the
+      // completed movement would re-surface in Today's Remaining tab.
+      const cloudRows = wkRes.data
         .filter(r => !tombWk.has(r.id))
         .map(r => ({
           id: r.id, name: r.name, date: r.date, finished: r.finished,
           entries: r.entries || [], savedAt: r.saved_at,
         }));
+      const cloudIds = new Set(cloudRows.map(r => r.id));
+      const localOnly = (data.workouts || []).filter(w =>
+        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id)
+      );
+      data.workouts = [...cloudRows, ...localOnly];
 
       // Restore active session
       data.active = activeBackup;
@@ -10226,12 +10265,19 @@ async function loadDataFromSupabase() {
       // Skip any cloud row whose id is in the workout tombstones — protects
       // discarded sessions from re-appearing on the next realtime fetch.
       const tombWk = new Set((data.tombstones.workouts || []));
-      data.workouts = wkRes.data
+      // MERGE (2026-05-13): preserve local-only workouts whose ids the cloud
+      // hasn't received yet. Mirrors the merge in the realtime reload path.
+      const cloudRows = wkRes.data
         .filter(r => !tombWk.has(r.id))
         .map(r => ({
           id: r.id, name: r.name, date: r.date, finished: r.finished,
           entries: r.entries || [], savedAt: r.saved_at,
         }));
+      const cloudIds = new Set(cloudRows.map(r => r.id));
+      const localOnly = (data.workouts || []).filter(w =>
+        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id)
+      );
+      data.workouts = [...cloudRows, ...localOnly];
     } else {
       // Supabase is the source of truth. If it's empty, leave the local
       // state empty too — DO NOT seed defaults, DO NOT push hardcoded data
@@ -13407,6 +13453,7 @@ function renderTodayV2() {
       card.dataset.planId = item.p.id;
       card.dataset.mid = item.p.mid;
       card.innerHTML = `
+        <span class="ripple-layer" aria-hidden="true"></span>
         ${fromHistory ? '' : `<span class="drag-handle" aria-hidden="true">
           <svg viewBox="0 0 10 14" fill="none">
             <circle cx="2" cy="2"  r="1.2" fill="currentColor"/>
@@ -13430,19 +13477,33 @@ function renderTodayV2() {
         <button class="remove" data-remove-mv="${item.p.id}" type="button" aria-label="Remove">
           <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         </button>`;
-      // Tap card body → open Workout Mode. For active items the entry lives
-      // in data.active; for history-sourced items we pass sourceWorkoutId so
-      // edits write directly to the archived entry in data.workouts (and
-      // sync to Supabase).
+      // Tap card body → fire a tap-origin ripple, then open Workout Mode
+      // ~180ms later so the ripple is visibly expanding before the Today
+      // view is hidden by the route swap. Without the delay the ripple
+      // is created but never seen (display:none on the source element
+      // kills the ongoing CSS animation visually).
       card.querySelector('.body').addEventListener('click', (e) => {
         if (e.target.closest('.equip-wrap')) return;
-        if (typeof openWorkoutModeV2 === 'function') {
-          openWorkoutModeV2(item.p.mid, item.p.id, item.sourceWorkoutId || null);
-        } else if (typeof openWorkoutMode === 'function') {
-          openWorkoutMode(item.p.mid, item.p.id);
-        } else if (typeof go === 'function') {
-          go('workout');
+        const layer = card.querySelector('.ripple-layer');
+        if (layer) {
+          const r = card.getBoundingClientRect();
+          const dot = document.createElement('span');
+          dot.className = 'ripple-mark';
+          dot.style.left = (e.clientX - r.left) + 'px';
+          dot.style.top  = (e.clientY - r.top)  + 'px';
+          layer.appendChild(dot);
+          setTimeout(() => dot.remove(), 540);
         }
+        const navigate = () => {
+          if (typeof openWorkoutModeV2 === 'function') {
+            openWorkoutModeV2(item.p.mid, item.p.id, item.sourceWorkoutId || null);
+          } else if (typeof openWorkoutMode === 'function') {
+            openWorkoutMode(item.p.mid, item.p.id);
+          } else if (typeof go === 'function') {
+            go('workout');
+          }
+        };
+        setTimeout(navigate, 180);
       });
       // Removal:
       //   - active plan items: hidden via hiddenPlanIds (legacy behavior)
@@ -13693,6 +13754,30 @@ function findFinishedTodaySessionV2() {
 // Bug being fixed: previously you had to hit "Finish Session" before
 // anything persisted. If you completed one movement and never finished, the
 // data could be lost (the user's "skull crushers" case 2026-05-13).
+// Per-workout sync queue. Auto-archive can fire multiple upserts for the
+// same session id in quick succession; without serialization, fast upserts
+// can land before slow ones and overwrite them with stale payloads. The
+// queue chains each call onto the prior promise so order is guaranteed.
+const _workoutSyncQueue = new Map();
+function queueWorkoutSync(workout) {
+  if (!workout || !workout.id) return Promise.resolve(true);
+  const id = workout.id;
+  const prior = _workoutSyncQueue.get(id) || Promise.resolve();
+  const next = prior.then(() => {
+    if (typeof supabaseSyncWorkout === 'function') {
+      // Read .entries lazily here — the latest object state at the moment
+      // this link in the chain runs is what we push, so concurrent local
+      // edits between archive calls get included.
+      try { return supabaseSyncWorkout(workout); } catch (_) { return false; }
+    }
+    return false;
+  }).finally(() => {
+    if (_workoutSyncQueue.get(id) === next) _workoutSyncQueue.delete(id);
+  });
+  _workoutSyncQueue.set(id, next);
+  return next;
+}
+
 function archiveMovementToTodayV2(entry) {
   if (!entry || !entry.movementId || !entry.sets || !entry.sets.length) return null;
   let session = findFinishedTodaySessionV2();
@@ -13757,9 +13842,11 @@ function archiveMovementToTodayV2(entry) {
     data.active.entries = data.active.entries.filter(e => e !== entry);
   }
   if (typeof saveData === 'function') saveData();
-  if (typeof supabaseSyncWorkout === 'function') {
-    try { supabaseSyncWorkout(session); } catch (_) {}
-  }
+  // Queue the upsert so multiple per-movement archives to the same session
+  // are serialized — prevents a fast upsert N+1 from being clobbered by a
+  // slow upsert N (race condition where local data.workouts contains all
+  // entries but Supabase only stores the slower payload).
+  queueWorkoutSync(session);
   // Refresh Insights so Readiness / Fatigue / Stimulus / PRs reflect the
   // newly-archived work without waiting for a tab switch. The user
   // explicitly asked for this 2026-05-13: "the insights tab should be
@@ -13880,22 +13967,45 @@ function renderWorkoutV2() {
       }
     } catch (e) {}
   }
-  const hasPrior = lastEntry && lastEntry.sets && lastEntry.sets.some(s => s.weight != null || s.reps != null);
+  // Movement-type aware "hasPrior" check. Mobility has no weight/reps, only
+  // a `time` field — checking for weight/reps would always return false and
+  // hide the pill even when valid prior data exists. Cardio is similar:
+  // distance/time/etc. live under per-type fields.
+  const _isMobHere = (typeof isMobility === 'function') && isMobility(mv, (data.plans || []).find(p => p && p.id === planId));
+  const _isCardHere = (typeof isCardio === 'function') && isCardio(mv);
+  const hasPrior = lastEntry && lastEntry.sets && (
+    _isMobHere
+      ? lastEntry.sets.some(s => s.time != null && s.time !== '')
+      : lastEntry.sets.some(s => s.weight != null || s.reps != null)
+  );
   if (priorContainer) priorContainer.style.display = hasPrior ? '' : 'none';
   if (hasPrior) {
-    const wRange = (() => {
-      const ws = lastEntry.sets.map(s => s.weight).filter(v => v != null);
-      if (!ws.length) return '—';
-      const min = Math.min(...ws), max = Math.max(...ws);
-      return min === max ? `${min} lb` : `${min}–${max} lb`;
-    })();
-    const rRange = (() => {
-      const rs = lastEntry.sets.map(s => s.reps).filter(v => v != null);
-      if (!rs.length) return '';
-      const min = Math.min(...rs), max = Math.max(...rs);
-      return min === max ? `${min} reps` : `${min}–${max} reps`;
-    })();
-    if (priorEl) priorEl.textContent = rRange ? `${wRange} · ${rRange}` : wRange;
+    let summary;
+    if (_isMobHere) {
+      const ts = lastEntry.sets.map(s => s.time).filter(v => v != null && v !== '');
+      if (!ts.length) summary = '—';
+      else {
+        const min = Math.min(...ts), max = Math.max(...ts);
+        summary = (min === max)
+          ? `${fmtMinSec(min)} time`
+          : `${fmtMinSec(min)}–${fmtMinSec(max)} time`;
+      }
+    } else {
+      const wRange = (() => {
+        const ws = lastEntry.sets.map(s => s.weight).filter(v => v != null);
+        if (!ws.length) return '—';
+        const min = Math.min(...ws), max = Math.max(...ws);
+        return min === max ? `${min} lb` : `${min}–${max} lb`;
+      })();
+      const rRange = (() => {
+        const rs = lastEntry.sets.map(s => s.reps).filter(v => v != null);
+        if (!rs.length) return '';
+        const min = Math.min(...rs), max = Math.max(...rs);
+        return min === max ? `${min} reps` : `${min}–${max} reps`;
+      })();
+      summary = rRange ? `${wRange} · ${rRange}` : wRange;
+    }
+    if (priorEl) priorEl.textContent = summary;
     if (priorDateEl && lastEntry.date) {
       const d = new Date(lastEntry.date);
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -13933,18 +14043,99 @@ function renderWorkoutV2() {
     return;
   }
 
-  if (isCard || isMob) {
+  if (isMob) {
+    // Mobility view — time-only sets, no weight/reps/RPE. Renders the same
+    // hero shell as strength (so the back chip + tab nav feel consistent)
+    // but the primary action is "Mark set N done" instead of a logged-set
+    // form. Time is optional and editable inline. Auto-archive on the last
+    // set still applies via the same logSetV2 / archive flow.
+    const curMob = currentSetIdxV2(entry);
+    const totalMob = entry.sets.length;
+    if (heroSlot) {
+      if (curMob === -1) {
+        heroSlot.innerHTML = `
+          <div class="wm-hero" style="text-align:center;">
+            <div class="wm-hero-eyebrow" style="justify-content: center;">
+              <span class="now-marker" style="color: var(--ok);"><span class="dot" style="background: var(--ok);"></span>MOVEMENT COMPLETE</span>
+            </div>
+            <p style="margin: 10px 0 4px; color: var(--muted); font: 500 13px/1.5 'Inter Tight',sans-serif;">All sets logged.</p>
+            <div class="wm-hero-actions">
+              <button class="wm-hero-cta" id="wm-btn-complete">Complete</button>
+            </div>
+          </div>`;
+        heroSlot.querySelector('#wm-btn-complete').addEventListener('click', completeMovementV2);
+      } else {
+        const s = entry.sets[curMob];
+        const timeDisp = (s && s.time != null && s.time !== '') ? fmtMinSec(s.time) : '—';
+        heroSlot.innerHTML = `
+          <div class="wm-hero">
+            <div class="wm-hero-eyebrow">
+              <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${curMob + 1}/${totalMob}</span></span>
+            </div>
+            <div class="wm-hero-statement">
+              <div class="wm-hero-primary" style="justify-content: center;">
+                <button class="wm-hero-num" data-pk-mob-time="${curMob}">${timeDisp}</button>
+              </div>
+              <div class="wm-hero-units-bar"><span>TIME · MM:SS</span></div>
+            </div>
+            <div class="wm-hero-actions">
+              <button class="wm-hero-cta" id="wm-btn-log">Mark set ${curMob + 1} done</button>
+            </div>
+          </div>`;
+        heroSlot.querySelector('#wm-btn-log').addEventListener('click', () => logMobilitySetV2(curMob));
+        const timeBtn = heroSlot.querySelector('[data-pk-mob-time]');
+        if (timeBtn) timeBtn.addEventListener('click', () => editMobilityTimeV2(curMob));
+      }
+    }
+    // Rendered list of all sets — same .set-row layout as strength but with
+    // TIME in the values column. Done rows show time + check; target rows
+    // get a "—" placeholder + ghost ring.
+    if (loggedSlot) {
+      const checkSvg = '<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const rows = entry.sets.map((s, i) => {
+        const isDone = !!s.done;
+        const tDisp = (s.time != null && s.time !== '') ? fmtMinSec(s.time) : '—';
+        return `
+          <div class="set-row ${isDone ? 'done' : 'target'}" data-set-idx="${i}" style="grid-template-columns: 36px 1fr 22px 16px; gap: 12px;">
+            <button class="r-set-btn" data-mob-toggle="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
+            <span class="r-vals" style="text-align: left;">${tDisp}</span>
+            <button class="chk" ${isDone ? `data-mob-reopen="${i}"` : `data-mob-log="${i}"`} type="button" aria-label="${isDone ? 'Reopen set' : 'Mark done'}">${checkSvg}</button>
+            <button class="row-remove" data-mob-remove="${i}" type="button" aria-label="Remove">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>`;
+      }).join('');
+      loggedSlot.innerHTML = `<div class="sets" style="margin: 0 22px;">${rows}</div>`;
+      loggedSlot.querySelectorAll('[data-mob-log]').forEach(el => {
+        el.addEventListener('click', (e) => { e.stopPropagation(); logMobilitySetV2(+el.dataset.mobLog); });
+      });
+      loggedSlot.querySelectorAll('[data-mob-reopen]').forEach(el => {
+        el.addEventListener('click', (e) => { e.stopPropagation(); reopenSetV2(+el.dataset.mobReopen); });
+      });
+      loggedSlot.querySelectorAll('[data-mob-remove]').forEach(el => {
+        el.addEventListener('click', (e) => { e.stopPropagation(); removeSetV2(+el.dataset.mobRemove); });
+      });
+    }
+    if (addSlot) {
+      addSlot.innerHTML = `<button class="add-set-btn" type="button" id="wm-add-set-btn">+ Add round</button>`;
+      addSlot.querySelector('#wm-add-set-btn').addEventListener('click', addMobilitySetV2);
+    }
+    return;
+  }
+  if (isCard) {
+    // Cardio carve-out — still a placeholder for v1. Cardio has per-type
+    // fields (distance/time/incline/speed/pace) handled by the legacy
+    // cardioTable. Port-plan phase 4 work; for now show a quieter shell
+    // with the prior summary so the user has context.
     if (heroSlot) heroSlot.innerHTML = `
       <div class="wm-empty" style="margin: 16px 22px;">
-        <div class="eb">${isMob ? 'Mobility' : 'Cardio'}</div>
-        <p>Logging-only view. Use the legacy table below.</p>
+        <div class="eb">Cardio</div>
+        <p>Log distance + time from the History view for v1.</p>
       </div>`;
-    // For now, fall back to a brief summary of sets. Phase 4 can integrate
-    // production's cardioTable / mobilityTable renderers here.
     if (loggedSlot) {
       const lines = entry.sets.map((s, i) => `<div class="prior" style="margin: 6px 22px;">
         <span class="lbl">Set ${i + 1}</span>
-        <span class="vals">${s.done ? `${s.weight ?? '—'} × ${s.reps ?? '—'}` : '—'}</span>
+        <span class="vals">${s.done ? 'logged' : '—'}</span>
       </div>`).join('');
       loggedSlot.innerHTML = lines;
     }
@@ -14157,9 +14348,8 @@ function persistWorkoutEditV2() {
     const w = (data.workouts || []).find(x => x && x.id === srcId);
     if (w) {
       w.edited_at = new Date().toISOString();
-      if (typeof supabaseSyncWorkout === 'function') {
-        try { supabaseSyncWorkout(w); } catch (_) {}
-      }
+      // Use the queued sync so back-to-back edits don't race each other.
+      queueWorkoutSync(w);
       // Edits to an archived workout change the day's totals — refresh
       // Insights so Readiness/Fatigue/Stimulus/PRs stay accurate.
       if (typeof renderHeroModules === 'function') {
@@ -14245,6 +14435,63 @@ function reopenSetV2(idx) {
   persistWorkoutEditV2();
   renderWorkoutV2();
   if (typeof renderToday === 'function') renderToday();
+}
+// Mobility-specific log: no weight/reps/RPE gates. Marks the set done and
+// runs the same auto-archive path as strength when the movement completes.
+function logMobilitySetV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[idx]) return;
+  entry.sets[idx].done = true;
+  persistWorkoutEditV2();
+  if (typeof renderToday === 'function') renderToday();
+  if (entry.sets.every(set => set.done)) {
+    if (!ui.session.activeSourceWorkoutId) {
+      try { archiveMovementToTodayV2(entry); } catch (_) {}
+    } else {
+      persistWorkoutEditV2();
+    }
+    showToastV2(`Set ${idx + 1} logged — movement complete.`);
+    backToTodayV2();
+    return;
+  }
+  renderWorkoutV2();
+  showToastV2(`Set ${idx + 1} logged.`);
+}
+function addMobilitySetV2() {
+  const entry = getActiveWorkoutEntry();
+  if (!entry) return;
+  if (!entry.sets) entry.sets = [];
+  entry.sets.push({ time: '', done: false });
+  persistWorkoutEditV2();
+  renderWorkoutV2();
+}
+// Lightweight mm:ss editor for mobility set time. Uses a native prompt for
+// v1 — a styled picker overlay can replace this later if mobility logging
+// becomes a primary surface. Accepts "0:30", "30", "1:15", etc. and stores
+// as decimal minutes (matches production's mobility schema).
+function editMobilityTimeV2(idx) {
+  const entry = getActiveWorkoutEntry();
+  if (!entry || !entry.sets || !entry.sets[idx]) return;
+  const current = (entry.sets[idx].time != null && entry.sets[idx].time !== '')
+    ? fmtMinSec(entry.sets[idx].time) : '';
+  const raw = prompt('Time for this set (mm:ss or seconds)', current);
+  if (raw == null) return; // cancelled
+  const txt = String(raw).trim();
+  if (txt === '') { entry.sets[idx].time = ''; persistWorkoutEditV2(); renderWorkoutV2(); return; }
+  let minutes = NaN;
+  if (txt.includes(':')) {
+    const [mm, ss] = txt.split(':');
+    const m = parseInt(mm, 10) || 0;
+    const s = parseInt(ss, 10) || 0;
+    minutes = m + (s / 60);
+  } else {
+    const secs = parseFloat(txt);
+    if (isFinite(secs)) minutes = secs / 60;
+  }
+  if (!isFinite(minutes)) { showToastV2('Time must be mm:ss or seconds.'); return; }
+  entry.sets[idx].time = +minutes.toFixed(4);
+  persistWorkoutEditV2();
+  renderWorkoutV2();
 }
 function completeMovementV2() {
   // "Complete" button handler (separate from auto-complete via Log Set on
