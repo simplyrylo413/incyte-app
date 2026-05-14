@@ -13004,10 +13004,22 @@ function renderToday() {
 // =============================================================
 function mergeSameDayHistorySessions() {
   if (!data || !Array.isArray(data.workouts) || data.workouts.length < 2) return false;
+  // Bucket by LOCAL date (YYYY-MM-DD) — NOT UTC. Bug 2026-05-13:
+  // toISOString().slice(0,10) returns the UTC date, so a workout logged
+  // yesterday at 8pm Pacific (= ~3am UTC next day) bucketed as "today"
+  // and got folded into today's record — pulling its sets, volume, and
+  // body-part attribution forward by a day. Use local-date components so
+  // the bucket key matches the user's clock.
   const dayKey = (w) => {
     const iso = w && (w.date || w.savedAt || w.completed_at);
     if (!iso) return null;
-    try { return new Date(iso).toISOString().slice(0, 10); } catch (_) { return null; }
+    try {
+      const d = new Date(iso);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    } catch (_) { return null; }
   };
   // Bucketing rule:
   //   - If a day has ANY finished session, ALL same-day sessions (paused +
