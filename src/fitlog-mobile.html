@@ -13760,6 +13760,13 @@ function archiveMovementToTodayV2(entry) {
   if (typeof supabaseSyncWorkout === 'function') {
     try { supabaseSyncWorkout(session); } catch (_) {}
   }
+  // Refresh Insights so Readiness / Fatigue / Stimulus / PRs reflect the
+  // newly-archived work without waiting for a tab switch. The user
+  // explicitly asked for this 2026-05-13: "the insights tab should be
+  // updated after every finished movement."
+  if (typeof renderHeroModules === 'function') {
+    try { renderHeroModules(); } catch (_) {}
+  }
   return session;
 }
 
@@ -14146,12 +14153,19 @@ function renderWorkoutV2() {
 function persistWorkoutEditV2() {
   if (typeof saveData === 'function') saveData();
   const srcId = ui.session.activeSourceWorkoutId;
-  if (!srcId) return;
-  const w = (data.workouts || []).find(x => x && x.id === srcId);
-  if (!w) return;
-  w.edited_at = new Date().toISOString();
-  if (typeof supabaseSyncWorkout === 'function') {
-    try { supabaseSyncWorkout(w); } catch (_) {}
+  if (srcId) {
+    const w = (data.workouts || []).find(x => x && x.id === srcId);
+    if (w) {
+      w.edited_at = new Date().toISOString();
+      if (typeof supabaseSyncWorkout === 'function') {
+        try { supabaseSyncWorkout(w); } catch (_) {}
+      }
+      // Edits to an archived workout change the day's totals — refresh
+      // Insights so Readiness/Fatigue/Stimulus/PRs stay accurate.
+      if (typeof renderHeroModules === 'function') {
+        try { renderHeroModules(); } catch (_) {}
+      }
+    }
   }
 }
 
@@ -20469,31 +20483,37 @@ function renderReadinessCard() {
       bullets = ['Finish a workout with RPE noted', 'The engine needs ~2 sessions to start tuning'];
       tone = '';
     }
-    // ===== Already trained today — recommendation is about what's LEFT of today =====
+    // ===== Already trained today — frame recommendations as load context,
+    // not a declaration that the day is over. Auto-archive (2026-05-13)
+    // moves entries to history the moment a movement completes, so this
+    // branch triggers after the first finished movement — the user may
+    // still be mid-workout. Copy must NOT say "you're done for the day"
+    // or otherwise close out the session. =====
     else if (trainedToday && totalFatigue != null && totalFatigue >= 75) {
-      action = "Today's work is done · prioritize recovery";
+      action = 'Heavy load already accumulated · keep further work light';
       bullets = [
-        "You've trained today — no more lifting tonight",
-        'Skip extra cardio; light walking only if you want to move',
-        'Sleep + protein focus tonight',
-        'Tomorrow: deload — drop top-set weights ~10–15%',
+        'Weekly fatigue is high — be selective with additional sets',
+        'If you keep going, drop top-set weights 10–15% and stay at RPE 6–7',
+        'Skip extra cardio finishers',
+        'Sleep + protein remain the limiting factor',
       ];
       tone = 'high';
     } else if (trainedToday && totalFatigue != null && totalFatigue >= 50) {
-      action = "Today's work is logged · take it easy from here";
+      action = 'Solid load logged · stay deliberate with anything more';
       bullets = [
-        "You've done enough today — avoid a second hard session",
-        'Mobility or zone-2 cardio ok if you want more movement',
+        'Already a meaningful session — cap any follow-up work',
+        'Mobility or zone-2 cardio fit well alongside what you logged',
+        'Avoid a second peaking effort today',
         'Sleep + protein priority',
-        'Tomorrow: cap volume; stay at RPE 6–7',
       ];
       tone = 'med';
     } else if (trainedToday) {
-      action = "Today's work is logged · easy add-ons only";
+      action = 'Work logged · headroom remains for more if you want it';
       bullets = [
-        'Already trained — avoid a second HARD session',
-        'Light cardio or mobility if you want more movement',
-        'Eat + sleep to bank recovery for tomorrow',
+        'Weekly load still moderate — additional sets are an option',
+        'Keep any follow-up sets calibrated (RPE 6–8)',
+        'Mobility or zone-2 cardio fit cleanly alongside today',
+        'Recovery (sleep, protein) compounds either way',
       ];
       tone = 'pos';
     }
