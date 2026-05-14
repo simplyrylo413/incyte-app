@@ -10028,12 +10028,25 @@ async function reloadFromSupabase() {
       // if a realtime fetch lands before the upsert resolves, a clobber here
       // would wipe the just-archived session from local memory and the
       // completed movement would re-surface in Today's Remaining tab.
+      // Also prefer the local copy when it has MORE entries than the cloud
+      // — covers the same-day-merge case where a local merge has folded
+      // multiple sessions into one but the cloud upsert hasn't landed yet.
+      const localById = new Map();
+      (data.workouts || []).forEach(w => { if (w && w.id) localById.set(w.id, w); });
       const cloudRows = wkRes.data
         .filter(r => !tombWk.has(r.id))
-        .map(r => ({
-          id: r.id, name: r.name, date: r.date, finished: r.finished,
-          entries: r.entries || [], savedAt: r.saved_at,
-        }));
+        .map(r => {
+          const local = localById.get(r.id);
+          const cloudEntries = r.entries || [];
+          const localEntries = local && local.entries ? local.entries : [];
+          // Prefer local if it has strictly more entries — signals an
+          // in-flight merge or archive sync that hasn't reached the cloud.
+          if (local && localEntries.length > cloudEntries.length) return local;
+          return {
+            id: r.id, name: r.name, date: r.date, finished: r.finished,
+            entries: cloudEntries, savedAt: r.saved_at,
+          };
+        });
       const cloudIds = new Set(cloudRows.map(r => r.id));
       const localOnly = (data.workouts || []).filter(w =>
         w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id)
@@ -13091,6 +13104,23 @@ function mergeSameDayHistorySessions() {
     // Drop the secondaries from data.workouts.
     const secIds = new Set(ws.slice(1).map(w => w.id));
     data.workouts = data.workouts.filter(w => !secIds.has(w.id));
+    // Push the merged primary to Supabase AND delete each secondary's
+    // cloud row. Without this, the merge is local-only — on next reload
+    // Supabase returns the old split rows, and even though the secondary
+    // is tombstoned from local view, the primary fetched from cloud is
+    // the pre-merge version (missing the secondary's sets). User report
+    // 2026-05-13: "history shows resume … i want it to merge with any
+    // other sessions from the same day."
+    try {
+      if (typeof queueWorkoutSync === 'function') {
+        queueWorkoutSync(primary);
+      } else if (typeof supabaseSyncWorkout === 'function') {
+        try { supabaseSyncWorkout(primary); } catch (_) {}
+      }
+      if (typeof deleteWorkoutFromSupabase === 'function') {
+        secIds.forEach(id => { try { deleteWorkoutFromSupabase(id); } catch (_) {} });
+      }
+    } catch (_) {}
   });
   return changed;
 }
@@ -17699,10 +17729,28 @@ $('#today-save-btn')?.addEventListener('click', async () => {
   const saved = data.active;
   data.workouts.push(saved);
   data.active = null;
+  // Same-day merge (2026-05-13): if a finished session already exists for
+  // today, fold this saved record into it so History shows a single
+  // consolidated row per day instead of "DONE 11:57 AM" + "SAVED 8:09 PM"
+  // side-by-side. mergeSameDayHistorySessions handles tombstoning the
+  // secondary and re-syncing the consolidated primary to Supabase.
+  let mergedPrimary = saved;
+  try {
+    if (typeof mergeSameDayHistorySessions === 'function') {
+      mergeSameDayHistorySessions();
+      // After merge, the row may have been folded into an earlier finished
+      // session — find the survivor for today so the Supabase push targets
+      // the right id (the saved row's id may now be tombstoned).
+      if (typeof findFinishedTodaySessionV2 === 'function') {
+        const primary = findFinishedTodaySessionV2();
+        if (primary) mergedPrimary = primary;
+      }
+    }
+  } catch (_) {}
   saveData();
   renderToday();
-  // Auto-push the saved-but-unfinished workout to Supabase.
-  await archiveWorkoutToCloud(saved);
+  // Auto-push the merged record to Supabase.
+  await archiveWorkoutToCloud(mergedPrimary);
   alert('Session saved. You can resume it from the History tab.');
 });
 // "See today's plan" button — switches to the Plan tab.
