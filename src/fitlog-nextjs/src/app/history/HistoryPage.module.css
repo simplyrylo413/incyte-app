@@ -2,12 +2,7 @@
 
 .page {
   min-height: 100dvh;
-  background: linear-gradient(155deg,
-    rgba(93,155,184,0.10) 0%,
-    rgba(155,130,200,0.07) 55%,
-    rgba(201,160,190,0.05) 100%
-  ), #f0f2f7;
-  padding-bottom: 90px;
+    padding-bottom: 90px;
 }
 
 .head {

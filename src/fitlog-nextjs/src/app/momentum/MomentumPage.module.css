@@ -8,8 +8,7 @@
 .page {
   min-height: 100svh;
   padding: 0 0 16px;
-  background: var(--paper-2, #f4f5f7);
-}
+  }
 
 .head {
   padding: 20px 20px 0;

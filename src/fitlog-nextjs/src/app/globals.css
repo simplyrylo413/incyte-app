@@ -2,8 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Google Fonts — Inter Tight + Geist Mono ────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap");
+/* ─── Google Fonts — Inter Tight + Geist Mono ───────────────────────────── */
+/* Matches the HTML build's <link> at src/fitlog-mobile.html line 12.        */
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ─── CSS custom properties (mirrors :root in fitlog-mobile.html ln 20–115) */
+/* Consumed by plan/PlanPage.module.css and any other CSS module using var(--*). */
+:root {
+  --ink:            #0f1622;
+  --ink-2:          #2c3548;
+  --muted:          #5e6a82;
+  --label:          #8893a8;
+  --paper:          #ffffff;
+  --paper-2:        #f4f5f7;
+  --paper-3:        #eceef2;
+  --accent:         #5d9bb8;
+  --accent-2:       #7fa5c7;
+  --accent-3:       #9eb5cb;
+  --ok:             #4f9aa8;
+  --warn:           #8e9bb0;
+  --bad:            #b08092;
+  --hairline:       rgba(15,22,34,0.25);
+  --hairline-soft:  rgba(15,22,34,0.11);
+  --hairline-strong:rgba(15,22,34,0.20);
+
+  --font-display: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-text:    ui-sans-serif, system-ui, -apple-system, 'Inter Tight', sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-eyebrow: 12px;
+  --text-xs:      11px;
+  --text-sm:      12px;
+  --text-base:    13px;
+  --text-md:      14px;
+  --text-lg:      15px;
+  --text-xl:      18px;
+  --text-2xl:     22px;
+  --text-3xl:     28px;
+  --text-display: 34px;
+
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-heavy:    800;
+
+  --track-tight:   -0.018em;
+  --track-normal:  -0.005em;
+  --track-eyebrow:  1.5px;
+  --leading-tight:  1.1;
+  --leading-snug:   1.25;
+  --leading-normal: 1.45;
+
+  --glass-highlight: linear-gradient(180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.10) 28%,
+    rgba(255,255,255,0) 58%
+  );
+  --glass-shadow:
+    0 2px 8px  rgba(15,22,34,0.08),
+    0 8px 24px rgba(15,22,34,0.12),
+    0 1px 2px  rgba(15,22,34,0.06);
+  --card-border: rgba(255,255,255,0.72);
+
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-premium:   cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
 
 /* ─── Base resets ────────────────────────────────────────────────────────── */
 *,
@@ -12,13 +76,22 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
-  background: theme("colors.paper-2"); /* --paper-2: #f4f5f7 */
-  color: theme("colors.ink");          /* --ink: #0f1622 */
-  font-family: theme("fontFamily.sans");
+  min-height: 100dvh;
+  /* Matches src/fitlog-mobile.html line 134 — multi-stop radial + linear */
+  background:
+    radial-gradient(ellipse at 6% 0%,   rgba(125,165,199,0.28) 0%, transparent 55%),
+    radial-gradient(ellipse at 92% 8%,  rgba(160,175,200,0.22) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%,rgba(95,155,184,0.16)  0%, transparent 60%),
+    linear-gradient(180deg, #e3e8ef 0%, #d1d8e2 55%, #bcc4d2 100%);
+  color: var(--ink);
+  font-family: var(--font-text);
   font-size: 14px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
@@ -29,24 +102,24 @@ body {
 input,
 select,
 textarea {
-  background: theme("colors.paper");
-  color: theme("colors.ink");
-  border: theme("borderWidth.DEFAULT") solid theme("colors.hairline");
-  border-radius: theme("borderRadius.btn");
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.2px solid var(--hairline);
+  border-radius: 8px;
   padding: 0.375rem 0.5rem;
   font-family: inherit;
-  font-size: theme("fontSize.sm[0]");
+  font-size: var(--text-base);
   outline: none;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: theme("colors.accent");
-  box-shadow: 0 0 0 3px rgba(93, 155, 184, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(93,155,184,0.15);
 }
 
-/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
 button {
   cursor: pointer;
   font-family: inherit;
@@ -58,16 +131,27 @@ button:disabled {
 }
 
 /* ─── Active tap feedback ─────────────────────────────────────────────────── */
-/* Matches the HTML build's transform: scale(0.94–0.97) on :active */
 button:active:not(:disabled) {
   transform: scale(0.96);
-  transition: transform 150ms cubic-bezier(0.33, 1, 0.68, 1);
+  transition: transform 150ms var(--ease-out-cubic);
 }
 
-/* ─── Hairlines ───────────────────────────────────────────────────────────── */
-/* All separators must be 1.2px — the HTML build enforced this in the 2026-05-13 pass */
+/* ─── Hairlines ──────────────────────────────────────────────────────────── */
 hr {
   border: none;
-  border-top: 1.2px solid theme("colors.hairline-soft");
+  border-top: 1.2px solid var(--hairline-soft);
   margin: 0;
+}
+
+/* ─── Glass card base (used by .app, .card in the HTML build) ────────────── */
+/* The ::after sheen — pinned top highlight on every glass surface */
+.glass-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--glass-highlight);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  pointer-events: none;
+  border-radius: inherit;
 }
