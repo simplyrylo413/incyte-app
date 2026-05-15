@@ -256,3 +256,76 @@
 .detailEntryDone {
   color: #4f9aa8;
 }
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .subline { color: #6a7384; }
+  .headline { color: #f7f9fc; }
+
+  .stateMsg { color: #8d96a5; }
+  .stateErr { color: #c89aa3; }
+
+  .emptyTitle { color: #f7f9fc; }
+  .emptySub { color: #8d96a5; }
+
+  .monthLabel { color: #6a7384; }
+
+  .workoutCard {
+    background: rgba(14,18,23,0.55);
+    border: 1.2px solid rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .workoutCard::after { opacity: 0.25; }
+
+  .workoutDay { color: #f7f9fc; }
+  .workoutDow { color: #4dd0e1; }
+  .workoutName { color: #f7f9fc; }
+
+  .metaChip {
+    color: #6a7384;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .workoutChev { color: #6a7384; }
+
+  .detailList { border-top-color: rgba(255,255,255,0.10); }
+  .detailEntryName { color: #d4dae3; }
+  .detailEntryMeta { color: #6a7384; }
+  .detailEntryDone { color: #7ec0a8; }
+}
+
+:global(body.theme-dark) .subline { color: #6a7384; }
+:global(body.theme-dark) .headline { color: #f7f9fc; }
+
+:global(body.theme-dark) .stateMsg { color: #8d96a5; }
+:global(body.theme-dark) .stateErr { color: #c89aa3; }
+
+:global(body.theme-dark) .emptyTitle { color: #f7f9fc; }
+:global(body.theme-dark) .emptySub { color: #8d96a5; }
+
+:global(body.theme-dark) .monthLabel { color: #6a7384; }
+
+:global(body.theme-dark) .workoutCard {
+  background: rgba(14,18,23,0.55);
+  border: 1.2px solid rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .workoutCard::after { opacity: 0.25; }
+
+:global(body.theme-dark) .workoutDay { color: #f7f9fc; }
+:global(body.theme-dark) .workoutDow { color: #4dd0e1; }
+:global(body.theme-dark) .workoutName { color: #f7f9fc; }
+
+:global(body.theme-dark) .metaChip {
+  color: #6a7384;
+  background: rgba(255,255,255,0.08);
+}
+
+:global(body.theme-dark) .workoutChev { color: #6a7384; }
+
+:global(body.theme-dark) .detailList { border-top-color: rgba(255,255,255,0.10); }
+:global(body.theme-dark) .detailEntryName { color: #d4dae3; }
+:global(body.theme-dark) .detailEntryMeta { color: #6a7384; }
+:global(body.theme-dark) .detailEntryDone { color: #7ec0a8; }

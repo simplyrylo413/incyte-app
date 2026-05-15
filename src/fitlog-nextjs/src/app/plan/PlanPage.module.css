@@ -664,3 +664,212 @@
   font-size: 13px;
   color: var(--muted, #5e6a82);
 }
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .headline { color: #f7f9fc; }
+  .subline { color: #6a7384; }
+
+  .wdayLetter { color: #8d96a5; }
+  .wday.today .wdayLetter { color: #4dd0e1; }
+
+  .wdayDot {
+    border-color: rgba(255,255,255,0.18);
+    color: #8d96a5;
+  }
+
+  .wday.today .wdayDot {
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(77,208,225,0.40) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(215,123,168,0.35) 0%, transparent 60%),
+      rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    color: #f7f9fc;
+  }
+
+  .wdayCount { color: #8d96a5; }
+  .wday.today .wdayCount { color: #f7f9fc; }
+
+  .dayCard {
+    background: rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .dayHead { border-bottom-color: rgba(255,255,255,0.10); }
+
+  .dayEyebrow { color: #6a7384; }
+  .dayName { color: #4dd0e1; }
+
+  .dayEta {
+    color: #8d96a5;
+    border-color: rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .dayChev { color: #8d96a5; }
+
+  .dayServings { color: #d4dae3; }
+  .dayServingsLabel { color: #8d96a5; }
+
+  .muscleEyebrow { color: #6a7384; }
+
+  .mvRow {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .mvName { color: #f7f9fc; }
+  .mvRow.undone .mvName { color: #4dd0e1; }
+  .mvRow.done .mvName { color: #8d96a5; }
+
+  .mvMeta { color: #8d96a5; }
+  .mvChev { color: #8d96a5; }
+
+  .restLabel { color: #8d96a5; }
+  .restSub { color: #6a7384; }
+
+  .addRow { color: #8d96a5; border-top-color: rgba(255,255,255,0.10); }
+  .addRow:active { color: #f7f9fc; }
+
+  .sheet { background: #161b23; }
+  .sheetHandle { background: rgba(255,255,255,0.18); }
+  .sheetTitle { color: #f7f9fc; }
+
+  .sheetClose {
+    background: rgba(255,255,255,0.08);
+    color: #8d96a5;
+  }
+
+  .searchInput {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    color: #f7f9fc;
+  }
+
+  .pickerGroupLabel { color: #6a7384; }
+  .pickerItemName { color: #f7f9fc; }
+  .pickerItemMeta { color: #6a7384; }
+  .pickerItem:active { background: rgba(255,255,255,0.06); }
+
+  .fieldLabel { color: #6a7384; }
+
+  .fieldInput {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+    color: #f7f9fc;
+  }
+
+  .editMvName { color: #f7f9fc; }
+
+  .btnRemove {
+    color: #c89aa3;
+    border-color: #c89aa3;
+  }
+
+  .emptyPicker { color: #8d96a5; }
+}
+
+:global(body.theme-dark) .headline { color: #f7f9fc; }
+:global(body.theme-dark) .subline { color: #6a7384; }
+
+:global(body.theme-dark) .wdayLetter { color: #8d96a5; }
+:global(body.theme-dark) .wday.today .wdayLetter { color: #4dd0e1; }
+
+:global(body.theme-dark) .wdayDot {
+  border-color: rgba(255,255,255,0.18);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .wday.today .wdayDot {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(77,208,225,0.40) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(215,123,168,0.35) 0%, transparent 60%),
+    rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .wdayCount { color: #8d96a5; }
+:global(body.theme-dark) .wday.today .wdayCount { color: #f7f9fc; }
+
+:global(body.theme-dark) .dayCard {
+  background: rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .dayHead { border-bottom-color: rgba(255,255,255,0.10); }
+
+:global(body.theme-dark) .dayEyebrow { color: #6a7384; }
+:global(body.theme-dark) .dayName { color: #4dd0e1; }
+
+:global(body.theme-dark) .dayEta {
+  color: #8d96a5;
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+}
+
+:global(body.theme-dark) .dayChev { color: #8d96a5; }
+
+:global(body.theme-dark) .dayServings { color: #d4dae3; }
+:global(body.theme-dark) .dayServingsLabel { color: #8d96a5; }
+
+:global(body.theme-dark) .muscleEyebrow { color: #6a7384; }
+
+:global(body.theme-dark) .mvRow {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .mvName { color: #f7f9fc; }
+:global(body.theme-dark) .mvRow.undone .mvName { color: #4dd0e1; }
+:global(body.theme-dark) .mvRow.done .mvName { color: #8d96a5; }
+
+:global(body.theme-dark) .mvMeta { color: #8d96a5; }
+:global(body.theme-dark) .mvChev { color: #8d96a5; }
+
+:global(body.theme-dark) .restLabel { color: #8d96a5; }
+:global(body.theme-dark) .restSub { color: #6a7384; }
+
+:global(body.theme-dark) .addRow { color: #8d96a5; border-top-color: rgba(255,255,255,0.10); }
+:global(body.theme-dark) .addRow:active { color: #f7f9fc; }
+
+:global(body.theme-dark) .sheet { background: #161b23; }
+:global(body.theme-dark) .sheetHandle { background: rgba(255,255,255,0.18); }
+:global(body.theme-dark) .sheetTitle { color: #f7f9fc; }
+
+:global(body.theme-dark) .sheetClose {
+  background: rgba(255,255,255,0.08);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .searchInput {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .pickerGroupLabel { color: #6a7384; }
+:global(body.theme-dark) .pickerItemName { color: #f7f9fc; }
+:global(body.theme-dark) .pickerItemMeta { color: #6a7384; }
+:global(body.theme-dark) .pickerItem:active { background: rgba(255,255,255,0.06); }
+
+:global(body.theme-dark) .fieldLabel { color: #6a7384; }
+
+:global(body.theme-dark) .fieldInput {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .editMvName { color: #f7f9fc; }
+
+:global(body.theme-dark) .btnRemove {
+  color: #c89aa3;
+  border-color: #c89aa3;
+}
+
+:global(body.theme-dark) .emptyPicker { color: #8d96a5; }

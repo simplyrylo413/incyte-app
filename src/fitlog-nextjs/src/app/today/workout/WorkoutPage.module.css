@@ -906,3 +906,346 @@
 }
 
 .pkDone:active { transform: scale(0.98); }
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .page { background: #161b23; }
+
+  .backChip {
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
+      rgba(14,18,23,0.55);
+    border-color: #4dd0e1;
+    color: #4dd0e1;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 0 0 1px rgba(77,208,225,0.18),
+      0 10px 22px rgba(77,208,225,0.18),
+      0 4px 8px rgba(0,0,0,0.35);
+  }
+
+  .backChip::after { opacity: 0.25; }
+
+  .bodyPart { color: #f7f9fc; }
+  .mvName { color: #f7f9fc; }
+
+  .prior {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+  }
+
+  .priorLbl { color: #8d96a5; }
+  .priorDate { color: #8d96a5; }
+  .priorVals { color: #6a7384; }
+
+  .heroEyebrow { color: #6a7384; }
+  .nowMarker { color: #f7f9fc; }
+
+  .togglePill {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    color: #8d96a5;
+  }
+
+  .togglePillOn {
+    background: #f7f9fc;
+    color: #0f1622;
+    border-color: #f7f9fc;
+  }
+
+  .restPill {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    color: #8d96a5;
+  }
+
+  .heroNum { color: #f7f9fc; }
+  .heroNumEmpty { color: #6a7384; }
+  .heroSep { color: #6a7384; }
+
+  .heroUnitsBar {
+    color: #f7f9fc;
+    border-top-color: rgba(255,255,255,0.14);
+  }
+
+  .heroFinishLink {
+    border-color: rgba(255,255,255,0.14);
+    color: #8d96a5;
+  }
+
+  .heroFinishLink:hover { background: rgba(255,255,255,0.06); color: #f7f9fc; }
+
+  .completeMsg { color: #8d96a5; }
+
+  .colHead { color: #f7f9fc; }
+
+  .setRow {
+    background: rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .setRowDone {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+  }
+
+  .setRowDone:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  .rSetBtn { color: #7ec0a8; }
+  .rSetBtn:hover { background: rgba(255,255,255,0.06); }
+  .rSetBtnWarmup { color: #c89aa3; }
+
+  .wuBtn { border-color: #7ec0a8; color: #7ec0a8; }
+  .wuBtnWarmup { color: #c89aa3; border-color: #c89aa3; }
+
+  .bwBtn { border-color: #f7f9fc; color: #f7f9fc; }
+  .bwBtnOn { background: #f7f9fc; color: #0f1622; }
+
+  .rPrev { color: #6a7384; }
+  .rVals { color: #f7f9fc; }
+  .setRowDone .rVals { color: #8d96a5; }
+
+  .editX { color: #6a7384; }
+  .editNumBlank { color: #6a7384; }
+  .rpeBit { color: #6a7384; }
+
+  .chkTarget {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    color: #6a7384;
+  }
+
+  .recInline {
+    background: linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.12) 100%);
+    border-color: rgba(77,208,225,0.25);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 0 0 1px rgba(255,255,255,0.06) inset,
+      0 10px 24px rgba(0,0,0,0.35);
+  }
+
+  .recSummary { color: #8d96a5; }
+  .recTag { color: #4dd0e1; }
+  .recAction { color: #f7f9fc; }
+  .recArrow { color: #6a7384; }
+  .recNext { color: #4dd0e1; }
+  .recReason { color: #6a7384; }
+
+  .recApply {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(77,208,225,0.25);
+    color: #4dd0e1;
+  }
+
+  .recApply:hover { background: rgba(77,208,225,0.10); }
+
+  .addSetBtn {
+    border-color: rgba(255,255,255,0.14);
+    color: #8d96a5;
+  }
+
+  .addSetBtn:hover {
+    background: rgba(77,208,225,0.06);
+    border-color: rgba(77,208,225,0.25);
+    color: #4dd0e1;
+  }
+
+  .pickerSheet {
+    background: rgba(22,27,35,0.96);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .pickerTitle { color: #f7f9fc; }
+  .pickerUnit { color: #6a7384; }
+  .pickerVal { color: #f7f9fc; }
+
+  .pkStepper {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.10);
+    color: #f7f9fc;
+  }
+
+  .pkStepper:hover { background: rgba(255,255,255,0.12); }
+
+  .pkPreset {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.10);
+    color: #f7f9fc;
+  }
+
+  .pkPreset:hover { background: rgba(255,255,255,0.12); }
+}
+
+:global(body.theme-dark) .page { background: #161b23; }
+
+:global(body.theme-dark) .backChip {
+  background:
+    linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
+    rgba(14,18,23,0.55);
+  border-color: #4dd0e1;
+  color: #4dd0e1;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 0 0 1px rgba(77,208,225,0.18),
+    0 10px 22px rgba(77,208,225,0.18),
+    0 4px 8px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .backChip::after { opacity: 0.25; }
+
+:global(body.theme-dark) .bodyPart { color: #f7f9fc; }
+:global(body.theme-dark) .mvName { color: #f7f9fc; }
+
+:global(body.theme-dark) .prior {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+
+:global(body.theme-dark) .priorLbl { color: #8d96a5; }
+:global(body.theme-dark) .priorDate { color: #8d96a5; }
+:global(body.theme-dark) .priorVals { color: #6a7384; }
+
+:global(body.theme-dark) .heroEyebrow { color: #6a7384; }
+:global(body.theme-dark) .nowMarker { color: #f7f9fc; }
+
+:global(body.theme-dark) .togglePill {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .togglePillOn {
+  background: #f7f9fc;
+  color: #0f1622;
+  border-color: #f7f9fc;
+}
+
+:global(body.theme-dark) .restPill {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .heroNum { color: #f7f9fc; }
+:global(body.theme-dark) .heroNumEmpty { color: #6a7384; }
+:global(body.theme-dark) .heroSep { color: #6a7384; }
+
+:global(body.theme-dark) .heroUnitsBar {
+  color: #f7f9fc;
+  border-top-color: rgba(255,255,255,0.14);
+}
+
+:global(body.theme-dark) .heroFinishLink {
+  border-color: rgba(255,255,255,0.14);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .heroFinishLink:hover { background: rgba(255,255,255,0.06); color: #f7f9fc; }
+
+:global(body.theme-dark) .completeMsg { color: #8d96a5; }
+
+:global(body.theme-dark) .colHead { color: #f7f9fc; }
+
+:global(body.theme-dark) .setRow {
+  background: rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .setRowDone {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+
+:global(body.theme-dark) .setRowDone:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+  border-color: rgba(255,255,255,0.18);
+}
+
+:global(body.theme-dark) .rSetBtn { color: #7ec0a8; }
+:global(body.theme-dark) .rSetBtn:hover { background: rgba(255,255,255,0.06); }
+:global(body.theme-dark) .rSetBtnWarmup { color: #c89aa3; }
+
+:global(body.theme-dark) .wuBtn { border-color: #7ec0a8; color: #7ec0a8; }
+:global(body.theme-dark) .wuBtnWarmup { color: #c89aa3; border-color: #c89aa3; }
+
+:global(body.theme-dark) .bwBtn { border-color: #f7f9fc; color: #f7f9fc; }
+:global(body.theme-dark) .bwBtnOn { background: #f7f9fc; color: #0f1622; }
+
+:global(body.theme-dark) .rPrev { color: #6a7384; }
+:global(body.theme-dark) .rVals { color: #f7f9fc; }
+:global(body.theme-dark) .setRowDone .rVals { color: #8d96a5; }
+
+:global(body.theme-dark) .editX { color: #6a7384; }
+:global(body.theme-dark) .editNumBlank { color: #6a7384; }
+:global(body.theme-dark) .rpeBit { color: #6a7384; }
+
+:global(body.theme-dark) .chkTarget {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: #6a7384;
+}
+
+:global(body.theme-dark) .recInline {
+  background: linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.12) 100%);
+  border-color: rgba(77,208,225,0.25);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 10px 24px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .recSummary { color: #8d96a5; }
+:global(body.theme-dark) .recTag { color: #4dd0e1; }
+:global(body.theme-dark) .recAction { color: #f7f9fc; }
+:global(body.theme-dark) .recArrow { color: #6a7384; }
+:global(body.theme-dark) .recNext { color: #4dd0e1; }
+:global(body.theme-dark) .recReason { color: #6a7384; }
+
+:global(body.theme-dark) .recApply {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(77,208,225,0.25);
+  color: #4dd0e1;
+}
+
+:global(body.theme-dark) .recApply:hover { background: rgba(77,208,225,0.10); }
+
+:global(body.theme-dark) .addSetBtn {
+  border-color: rgba(255,255,255,0.14);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .addSetBtn:hover {
+  background: rgba(77,208,225,0.06);
+  border-color: rgba(77,208,225,0.25);
+  color: #4dd0e1;
+}
+
+:global(body.theme-dark) .pickerSheet {
+  background: rgba(22,27,35,0.96);
+  border-color: rgba(255,255,255,0.12);
+}
+
+:global(body.theme-dark) .pickerTitle { color: #f7f9fc; }
+:global(body.theme-dark) .pickerUnit { color: #6a7384; }
+:global(body.theme-dark) .pickerVal { color: #f7f9fc; }
+
+:global(body.theme-dark) .pkStepper {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.10);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .pkStepper:hover { background: rgba(255,255,255,0.12); }
+
+:global(body.theme-dark) .pkPreset {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.10);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .pkPreset:hover { background: rgba(255,255,255,0.12); }

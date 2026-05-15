@@ -648,3 +648,158 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .headline { color: #f7f9fc; }
+  .subline { color: #6a7384; }
+
+  .heroCard {
+    background: rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 2px 8px rgba(0,0,0,0.45),
+      0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .heroCard::after { opacity: 0.25; }
+
+  .readinessCard {
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(77,208,225,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgba(215,123,168,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(183,142,215,0.07) 0%, transparent 70%),
+      rgba(14,18,23,0.55);
+  }
+
+  .heroCardEyebrow { color: #6a7384; }
+  .heroCardTitle { color: #f7f9fc; }
+  .heroCardChev { color: #8d96a5; }
+
+  .readinessStatLabel { color: #6a7384; }
+  .readinessStatValue { color: #f7f9fc; }
+  .readinessStatSuffix { color: #8d96a5; }
+  .readinessStatCaption { color: #8d96a5; }
+  .readinessStatCaption strong { color: #d4dae3; }
+
+  .rdRecommendation { border-top-color: rgba(255,255,255,0.10); }
+  .rdRecTri { color: #8d96a5; }
+  .rdRecLabel { color: #6a7384; }
+  .rdRecAction { color: #f7f9fc; }
+  .rdRecBullets { color: #d4dae3; }
+
+  .fatigueTogglePill { background: rgba(255,255,255,0.08); }
+  .fatigueToggleBtn { color: #8d96a5; }
+  .fatigueToggleBtn.on {
+    background: rgba(255,255,255,0.12);
+    color: #f7f9fc;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+
+  .fatigueRow {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .fatigueRowName { color: #f7f9fc; }
+  .fatigueBarWrap { background: rgba(255,255,255,0.08); }
+  .fatiguePct { color: #8d96a5; }
+
+  .stimulusNum { color: #f7f9fc; }
+  .stimulusSuffix { color: #8d96a5; }
+  .stimulusLabel { color: #6a7384; }
+  .stimulusTier { color: #f7f9fc; }
+
+  .stimulusBarName { color: #f7f9fc; }
+  .stimulusBarTrack { background: rgba(255,255,255,0.08); }
+  .stimulusSets { color: #8d96a5; }
+  .stimulusEmpty { color: #8d96a5; }
+
+  .prBadge {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+  }
+
+  .prGlyph { color: #4dd0e1; }
+  .prLabel { color: #6a7384; }
+  .prValue { color: #f7f9fc; }
+  .prSub { color: #8d96a5; }
+}
+
+:global(body.theme-dark) .headline { color: #f7f9fc; }
+:global(body.theme-dark) .subline { color: #6a7384; }
+
+:global(body.theme-dark) .heroCard {
+  background: rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 2px 8px rgba(0,0,0,0.45),
+    0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .heroCard::after { opacity: 0.25; }
+
+:global(body.theme-dark) .readinessCard {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(77,208,225,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(215,123,168,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(183,142,215,0.07) 0%, transparent 70%),
+    rgba(14,18,23,0.55);
+}
+
+:global(body.theme-dark) .heroCardEyebrow { color: #6a7384; }
+:global(body.theme-dark) .heroCardTitle { color: #f7f9fc; }
+:global(body.theme-dark) .heroCardChev { color: #8d96a5; }
+
+:global(body.theme-dark) .readinessStatLabel { color: #6a7384; }
+:global(body.theme-dark) .readinessStatValue { color: #f7f9fc; }
+:global(body.theme-dark) .readinessStatSuffix { color: #8d96a5; }
+:global(body.theme-dark) .readinessStatCaption { color: #8d96a5; }
+:global(body.theme-dark) .readinessStatCaption strong { color: #d4dae3; }
+
+:global(body.theme-dark) .rdRecommendation { border-top-color: rgba(255,255,255,0.10); }
+:global(body.theme-dark) .rdRecTri { color: #8d96a5; }
+:global(body.theme-dark) .rdRecLabel { color: #6a7384; }
+:global(body.theme-dark) .rdRecAction { color: #f7f9fc; }
+:global(body.theme-dark) .rdRecBullets { color: #d4dae3; }
+
+:global(body.theme-dark) .fatigueTogglePill { background: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .fatigueToggleBtn { color: #8d96a5; }
+:global(body.theme-dark) .fatigueToggleBtn.on {
+  background: rgba(255,255,255,0.12);
+  color: #f7f9fc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .fatigueRow {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .fatigueRowName { color: #f7f9fc; }
+:global(body.theme-dark) .fatigueBarWrap { background: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .fatiguePct { color: #8d96a5; }
+
+:global(body.theme-dark) .stimulusNum { color: #f7f9fc; }
+:global(body.theme-dark) .stimulusSuffix { color: #8d96a5; }
+:global(body.theme-dark) .stimulusLabel { color: #6a7384; }
+:global(body.theme-dark) .stimulusTier { color: #f7f9fc; }
+
+:global(body.theme-dark) .stimulusBarName { color: #f7f9fc; }
+:global(body.theme-dark) .stimulusBarTrack { background: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .stimulusSets { color: #8d96a5; }
+:global(body.theme-dark) .stimulusEmpty { color: #8d96a5; }
+
+:global(body.theme-dark) .prBadge {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+
+:global(body.theme-dark) .prGlyph { color: #4dd0e1; }
+:global(body.theme-dark) .prLabel { color: #6a7384; }
+:global(body.theme-dark) .prValue { color: #f7f9fc; }
+:global(body.theme-dark) .prSub { color: #8d96a5; }

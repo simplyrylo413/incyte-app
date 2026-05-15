@@ -720,3 +720,314 @@
   color: #8893a8;
   text-align: center;
 }
+
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .page { background: #161b23; }
+
+  .headline { color: #f7f9fc; }
+  .dateLine { color: #6a7384; }
+
+  .progress {
+    background:
+      linear-gradient(155deg, rgba(93,155,184,0.24) 0%, rgba(155,130,200,0.17) 55%, rgba(201,160,190,0.12) 100%),
+      rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 0 0 1px rgba(93,155,184,0.10),
+      0 2px 8px rgba(0,0,0,0.45),
+      0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .progress::after { opacity: 0.25; }
+
+  .stat + .stat::before { background: rgba(255,255,255,0.10); }
+
+  .statLabel { color: #8d96a5; }
+  .statValue { color: #f7f9fc; }
+  .statUnit { color: #8d96a5; }
+  .volParts { color: #6a7384; }
+  .volParts span em { color: #8d96a5; }
+  .miniBar { background: rgba(255,255,255,0.08); }
+
+  .planned { color: #f7f9fc; }
+  .plannedNum { color: #f7f9fc; }
+  .plannedSep { color: #6a7384; }
+  .plannedUnit { color: #8d96a5; }
+  .readyLabel { color: #8d96a5; }
+
+  .tabToggle { background: rgba(255,255,255,0.08); }
+  .tabBtn { color: #8d96a5; }
+  .tabBtnActive {
+    background: rgba(255,255,255,0.12);
+    color: #f7f9fc;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.08) inset;
+  }
+
+  .eyebrow { color: #6a7384; }
+
+  .mv {
+    background: rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  .mv:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.35);
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  .mvComplete {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+  }
+
+  .mvName { color: #f7f9fc; }
+  .mvComplete .mvName { color: #8d96a5; }
+
+  .equip {
+    color: #8d96a5;
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  .equip:hover {
+    background: rgba(255,255,255,0.06);
+    color: #f7f9fc;
+    border-color: rgba(255,255,255,0.24);
+  }
+
+  .equipPop {
+    background: rgba(22,27,35,0.95);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.35);
+  }
+
+  .equipChip {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.10);
+    color: #f7f9fc;
+  }
+
+  .equipChip:hover { background: rgba(255,255,255,0.12); }
+
+  .equipChipActive {
+    background: #f7f9fc;
+    color: #0f1622;
+    border-color: #f7f9fc;
+  }
+
+  .progressChip {
+    color: #f7f9fc;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  .progressChipDone {
+    color: #7ec0a8;
+    background: rgba(126,192,168,0.12);
+    border-color: rgba(126,192,168,0.22);
+  }
+
+  .progressChipSkipped {
+    color: #c89aa3;
+    background: rgba(200,154,163,0.12);
+    border-color: rgba(200,154,163,0.22);
+  }
+
+  .progressChipPartial {
+    color: #4dd0e1;
+    background: rgba(77,208,225,0.10);
+    border-color: rgba(77,208,225,0.20);
+  }
+
+  .removeBtn {
+    border-color: rgba(255,255,255,0.14);
+    color: #6a7384;
+  }
+
+  .removeBtn:hover { color: #c89aa3; border-color: rgba(200,154,163,0.30); }
+
+  .emptyState {
+    background: rgba(14,18,23,0.55);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .emptyEb { color: #6a7384; }
+  .emptyTitle { color: #f7f9fc; }
+  .emptyBody { color: #8d96a5; }
+
+  .sheet { background: #161b23; }
+  .sheetHandle { background: rgba(255,255,255,0.18); }
+  .sheetTitle { color: #f7f9fc; }
+  .sheetClose { color: #6a7384; }
+  .sheetClose:hover { color: #f7f9fc; }
+
+  .searchInput {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+    color: #f7f9fc;
+  }
+
+  .pickerGroupLabel { color: #6a7384; }
+  .pickerName { color: #f7f9fc; }
+  .pickerEquip {
+    color: #6a7384;
+    background: rgba(255,255,255,0.08);
+  }
+  .pickerEmpty { color: #6a7384; }
+}
+
+:global(body.theme-dark) .page { background: #161b23; }
+
+:global(body.theme-dark) .headline { color: #f7f9fc; }
+:global(body.theme-dark) .dateLine { color: #6a7384; }
+
+:global(body.theme-dark) .progress {
+  background:
+    linear-gradient(155deg, rgba(93,155,184,0.24) 0%, rgba(155,130,200,0.17) 55%, rgba(201,160,190,0.12) 100%),
+    rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 0 0 1px rgba(93,155,184,0.10),
+    0 2px 8px rgba(0,0,0,0.45),
+    0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .progress::after { opacity: 0.25; }
+
+:global(body.theme-dark) .stat + .stat::before { background: rgba(255,255,255,0.10); }
+
+:global(body.theme-dark) .statLabel { color: #8d96a5; }
+:global(body.theme-dark) .statValue { color: #f7f9fc; }
+:global(body.theme-dark) .statUnit { color: #8d96a5; }
+:global(body.theme-dark) .volParts { color: #6a7384; }
+:global(body.theme-dark) .volParts span em { color: #8d96a5; }
+:global(body.theme-dark) .miniBar { background: rgba(255,255,255,0.08); }
+
+:global(body.theme-dark) .planned { color: #f7f9fc; }
+:global(body.theme-dark) .plannedNum { color: #f7f9fc; }
+:global(body.theme-dark) .plannedSep { color: #6a7384; }
+:global(body.theme-dark) .plannedUnit { color: #8d96a5; }
+:global(body.theme-dark) .readyLabel { color: #8d96a5; }
+
+:global(body.theme-dark) .tabToggle { background: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .tabBtn { color: #8d96a5; }
+:global(body.theme-dark) .tabBtnActive {
+  background: rgba(255,255,255,0.12);
+  color: #f7f9fc;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.08) inset;
+}
+
+:global(body.theme-dark) .eyebrow { color: #6a7384; }
+
+:global(body.theme-dark) .mv {
+  background: rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .mv:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.35);
+  border-color: rgba(255,255,255,0.18);
+}
+
+:global(body.theme-dark) .mvComplete {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+}
+
+:global(body.theme-dark) .mvName { color: #f7f9fc; }
+:global(body.theme-dark) .mvComplete .mvName { color: #8d96a5; }
+
+:global(body.theme-dark) .equip {
+  color: #8d96a5;
+  border-color: rgba(255,255,255,0.14);
+}
+
+:global(body.theme-dark) .equip:hover {
+  background: rgba(255,255,255,0.06);
+  color: #f7f9fc;
+  border-color: rgba(255,255,255,0.24);
+}
+
+:global(body.theme-dark) .equipPop {
+  background: rgba(22,27,35,0.95);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.35);
+}
+
+:global(body.theme-dark) .equipChip {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.10);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .equipChip:hover { background: rgba(255,255,255,0.12); }
+
+:global(body.theme-dark) .equipChipActive {
+  background: #f7f9fc;
+  color: #0f1622;
+  border-color: #f7f9fc;
+}
+
+:global(body.theme-dark) .progressChip {
+  color: #f7f9fc;
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+}
+
+:global(body.theme-dark) .progressChipDone {
+  color: #7ec0a8;
+  background: rgba(126,192,168,0.12);
+  border-color: rgba(126,192,168,0.22);
+}
+
+:global(body.theme-dark) .progressChipSkipped {
+  color: #c89aa3;
+  background: rgba(200,154,163,0.12);
+  border-color: rgba(200,154,163,0.22);
+}
+
+:global(body.theme-dark) .progressChipPartial {
+  color: #4dd0e1;
+  background: rgba(77,208,225,0.10);
+  border-color: rgba(77,208,225,0.20);
+}
+
+:global(body.theme-dark) .removeBtn {
+  border-color: rgba(255,255,255,0.14);
+  color: #6a7384;
+}
+
+:global(body.theme-dark) .removeBtn:hover { color: #c89aa3; border-color: rgba(200,154,163,0.30); }
+
+:global(body.theme-dark) .emptyState {
+  background: rgba(14,18,23,0.55);
+  border-color: rgba(255,255,255,0.12);
+}
+
+:global(body.theme-dark) .emptyEb { color: #6a7384; }
+:global(body.theme-dark) .emptyTitle { color: #f7f9fc; }
+:global(body.theme-dark) .emptyBody { color: #8d96a5; }
+
+:global(body.theme-dark) .sheet { background: #161b23; }
+:global(body.theme-dark) .sheetHandle { background: rgba(255,255,255,0.18); }
+:global(body.theme-dark) .sheetTitle { color: #f7f9fc; }
+:global(body.theme-dark) .sheetClose { color: #6a7384; }
+:global(body.theme-dark) .sheetClose:hover { color: #f7f9fc; }
+
+:global(body.theme-dark) .searchInput {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: #f7f9fc;
+}
+
+:global(body.theme-dark) .pickerGroupLabel { color: #6a7384; }
+:global(body.theme-dark) .pickerName { color: #f7f9fc; }
+:global(body.theme-dark) .pickerEquip {
+  color: #6a7384;
+  background: rgba(255,255,255,0.08);
+}
+:global(body.theme-dark) .pickerEmpty { color: #6a7384; }

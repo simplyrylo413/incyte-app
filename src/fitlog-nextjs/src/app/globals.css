@@ -98,6 +98,81 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Dark mode — token flip + body background ───────────────────────────── */
+/* Matches body.theme-dark in fitlog-mobile.html line 4576.                   */
+/* Both media-query (auto) and class (manual toggle) are supported.           */
+@media (prefers-color-scheme: dark) { :root { --dark: 1; } }
+body.theme-dark { --dark: 1; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:          #0e1217;
+    --paper-2:        #161b23;
+    --paper-3:        #1f2632;
+    --ink:            #f7f9fc;
+    --ink-2:          #d4dae3;
+    --muted:          #8d96a5;
+    --label:          #6a7384;
+    --hairline:       rgba(255,255,255,0.28);
+    --hairline-soft:  rgba(255,255,255,0.11);
+    --hairline-strong:rgba(255,255,255,0.20);
+    --card-border:    rgba(255,255,255,0.16);
+    --accent:         #4dd0e1;
+    --accent-2:       #d77ba8;
+    --accent-3:       #b78ed7;
+    --ok:             #7ec0a8;
+    --warn:           #c4baa8;
+    --bad:            #c89aa3;
+    --glass-bg:       rgba(14,18,23,0.55);
+    --glass-highlight: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 28%, rgba(255,255,255,0) 60%);
+    --glass-shadow:
+      0 1px 0 rgba(255,255,255,0.12) inset,
+      0 -1px 0 rgba(0,0,0,0.45) inset,
+      0 3px 8px rgba(0,0,0,0.50),
+      0 16px 32px rgba(0,0,0,0.55),
+      0 32px 72px rgba(0,0,0,0.55);
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at 8%  0%,  rgba(143,185,211,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 92% 12%, rgba(210,221,231,0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #050608 0%, #0a0c10 55%, #04050a 100%);
+  }
+}
+
+body.theme-dark {
+  --paper:          #0e1217;
+  --paper-2:        #161b23;
+  --paper-3:        #1f2632;
+  --ink:            #f7f9fc;
+  --ink-2:          #d4dae3;
+  --muted:          #8d96a5;
+  --label:          #6a7384;
+  --hairline:       rgba(255,255,255,0.28);
+  --hairline-soft:  rgba(255,255,255,0.11);
+  --hairline-strong:rgba(255,255,255,0.20);
+  --card-border:    rgba(255,255,255,0.16);
+  --accent:         #4dd0e1;
+  --accent-2:       #d77ba8;
+  --accent-3:       #b78ed7;
+  --ok:             #7ec0a8;
+  --warn:           #c4baa8;
+  --bad:            #c89aa3;
+  --glass-bg:       rgba(14,18,23,0.55);
+  --glass-highlight: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 28%, rgba(255,255,255,0) 60%);
+  --glass-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.45) inset,
+    0 3px 8px rgba(0,0,0,0.50),
+    0 16px 32px rgba(0,0,0,0.55),
+    0 32px 72px rgba(0,0,0,0.55);
+  background:
+    radial-gradient(ellipse at 8%  0%,  rgba(143,185,211,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 92% 12%, rgba(210,221,231,0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #050608 0%, #0a0c10 55%, #04050a 100%);
+}
+
 /* ─── Form elements ──────────────────────────────────────────────────────── */
 input,
 select,
