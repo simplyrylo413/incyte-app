@@ -1,0 +1,84 @@
+/* BottomNav glass-pill styles.
+ * Tailwind can't express layered inset box-shadows or complex backdrop-filter
+ * combos cleanly, so the structural glass treatment lives here.
+ * All color values mirror the HTML build's .bottom-nav light-mode rules.
+ * Source reference: src/fitlog-mobile.html lines 5416–5512.
+ */
+
+/* ── The pill container ──────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  left: 50%;
+  transform: translateX(-50%) scale(1.15);
+  transform-origin: bottom center;
+  z-index: 200;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+
+  /* Light-mode glass pill — matches body:not(.theme-dark) .bottom-nav */
+  background: rgba(255, 255, 255, 0.72);
+  border: 1.2px solid rgba(15, 22, 34, 0.18);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 0 rgba(15, 22, 34, 0.06) inset,
+    0 3px 8px rgba(15, 22, 34, 0.10),
+    0 10px 22px rgba(15, 22, 34, 0.18),
+    0 26px 50px rgba(15, 22, 34, 0.18);
+
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+/* ── Divider between Momentum and More ──────────────────────────────────── */
+.divider {
+  width: 1.2px;
+  align-self: stretch;
+  margin: 6px 2px;
+  background: rgba(15, 22, 34, 0.14);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* ── Individual tab button ───────────────────────────────────────────────── */
+.tab {
+  background: transparent;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  min-width: 48px;
+  color: #5e6a82; /* --muted */
+  transition:
+    color 0.24s ease,
+    background 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.22s cubic-bezier(0.34, 1.08, 0.64, 1);
+}
+
+.tab:not(.active):active {
+  transform: scale(0.94);
+}
+
+/* ── Active tab — white card lift ───────────────────────────────────────── */
+/* Matches body:not(.theme-dark) .bottom-nav-tab.active */
+.tab.active {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f1622; /* --ink */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -1px 0 rgba(15, 22, 34, 0.04) inset,
+    0 3px 10px rgba(15, 22, 34, 0.10),
+    0 7px 20px rgba(15, 22, 34, 0.12);
+  transform: translateY(-1px);
+}
+
+.tab.active:active {
+  transform: translateY(-1px) scale(0.96);
+}
