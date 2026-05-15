@@ -1,8 +1,8 @@
 # INCYTE — Onboarding Handoff
 
-> Single-page orientation for anyone (or any AI session) starting cold. Skim this top-to-bottom, then go to the linked source documents for depth.
+> Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-13_
+_Last updated: 2026-05-15_
 
 ---
 
@@ -24,126 +24,234 @@ _Last updated: 2026-05-13_
 
 | Path | What |
 |---|---|
-| `~/fitness-app/src/fitlog-mobile.html` | The app. ~21.6k lines, single-file vanilla JS/HTML/CSS, no build step. Canonical working file. |
-| `~/fitness-app/src/fitlog-nextjs/` | Dormant Next.js scaffold (Cowork #25). Eventual port destination; not the current path. |
-| `~/fitness-app/pm/` | All PM artifacts (this doc, roadmap, backlog, decisions, etc.). |
-| `~/fitness-app/pm/mockups/` | Design mockups; `prototype.html` is the Today + Workout Mode reference being ported in. |
-| `~/fitness-app/.git/` | Git repo on `main`. Commits replace the old `mobile{N+1}.html` snapshot workflow ([decisions.md 2026-05-12](decisions.md)). |
+| `~/fitness-app/src/fitlog-mobile.html` | HTML build (~21.6k lines, vanilla JS/HTML/CSS, no build step). **Visual parity reference** — mobile351 baseline. Engine logic is canonical here. |
+| `~/fitness-app/src/fitlog-nextjs/` | **Primary active build.** Next.js 14 app router + React 18 + TypeScript + Tailwind + Supabase SSR. Phases 0–8 complete. This is what ships. |
+| `~/fitness-app/pm/` | All PM artifacts (this doc, roadmap, backlog, decisions, nextjs-port-plan, etc.). |
+| `~/fitness-app/pm/mockups/` | Design mockups; `prototype.html` is the Today + Workout Mode reference. |
+| `~/fitness-app/.git/` | Git repo on `main`. Numbered-snapshot workflow retired 2026-05-12 ([decisions.md](decisions.md)). |
 
 ---
 
-## 3. Tech stack and architecture
+## 3. Tech stack
 
-**Frontend:** Single-file vanilla JS/HTML/CSS. No framework, no build step. Mobile-first.
+### Next.js build (active)
+- **Framework:** Next.js 14 app router, React 18, TypeScript, Tailwind CSS
+- **Backend:** Supabase (`drlmpltseepsxostsqdq`) — shared with the HTML build, same rows
+- **Auth:** Full Supabase auth (signup / signin / password-reset) wired as of Phase 8. On first login, `adoptDeviceRowsIfNeeded(uid)` migrates all three tables (movements / workouts / plans) from `device_id` → `uid`, then overwrites `localStorage.fitlog_device_id = uid` so anonymous and authenticated sessions share the same data.
+- **Identity:** `getIdentifier()` in `db.ts` — tries `auth.uid()` first (via `getSession()`, no network), falls back to `getDeviceId()`. All list/upsert/delete helpers call it.
+- **Schema:** HTML build's schema — `workouts` row carries inline `entries: WorkoutEntry[]` jsonb, keyed by `device_id`. `movements` and `plans` tables same pattern.
+- **Dev:** `cd src/fitlog-nextjs && npm run dev` → `http://localhost:3000`
+- **Build:** `npm run build` — static export, all 14 pages prerender cleanly.
 
-**Persistence (current reality):**
-- **Supabase Realtime is cloud-primary**, localStorage is the offline cache. Per the mobile294 INCYTE_Handoff.docx.
-- Data governance was rebuilt in Cowork Session 1 ([cowork-history.md](cowork-history.md)): `loadData()` is hydration-only; `saveData()` no longer auto-pushes; all persistent writes flow through targeted helpers (`supabaseSyncMovement`, `supabaseSyncPlanItem`, `supabaseDeletePlanItem`, `supabaseSyncWorkout`, `archiveWorkoutToCloud`).
-- **Tombstones:** deletions add IDs to `data.tombstones.{movements,workouts}`. Future Supabase fetches filter them so stale devices can't resurrect deleted records.
-
-**Distribution:** Capacitor wrap of `fitlog-mobile.html` → App Store ([decisions.md 2026-05-10](decisions.md)). At-launch native plugins: calendar (EKEventStore), local notifications.
-
-**Auth:** Deferred to v1.1. v1 ships without signup/login UI ([decisions.md 2026-05-10](decisions.md)).
-
-**Open architecture decision (P0 launch-blocker):** A-01 — Supabase-primary vs. localStorage-only-v1 mismatch. Flagged in [decisions.md 2026-05-12](decisions.md) and [backlog.md A-01](backlog.md). User has confirmed Supabase is current reality; the resolution path is likely "anonymous Supabase rows in v1, auth UI in v1.1." Owed an explicit decision-log entry before App Store prep.
+### HTML build (parity reference)
+- Single-file vanilla JS/HTML/CSS. Mobile-first. Capacitor-wrappable.
+- Engine logic (fatigue, 1RM, RPE calibration, recommendations, same-day merge) lives here. Next.js ports behavior from it — cite HTML line numbers in ported function headers.
+- Not edited during Next.js active development unless a bug is critical.
 
 ---
 
 ## 4. Information architecture
 
-**Canonical bottom-nav tabs** ([decisions.md 2026-05-12](decisions.md)):
+**Canonical bottom-nav tabs** (locked, [decisions.md 2026-05-12](decisions.md)):
 
-| Tab | Surface |
+| Tab | Route | Surface |
+|---|---|---|
+| **Today** | `/today` | Current-day session. Build/log/finish today's training. FAB adds movements. |
+| **Plan** | `/plan` | Weekly grid editor (Mon–Sun) with day cards, movement rows, bottom-sheet CRUD. |
+| **Momentum** | `/momentum` | Progress analytics — PR hero, volume trend, recent history. |
+| **More** | `/more` | Hub: History, Movement Library, Appearance (theme toggle), Account (sign out). |
+
+Sub-routes under More:
+
+| Route | Surface |
 |---|---|
-| **Today** | Current-day session (replaces older "Week" name). Build/log/finish today's training. |
-| **Plan** | Weekly grid editor as its own top-level surface. |
-| **Momentum** | Progress analytics — PR hero, sparkline, history table. |
-| **More** | Overflow: Library, Insights (Readiness/Fatigue/Stimulus/PRs), History, Settings, Theme toggle, Profile. |
+| `/history` | Finished workout log grouped by month, collapsible workout cards. |
+| `/movements` | Searchable movement library with create/edit/delete bottom sheet. |
+| `/login` | Auth gate — sign in / sign up / password reset, glass card UI. |
+| `/auth/callback` | Supabase PKCE callback handler. |
 
-Today and Plan are **separate top-level surfaces**, not nested.
-
-**Theme:** Light is the default ([decisions.md 2026-05-12](decisions.md)). Dark is an opt-in toggle. The codebase still ships dark-default in `fitlog-mobile.html`; flipping is backlog item A-02 (P0 launch-blocker).
+**Middleware** at `src/fitlog-nextjs/middleware.ts` enforces the auth gate: unauthenticated → `/login?next=pathname`; authenticated on `/login` → `?next` or `/today`.
 
 ---
 
-## 5. Core engine concepts (settled)
+## 5. Next.js build — phase status
+
+| Phase | What | Status |
+|---|---|---|
+| 0 — Reset scaffold | Types, db.ts, device.ts, schema alignment | ✅ Done |
+| 1 — Design system | Tailwind tokens, globals.css, CSS custom properties | ✅ Done |
+| 2 — Shell + nav | layout.tsx, BottomNav, routing scaffold | ✅ Done |
+| 3 — Today page | Session stats, movement cards, equipment popover, FAB, add-movement sheet | ✅ Done |
+| 4 — Workout Mode | Set rows, WU/WS, BW, picker overlay, mobility variant, rest pill | ✅ Done |
+| 5 — Insights | Readiness/Fatigue/Recovery/PR cards on Momentum | ✅ Done |
+| 6 — Plan editor | Week strip, day cards, movement rows, add/edit sheet | ✅ Done |
+| 7 — More hub + History + Movements | Glass nav cards, workout log, movement CRUD | ✅ Done |
+| 8 — Auth | Supabase signup/signin/reset, middleware gate, device_id migration | ✅ Done |
+| **9 — Capacitor wrap** | **iOS shell, app icon, provisioning, App Store Connect** | ⬜ Next |
+
+**Dark mode:** Fully implemented. `globals.css` flips all `:root` tokens at `prefers-color-scheme: dark` and on `body.theme-dark`. Every CSS module has `@media` + `:global(body.theme-dark)` override blocks. Manual toggle lives in More → Appearance (Light / System / Dark pill), writes to `localStorage.fitlog_theme`.
+
+---
+
+## 6. Core engine concepts (settled)
 
 | Concept | Truth |
 |---|---|
-| **Fatigue** | `computeOverallFatiguePct` is the single source of truth. `0.6 × max + 0.4 × mean` of trained-muscle fatigue, decayed by days-since (day 0=1.0, 1=0.65, 2=0.35, 3=0.15, 4+=0). Volume coefficient is **3.0**; deload threshold **<45%** (calibrated mobile329). |
-| **RPE** | Calibrated RPE feeds the fatigue math. Raw RPE is preserved for 1RM honesty. |
-| **Recommendations** | Branch first on `trainedToday`, then on fatigue/readiness tiers. Today-headline rebuild lives in `renderToday`. |
-| **PR display** | Uses **raw top-set weight**, not Epley e1RM. Explicit design decision to prevent counter-intuitive sparkline inversions. |
-| **1RM** | `Current 1RM = MAX(weight × any completed working set)` (actual). `Estimated 1RM` = Brzycki/Epley blend with RPE sensitivity, kept as a *separate* "Projected Strength" metric. These must remain distinct in UI. |
-| **Movement identity** | Every entry carries `(canonicalMovement, equipmentType, variant)`. Equipment and variant are modifier fields, never appended to the movement name. PRs are equipment-specific (Barbell Bench PR ≠ Dumbbell Bench PR). |
-| **Sets** | Warm-up and working sets are tagged via `s.warmup` boolean. Only working sets feed 1RM, volume, and progression math. |
-| **Same-day sessions** | Multiple "Finish Workout" presses on the same calendar day merge into a single History row (entries deduplicated by `movementId`, keeping the entry with more done sets). Both the local path and Supabase realtime reload path apply the merge (mobile325/327). |
+| **Fatigue** | `computeOverallFatiguePct` is the single source of truth. `0.6 × max + 0.4 × mean` of trained-muscle fatigue, decayed by days-since (day 0=1.0, 1=0.65, 2=0.35, 3=0.15, 4+=0). Volume coefficient **3.0**; deload threshold **<45%**. |
+| **RPE** | Calibrated RPE feeds fatigue math. Raw RPE preserved for 1RM honesty. |
+| **PR display** | Raw top-set weight, not Epley e1RM. Prevents counter-intuitive sparkline inversions. |
+| **1RM** | `Current 1RM = MAX(weight × any completed working set)`. `Estimated 1RM` = Brzycki/Epley blend with RPE sensitivity. These remain distinct in UI. |
+| **Movement identity** | Every entry carries `(canonicalMovement, equipmentType, variant)`. Equipment + variant are modifier fields — never appended to the movement name. PRs are equipment-specific. |
+| **Sets** | `s.warmup` boolean tags warm-up vs. working. Only working sets feed 1RM, volume, and progression math. |
+| **Same-day sessions** | Multiple "Finish Workout" presses on the same calendar day merge into a single History row (entries deduplicated by `movementId`, keeping the entry with more done sets). |
 
 ---
 
-## 6. Workflow rules
+## 7. Design system
 
-- **Edit `fitlog-mobile.html` directly.** Do not create new `mobile{N+1}.html` snapshots — retired 2026-05-12.
-- **Commit each meaningful change to git.** Small, frequent commits over long-lived branches.
-- **Tokens are locked.** Steel blue / lavender / soft-pink gradient (see [feedback_visual_direction.md](../../.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md)). Reject "new identity" / gaming / cyberpunk redesigns. The progress gradient is `linear-gradient(90deg, #5d9bb8 0%, #9b82c8 55%, #c9a0be 100%)` — no substitutions.
-- **No emojis as structural icons.** SVG only.
+**Locked palette** — steel-blue / lavender / soft-pink. No warm orange, no gaming/cyberpunk neon. See [feedback_visual_direction.md](../../.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md).
+
+**Brand gradient:** `linear-gradient(155deg, rgba(93,155,184,A) 0%, rgba(155,130,200,B) 55%, rgba(201,160,190,C) 100%)` — same hue triplet everywhere, only alpha varies by surface.
+
+**Key tokens:**
+- `--ink #0f1622` / `--muted #5e6a82` / `--label #8893a8`
+- `--accent #5d9bb8` (steel blue, primary brand)
+- `--ok #4f9aa8` / `--bad #b08092`
+- All separators: **1.2px** (not 1px)
+- Border-radius: pills `999px`, chips `6–12px`, cards `14–22px`
+
+**Glass surfaces:** CSS modules only (Tailwind can't express layered `box-shadow` + `::after` sheen + `backdrop-filter` combos). Pattern: `rgba(255,255,255,0.72)` bg + `blur(18–28px) saturate(140–160%)` + `::after` sheen with `mix-blend-mode: screen`.
+
+**Typography:** Inter Tight (display, headings) + Geist Mono (eyebrows, chips, mono labels) + system-ui (body). Both loaded via Google Fonts import in `globals.css`.
+
+**Dark mode tokens (key):**
+```
+--paper: #0e1217  --paper-2: #161b23  --paper-3: #1f2632
+--ink: #f7f9fc    --muted: #8d96a5    --label: #6a7384
+--accent: #4dd0e1 --ok: #7ec0a8       --bad: #c89aa3
+```
+
+---
+
+## 8. File layout (Next.js build)
+
+```
+src/fitlog-nextjs/src/
+├── app/
+│   ├── globals.css            ← INCYTE tokens, body bg, dark mode
+│   ├── layout.tsx             ← Shell, BottomNav, viewport meta
+│   ├── page.tsx               ← Redirect → /today
+│   ├── today/
+│   │   ├── page.tsx           ← Today screen (session stats, mv cards, FAB)
+│   │   ├── TodayPage.module.css
+│   │   └── workout/
+│   │       ├── page.tsx       ← Workout mode (set rows, picker, mobility)
+│   │       └── WorkoutPage.module.css
+│   ├── plan/
+│   │   ├── page.tsx           ← Week strip + day cards + edit sheet
+│   │   └── PlanPage.module.css
+│   ├── momentum/
+│   │   ├── page.tsx           ← PR hero, volume chart, insights cards
+│   │   └── MomentumPage.module.css
+│   ├── more/
+│   │   ├── page.tsx           ← Hub: history / movements / theme / sign out
+│   │   └── MorePage.module.css
+│   ├── history/
+│   │   ├── page.tsx           ← Workout log grouped by month
+│   │   └── HistoryPage.module.css
+│   ├── movements/
+│   │   ├── page.tsx           ← CRUD library with bottom sheet
+│   │   └── MovementsPage.module.css
+│   ├── login/
+│   │   └── page.tsx           ← Auth gate (wraps AuthForm in Suspense)
+│   └── auth/callback/
+│       └── route.ts           ← Supabase PKCE exchange
+├── components/
+│   ├── BottomNav.tsx          ← Glass pill nav, active tab lift
+│   ├── BottomNav.module.css
+│   ├── AuthForm.tsx           ← Signin / signup / reset (3-mode)
+│   └── AuthForm.module.css
+└── lib/
+    ├── db.ts                  ← Supabase helpers, getIdentifier(), adoptDeviceRowsIfNeeded()
+    ├── types.ts               ← Movement, WorkoutEntry, Workout, PlanItem
+    ├── device.ts              ← getDeviceId(), tryGetDeviceId()
+    └── engine/
+        ├── fatigue.ts         ← computeOverallFatiguePct
+        ├── oneRepMax.ts       ← Brzycki/Epley blend
+        ├── plan.ts            ← DOW helpers, planItemSets, groupPlanByMuscle
+        └── recommendations.ts ← nextSetCoachNote, applyRecommendation
+```
+
+---
+
+## 9. Active work — what's next
+
+**Phase 9 — Capacitor wrap (launch only):**
+1. `npx cap init` inside `src/fitlog-nextjs/`
+2. `npx cap add ios`
+3. App icon + splash screen (INCYTE design, steel-blue/lavender palette)
+4. Bind native plugins: `@capacitor/local-notifications`, calendar (EKEventStore via custom plugin or `@capacitor-community/native-audio`)
+5. Provisioning profile + App Store Connect listing
+6. TestFlight upload → Apple review
+
+**Pre-submission gates** (from [launch-quality.md](launch-quality.md)):
+- [ ] A-02 — Confirm light-mode default in Next.js (body.theme-dark not applied on first load unless user has set it)
+- [ ] D-08 — Apple Developer Program enrollment ($99/yr, ~48h processing)
+- [ ] D-02 — Privacy policy URL + App Store privacy labels
+- [ ] D-05 — App Store listing copy, screenshots (6.7" + 6.1"), preview video (optional)
+- [ ] D-03 — Account deletion flow (App Store guideline 5.1.1(v))
+
+**UI/UX debt (non-blocking for launch, high-value polish):**
+- Workout mode: rest timer polish, drag-handle reorder for movement cards
+- Plan: drag-to-reorder days, long-press movement row to clone to another day
+- Momentum: multi-period sparkline overlay (backlog F-04)
+- `body.theme-dark` persistence across navigations via `layout.tsx` (currently applied per-page on mount via More page; should apply globally in layout from localStorage on mount)
+
+---
+
+## 10. Workflow rules
+
+- **Edit `src/fitlog-nextjs/` for all active development.** The HTML build (`fitlog-mobile.html`) is the visual parity reference only — read it when porting engine behavior, don't edit it for the Next.js work.
+- **Commits:** prefix Next.js commits with `nextjs:`, HTML build commits with `src:`.
+- **Type check before committing:** `npx tsc --noEmit` from `src/fitlog-nextjs/`.
+- **Tokens are locked.** All CSS uses `var(--ink)` etc. or the explicit hex values from the locked palette. No hardcoded substitutions.
+- **No emojis as structural icons.** SVG only. (Emojis currently used as placeholder icons in nav cards — replace before launch.)
 - **No fabricated demo data** shown as if real.
-- **PM artifacts in `~/fitness-app/pm/`.** Update decisions.md (append-only) whenever a meaningful direction is set.
+- **PM artifacts in `~/fitness-app/pm/`.** Append to `decisions.md` when direction is set.
 
 ---
 
-## 7. Active work
-
-**Pre-launch punch list (10 items, suggested order — see [roadmap.md](roadmap.md)):**
-
-1. D-08 — Apple Developer Program enrollment
-2. A-02 — Flip default theme dark → light
-3. A-03 — Tab structure rework → Today / Plan / Momentum / More
-4. A-01 — Resolve Supabase-primary vs. localStorage-only-v1 mismatch
-5. B-01 — Fix "Save & Exit drops to History" bug
-6. D-06 — Capacitor scaffold around `fitlog-mobile.html`
-7. D-07 — Calendar native plugin (EKEventStore)
-8. D-09 — Local notifications plugin
-9. D-02 — Privacy policy + App Store privacy labels
-10. D-05 — App Store listing copy + screenshots + preview video
-
-Realistic timeline: ~3.5–4.5 weeks to submission + ~1–2 weeks for Apple review.
-
-**In-flight engineering work:** The Today + Workout Mode prototype port. Full plan in [port-plan.md](port-plan.md) — CSS/HTML/JS/state deltas, 6 phases, ~18–25 hours total. As of 2026-05-13 the Today screen `.mv` cards (compact summary + equipment popover + Remaining/Completed toggle including history-completed movements) are live in production.
-
-**Pre-submission gate:** [launch-quality.md](launch-quality.md) — 8-section checklist (tokens, a11y, polish, copy, App Store assets, eng gates).
-
----
-
-## 8. Open decisions
+## 11. Open decisions
 
 | ID | Status |
 |---|---|
-| **A-01** — Supabase architecture resolution | Flagged 2026-05-12, not yet logged. User confirmed Supabase is current reality on 2026-05-13. Needs a decision-log entry choosing among: feature-flag-off / strip / keep-with-anonymous-rows. |
-| **C-01** — "Design visual layout" scope | TBD. Currently treated as P2 polish until clarified. |
+| **D-08** — Apple Developer Program enrollment | Not started. P0 for App Store submission. |
+| **A-02** — Light-mode default on first load | Next.js defaults to system; verify `body.theme-dark` isn't applied when `fitlog_theme` key is absent. |
+| **D-03** — Account deletion flow | Required by App Store guideline 5.1.1(v). Needs Supabase edge function + UI. |
 | **North Star metric** | Working candidate: weekly active session completion rate. Not yet confirmed. |
 
 ---
 
-## 9. Where to read next
+## 12. Where to read next
 
 | Doc | When to read it |
 |---|---|
+| [nextjs-port-plan.md](nextjs-port-plan.md) | Full phase plan with constraints, risk register, file layout. Read before editing the Next.js build. |
 | [roadmap.md](roadmap.md) | What ships when. Now/Next/Later/Won't. |
 | [backlog.md](backlog.md) | Every bug/feature/distribution item with priority + effort. |
 | [decisions.md](decisions.md) | Why anything is the way it is. Append-only. |
-| [port-plan.md](port-plan.md) | The current largest engineering effort (prototype → production). Read if touching Today or Workout Mode. |
 | [launch-quality.md](launch-quality.md) | Pre-submission checklist. Run before App Store assets. |
-| [cowork-history.md](cowork-history.md) | Historical session log (mobile15 → mobile332). Background context only; frozen. |
 | `feedback_visual_direction.md` (memory) | Locked token system. Read before any visual change. |
 | `feedback_positioning_and_voice.md` (memory) | INCYTE voice/positioning. Read before any copy work. |
+| `feedback_information_row_typography.md` (memory) | Info-row scale anchor (name 14px / metadata-pill 9.5px / count-chip 12px). |
 
 ---
 
-## 10. House style for AI sessions
+## 13. House style for AI sessions
 
-- Read this doc + relevant linked docs **before** proposing changes. Don't re-litigate settled decisions; flag them if you think they need revisiting.
+- Read this doc + linked docs **before** proposing changes. Don't re-litigate settled decisions; flag them if you think they need revisiting.
 - The user is solo dev + PM. Help him ship — bias toward concrete, small, verified changes over open-ended exploration.
-- When editing `fitlog-mobile.html`, verify visually in the running preview server before reporting done.
+- **Before reporting done:** run `npx tsc --noEmit && npm run build` from `src/fitlog-nextjs/`. A clean static build is the bar.
 - Memory is loaded automatically and reflects user preferences; trust it.
 - When the user describes the IA, use the canonical Today / Plan / Momentum / More — even if they say it differently in a given prompt.
+- Commits use the `nextjs:` prefix. Co-author line: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
