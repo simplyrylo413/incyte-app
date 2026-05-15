@@ -1,0 +1,667 @@
+/* Plan page — weekly plan editor.
+   Visual parity target: src/fitlog-mobile.html #view-plan (mobile351 baseline).
+   Tokens: --glass-bg, --card-border, --depth-1/2/3, --hairline*, --ink*, --accent*, --font-*
+*/
+
+/* ── Page shell ─────────────────────────────────────────────────────────────── */
+
+.page {
+  min-height: 100svh;
+  padding: 0 0 16px;
+  background: var(--paper-2, #f4f5f7);
+}
+
+.head {
+  padding: 20px 20px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headText {}
+
+.subline {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-eyebrow, 12px);
+  letter-spacing: var(--track-eyebrow, 1.5px);
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: var(--weight-bold, 700);
+  margin-top: 5px;
+}
+
+.headline {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-2xl, 22px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-snug, 1.25);
+  margin: 0;
+}
+
+/* ── Week strip — 7-day pill row ─────────────────────────────────────────────
+   Mirrors .plan-week-strip / .plan-wday (HTML build lines 5720–5807). */
+
+.weekStrip {
+  display: flex;
+  gap: 6px;
+  padding: 18px 16px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.weekStrip::-webkit-scrollbar { display: none; }
+
+.wday {
+  flex: 1 1 0;
+  min-width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+
+.wdayLetter {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted, #5e6a82);
+  transition: color 0.15s;
+}
+
+.wday.today .wdayLetter { color: var(--accent, #5d9bb8); }
+
+.wdayDot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.2px solid var(--hairline, rgba(15,22,34,0.25));
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #5e6a82);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.wday:active .wdayDot { border-color: var(--accent, #5d9bb8); color: var(--accent, #5d9bb8); }
+
+/* Today — gradient glass circle */
+.wday.today .wdayDot {
+  width: 38px;
+  height: 38px;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(77,208,225,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(215,123,168,0.50) 0%, transparent 60%),
+    rgba(255,255,255,0.60);
+  border: 1px solid rgba(255,255,255,0.85);
+  color: var(--ink, #0f1622);
+  font-size: 13px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 2px 8px rgba(15,22,34,0.10);
+}
+
+/* Done — green outline */
+.wday.done .wdayDot {
+  background: transparent;
+  border: 1.5px solid #3a8a6a;
+  color: #3a8a6a;
+}
+
+/* Rest — dashed + muted */
+.wday.rest .wdayDot {
+  opacity: 0.28;
+  border-style: dashed;
+}
+
+/* Partial — accent outline */
+.wday.partial .wdayDot {
+  border: 1.5px solid var(--accent, #5d9bb8);
+  color: var(--accent, #5d9bb8);
+  background: transparent;
+}
+
+.wdayCount {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 8px;
+  color: var(--muted, #5e6a82);
+  letter-spacing: 0.3px;
+}
+
+.wday.today .wdayCount  { color: var(--ink, #0f1622); font-weight: 700; }
+.wday.done .wdayCount   { color: #3a8a6a; }
+.wday.rest .wdayCount   { opacity: 0.28; }
+
+/* ── Day cards ───────────────────────────────────────────────────────────────
+   Mirrors .plan-day (HTML build line 4219). */
+
+.dayList {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dayCard {
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.65);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 2px 8px rgba(15,22,34,0.06);
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  transition: background 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+}
+
+/* Day head — button, click to toggle collapse */
+.dayHead {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 0.5px solid rgba(15,22,34,0.07);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 200ms ease;
+}
+
+.dayHead:focus-visible {
+  outline: 2px solid var(--accent, #5d9bb8);
+  outline-offset: 2px;
+}
+
+.dayCard.collapsed .dayHead {
+  border-bottom: 0;
+}
+
+.dayHeadText { flex: 1 1 auto; min-width: 0; }
+
+.dayEyebrow {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--label, #8893a8);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.dayNameRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dayName {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--accent, #5d9bb8);
+}
+
+.dayEta {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--muted, #5e6a82);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1.2px solid var(--hairline-soft, rgba(15,22,34,0.11));
+  background: rgba(0,0,0,0.02);
+  white-space: nowrap;
+}
+
+.dayChev {
+  color: var(--muted, #5e6a82);
+  font-size: 14px;
+  transition: transform 220ms ease;
+  flex-shrink: 0;
+}
+
+.dayCard.collapsed .dayChev { transform: rotate(-90deg); }
+
+/* Collapsible body — grid-rows trick. */
+.dayBody {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 240ms ease, opacity 200ms ease;
+}
+
+.dayCard.collapsed .dayBody {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dayBodyInner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px 8px 8px;
+}
+
+/* Date/done strip */
+.dayServings {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 10px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2, #2c3548);
+}
+
+.dayServingsLabel {
+  font-weight: 400;
+  color: var(--muted, #5e6a82);
+  font-size: 11px;
+}
+
+.dayServingsVal {
+  font-weight: 700;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+}
+
+/* Muscle group eyebrow inside day */
+.muscleEyebrow {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: 700;
+  padding: 8px 8px 4px;
+}
+
+/* ── Plan movement row ────────────────────────────────────────────────────────
+   Mirrors .plan-mv-row (HTML build line 4331). */
+
+.mvRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--card-border, rgba(255,255,255,0.55));
+  cursor: pointer;
+  gap: 10px;
+  transition: background 240ms ease, border-color 240ms ease, box-shadow 240ms ease, transform 200ms cubic-bezier(0.2,0.8,0.2,1);
+  position: relative;
+  background: var(--glass-bg, rgba(241,244,249,0.55));
+  border-radius: 12px;
+  margin-bottom: 6px;
+  box-shadow: var(--depth-1,
+    0 1px 2px rgba(15,22,34,0.04),
+    0 2px 4px rgba(15,22,34,0.04));
+  isolation: isolate;
+}
+
+.mvRow:last-of-type { margin-bottom: 0; }
+
+.mvRow:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.mvRow.done {
+  opacity: 0.7;
+}
+
+.mvBody { flex: 1; min-width: 0; }
+
+.mvName {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink, #0f1622);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mvRow.undone .mvName { color: var(--accent, #5d9bb8); }
+.mvRow.done .mvName   { color: var(--muted, #5e6a82); font-weight: 500; text-decoration: line-through; }
+
+.mvMeta {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted, #5e6a82);
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+}
+
+.mvChev {
+  flex-shrink: 0;
+  color: var(--muted, #5e6a82);
+  opacity: 0.45;
+  align-self: center;
+  font-size: 13px;
+}
+
+.mvDoneCheck {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Rest day empty state */
+.restState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 18px 16px;
+  text-align: center;
+}
+
+.restIcon { font-size: 20px; opacity: 0.55; }
+.restLabel {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted, #5e6a82);
+}
+.restSub {
+  font-size: 11px;
+  color: var(--label, #8893a8);
+}
+
+/* "+ Add movement" row at bottom of each day */
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  margin-top: 6px;
+  border-top: 1px dashed var(--hairline-soft, rgba(15,22,34,0.11));
+  cursor: pointer;
+  color: var(--muted, #5e6a82);
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.13s;
+  user-select: none;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.addRow:active { color: var(--ink, #0f1622); }
+
+/* ── Bottom sheet — Add / Edit movement ──────────────────────────────────────*/
+
+.sheetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,22,34,0.38);
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 180ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.sheet {
+  width: 100%;
+  max-height: 88svh;
+  background: var(--paper, #fff);
+  border-radius: 20px 20px 0 0;
+  padding: 0 0 calc(env(safe-area-inset-bottom, 0px) + 16px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 32px rgba(15,22,34,0.18);
+  animation: slideUp 240ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheetHandle {
+  width: 36px;
+  height: 4px;
+  background: var(--hairline, rgba(15,22,34,0.25));
+  border-radius: 2px;
+  margin: 12px auto 0;
+  flex-shrink: 0;
+}
+
+.sheetHead {
+  padding: 14px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sheetTitle {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink, #0f1622);
+  letter-spacing: var(--track-tight, -0.018em);
+}
+
+.sheetClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--paper-2, #f4f5f7);
+  color: var(--muted, #5e6a82);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sheetClose:active { transform: scale(0.94); }
+
+/* Search input inside add-movement sheet */
+.searchInput {
+  margin: 0 16px 10px;
+  padding: 10px 14px;
+  border: 1.2px solid var(--hairline, rgba(15,22,34,0.25));
+  border-radius: 10px;
+  background: var(--paper-2, #f4f5f7);
+  font-family: var(--font-text, system-ui, sans-serif);
+  font-size: 14px;
+  color: var(--ink, #0f1622);
+  outline: none;
+  flex-shrink: 0;
+}
+
+.searchInput::placeholder { color: var(--label, #8893a8); }
+.searchInput:focus { border-color: var(--accent, #5d9bb8); }
+
+/* Movement picker list */
+.pickerList {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pickerGroup {
+  margin-bottom: 4px;
+}
+
+.pickerGroupLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  padding: 10px 10px 4px;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  transition: background 120ms;
+}
+
+.pickerItem:active { background: var(--paper-2, #f4f5f7); transform: scale(0.98); }
+
+.pickerItemName {
+  flex: 1;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #0f1622);
+  letter-spacing: -0.1px;
+}
+
+.pickerItemMeta {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--label, #8893a8);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Edit sheet — form fields */
+.editForm {
+  padding: 4px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+}
+
+.fieldInput {
+  padding: 10px 12px;
+  border: 1.2px solid var(--hairline, rgba(15,22,34,0.25));
+  border-radius: 10px;
+  background: var(--paper-2, #f4f5f7);
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink, #0f1622);
+  outline: none;
+  width: 100%;
+}
+
+.fieldInput:focus { border-color: var(--accent, #5d9bb8); }
+
+.editMvName {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink, #0f1622);
+  letter-spacing: var(--track-tight, -0.018em);
+  padding: 4px 0 4px;
+}
+
+.editActions {
+  padding: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btnSave {
+  width: 100%;
+  padding: 13px;
+  background: var(--ink, #0f1622);
+  color: var(--paper, #fff);
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: var(--track-tight, -0.018em);
+  cursor: pointer;
+  transition: transform 150ms ease, opacity 150ms;
+}
+
+.btnSave:active { transform: scale(0.97); opacity: 0.85; }
+
+.btnRemove {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: var(--bad, #b08092);
+  border: 1.2px solid var(--bad, #b08092);
+  border-radius: 12px;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 150ms ease, opacity 150ms;
+}
+
+.btnRemove:active { transform: scale(0.97); opacity: 0.75; }
+
+/* Empty list state */
+.emptyPicker {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted, #5e6a82);
+}
