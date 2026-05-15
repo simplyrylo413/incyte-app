@@ -1,0 +1,651 @@
+/* Momentum page — glass hero cards.
+   Visual parity target: src/fitlog-mobile.html #view-insights (mobile351 baseline).
+   Token refs: --glass-bg, --glass-highlight, --glass-shadow, --depth-*, --hair*, --ink*, --accent*, --font-*
+*/
+
+/* ── Page shell ─────────────────────────────────────────────────────────────── */
+
+.page {
+  min-height: 100svh;
+  padding: 0 0 16px;
+  background: var(--paper-2, #f4f5f7);
+}
+
+.head {
+  padding: 20px 20px 0;
+}
+
+.headline {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-2xl, 22px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-snug, 1.25);
+  margin: 0;
+}
+
+.subline {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-eyebrow, 12px);
+  letter-spacing: var(--track-eyebrow, 1.5px);
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: var(--weight-bold, 700);
+  margin-top: 5px;
+}
+
+.cardList {
+  padding: 16px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Hero glass card ─────────────────────────────────────────────────────────
+   Mirrors .hero-card (HTML build line 4798).
+   background = --glass-bg (rgba(241,244,249,0.55))
+   ::after = --glass-highlight sheen (mix-blend-mode screen)
+*/
+
+.heroCard {
+  background: var(--glass-bg, rgba(241, 244, 249, 0.55));
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1.2px solid var(--card-border, rgba(255, 255, 255, 0.55));
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: var(--glass-shadow,
+    0 1px 0 rgba(255,255,255,0.85) inset,
+    0 -1px 0 rgba(15,22,34,0.06) inset,
+    0 1px 3px rgba(15,22,34,0.06),
+    0 12px 24px rgba(15,22,34,0.10),
+    0 28px 56px rgba(15,22,34,0.14));
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 14px;
+  transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 280ms ease;
+}
+
+.heroCard:active {
+  transform: translateY(1px);
+  box-shadow: var(--depth-2,
+    0 2px 4px rgba(15,22,34,0.05),
+    0 8px 16px rgba(15,22,34,0.08),
+    0 16px 32px rgba(15,22,34,0.06));
+}
+
+.heroCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-highlight,
+    linear-gradient(180deg,
+      rgba(255,255,255,0.55) 0%,
+      rgba(255,255,255,0.10) 28%,
+      rgba(255,255,255,0) 58%));
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+/* Readiness card variant — extra radial glow underlays.
+   Mirrors .readiness-card (HTML build line 4877). */
+.readinessCard {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(77,208,225,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(215,123,168,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(183,142,215,0.10) 0%, transparent 70%),
+    var(--glass-bg, rgba(241, 244, 249, 0.55));
+  padding: 20px 22px;
+}
+
+/* ── Card head / collapse toggle ─────────────────────────────────────────────
+   Mirrors .hero-card-head (HTML build line 4831). */
+
+.heroCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+}
+
+.heroCardHead:focus-visible {
+  outline: 2px solid var(--accent, #5d9bb8);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.heroCardEyebrow {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-eyebrow, 12px);
+  letter-spacing: var(--track-eyebrow, 1.5px);
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: var(--weight-bold, 700);
+  line-height: var(--leading-tight, 1.1);
+  margin-bottom: 4px;
+}
+
+.heroCardTitle {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-xl, 18px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  line-height: var(--leading-snug, 1.25);
+  color: var(--ink, #0f1622);
+  margin-top: 4px;
+}
+
+.heroCardChev {
+  color: var(--muted, #5e6a82);
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 220ms ease;
+  flex-shrink: 0;
+}
+
+.heroCardCollapsed .heroCardChev {
+  transform: rotate(-90deg);
+}
+
+/* Collapsible body — grid-rows trick. Mirrors .hero-card-body (HTML build line 4868). */
+.heroCardBody {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 240ms ease, opacity 200ms ease;
+}
+
+.heroCardCollapsed .heroCardBody {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.heroInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Readiness 3-column grid ─────────────────────────────────────────────────
+   Mirrors .readiness-grid (HTML build line 4886). */
+
+.readinessGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 520px) {
+  .readinessGrid { gap: 8px; }
+  .readinessStatValue { font-size: 24px !important; }
+  .readinessStatSuffix { font-size: 11px !important; }
+  .readinessStatLabel,
+  .readinessStatCaption { font-size: 10px !important; }
+}
+
+.readinessStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.readinessStatLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-eyebrow, 12px);
+  letter-spacing: var(--track-eyebrow, 1.5px);
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: var(--weight-bold, 700);
+  line-height: var(--leading-tight, 1.1);
+  margin-bottom: 4px;
+}
+
+.readinessStatNumRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.readinessStatValue {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 26px;
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: -0.025em;
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-tight, 1.1);
+  font-variant-numeric: tabular-nums;
+}
+
+.readinessStatSuffix {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--weight-medium, 500);
+  color: var(--muted, #5e6a82);
+  margin-left: 4px;
+}
+
+.readinessBar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.readinessBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #4dd0e1 0%, #b78ed7 50%, #d77ba8 100%);
+  box-shadow: 0 0 10px rgba(77,208,225,0.22);
+  transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.readinessStatCaption {
+  font-size: var(--text-base, 13px);
+  line-height: var(--leading-snug, 1.25);
+  color: var(--muted, #5e6a82);
+  margin-top: 8px;
+  letter-spacing: var(--track-normal, -0.005em);
+}
+
+.readinessStatCaption strong {
+  color: var(--ink-2, #2c3548);
+  font-weight: var(--weight-semibold, 600);
+}
+
+/* ── Training Recommendation ─────────────────────────────────────────────────
+   Mirrors .rd-recommendation (HTML build line 4933). */
+
+.rdRecommendation {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.2px solid var(--hairline-soft, rgba(15,22,34,0.11));
+}
+
+.rdRecHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.rdRecHead:focus-visible {
+  outline: 2px solid var(--accent, #5d9bb8);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.rdRecTri {
+  display: inline-block;
+  flex-shrink: 0;
+  color: var(--muted, #5e6a82);
+  font-size: 16px;
+  line-height: 1;
+  transform-origin: center;
+  transition: transform 220ms ease, color 200ms ease;
+  align-self: center;
+}
+
+.rdRecOpen .rdRecTri {
+  transform: rotate(90deg);
+}
+
+.rdRecLabel {
+  flex-shrink: 0;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-lg, 15px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  line-height: var(--leading-snug, 1.25);
+  color: var(--label, #8893a8);
+  align-self: center;
+}
+
+.rdRecAction {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-lg, 15px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-snug, 1.25);
+  align-self: center;
+}
+
+.rdRecAction.toneHigh { color: #c93838; }
+.rdRecAction.toneMed  { color: #9b82c8; }
+.rdRecAction.tonePos  { color: #2a8c45; }
+
+.rdRecBody {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 240ms ease, opacity 200ms ease, margin-top 200ms ease;
+  margin-top: 10px;
+}
+
+.rdRecBody > * { min-height: 0; overflow: hidden; }
+
+.rdRecCollapsed .rdRecBody {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.rdRecBullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-base, 13px);
+  line-height: var(--leading-snug, 1.25);
+  color: var(--ink-2, #2c3548);
+}
+
+.rdRecBullets li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rdRecBullets li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 3px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--muted, #5e6a82);
+  opacity: 0.55;
+}
+
+/* ── Fatigue toggle pill ─────────────────────────────────────────────────────
+   Mirrors .fatigue-toggle-pill (HTML build line 5125). */
+
+.fatigueTogglePill {
+  display: flex;
+  background: rgba(15,22,34,0.06);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.fatigueToggleBtn {
+  flex: 1;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, #5e6a82);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.fatigueToggleBtn.on {
+  background: rgba(255,255,255,0.92);
+  color: var(--ink, #0f1622);
+  box-shadow: 0 1px 4px rgba(15,22,34,0.12);
+}
+
+/* Fatigue muscle rows */
+.fatigueRows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fatigueRow {
+  display: grid;
+  grid-template-columns: 80px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.35);
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 2px 8px rgba(15,22,34,0.06);
+}
+
+.fatigueRowName {
+  font-family: var(--font-text, system-ui, sans-serif);
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #0f1622);
+  white-space: nowrap;
+}
+
+.fatigueBarWrap {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(15,22,34,0.06);
+  overflow: hidden;
+}
+
+.fatigueBarFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Fill colors — Miami palette matching HTML build line 5347 */
+.fatigueBarFill.low {
+  background: linear-gradient(90deg, #26d9ff, #5deeff);
+  box-shadow: 0 0 6px rgba(38,217,255,0.28);
+}
+.fatigueBarFill.med {
+  background: linear-gradient(90deg, #c084fc, #d77ba8);
+  box-shadow: 0 0 6px rgba(192,132,252,0.28);
+}
+.fatigueBarFill.high {
+  background: linear-gradient(90deg, #d77ba8, #ff2e94);
+  box-shadow: 0 0 8px rgba(255,46,148,0.30);
+}
+
+.fatiguePct {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #5e6a82);
+  text-align: right;
+}
+
+/* ── Muscle Stimulus bars ────────────────────────────────────────────────────*/
+
+.stimulusHero {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.stimulusNum {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 40px;
+  font-weight: var(--weight-heavy, 800);
+  letter-spacing: var(--track-tight, -0.018em);
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-tight, 1.1);
+  font-variant-numeric: tabular-nums;
+}
+
+.stimulusSuffix {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--muted, #5e6a82);
+  margin-left: 4px;
+}
+
+.stimulusLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: var(--text-eyebrow, 12px);
+  font-weight: 700;
+  letter-spacing: var(--track-eyebrow, 1.5px);
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  margin-top: 4px;
+}
+
+.stimulusTier {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #0f1622);
+  margin-top: 4px;
+}
+
+.stimulusTier.tonePos  { color: #2a8c45; }
+.stimulusTier.toneMed  { color: #9b82c8; }
+.stimulusTier.toneHigh { color: #c93838; }
+
+.stimulusBars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stimulusBarRow {
+  display: grid;
+  grid-template-columns: 80px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.stimulusBarName {
+  font-size: var(--text-sm, 12px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #0f1622);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stimulusBarTrack {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(15,22,34,0.06);
+  overflow: hidden;
+}
+
+.stimulusBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #5d9bb8 0%, #9b82c8 60%, #d77ba8 100%);
+  transition: width 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.stimulusSets {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #5e6a82);
+  text-align: right;
+}
+
+.stimulusEmpty {
+  font-size: var(--text-sm, 12px);
+  color: var(--muted, #5e6a82);
+  margin-top: 8px;
+}
+
+/* ── PRs card ─────────────────────────────────────────────────────────────────
+   Mirrors .pr-list / .pr-badge (HTML build lines 5352–5409). */
+
+.prList {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 2px 4px;
+  margin: 0 -2px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.prList::-webkit-scrollbar { display: none; }
+
+.prBadge {
+  flex-shrink: 0;
+  flex-basis: calc(50% - 6px);
+  max-width: 200px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1.2px solid var(--hairline-soft, rgba(15,22,34,0.11));
+  box-shadow: var(--depth-1,
+    0 1px 2px rgba(15,22,34,0.04),
+    0 2px 4px rgba(15,22,34,0.04));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-snap-align: start;
+  overflow: hidden;
+}
+
+@media (max-width: 380px) {
+  .prBadge { flex-basis: 78%; max-width: none; }
+}
+
+.prGlyph {
+  font-size: 16px;
+  color: var(--accent, #5d9bb8);
+  margin-bottom: 2px;
+}
+
+.prLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 8.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prValue {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: var(--weight-bold, 700);
+  color: var(--ink, #0f1622);
+  letter-spacing: -0.022em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prSub {
+  font-size: var(--text-eyebrow, 12px);
+  font-weight: 700;
+  color: var(--muted, #5e6a82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
