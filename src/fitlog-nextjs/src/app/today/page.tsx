@@ -1,11 +1,11 @@
 "use client";
 
-// Phase 3 — Today screen.
+// Phase 3 Today screen + Phase 4 navigation wiring.
+// Tap a movement row → /today/workout?mid=xxx&planId=yyy
 // Visual parity target: src/fitlog-mobile.html mobile351 baseline.
-// Engine logic ported from renderTodayV2() (~line 13212) via lib/engine/today.ts.
-// Workout Mode navigation (tap a row) is a no-op placeholder until Phase 4.
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   listMovements,
   listWorkouts,
@@ -31,6 +31,7 @@ import s from "./TodayPage.module.css";
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export default function TodayPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
@@ -87,9 +88,10 @@ export default function TodayPage() {
   const grouped = groupByBodyPart(visibleItems);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  // Phase 4 will wire these to actual workout mode navigation.
-  function handleMovementTap(_item: TodayItem) {
-    // TODO Phase 4: openWorkoutMode(item.mid, item.planId)
+  function handleMovementTap(item: TodayItem) {
+    const params = new URLSearchParams({ mid: item.mid, planId: item.planId });
+    if (item.sourceWorkoutId) params.set("src", item.sourceWorkoutId);
+    router.push(`/today/workout?${params}`);
   }
 
   return (

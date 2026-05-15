@@ -1,0 +1,908 @@
+/* Workout Mode CSS module.
+ * Glass surfaces, back chip, hero card, set rows — all requiring layered
+ * box-shadows, backdrop-filter, and ::after sheens that Tailwind can't express.
+ * All values mirror src/fitlog-mobile.html lines 7159–7815.
+ */
+
+/* ─── Page shell ─────────────────────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: #f4f5f7;
+  overflow-x: hidden;
+}
+
+/* ─── Top bar: back chip + movement identity ─────────────────────────────── */
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 22px 0;
+  flex-shrink: 0;
+}
+
+/* Back chip — glass disc with accent border + blue glow.
+   Source: fitlog-mobile.html lines 7159–7213 */
+.backChip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
+    rgba(255,255,255,0.55);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1.5px solid #5d9bb8;
+  color: #5d9bb8;
+  cursor: pointer;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 0 0 1px rgba(93,155,184,0.18),
+    0 10px 22px rgba(93,155,184,0.24),
+    0 4px 8px rgba(15,22,34,0.10);
+  transition: transform 100ms cubic-bezier(0.33,1,0.68,1), box-shadow 220ms ease-out;
+}
+
+.backChip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 55%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.backChip:active { transform: scale(0.95); }
+.backChip svg { width: 14px; height: 14px; position: relative; z-index: 1; }
+
+/* Identity block */
+.identity { flex: 1; min-width: 0; padding-top: 2px; }
+
+.bodyPart {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0f1622;
+  margin-bottom: 6px;
+}
+
+.mvName {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: #0f1622;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Prior session strip ─────────────────────────────────────────────────── */
+.prior {
+  margin: 12px 22px 0;
+  padding: 6px 12px;
+  background: rgba(15,22,34,0.04);
+  border: 1.2px solid rgba(255,255,255,0.6);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.priorLbl {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: #5e6a82;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.priorDate {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #5e6a82;
+  text-transform: uppercase;
+}
+
+.priorVals {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8893a8;
+  letter-spacing: 0.01em;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ─── Hero card ──────────────────────────────────────────────────────────── */
+/* Source: fitlog-mobile.html lines 7247–7448 */
+.hero {
+  margin: 14px 22px 12px;
+  padding: 16px 16px 14px;
+  background: linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+  backdrop-filter: blur(40px) saturate(1.6);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  border: 1.2px solid rgba(93,155,184,0.30);
+  border-radius: 22px;
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.85) inset,
+    0 0 0 1px rgba(255,255,255,0.4) inset,
+    0 0 0 1px rgba(93,155,184,0.04),
+    0 22px 48px rgba(93,155,184,0.14),
+    0 8px 18px rgba(15,22,34,0.06);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* Hero eyebrow row */
+.heroEyebrow {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: #8893a8;
+  margin-bottom: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nowMarker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #0f1622;
+}
+
+.nowDot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #5d9bb8;
+  box-shadow: 0 0 0 3px rgba(93,155,184,0.20);
+  flex-shrink: 0;
+}
+
+.nowDotOk {
+  background: #4f9aa8;
+  box-shadow: 0 0 0 3px rgba(79,154,168,0.20);
+}
+
+.activeSet {
+  color: #5d9bb8;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.activeSetOk { color: #4f9aa8; }
+
+/* Eyebrow pill buttons (RPE, AI, Rest) */
+.eyebrowPills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.togglePill {
+  padding: 5px 9px;
+  background: rgba(15,22,34,0.06);
+  border: 1.2px solid rgba(15,22,34,0.12);
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5e6a82;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.togglePillOn {
+  background: #0f1622;
+  color: white;
+  border-color: #0f1622;
+}
+
+/* Rest pill */
+.restPill {
+  padding: 5px 9px;
+  background: rgba(15,22,34,0.06);
+  border: 1.2px solid rgba(15,22,34,0.18);
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: #5e6a82;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+
+.restPillOn {
+  background: rgba(93,155,184,0.12);
+  border-color: rgba(93,155,184,0.30);
+  color: #5d9bb8;
+}
+
+.restPillUrgent {
+  background: rgba(176,128,146,0.12);
+  border-color: rgba(176,128,146,0.30);
+  color: #b08092;
+}
+
+/* Big-type hero numbers */
+.heroPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  height: 50px;
+}
+
+.heroNum {
+  background: transparent;
+  border: none;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #0f1622;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 180ms ease-out;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroNum:hover { background: rgba(93,155,184,0.08); }
+.heroNum:active { transform: scale(0.97); }
+.heroNumEmpty { color: #8893a8; }
+
+.heroSep {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: #8893a8;
+  letter-spacing: -0.02em;
+}
+
+.heroUnitsBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #0f1622;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1.2px solid rgba(15,22,34,0.18);
+}
+
+.heroUnitsBar span:not(:first-child)::before {
+  content: '·';
+  margin-right: 18px;
+  color: #8893a8;
+}
+
+/* Hero CTA button — solid black pill */
+.heroActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: nowrap;
+}
+
+.heroCta {
+  padding: 12px 22px;
+  background: #0f1622;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.10) inset,
+    0 6px 16px rgba(24,32,48,0.28),
+    0 2px 4px rgba(24,32,48,0.18);
+  transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 180ms ease-out;
+}
+
+.heroCta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 10px 22px rgba(24,32,48,0.38),
+    0 4px 8px rgba(24,32,48,0.24);
+}
+
+.heroCta:active { transform: scale(0.97); }
+
+.heroFinishLink {
+  padding: 12px 16px;
+  background: transparent;
+  border: 1.2px solid rgba(15,22,34,0.16);
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #5e6a82;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+
+.heroFinishLink:hover { background: rgba(15,22,34,0.04); color: #0f1622; }
+
+/* Movement complete state */
+.completeMsg {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5e6a82;
+  text-align: center;
+  margin: 10px 0 4px;
+  line-height: 1.5;
+}
+
+/* ─── Column header ──────────────────────────────────────────────────────── */
+.colHead {
+  display: grid;
+  grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 35px 6px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: #0f1622;
+  flex-shrink: 0;
+}
+
+.colHead .hToday { text-align: right; }
+
+/* ─── Set row ────────────────────────────────────────────────────────────── */
+/* Source: fitlog-mobile.html lines 7532–7736 */
+.setRow {
+  display: grid;
+  grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1.2px solid rgba(255,255,255,0.85);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,1) inset,
+    0 4px 10px rgba(15,22,34,0.04);
+  transition: box-shadow 180ms ease-out, border-color 180ms ease-out;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.setRowDone {
+  background: rgba(15,22,34,0.04);
+  border-color: rgba(15,22,34,0.08);
+  cursor: pointer;
+}
+
+.setRowDone:hover {
+  box-shadow: 0 2px 6px rgba(15,22,34,0.06);
+  border-color: rgba(15,22,34,0.18);
+}
+
+/* Set number button */
+.rSetBtn {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 6px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #4f9aa8; /* --ok */
+  cursor: pointer;
+  transition: color 180ms ease-out, background 180ms ease-out;
+  text-align: left;
+  justify-self: start;
+}
+
+.rSetBtn:hover { background: rgba(15,22,34,0.04); }
+.rSetBtnWarmup { color: #b08092; }
+.setRowDone .rSetBtn { opacity: 0.75; }
+
+/* WS/WU toggle */
+.wuBtn {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 1.2px solid #4f9aa8;
+  border-radius: 6px;
+  background: transparent;
+  color: #4f9aa8;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: color 180ms ease-out, border-color 180ms ease-out;
+  justify-self: center;
+}
+
+.wuBtnWarmup { color: #b08092; border-color: #b08092; }
+
+/* BW toggle */
+.bwBtn {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1.2px solid #0f1622;
+  border-radius: 6px;
+  background: transparent;
+  color: #0f1622;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: background 180ms ease-out, color 180ms ease-out;
+  justify-self: center;
+}
+
+.bwBtnOn {
+  background: #0f1622;
+  color: white;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.10) inset, 0 1px 4px rgba(15,22,34,0.18);
+}
+
+/* Prev / vals columns */
+.rPrev {
+  color: #8893a8;
+  font-weight: 500;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setRowDone .rPrev { opacity: 0.7; }
+
+.rVals {
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  text-align: right;
+  color: #0f1622;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setRowDone .rVals { color: #5e6a82; }
+
+/* Editable values row (target sets) */
+.rValsEditable {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.editNum {
+  background: transparent;
+  border: none;
+  padding: 1px 4px;
+  margin: -1px -2px;
+  border-radius: 6px;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+
+.editNum:hover { background: rgba(93,155,184,0.10); color: #5d9bb8; }
+.editNumBlank { color: #8893a8; }
+.editX { color: #8893a8; font-size: 11px; }
+
+.rpeBit {
+  font-size: 10px;
+  color: #8893a8;
+  margin-left: 3px;
+}
+
+/* Check button */
+.chk {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.chk svg { width: 11px; height: 11px; }
+
+.chkDone {
+  background: #4f9aa8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 100ms cubic-bezier(0.33,1,0.68,1), opacity 150ms ease-out;
+}
+
+.chkDone:active { transform: scale(0.92); }
+.chkDone:hover { opacity: 0.85; }
+
+.chkTarget {
+  background: white;
+  color: #8893a8;
+  border: 1.2px solid rgba(15,22,34,0.14);
+}
+
+/* Per-set remove */
+.rowRemove {
+  width: 18px; height: 18px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #8893a8;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+  padding: 0;
+}
+
+.rowRemove:hover { color: #b08092; }
+.rowRemove svg { width: 9px; height: 9px; }
+
+/* ─── Sets container ─────────────────────────────────────────────────────── */
+.sets {
+  padding: 0 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ─── AI rec pill ────────────────────────────────────────────────────────── */
+.recInline {
+  margin: 6px 0 10px;
+  padding: 9px 8px 9px 14px;
+  background: linear-gradient(155deg, rgba(93,155,184,0.20) 0%, rgba(155,130,200,0.14) 55%, rgba(201,160,190,0.12) 100%);
+  backdrop-filter: blur(30px) saturate(1.5);
+  -webkit-backdrop-filter: blur(30px) saturate(1.5);
+  border: 1.2px solid rgba(93,155,184,0.30);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.9) inset,
+    0 0 0 1px rgba(255,255,255,0.4) inset,
+    0 10px 24px rgba(93,155,184,0.12);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.recInline::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 22%; right: 22%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+  pointer-events: none;
+}
+
+.recDot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #5d9bb8;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+.recBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recSummary {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5e6a82;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recTag { font-weight: 700; color: #5d9bb8; margin-right: 6px; }
+.recAction { font-weight: 700; color: #0f1622; }
+.recArrow { color: #8893a8; margin: 0 4px; }
+.recNext { font-weight: 700; color: #5d9bb8; }
+
+.recReason {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  color: #8893a8;
+  letter-spacing: 0.04em;
+}
+
+.recApply {
+  padding: 7px 12px;
+  background: white;
+  border: 1.2px solid rgba(93,155,184,0.30);
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5d9bb8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: background 150ms ease-out;
+}
+
+.recApply:hover { background: rgba(93,155,184,0.08); }
+.recApply svg { width: 12px; height: 12px; }
+
+/* ─── Add set button ─────────────────────────────────────────────────────── */
+.addSetBtn {
+  display: block;
+  margin: 10px 22px;
+  padding: 10px 0;
+  width: calc(100% - 44px);
+  background: transparent;
+  border: 1.2px dashed rgba(15,22,34,0.20);
+  border-radius: 14px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5e6a82;
+  cursor: pointer;
+  transition: background 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+  flex-shrink: 0;
+}
+
+.addSetBtn:hover {
+  background: rgba(93,155,184,0.06);
+  border-color: rgba(93,155,184,0.30);
+  color: #5d9bb8;
+}
+
+/* ─── Toast ──────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  background: #0f1622;
+  color: white;
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 300;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(15,22,34,0.28);
+  animation: toastIn 220ms cubic-bezier(0.33,1,0.68,1) forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ─── Picker bottom sheet ────────────────────────────────────────────────── */
+.pickerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,22,34,0.40);
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 180ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pickerSheet {
+  width: 100%;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border-radius: 24px 24px 0 0;
+  border: 1.2px solid rgba(15,22,34,0.08);
+  border-bottom: none;
+  padding: 20px 22px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  box-shadow: 0 -8px 32px rgba(15,22,34,0.16);
+  animation: slideUp 280ms cubic-bezier(0.22,1,0.36,1);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.pickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pickerTitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f1622;
+  letter-spacing: -0.02em;
+}
+
+.pickerUnit {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8893a8;
+}
+
+.pickerVal {
+  text-align: center;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #0f1622;
+  line-height: 1;
+  margin: 12px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pickerSteppers {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.pkStepper {
+  padding: 8px 14px;
+  background: rgba(15,22,34,0.06);
+  border: 1.2px solid rgba(15,22,34,0.10);
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f1622;
+  cursor: pointer;
+  transition: background 150ms ease-out;
+}
+
+.pkStepper:hover { background: rgba(15,22,34,0.10); }
+.pkStepper:active { transform: scale(0.96); }
+
+.pickerPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.pkPreset {
+  padding: 8px 16px;
+  background: white;
+  border: 1.2px solid rgba(15,22,34,0.12);
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f1622;
+  cursor: pointer;
+  transition: background 150ms ease-out, border-color 150ms ease-out;
+}
+
+.pkPreset:hover { background: #f4f5f7; }
+
+.pkPresetActive {
+  background: #5d9bb8;
+  color: white;
+  border-color: #5d9bb8;
+}
+
+.pkDone {
+  width: 100%;
+  padding: 14px;
+  background: #0f1622;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15,22,34,0.24);
+  transition: transform 180ms cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.pkDone:active { transform: scale(0.98); }
