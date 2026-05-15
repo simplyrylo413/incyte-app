@@ -7,13 +7,11 @@
 //   - movements: id, device_id, name, kind, muscle, body_part, unit,
 //     equipment_type, variant, canonical_movement, default_sets, ...
 //   - plans: id, device_id, mid, dow, sets, reps, rpe, ...
-// device_id keying is the build/test convention; auth.uid() takes over in
-// Phase 8.
 //
-// Per pm/nextjs-port-plan.md Phase 0: this is the canonical data layer for
-// the Next.js build. Use it from client components ("use client"). Server
-// components should hold off until SSR-friendly access patterns are needed
-// — for the initial port everything renders client-side from these helpers.
+// Phase 8: queries use auth.uid() when the user is signed in; fall back to
+// device_id otherwise. On first sign-in, adoptDeviceRowsIfNeeded() migrates
+// existing rows from the old device_id to the uid, then overwrites
+// localStorage fitlog_device_id = uid so future reads are consistent.
 
 "use client";
 
@@ -26,17 +24,85 @@ import type {
   WorkoutEntry,
 } from "@/lib/types";
 
+// ─── Identity resolution ──────────────────────────────────────────────────────
+
+/**
+ * Returns auth.uid() when the user is signed in, otherwise falls back to the
+ * anonymous device_id. Uses getSession() (local/cookie read — no network hop)
+ * so it's fast to call before every query.
+ */
+async function getIdentifier(): Promise<string> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user?.id) return session.user.id;
+  return getDeviceId();
+}
+
+// ─── Auth helpers ─────────────────────────────────────────────────────────────
+
+/** Sign out the current user and clear any cached session. */
+export async function signOut(): Promise<void> {
+  const supabase = createClient();
+  await supabase.auth.signOut();
+}
+
+/** Current Supabase user, or null if not signed in. */
+export async function getCurrentUser() {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user ?? null;
+}
+
+/**
+ * One-time migration: transfers all rows keyed by the old device_id to the
+ * user's uid. Called immediately after successful sign-in.
+ *
+ * Strategy: update device_id → uid across all three tables, then overwrite
+ * localStorage's fitlog_device_id with the uid so getDeviceId() returns the
+ * uid from this point forward. No schema changes needed.
+ *
+ * Idempotent — guarded by a localStorage flag keyed to the uid.
+ */
+const MIGRATED_KEY = "fitlog_migrated_uid";
+
+export async function adoptDeviceRowsIfNeeded(uid: string): Promise<void> {
+  if (typeof localStorage === "undefined") return;
+
+  // Already migrated for this uid — skip.
+  if (localStorage.getItem(MIGRATED_KEY) === uid) return;
+
+  const deviceId = localStorage.getItem("fitlog_device_id");
+
+  // No old anonymous rows, or device_id already equals the uid.
+  if (!deviceId || deviceId === uid) {
+    localStorage.setItem("fitlog_device_id", uid);
+    localStorage.setItem(MIGRATED_KEY, uid);
+    return;
+  }
+
+  const supabase = createClient();
+  await Promise.all([
+    supabase.from("movements").update({ device_id: uid }).eq("device_id", deviceId),
+    supabase.from("workouts").update({ device_id: uid }).eq("device_id", deviceId),
+    supabase.from("plans").update({ device_id: uid }).eq("device_id", deviceId),
+  ]);
+
+  // Point device_id at the uid so all subsequent getDeviceId() calls return it.
+  localStorage.setItem("fitlog_device_id", uid);
+  localStorage.setItem(MIGRATED_KEY, uid);
+}
+
 // ============================================================================
 // MOVEMENTS
 // ============================================================================
 
 export async function listMovements(): Promise<Movement[]> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   const { data, error } = await supabase
     .from("movements")
     .select("*")
-    .eq("device_id", deviceId)
+    .eq("device_id", id)
     .order("name", { ascending: true });
   if (error) {
     console.warn("[db] listMovements failed:", error);
@@ -47,10 +113,10 @@ export async function listMovements(): Promise<Movement[]> {
 
 export async function upsertMovement(m: Movement): Promise<boolean> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   const { error } = await supabase.from("movements").upsert({
     id: m.id,
-    device_id: deviceId,
+    device_id: id,
     name: m.name,
     kind: m.kind ?? null,
     muscle: m.muscle ?? null,
@@ -88,11 +154,11 @@ export async function listWorkouts(opts?: {
   limit?: number;
 }): Promise<Workout[]> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   let q = supabase
     .from("workouts")
     .select("*")
-    .eq("device_id", deviceId)
+    .eq("device_id", id)
     .order("date", { ascending: false });
   if (opts?.finished !== undefined) q = q.eq("finished", opts.finished);
   if (opts?.limit) q = q.limit(opts.limit);
@@ -120,10 +186,10 @@ export async function listFinishedTodayWorkouts(): Promise<Workout[]> {
 
 export async function upsertWorkout(w: Workout): Promise<boolean> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   const { error } = await supabase.from("workouts").upsert({
     id: w.id,
-    device_id: deviceId,
+    device_id: id,
     name: w.name ?? "",
     date: w.date,
     finished: !!w.finished,
@@ -156,11 +222,11 @@ export async function deleteWorkout(id: string): Promise<boolean> {
 
 export async function listPlans(): Promise<PlanItem[]> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   const { data, error } = await supabase
     .from("plans")
     .select("*")
-    .eq("device_id", deviceId)
+    .eq("device_id", id)
     .order("dow", { ascending: true });
   if (error) {
     console.warn("[db] listPlans failed:", error);
@@ -171,10 +237,10 @@ export async function listPlans(): Promise<PlanItem[]> {
 
 export async function upsertPlan(p: PlanItem): Promise<boolean> {
   const supabase = createClient();
-  const deviceId = getDeviceId();
+  const id = await getIdentifier();
   const { error } = await supabase.from("plans").upsert({
     id: p.id,
-    device_id: deviceId,
+    device_id: id,
     mid: p.mid,
     dow: p.dow,
     sets: p.sets ?? null,
@@ -205,8 +271,6 @@ export async function deletePlan(id: string): Promise<boolean> {
 // ============================================================================
 // Row → domain object mappers
 // ============================================================================
-// Tolerant mapping — Supabase column names use snake_case, app types use
-// camelCase. Missing fields default to undefined.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToMovement(r: any): Movement {
