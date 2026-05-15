@@ -1,28 +1,40 @@
-// Phase 2 stub — More screen (History, Movement Library, Settings) built in
-// Phase 7 per pm/nextjs-port-plan.md.
+// Phase 7 — More hub. Links to History and Movement Library.
+// No data fetching; purely a navigation surface.
+
+import Link from "next/link";
+import s from "./MorePage.module.css";
 
 export default function MorePage() {
   return (
-    <main style={{ padding: "24px 16px", fontFamily: "system-ui, sans-serif" }}>
-      <p
-        style={{
-          fontFamily: "Geist Mono, ui-monospace, monospace",
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: "1.5px",
-          textTransform: "uppercase",
-          color: "#8893a8",
-          marginBottom: 8,
-        }}
-      >
-        More
-      </p>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0f1622", margin: 0 }}>
-        More
-      </h1>
-      <p style={{ fontSize: 13, color: "#5e6a82", marginTop: 8 }}>
-        History · Movement Library · Settings — built in Phase 7.
-      </p>
-    </main>
+    <div className={s.page}>
+      <div className={s.head}>
+        <div className={s.subline}>App</div>
+        <h1 className={s.headline}>More</h1>
+      </div>
+
+      <div className={s.sectionLabel}>Workouts</div>
+      <div className={s.cardList}>
+        <Link href="/history" className={s.navCard}>
+          <div className={s.navCardIcon}>📋</div>
+          <div className={s.navCardBody}>
+            <div className={s.navCardTitle}>History</div>
+            <div className={s.navCardSub}>All finished sessions</div>
+          </div>
+          <span className={s.navCardChev}>›</span>
+        </Link>
+      </div>
+
+      <div className={s.sectionLabel}>Library</div>
+      <div className={s.cardList}>
+        <Link href="/movements" className={s.navCard}>
+          <div className={s.navCardIcon}>🏋️</div>
+          <div className={s.navCardBody}>
+            <div className={s.navCardTitle}>Movements</div>
+            <div className={s.navCardSub}>Browse and manage your library</div>
+          </div>
+          <span className={s.navCardChev}>›</span>
+        </Link>
+      </div>
+    </div>
   );
 }

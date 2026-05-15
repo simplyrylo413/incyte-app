@@ -1,0 +1,263 @@
+/* History page */
+
+.page {
+  min-height: 100dvh;
+  background: linear-gradient(155deg,
+    rgba(93,155,184,0.10) 0%,
+    rgba(155,130,200,0.07) 55%,
+    rgba(201,160,190,0.05) 100%
+  ), #f0f2f7;
+  padding-bottom: 90px;
+}
+
+.head {
+  padding: 52px 24px 16px;
+}
+
+.subline {
+  font-family: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8893a8;
+  margin-bottom: 4px;
+}
+
+.headline {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f1622;
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.stateMsg {
+  padding: 24px;
+  font-size: 13px;
+  color: #5e6a82;
+}
+
+.stateErr {
+  padding: 24px;
+  font-size: 13px;
+  color: #b08092;
+}
+
+/* ─── Empty ──────────────────────────────────────────────────────────────── */
+.emptyWrap {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyTitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1622;
+  margin: 0 0 6px;
+}
+
+.emptySub {
+  font-size: 13px;
+  color: #5e6a82;
+}
+
+/* ─── Month group ────────────────────────────────────────────────────────── */
+.monthGroup {
+  margin-bottom: 8px;
+}
+
+.monthLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #8893a8;
+  padding: 16px 20px 6px;
+}
+
+/* ─── Workout row ────────────────────────────────────────────────────────── */
+.workoutCard {
+  margin: 0 12px 6px;
+  background: rgba(255,255,255,0.72);
+  border: 1.2px solid rgba(255,255,255,0.82);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(15,22,34,0.07),
+    0 1px 2px rgba(15,22,34,0.04);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  position: relative;
+}
+
+.workoutCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(155deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0) 60%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.workoutHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms;
+  position: relative;
+  z-index: 1;
+}
+
+.workoutHead:active { background: rgba(15,22,34,0.03); }
+
+.workoutDateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+  background: linear-gradient(155deg,
+    rgba(93,155,184,0.14) 0%,
+    rgba(155,130,200,0.10) 100%
+  );
+  border: 1.2px solid rgba(93,155,184,0.20);
+  border-radius: 10px;
+  padding: 5px 4px;
+}
+
+.workoutDay {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f1622;
+  line-height: 1;
+}
+
+.workoutDow {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #5d9bb8;
+  margin-top: 2px;
+}
+
+.workoutInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.workoutName {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f1622;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workoutMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+
+.metaChip {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8893a8;
+  background: rgba(15,22,34,0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.workoutChev {
+  font-size: 13px;
+  color: #8893a8;
+  flex-shrink: 0;
+  transition: transform 200ms ease-out;
+}
+
+.workoutChevOpen {
+  transform: rotate(90deg);
+}
+
+/* ─── Workout detail (collapsible) ───────────────────────────────────────── */
+.workoutDetail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+.workoutDetailOpen {
+  grid-template-rows: 1fr;
+}
+
+.workoutDetailInner {
+  overflow: hidden;
+}
+
+.detailList {
+  border-top: 1.2px solid rgba(15,22,34,0.08);
+  padding: 8px 0 12px;
+}
+
+.detailEntry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  gap: 10px;
+}
+
+.detailEntryName {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c3548;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detailEntryMeta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8893a8;
+  flex-shrink: 0;
+}
+
+.detailEntryDone {
+  color: #4f9aa8;
+}
