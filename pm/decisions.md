@@ -209,3 +209,41 @@ The newer rationale doc describes a light-mode experience. The handoff baseline 
 - Library moves under More → standard list view, search-first.
 
 **Revisit when:** Usage data post-launch shows a specific tab being undiscoverable (e.g., users can't find Insights). Could promote a frequently-used sub-screen back to top-level.
+
+---
+
+## 2026-05-13 — Start Next.js + Supabase port (incremental, parallel to HTML)
+
+**Decision:** Begin building the Next.js + Supabase scaffold at `~/fitness-app/src/fitlog-nextjs/` toward feature + visual parity with `fitlog-mobile.html` (baseline: mobile351). The HTML build remains the primary shipping product during construction; the Next.js build runs in parallel until it reaches parity, at which point we cut over.
+
+**Context:** The 2026-05-10 decision committed to Capacitor-direct → App Store and explicitly deferred the Next.js port until "a feature lands that the HTML build genuinely can't ship." User has now triggered the port directly — primary motivation is having a real web app he can use from any browser during build/test, and an eventual maintainability foundation. The HTML build is ~21.6k lines of vanilla JS in one file; the Next.js scaffold has been dormant since the 2026-04-28 commit but is alive: Next 14 app router, React 18, Tailwind, TypeScript, Supabase SSR + JS, recharts. Existing pages: auth, login, history, movements, progress.
+
+**Locked sub-decisions:**
+
+- **Migration:** Incremental. HTML build stays primary, Next.js builds in parallel. Cut over when feature + visual parity is reached.
+- **Auth (build phase):** Anonymous Supabase access keyed by `device_id` — mirrors the HTML v1 decision. No signup/login UI during construction or beta testing. Lets the user and any beta testers use the app without auth friction.
+- **Auth (launch):** Full Supabase auth (signup, login, password reset, account-deletion per App Store guideline 5.1.1(v)) becomes a launch blocker. Adds ~2–3 weeks to launch-readiness. Picks up D-03 from the backlog.
+- **Distribution (build phase):** Web app on Vercel (or similar). User can access from any browser during testing.
+- **Distribution (launch):** Capacitor wrap → App Store. Same target as the HTML plan. Native plugins (calendar, local notifications, HealthKit later) bound at that point.
+- **IA:** Today / Plan / Momentum / More — matches mobile351 and the 2026-05-12 canonical decision. The scaffold's existing pages (history, movements, progress) get absorbed into More.
+- **Visual:** 1:1 with mobile351. Same tokens, components, locked palette, voice register, animation register per `CLAUDE.md`. Tailwind config carries the INCYTE design tokens.
+- **Backend:** Same Supabase project (`drlmpltseepsxostsqdq`). The Next.js build adopts the HTML build's schema (inline `entries` jsonb on the `workouts` row, `device_id` keying) so data round-trips between builds during transition. The scaffold's normalized schema (`workout_entries` separate table, `auth.uid()` RLS) at `src/fitlog-nextjs/supabase/schema.sql` is stale and gets superseded.
+
+**Rationale:**
+- "Use it as a web app while I build / test" is a legitimate trigger that the HTML build (mobile-first, Capacitor-targeted) doesn't serve cleanly.
+- Incremental parallel avoids the "Next.js scaffold revival" trap from the original 2026-05-10 analysis where porting blocks any HTML iteration.
+- Shared Supabase backend means user data accumulated in the HTML build (workouts, movements, plans) is immediately available in the Next.js build — no migration step required.
+- Deferring auth to launch (rather than building it during construction) matches the HTML v1 sequencing and keeps build-phase iteration fast.
+
+**Implementation impact:**
+- New file: `pm/nextjs-port-plan.md` captures the phased work plan.
+- New file: `src/fitlog-nextjs/CLAUDE.md` (or rules section in root `CLAUDE.md`) for the Next.js build's conventions — separate from the single-file HTML rules.
+- Tailwind config + global CSS adopt INCYTE tokens.
+- Scaffold's `src/lib/db.ts` and existing pages need rebuild against the HTML build's schema.
+- The HTML build remains the source of truth for engine logic (auto-archive, fatigue math, recommendations, identity rules, tombstones, same-day merge) — Next.js implementations port from there.
+
+**Revisit when:**
+- Next.js build reaches feature + visual parity with mobile351 → cut over and retire HTML iteration.
+- A blocker is discovered that makes parity infeasible (e.g. a Capacitor-specific behavior that doesn't translate to Next.js + Capacitor wrap) → reassess scope.
+
+**Status:** Locked. Port-plan + CLAUDE.md updates owed in this commit.

@@ -14,8 +14,10 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 
 ## 2. Critical rules (do not violate)
 
-- **IMPORTANT:** The canonical source file is **`src/fitlog-mobile.html`** — a single-file vanilla HTML/CSS/JS app, ~21.6k lines. Edit it directly. There is no build step, no framework, no JSX.
-- **IMPORTANT:** Do **not** create new files for components, styles, or scripts. Everything goes inside the single canonical file. Numbered snapshots (e.g. `mobile346.html`) are only created when the user explicitly asks — they are not source of truth.
+- **IMPORTANT:** Two builds coexist in this repo. Know which one you're touching before editing.
+  - **HTML build** at `src/fitlog-mobile.html` — single-file vanilla HTML/CSS/JS, ~21.6k lines, no build step, no framework. The **primary shipping product** during the transition. Rules in §3–§7 apply.
+  - **Next.js build** at `src/fitlog-nextjs/` — Next 14 (app router) + React 18 + Tailwind + TypeScript + Supabase SSR. In active construction toward visual + feature parity with the HTML build's mobile351 baseline. Has its own conventions in §12 below. Per [`pm/decisions.md` 2026-05-13](pm/decisions.md), this build is being developed in parallel and will replace the HTML build at cutover.
+- **IMPORTANT:** Inside the HTML build, do **not** create new files for components, styles, or scripts. Everything goes inside the single canonical `fitlog-mobile.html`. Numbered snapshots (e.g. `mobile346.html`) are only created when the user explicitly asks — they are not source of truth.
 - **IMPORTANT:** Commit each meaningful change to git. The repo is at `~/fitness-app/` on branch `main`. Numbered-snapshot workflow was retired 2026-05-12 ([`pm/decisions.md`](pm/decisions.md)); user may still request snapshots for specific exports.
 - **IMPORTANT:** Never hardcode colors, font sizes, spacing, or shadows. Use the design tokens declared in `:root` at [src/fitlog-mobile.html:20](src/fitlog-mobile.html#L20). Hardcoded values that re-implement existing tokens are a regression.
 - **IMPORTANT:** Never invent new brand colors. INCYTE's palette is locked: steel-blue / lavender / soft-pink. Gaming, cyberpunk, neon, and warm-orange "fitness" palettes are explicitly rejected. See `~/.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md`.
@@ -214,6 +216,57 @@ When a Figma URL or selection is provided, the implementation flow is:
 
 ---
 
+## 12. Next.js build (`src/fitlog-nextjs/`)
+
+The parallel build under construction. Different conventions from the HTML build — read these before editing inside `src/fitlog-nextjs/`.
+
+**Tech stack** (locked):
+- Next.js 14 app router · React 18 · TypeScript · Tailwind · Supabase SSR + JS · recharts
+- Static export preferred so Capacitor wrapping is straightforward at launch
+
+**Architecture rules:**
+- **Shared Supabase project** with the HTML build (`drlmpltseepsxostsqdq`). Reads + writes the same `workouts` / `movements` / `plans` rows. The scaffold's `supabase/schema.sql` is stale — the canonical schema is what the HTML build at [src/fitlog-mobile.html:17042](src/fitlog-mobile.html#L17042) writes (`workouts` row with inline `entries` jsonb, `device_id` keying, columns: `id, device_id, name, date, finished, entries, saved_at`).
+- **Auth:** anonymous `device_id` during build/test phase. Full Supabase auth becomes a launch blocker (Phase 8 in `pm/nextjs-port-plan.md`).
+- **Engine logic is canonical in the HTML build** — Next.js implementations port the *behavior*, not the source. Each ported function header should cite the source line in `fitlog-mobile.html` so behavior contracts stay traceable.
+- **IA:** Today / Plan / Momentum / More (canonical, per `pm/decisions.md` 2026-05-12). Routes: `/today`, `/plan`, `/momentum`, `/more`. The scaffold's existing pages (history, movements, progress) get absorbed under More.
+
+**Component conventions:**
+- Tokens live in `tailwind.config.ts` (palette, type scale, weight ladder, tracking, leading). Same values as the HTML build's `:root` tokens — don't drift.
+- Tailwind for layout + spacing + color utilities.
+- For glass-treatment surfaces (`.hero-card`, `.progress`, `.back-chip`), use component-level CSS modules — Tailwind's `bg-gradient-to-br` + `backdrop-blur` + `shadow` can't easily express the layered `box-shadow` + `::after` sheen + `backdrop-filter` combos that mobile351 uses. Token names match across both implementations.
+- Animation register: same 150–300ms / `ease-out-cubic` ceiling as the HTML build. No external animation libraries (per memory `reference_animation_libraries.md`).
+
+**Visual parity bar:**
+- 1:1 with mobile351 for every shipped surface. Compare side-by-side before marking a phase done.
+- The locked palette, the 12px eyebrow scale, the 1.2px hairlines, the steel-blue/lavender/soft-pink gradient — all of it is non-negotiable. If you find yourself reaching for a different color or a new size, stop and check the HTML build.
+
+**File layout:**
+```
+src/fitlog-nextjs/
+├── src/
+│   ├── app/                    ← routes (today, plan, momentum, more, etc.)
+│   ├── components/             ← shared UI components (BottomNav, GlassCard, ...)
+│   ├── lib/
+│   │   ├── db.ts              ← Supabase query helpers (rewritten Phase 0)
+│   │   ├── types.ts           ← HTML-compatible types (rewritten Phase 0)
+│   │   ├── device.ts          ← device_id helper
+│   │   ├── engine/            ← ported engine logic (fatigue, 1RM, recommendations)
+│   │   └── supabase/          ← Supabase client setup (server.ts, client.ts)
+│   └── styles/                 ← shared CSS modules for glass surfaces
+├── tailwind.config.ts          ← INCYTE tokens
+└── supabase/schema.sql         ← STALE — do not trust; HTML build's writes are canonical
+```
+
+**Workflow for Next.js build:**
+- `cd src/fitlog-nextjs && npm run dev` to run locally on `http://localhost:3000`
+- Commits to this directory should be prefixed `nextjs:` so they're separable from the HTML build's history (which uses `src:`)
+- Visual verification: open both `mobile351.html` and the Next.js page side-by-side. If they don't match, the Next.js side is wrong.
+- Engine verification: read the HTML build's function, port the behavior, then test against the same input fixtures the HTML build would produce.
+
+**Where to read first:** [`pm/nextjs-port-plan.md`](pm/nextjs-port-plan.md) — phased plan with the work breakdown.
+
+---
+
 ## 11. Where to read next
 
 | Document | When to read |
@@ -222,7 +275,8 @@ When a Figma URL or selection is provided, the implementation flow is:
 | [`pm/roadmap.md`](pm/roadmap.md) | What ships when. |
 | [`pm/backlog.md`](pm/backlog.md) | Every bug / feature / distribution item. |
 | [`pm/decisions.md`](pm/decisions.md) | Why anything is the way it is. Append-only. |
-| [`pm/port-plan.md`](pm/port-plan.md) | The Today + Workout-mode prototype port. Read before touching Today/Workout. |
+| [`pm/port-plan.md`](pm/port-plan.md) | The Today + Workout-mode prototype port (HTML build). Read before touching Today/Workout. |
+| [`pm/nextjs-port-plan.md`](pm/nextjs-port-plan.md) | The Next.js port plan. Read before editing `src/fitlog-nextjs/`. |
 | [`pm/launch-quality.md`](pm/launch-quality.md) | Pre-submission checklist. |
 | `~/.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md` | Locked token system. |
 | `~/.claude/projects/-Users-albertrylo/memory/feedback_positioning_and_voice.md` | Voice rules. |
