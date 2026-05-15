@@ -1,0 +1,572 @@
+/* Today screen CSS module.
+ * Glass panel + movement row styles that require layered box-shadows,
+ * backdrop-filter, and ::after pseudo-elements — can't be expressed cleanly
+ * with Tailwind alone. All values match src/fitlog-mobile.html lines 6693–7027.
+ */
+
+/* ─── Page shell ─────────────────────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: #f4f5f7; /* --paper-2 */
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.head {
+  padding: 24px 24px 8px;
+}
+
+.headline {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: #0f1622;
+  line-height: 1.1;
+  margin: 0 0 4px;
+}
+
+.dateLine {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #8893a8; /* --label */
+}
+
+/* ─── Session-stats glass panel (.progress) ──────────────────────────────── */
+/* Source: fitlog-mobile.html lines 6693–6839 */
+.progress {
+  position: relative;
+  margin: 4px 22px 12px;
+  padding: 14px 8px 12px;
+  transition: padding 220ms cubic-bezier(0.33, 1, 0.68, 1);
+  background:
+    linear-gradient(155deg, rgba(93,155,184,0.24) 0%, rgba(155,130,200,0.17) 55%, rgba(201,160,190,0.12) 100%),
+    rgba(255,255,255,0.50);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1.2px solid rgba(255,255,255,0.85);
+  border-radius: 22px;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.95) inset,
+    0 0 0 1px rgba(93,155,184,0.10),
+    0 12px 26px rgba(93,155,184,0.18),
+    0 4px 8px rgba(15,22,34,0.08);
+  flex-shrink: 0;
+}
+
+.progress::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  z-index: 0;
+}
+
+.progress > * { position: relative; z-index: 1; }
+
+/* Compact state — no sets started yet */
+.progressCompact {
+  padding: 9px 14px;
+}
+
+/* ── Stats row (3 columns: Volume / RPE / Complete) ── */
+.statsRow {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 0;
+}
+
+.progressCompact .statsRow {
+  display: none;
+}
+
+.stat {
+  padding: 2px 12px;
+  position: relative;
+  min-width: 0;
+}
+
+.stat + .stat::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 1px;
+  background: rgba(15,22,34,0.08);
+}
+
+.statLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5e6a82; /* --muted */
+  margin-bottom: 6px;
+}
+
+.statValue {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f1622; /* --ink */
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.statUnit {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5e6a82;
+  margin-left: 3px;
+}
+
+.volParts {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #8893a8; /* --label */
+}
+
+.volParts span em {
+  font-style: normal;
+  color: #5e6a82; /* --muted */
+  margin-right: 4px;
+}
+
+.miniBar {
+  margin-top: 6px;
+  height: 4px;
+  background: rgba(15,22,34,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.miniBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #5d9bb8 0%, #9b82c8 55%, #c9a0be 100%);
+  border-radius: 999px;
+  transition: width 280ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* ── Ready strip (compact pre-workout state) ── */
+.readyStrip {
+  display: none;
+}
+
+.progressCompact .readyStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.planned {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f1622;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.plannedNum {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f1622;
+}
+
+.plannedSep {
+  color: #8893a8;
+}
+
+.plannedUnit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5e6a82;
+}
+
+.readyLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5e6a82;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Remaining / Completed toggle ──────────────────────────────────────── */
+.tabToggle {
+  display: flex;
+  gap: 4px;
+  margin: 8px 22px 4px;
+  padding: 3px;
+  background: rgba(15,22,34,0.06);
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+.tabBtn {
+  background: transparent;
+  border: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #5e6a82;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+  white-space: nowrap;
+}
+
+.tabBtnActive {
+  background: #ffffff;
+  color: #0f1622;
+  box-shadow: 0 1px 3px rgba(15,22,34,0.10), 0 1px 0 rgba(255,255,255,1) inset;
+}
+
+/* ─── Section eyebrow ────────────────────────────────────────────────────── */
+.eyebrow {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0f1622;
+  padding: 12px 26px 6px;
+}
+
+/* ─── Movement row (.mv) ─────────────────────────────────────────────────── */
+/* Source: fitlog-mobile.html lines 6860–7027 */
+.mv {
+  position: relative;
+  margin: 4px 22px;
+  padding: 9px 14px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1.2px solid rgba(255,255,255,0.85);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,1) inset,
+    0 4px 10px rgba(15,22,34,0.04);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 150ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+  overflow: hidden;
+}
+
+.mv:hover {
+  box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 6px 14px rgba(15,22,34,0.07);
+  border-color: rgba(15,22,34,0.12);
+}
+
+.mv:active { transform: scale(0.99); }
+
+/* Ripple layer */
+.rippleLayer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rippleMark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(93,155,184,0.45);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  animation: rippleExpand 420ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+@keyframes rippleExpand {
+  to { transform: translate(-50%, -50%) scale(28); opacity: 0; }
+}
+
+.mv > :not(.rippleLayer) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Completed state */
+.mvComplete {
+  background: rgba(15,22,34,0.04);
+  border-color: rgba(15,22,34,0.08);
+  box-shadow: 0 1px 0 rgba(255,255,255,1) inset, 0 2px 6px rgba(15,22,34,0.04);
+}
+
+/* Drag handle */
+.dragHandle {
+  width: 16px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: #8893a8;
+  opacity: 0.30;
+  flex-shrink: 0;
+  margin-left: -6px;
+}
+
+.dragHandle svg { width: 10px; height: 14px; }
+
+/* Body */
+.mvBody { flex: 1; min-width: 0; }
+.row1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-bottom: 4px;
+}
+
+.mvName {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #0f1622;
+  line-height: 1.2;
+}
+
+.mvComplete .mvName { color: #5e6a82; }
+
+/* Equipment pill */
+.equipWrap { position: relative; display: inline-block; }
+
+.equip {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5e6a82;
+  padding: 4px 9px;
+  background: transparent;
+  border: 1.2px solid rgba(15,22,34,0.16);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.equip:hover { background: rgba(15,22,34,0.04); color: #0f1622; border-color: rgba(15,22,34,0.28); }
+
+.mvComplete .equip { opacity: 0.7; }
+
+/* Equipment popover */
+.equipPop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1.2px solid rgba(15,22,34,0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(15,22,34,0.16), 0 2px 6px rgba(15,22,34,0.06);
+  z-index: 8;
+  min-width: 200px;
+  animation: popEnter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.equipPopOpen { display: flex; }
+
+@keyframes popEnter {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.equipChip {
+  padding: 5px 10px;
+  background: white;
+  border: 1.2px solid rgba(15,22,34,0.10);
+  border-radius: 999px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #0f1622;
+  cursor: pointer;
+  transition: background 150ms ease-out;
+}
+
+.equipChip:hover { background: #f4f5f7; }
+
+.equipChipActive {
+  background: #0f1622;
+  color: white;
+  border-color: #0f1622;
+}
+
+/* Progress chip */
+.progressChip {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: #0f1622;
+  background: #f4f5f7;
+  border: 1.2px solid rgba(15,22,34,0.20);
+  border-radius: 999px;
+  padding: 6px 10px;
+  min-width: 44px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.progressChipDone {
+  color: #4f9aa8;
+  background: rgba(79,154,168,0.10);
+  border-color: rgba(79,154,168,0.20);
+}
+
+.progressChipSkipped {
+  color: #b08092;
+  background: rgba(176,128,146,0.10);
+  border-color: rgba(176,128,146,0.20);
+}
+
+.progressChipPartial {
+  color: #5d9bb8;
+  background: rgba(93,155,184,0.10);
+  border-color: rgba(93,155,184,0.20);
+}
+
+/* Remove button */
+.removeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1.2px solid rgba(15,22,34,0.20);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #8893a8;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.removeBtn:hover { color: #b08092; border-color: rgba(176,128,146,0.30); }
+.removeBtn svg { width: 12px; height: 12px; }
+
+/* ─── Empty state ────────────────────────────────────────────────────────── */
+.emptyState {
+  margin: 28px 22px;
+  padding: 28px 22px;
+  background: rgba(255,255,255,0.55);
+  border: 1.2px dashed rgba(15,22,34,0.20);
+  border-radius: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.emptyEb {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8893a8;
+}
+
+.emptyTitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f1622;
+  margin: 0;
+}
+
+.emptyBody {
+  font-size: 13px;
+  color: #5e6a82;
+  margin: 0;
+}
+
+.emptyCta {
+  margin-top: 6px;
+  padding: 10px 22px;
+  background: #0f1622;
+  color: white;
+  border: 0;
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease-out;
+}
+
+.emptyCta:hover { background: #2c3548; }
+
+/* ─── Add movement floating CTA ─────────────────────────────────────────── */
+.addCta {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
+  right: max(20px, env(safe-area-inset-right, 20px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px 10px 14px;
+  background: #0f1622;
+  color: white;
+  border: 0;
+  border-radius: 999px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15,22,34,0.28), 0 2px 6px rgba(15,22,34,0.18);
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  z-index: 100;
+}
+
+.addCta:active { transform: scale(0.96); }
+
+.addCtaPlus {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
