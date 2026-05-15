@@ -1,119 +1,174 @@
-import {
-  getOrCreateTodayWorkout,
-  listEntriesForWorkout,
-  listMovements,
-} from "@/lib/db";
-import { createClient } from "@/lib/supabase/server";
-import MovementCard from "@/components/MovementCard";
-import AddMovementButton from "@/components/AddMovementButton";
-import FinishWorkoutButton from "@/components/FinishWorkoutButton";
-import type {
-  Movement,
-  SetEntry,
-  WeightSet,
-  WorkoutEntry,
-} from "@/lib/types";
+"use client";
 
-export const dynamic = "force-dynamic";
+// Phase 0 smoke-test page. Verifies that:
+//   1. The Next.js build can reach Supabase using the same device_id the
+//      HTML build writes with.
+//   2. The new lib/db.ts helpers read against the HTML build's schema
+//      successfully (workouts.entries jsonb, no workout_entries join).
+//   3. The user's real data flows in.
+//
+// This page is intentionally bare — no INCYTE design treatment yet. Phase 1
+// brings the tokens; Phase 3 replaces this file with the real Today screen.
 
-type LastForMovement = {
-  date: string;
-  sets: SetEntry[];
-};
+import { useEffect, useState } from "react";
+import { listMovements, listWorkouts, listFinishedTodayWorkouts } from "@/lib/db";
+import { tryGetDeviceId } from "@/lib/device";
+import type { Movement, Workout } from "@/lib/types";
 
-async function lastFinishedEntries(
-  movementIds: string[]
-): Promise<Record<string, LastForMovement>> {
-  if (movementIds.length === 0) return {};
-  const supabase = createClient();
-  const { data } = await supabase
-    .from("workout_entries")
-    .select("movement_id, sets, workouts!inner(date, finished)")
-    .in("movement_id", movementIds)
-    .eq("workouts.finished", true)
-    .order("created_at", { ascending: false });
+export default function Phase0SmokePage() {
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [movements, setMovements] = useState<Movement[]>([]);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [today, setToday] = useState<Workout[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const out: Record<string, LastForMovement> = {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  for (const row of (data ?? []) as any[]) {
-    if (!out[row.movement_id]) {
-      out[row.movement_id] = { date: row.workouts.date, sets: row.sets };
-    }
-  }
-  return out;
-}
-
-const isWeightSet = (s: SetEntry): s is WeightSet =>
-  "weight" in s && "reps" in s;
-
-function topSet(sets: SetEntry[]): { weight: number; reps: number } | null {
-  let best: WeightSet | null = null;
-  for (const s of sets) {
-    if (!isWeightSet(s)) continue;
-    if ((s.weight ?? 0) > (best?.weight ?? -1)) best = s;
-  }
-  return best && best.weight != null && best.reps != null
-    ? { weight: best.weight, reps: best.reps }
-    : null;
-}
-
-export default async function TodayPage() {
-  const movements = await listMovements();
-  const movementById = new Map<string, Movement>(movements.map((m) => [m.id, m]));
-  const workout = await getOrCreateTodayWorkout();
-  const entries: WorkoutEntry[] = await listEntriesForWorkout(workout.id);
-  const lastByMv = await lastFinishedEntries(entries.map((e) => e.movement_id));
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setDeviceId(tryGetDeviceId());
+        const [mv, w, tw] = await Promise.all([
+          listMovements(),
+          listWorkouts({ limit: 10 }),
+          listFinishedTodayWorkouts(),
+        ]);
+        if (cancelled) return;
+        setMovements(mv);
+        setWorkouts(w);
+        setToday(tw);
+      } catch (e) {
+        if (!cancelled) setErr(String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
-    // pb-24 keeps content clear of the sticky Finish Workout footer
-    <div className="space-y-4 pb-24">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Today</h1>
-          <p className="text-sm text-sub">{workout.date}</p>
-        </div>
-      </header>
+    <main style={{ padding: "24px", fontFamily: "system-ui, sans-serif", maxWidth: 760, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
+        INCYTE · Phase 0 smoke test
+      </h1>
+      <p style={{ fontSize: 13, color: "#5e6a82", marginBottom: 24 }}>
+        Validating Supabase connectivity + new data layer against the HTML build&apos;s schema.
+        See <code>pm/nextjs-port-plan.md</code> Phase 0.
+      </p>
 
-      {entries.length === 0 ? (
-        <p className="rounded-md border border-line bg-panel p-4 text-sm text-sub">
-          No movements yet. Add one to get started.
+      <Section label="Device id">
+        <code style={{ fontSize: 12 }}>{deviceId ?? "(not yet generated)"}</code>
+        <p style={{ fontSize: 12, color: "#8893a8", marginTop: 4 }}>
+          Anonymous keying during build phase. Should match what the HTML build
+          uses if you opened that first; otherwise this is a fresh id for the
+          Next.js build (which means your HTML data is keyed under a
+          different id — see note at the bottom).
         </p>
-      ) : (
-        <ul className="space-y-3">
-          {entries.map((e, i) => {
-            const m = movementById.get(e.movement_id);
-            if (!m) return null;
-            const last = lastByMv[m.id];
-            // Auto-expand the most recently added movement card
-            const isLast = i === entries.length - 1;
-            return (
-              <li key={e.id}>
-                <MovementCard
-                  movement={m}
-                  entry={e}
-                  defaultExpanded={isLast}
-                  lastEntryAt={last?.date ?? null}
-                  lastSets={last?.sets ?? null}
-                  lastTopSet={last ? topSet(last.sets) : null}
-                />
-              </li>
-            );
-          })}
-        </ul>
+      </Section>
+
+      {loading && <Section label="Loading">…</Section>}
+      {err && <Section label="Error">{err}</Section>}
+
+      {!loading && !err && (
+        <>
+          <Section label={`Movements (${movements.length})`}>
+            {movements.length === 0 ? (
+              <p style={{ fontSize: 12, color: "#8893a8" }}>
+                No movements for this device_id. If you expected to see your HTML build&apos;s
+                movements, your HTML build is writing under a different device_id —
+                copy it from localStorage (key <code>fitlog_device_id</code>) in your
+                HTML build&apos;s browser tab and paste into this build&apos;s localStorage.
+              </p>
+            ) : (
+              <ul style={{ fontSize: 13, lineHeight: 1.5 }}>
+                {movements.slice(0, 10).map((m) => (
+                  <li key={m.id}>
+                    <strong>{m.name}</strong>{" "}
+                    <span style={{ color: "#8893a8" }}>
+                      · {m.muscle ?? m.bodyPart ?? m.kind ?? "—"}
+                      {m.equipmentType ? ` · ${m.equipmentType}` : ""}
+                    </span>
+                  </li>
+                ))}
+                {movements.length > 10 && (
+                  <li style={{ color: "#8893a8" }}>… and {movements.length - 10} more</li>
+                )}
+              </ul>
+            )}
+          </Section>
+
+          <Section label={`Recent workouts (${workouts.length})`}>
+            {workouts.length === 0 ? (
+              <p style={{ fontSize: 12, color: "#8893a8" }}>No workouts yet.</p>
+            ) : (
+              <ul style={{ fontSize: 13, lineHeight: 1.5 }}>
+                {workouts.map((w) => (
+                  <li key={w.id}>
+                    <strong>{new Date(w.date).toLocaleString()}</strong>
+                    {" · "}
+                    {w.finished ? "DONE" : "saved"}
+                    {" · "}
+                    {(w.entries ?? []).length} entries
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+
+          <Section label={`Finished today (${today.length})`}>
+            {today.length === 0 ? (
+              <p style={{ fontSize: 12, color: "#8893a8" }}>Nothing finished today yet.</p>
+            ) : (
+              <ul style={{ fontSize: 13, lineHeight: 1.5 }}>
+                {today.map((w) => (
+                  <li key={w.id}>
+                    {(w.entries ?? []).length} entries · saved{" "}
+                    {w.savedAt ? new Date(w.savedAt).toLocaleTimeString() : "—"}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+        </>
       )}
 
-      <AddMovementButton
-        movements={movements}
-        workoutId={workout.id}
-        nextPosition={entries.length}
-        excludeIds={entries.map((e) => e.movement_id)}
-      />
+      <hr style={{ margin: "24px 0", border: 0, borderTop: "1px solid rgba(15,22,34,0.11)" }} />
+      <p style={{ fontSize: 11, color: "#8893a8" }}>
+        Phase 1 (tokens) and Phase 2 (shell + bottom nav) replace this layout. Phase 3 replaces
+        this page with the real Today screen.
+      </p>
+    </main>
+  );
+}
 
-      {/* Sticky footer — fixed position, outside normal flow */}
-      <FinishWorkoutButton
-        workoutId={workout.id}
-        entryCount={entries.length}
-      />
-    </div>
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section
+      style={{
+        marginBottom: 16,
+        padding: 14,
+        border: "1px solid rgba(15,22,34,0.11)",
+        borderRadius: 10,
+        background: "rgba(255,255,255,0.55)",
+      }}
+    >
+      <div
+        style={{
+          fontFamily:
+            "Geist Mono, ui-monospace, monospace",
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: "0.10em",
+          textTransform: "uppercase",
+          color: "#0f1622",
+          marginBottom: 8,
+        }}
+      >
+        {label}
+      </div>
+      {children}
+    </section>
   );
 }

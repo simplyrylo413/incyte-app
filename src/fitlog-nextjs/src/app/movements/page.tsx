@@ -1,20 +1,14 @@
-import { listMovements } from "@/lib/db";
-import MovementsManager from "@/components/MovementsManager";
+// Phase 0 stub — the Movement Library lives under More in the canonical IA
+// (Today / Plan / Momentum / More). Real implementation lands in Phase 7
+// per pm/nextjs-port-plan.md.
 
-export const dynamic = "force-dynamic";
-
-export default async function MovementsPage() {
-  const movements = await listMovements();
+export default function MovementsStubPage() {
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="text-xl font-semibold">Movements</h1>
-        <p className="text-sm text-sub">
-          Your library of lifts and cardio. Cardio uses distance + time; lifts
-          use weight + reps.
-        </p>
-      </header>
-      <MovementsManager initial={movements} />
-    </div>
+    <main style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
+      <h1 style={{ fontSize: 18, fontWeight: 600 }}>Movements</h1>
+      <p style={{ fontSize: 13, color: "#5e6a82", marginTop: 8 }}>
+        Rebuilt in Phase 7 of the Next.js port (under More).
+      </p>
+    </main>
   );
 }
