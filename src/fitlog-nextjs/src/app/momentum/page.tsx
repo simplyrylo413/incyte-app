@@ -4,6 +4,7 @@
 // Visual parity: src/mobile351.html .insights-carousel-wrap (lines 9041–9193).
 // 4 cards: Readiness · Recovery Map · Muscle Stimulus · PRs
 // Cards are always expanded in carousel mode (no collapse toggle).
+// AI insights powered by OpenAI via Supabase Edge Function (§13-Q AI-readiness).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listWorkouts, listMovements } from "@/lib/db";
@@ -18,6 +19,13 @@ import {
   type StimulusBar,
   type PRBadge,
 } from "@/lib/engine/momentum";
+import {
+  fetchAiInsights,
+  invalidateAiCache,
+  ageLabel,
+  type AiInsights,
+  type AiRecovery,
+} from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
 const CARD_LABELS = ["Readiness", "Recovery", "Stimulus", "PRs"];
@@ -32,6 +40,11 @@ export default function MomentumPage() {
   const [activeIdx, setActiveIdx] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
+  // AI state — loaded after workout data, gracefully degrades on error
+  const [ai, setAi] = useState<AiInsights | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiErr, setAiErr] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     try {
       const [mv, wk] = await Promise.all([
@@ -41,12 +54,36 @@ export default function MomentumPage() {
       setMovements(mv);
       setWorkouts(wk);
       setErr(null);
+      // Kick off AI load in the background — don't block the page render
+      loadAi(wk, mv);
     } catch (e) {
       setErr(String(e));
     } finally {
       setLoading(false);
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadAi = useCallback(async (
+    wk: Workout[],
+    mv: Movement[],
+    force = false
+  ) => {
+    setAiLoading(true);
+    setAiErr(null);
+    try {
+      const insights = await fetchAiInsights(wk, mv, { forceRefresh: force });
+      setAi(insights);
+    } catch (e) {
+      setAiErr(String(e));
+    } finally {
+      setAiLoading(false);
+    }
   }, []);
+
+  function handleRefreshAi() {
+    invalidateAiCache();
+    loadAi(workouts, movements, true);
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -91,20 +128,52 @@ export default function MomentumPage() {
         </div>
       ) : (
         <>
+          {/* ── AI status bar ───────────────────────────────────────────── */}
+          <div className={s.aiBar}>
+            <span className={s.aiBarLabel}>
+              {aiLoading ? (
+                <span className={s.aiBarSpinner} aria-label="Generating AI insights" />
+              ) : (
+                <span className={s.aiBarDot} data-ok={!aiErr} aria-hidden="true" />
+              )}
+              {aiLoading
+                ? "AI analysis running…"
+                : aiErr
+                ? "AI unavailable · rule-based mode"
+                : ai
+                ? `AI insights · ${ageLabel(ai.generatedAt)}`
+                : "AI insights loading"}
+            </span>
+            {!aiLoading && (
+              <button
+                type="button"
+                className={s.aiBarRefresh}
+                onClick={handleRefreshAi}
+                aria-label="Refresh AI insights"
+              >
+                ↻
+              </button>
+            )}
+          </div>
+
           {/* ── Carousel ────────────────────────────────────────────────── */}
           <div className={s.carouselWrap}>
             <div className={s.carouselTrack} ref={trackRef}>
               <div className={s.carouselSlide}>
-                <ReadinessCard scores={scores} />
+                <ReadinessCard scores={scores} ai={ai?.readiness ?? null} />
               </div>
               <div className={s.carouselSlide}>
-                <FatigueCard workouts={workouts} movements={movements} />
+                <FatigueCard
+                  workouts={workouts}
+                  movements={movements}
+                  aiRecovery={ai?.recovery ?? null}
+                />
               </div>
               <div className={s.carouselSlide}>
-                <StimulusCard stimulus={stimulus} />
+                <StimulusCard stimulus={stimulus} ai={ai?.stimulus ?? null} />
               </div>
               <div className={s.carouselSlide}>
-                <PRsCard prs={prs} />
+                <PRsCard prs={prs} aiPrs={ai?.prs ?? null} />
               </div>
             </div>
 
@@ -129,8 +198,18 @@ export default function MomentumPage() {
 
 // ─── Readiness card ───────────────────────────────────────────────────────────
 
-function ReadinessCard({ scores }: { scores: ReadinessScores }) {
+function ReadinessCard({
+  scores,
+  ai,
+}: {
+  scores: ReadinessScores;
+  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
+}) {
   const [recOpen, setRecOpen] = useState(false);
+
+  // Use AI recommendation if available, fall back to rule-based
+  const recAction = ai?.recommendation ?? scores.recAction;
+  const recBullets = ai?.bullets ?? scores.recBullets;
 
   const toneClass =
     scores.recTone === "high" ? s.toneHigh
@@ -199,6 +278,11 @@ function ReadinessCard({ scores }: { scores: ReadinessScores }) {
           </div>
         </div>
 
+        {/* AI summary — shown above the recommendation when AI is available */}
+        {ai?.summary && (
+          <div className={s.aiSummary}>{ai.summary}</div>
+        )}
+
         {/* Training recommendation — collapsible */}
         <div className={`${s.rdRecommendation} ${recOpen ? "" : s.rdRecCollapsed}`}>
           <button
@@ -208,12 +292,12 @@ function ReadinessCard({ scores }: { scores: ReadinessScores }) {
             aria-expanded={recOpen}
           >
             <span className={s.rdRecTri} aria-hidden="true">▶</span>
-            <span className={s.rdRecLabel}>Recommendation:</span>
-            <span className={`${s.rdRecAction} ${toneClass}`}>{scores.recAction}</span>
+            <span className={s.rdRecLabel}>{ai ? "AI:" : "Recommendation:"}</span>
+            <span className={`${s.rdRecAction} ${toneClass}`}>{recAction}</span>
           </button>
           <div className={s.rdRecBody}>
             <ul className={s.rdRecBullets}>
-              {scores.recBullets.map((b, i) => (
+              {recBullets.map((b, i) => (
                 <li key={i}>{b}</li>
               ))}
             </ul>
@@ -229,9 +313,11 @@ function ReadinessCard({ scores }: { scores: ReadinessScores }) {
 function FatigueCard({
   workouts,
   movements,
+  aiRecovery,
 }: {
   workouts: Workout[];
   movements: Movement[];
+  aiRecovery: AiRecovery | null;
 }) {
   const [tab, setTab] = useState<"upper" | "lower">("upper");
   const rows = computeMuscleFatigue(workouts, movements, tab);
@@ -275,7 +361,11 @@ function FatigueCard({
           {/* 2-column grid — mirrors .fatigue-col-body */}
           <div className={s.fatigueColBody}>
             {rows.map((row) => (
-              <FatigueRow key={row.key} row={row} />
+              <FatigueRow
+                key={row.key}
+                row={row}
+                aiAdvice={aiRecovery?.[row.key] ?? null}
+              />
             ))}
           </div>
         </div>
@@ -284,7 +374,13 @@ function FatigueCard({
   );
 }
 
-function FatigueRow({ row }: { row: MuscleFatigueRow }) {
+function FatigueRow({
+  row,
+  aiAdvice,
+}: {
+  row: MuscleFatigueRow;
+  aiAdvice: import("@/lib/engine/aiInsights").AiRecoveryEntry | null;
+}) {
   const daysLabel =
     row.daysAgo == null ? "—"
     : row.daysAgo === 0 ? "today"
@@ -305,6 +401,11 @@ function FatigueRow({ row }: { row: MuscleFatigueRow }) {
         />
       </div>
       <span className={s.fatigueRowVal}>{valLabel}</span>
+      {aiAdvice && (
+        <span className={`${s.fatigueAiAdvice} ${s[`aiTone${aiAdvice.tone.charAt(0).toUpperCase() + aiAdvice.tone.slice(1)}`]}`}>
+          {aiAdvice.advice}
+        </span>
+      )}
     </div>
   );
 }
@@ -313,8 +414,10 @@ function FatigueRow({ row }: { row: MuscleFatigueRow }) {
 
 function StimulusCard({
   stimulus,
+  ai,
 }: {
   stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
+  ai: import("@/lib/engine/aiInsights").AiStimulus | null;
 }) {
   const tierClass =
     stimulus.tierTone === "pos" ? s.tonePos
@@ -361,6 +464,20 @@ function StimulusCard({
             ))}
           </div>
         )}
+
+        {/* AI analysis block */}
+        {ai && (
+          <div className={s.aiBlock}>
+            <p className={s.aiBlockText}>{ai.summary}</p>
+            {ai.adjustments.length > 0 && (
+              <ul className={s.aiBlockList}>
+                {ai.adjustments.map((adj, i) => (
+                  <li key={i}>{adj}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -368,7 +485,13 @@ function StimulusCard({
 
 // ─── PRs card ─────────────────────────────────────────────────────────────────
 
-function PRsCard({ prs }: { prs: PRBadge[] }) {
+function PRsCard({
+  prs,
+  aiPrs,
+}: {
+  prs: PRBadge[];
+  aiPrs: import("@/lib/engine/aiInsights").AiPR[] | null;
+}) {
   return (
     <section className={s.heroCard}>
       <div className={s.heroCardHead}>
@@ -392,14 +515,25 @@ function PRsCard({ prs }: { prs: PRBadge[] }) {
           </div>
         ) : (
           <div className={s.prList}>
-            {prs.map((badge, i) => (
-              <div key={i} className={s.prBadge}>
-                <span className={s.prGlyph}>{badge.glyph}</span>
-                <span className={s.prLabel}>{badge.label}</span>
-                <span className={s.prValue}>{badge.value}</span>
-                <span className={s.prSub}>{badge.sub}</span>
-              </div>
-            ))}
+            {prs.map((badge, i) => {
+              const aiPr = aiPrs?.find(
+                (p) => p.movement.toLowerCase() === badge.label.toLowerCase()
+              ) ?? null;
+              return (
+                <div key={i} className={s.prBadge}>
+                  <span className={s.prGlyph}>{badge.glyph}</span>
+                  <span className={s.prLabel}>{badge.label}</span>
+                  <span className={s.prValue}>{badge.value}</span>
+                  <span className={s.prSub}>{badge.sub}</span>
+                  {aiPr && (
+                    <div className={s.prAiWrap}>
+                      <span className={s.prAiTarget}>→ {aiPr.nextTarget}</span>
+                      <span className={s.prAiContext}>{aiPr.context}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
