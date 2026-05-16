@@ -281,3 +281,126 @@ src/fitlog-nextjs/
 | `~/.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md` | Locked token system. |
 | `~/.claude/projects/-Users-albertrylo/memory/feedback_positioning_and_voice.md` | Voice rules. |
 | `~/.claude/projects/-Users-albertrylo/memory/feedback_information_row_typography.md` | Info-row scale anchor. |
+
+---
+
+## 13. Production-Grade Engineering Constitution
+
+INCYTE is intended to evolve into a premium fitness platform, cross-platform product, scalable mobile-first ecosystem, and AI-powered training intelligence platform capable of supporting millions of users. All code, architecture, UX, database design, and dependencies must be written with long-term scalability, maintainability, reliability, and mobile-native experience in mind. **The app should never be treated like a disposable prototype.**
+
+### Product philosophy
+
+INCYTE should feel premium, fast, intelligent, mobile-native, tactile, focused, and addictive to use — approachable for beginners, powerful for advanced lifters. The UX must prioritize **minimal friction + high information clarity**. It should feel like a premium performance console, not a generic web form.
+
+### Architecture must support future expansion into
+
+Native iOS + Android, React Native / Expo, AI coaching and recommendations, advanced analytics, recovery/fatigue intelligence, subscriptions/paywalls, social/community features, workout sharing, offline-first synchronization, and millions of concurrent users.
+
+---
+
+### 13-A. No monolithic components
+
+- Components have a single responsibility.
+- UI rendering is separate from business logic.
+- State orchestration is separate from presentation.
+- Database access logic is isolated.
+- Target ~300 lines per component; break apart anything significantly larger.
+- Preferred structure: `components/` · `lib/` · `services/` · `state/` · `hooks/` · `utils/`
+
+### 13-B. Strict separation of concerns
+
+Three layers must never become tightly coupled:
+
+- **Presentation** — UI, animations, styling, rendering, visual state
+- **Business logic** — workout logic, progression systems, calculations, AI logic, recommendation engines
+- **Data** — Supabase, APIs, persistence, synchronization, queries
+
+### 13-C. Mobile-first development
+
+INCYTE is primarily a mobile-native product. All interfaces must prioritize one-handed use, minimize keyboard dependency, optimize touch interactions, maintain fast logging speed, avoid excessive taps, and preserve screen real estate. Desktop support is secondary. Avoid web-specific assumptions that would complicate future React Native migration.
+
+### 13-D. Platform-agnostic business logic
+
+Workout calculations, AI systems, progression logic, analytics engines, and state systems must not depend on DOM APIs, browser-only APIs, or UI frameworks. Business logic must be reusable across web, React Native, and future native implementations.
+
+### 13-E. Strict TypeScript discipline
+
+- Avoid `any` types. Prefer strict typing everywhere.
+- Shared types are centralized in `src/lib/types.ts`.
+- Database types remain canonical. Interfaces remain reusable.
+- Complex objects require documented schemas.
+
+### 13-F. Database discipline
+
+The schema is a critical source of truth. No ad-hoc manual patching. All changes require migration discipline — one canonical `schema.sql`, one canonical `seed.sql`, all migrations reversible. Database relationships remain normalized. Every table must have appropriate indexes, clear ownership, and support future analytics. Avoid schema drift.
+
+### 13-G. Offline-first architecture
+
+INCYTE must eventually support offline workout logging with deferred synchronization. Avoid assuming constant connectivity. Support optimistic UI updates, write queuing, safe later sync, and conflict resolution. Current architecture must preserve this path.
+
+### 13-H. Performance-first mentality
+
+- Avoid unnecessary rerenders. Use memoization appropriately.
+- Optimize large lists. Avoid heavy runtime calculations inside render.
+- Minimize network round trips. Prevent N+1 queries. Batch operations.
+- Workout logging must feel instantaneous.
+
+### 13-I. UX priorities
+
+The most important product feature is **frictionless workout logging**. All UX decisions prioritize speed, clarity, touch ergonomics, dopamine feedback, and low cognitive load. The app should reward interaction: satisfying completion states, subtle motion, strong visual hierarchy, clear progress feedback, tactile interactions.
+
+Workout-specific: prioritize previous set autofill, quick weight adjustments, minimal typing, swipe gestures, low-friction workflows. Reduce modal overload, excessive navigation, unnecessary confirmation steps, and keyboard dependence.
+
+### 13-J. Design system discipline
+
+Maintain centralized design tokens: colors, spacing, radii, shadows, motion timings, typography scale. No random hardcoded spacing, inconsistent colors, inconsistent radii, or duplicated style patterns. The app must maintain a cohesive premium visual identity. See §4 (locked token system) and the visual-direction memory file.
+
+### 13-K. Accessibility
+
+All interfaces must support adequate touch targets, maintain readable contrast, and avoid inaccessible interactions. Screen reader and keyboard navigation support is required in the future. Accessibility is not optional.
+
+### 13-L. Error handling is mandatory
+
+Silent failures are prohibited. Every async operation must show a loading state, handle errors visibly, surface meaningful feedback, and log failures appropriately. The user should never be left confused. Required: toast notifications, structured logging, visible mutation failures, graceful recovery.
+
+### 13-M. Dependency discipline
+
+All dependencies must be intentionally selected, actively maintained, production-safe, scalable, and audited periodically. Before adding a dependency: evaluate maintenance status, bundle impact, long-term viability, and React Native compatibility. Remove dead code, unused dependencies, stale components, and orphaned utilities. No loose ends in production code.
+
+### 13-N. State management discipline
+
+- Local UI state stays local. Shared global state is centralized.
+- Avoid deeply nested prop drilling, duplicated state sources, and conflicting derived state.
+- Prefer predictable state flow, centralized orchestration, and reusable hooks.
+
+### 13-O. API and Supabase rules
+
+All database operations must validate inputs, handle failures, remain typed, and minimize overfetching. Never trust client input. Use RLS appropriately. Keep Supabase interactions centralized. Prevent duplicated query logic. Future backend migration flexibility must remain possible.
+
+### 13-P. Security
+
+No secrets in frontend code. Environment variables properly isolated. Strict auth validation. RLS policies audited. Prevent privilege escalation. Future support required for social login, subscriptions, user ownership, and private data isolation.
+
+### 13-Q. AI-readiness
+
+AI is a core future differentiator. Current architecture must preserve structured workout history, normalized exercise data, detailed logging fidelity, event-level analytics, and extensible metadata systems. Avoid architecture decisions that block future AI coaching, progression intelligence, recovery analysis, or adaptive programming systems.
+
+### 13-R. Analytics and event architecture
+
+All major user interactions should eventually support event tracking. Future systems should support engagement analytics, retention analytics, progression tracking, AI training signals, and feature usage analysis. Event naming and logging must remain structured and intentional.
+
+### 13-S. Testing expectations
+
+All important workflows should eventually support unit tests, integration tests, and UI flow testing. The critical flow — open app → add movement → log set → finish workout → persist data → review history — must remain stable against regressions.
+
+### 13-T. Future team scalability
+
+Code must remain readable, documented, modular, understandable, and predictable — even though INCYTE is currently solo-developed. Avoid hidden side effects, undocumented magic, deeply coupled logic, and unclear architecture.
+
+### 13-U. Architecture review requirement
+
+Before implementing major systems, evaluate: scalability impact, mobile implications, offline implications, AI-readiness, React Native portability, performance implications, future maintainability, and schema impact. Do not optimize only for short-term speed.
+
+### The final principle
+
+Every implementation decision should answer: **Will this still make sense when INCYTE becomes a large-scale production product?** If the answer is no — redesign it, abstract it, simplify it, modularize it, future-proof it. The goal is not simply making the app work. The goal is building a scalable premium software product intentionally.
