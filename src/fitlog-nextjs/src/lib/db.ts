@@ -410,6 +410,9 @@ function rowToMovement(r: any): Movement {
     notes: r.notes ?? null,
     equipmentType: r.equipment_type ?? undefined,
     canonicalMovement: r.name,
+    gifUrl: r.gif_url ?? undefined,
+    secondaryMuscles: r.secondary_muscles ?? undefined,
+    instructions: r.instructions ?? undefined,
   };
 }
 

@@ -55,6 +55,9 @@ export type Movement = {
   equipmentType?: string;
   variant?: string;
   canonicalMovement?: string;
+  gifUrl?: string;
+  secondaryMuscles?: string[];
+  instructions?: string[];
 };
 
 export type WorkoutEntry = {

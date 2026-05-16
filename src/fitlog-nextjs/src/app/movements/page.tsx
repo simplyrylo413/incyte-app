@@ -1,8 +1,9 @@
 "use client";
 
-// Phase 7 Movement Library screen.
-// Visual parity target: src/fitlog-mobile.html #view-movements (mobile351 baseline).
-// Features: search, group by muscle, tap to edit, FAB to create, two-tap delete.
+// Movement Library — Phase 7
+// Tap a movement → detail sheet (GIF + instructions)
+// From detail sheet → Edit button → edit form
+// FAB → create new movement
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listMovements, upsertMovement, deleteMovement, importExercisesFromDB } from "@/lib/db";
@@ -22,6 +23,7 @@ const MUSCLE_ORDER = [
 type Sheet =
   | { mode: "create" }
   | { mode: "edit"; mv: Movement }
+  | { mode: "detail"; mv: Movement }
   | null;
 
 // ─── Root page ────────────────────────────────────────────────────────────────
@@ -56,15 +58,13 @@ export default function MovementsPage() {
     if (count < 0) {
       setImportMsg("Import failed — check console for details.");
     } else if (count === 0) {
-      setImportMsg("Import ran but 0 exercises were added. Check Supabase edge function logs.");
+      setImportMsg("Import ran but 0 exercises were added.");
     } else {
-      setImportMsg(`Added ${count} exercises to your library.`);
+      setImportMsg(`Synced ${count} exercises to your library.`);
       await load();
     }
     setImporting(false);
   }, [load]);
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleSave = useCallback(async (mv: Movement) => {
     setMovements((prev) => {
@@ -78,7 +78,7 @@ export default function MovementsPage() {
     });
     setSheet(null);
     const ok = await upsertMovement(mv);
-    if (!ok) setErr("Save failed — check console for details.");
+    if (!ok) setErr("Save failed — check console.");
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {
@@ -87,12 +87,9 @@ export default function MovementsPage() {
     await deleteMovement(id);
   }, []);
 
-  // ── Filtered + grouped ────────────────────────────────────────────────────
-
   const filtered = movements.filter((mv) =>
     !query.trim() || mv.name.toLowerCase().includes(query.toLowerCase())
   );
-
   const grouped = groupByMuscle(filtered);
 
   return (
@@ -119,11 +116,9 @@ export default function MovementsPage() {
           onClick={handleImport}
           disabled={importing}
         >
-          {importing ? "Importing…" : "⬇ Import from ExerciseDB"}
+          {importing ? "Syncing…" : "⬇ Import from ExerciseDB"}
         </button>
-        {importMsg && (
-          <span className={s.importMsg}>{importMsg}</span>
-        )}
+        {importMsg && <span className={s.importMsg}>{importMsg}</span>}
       </div>
 
       {loading ? (
@@ -132,12 +127,8 @@ export default function MovementsPage() {
         <div className={s.stateErr}>{err}</div>
       ) : filtered.length === 0 ? (
         <div className={s.emptyWrap}>
-          <p className={s.emptyTitle}>
-            {query ? "No matches." : "No movements yet."}
-          </p>
-          <p className={s.emptySub}>
-            {query ? "Try a different search." : "Tap + to add your first movement."}
-          </p>
+          <p className={s.emptyTitle}>{query ? "No matches." : "No movements yet."}</p>
+          <p className={s.emptySub}>{query ? "Try a different search." : "Tap + to add your first movement."}</p>
         </div>
       ) : (
         grouped.map(({ label, items }) => (
@@ -148,7 +139,7 @@ export default function MovementsPage() {
                 <MvRow
                   key={mv.id}
                   mv={mv}
-                  onTap={() => setSheet({ mode: "edit", mv })}
+                  onTap={() => setSheet({ mode: "detail", mv })}
                 />
               ))}
             </div>
@@ -165,9 +156,18 @@ export default function MovementsPage() {
         +
       </button>
 
-      {sheet && (
+      {sheet?.mode === "detail" && (
+        <DetailSheet
+          mv={sheet.mv}
+          onEdit={() => setSheet({ mode: "edit", mv: (sheet as { mode: "detail"; mv: Movement }).mv })}
+          onDelete={handleDelete}
+          onClose={() => setSheet(null)}
+        />
+      )}
+
+      {(sheet?.mode === "create" || sheet?.mode === "edit") && (
         <MvSheet
-          sheet={sheet}
+          sheet={sheet as { mode: "create" } | { mode: "edit"; mv: Movement }}
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSheet(null)}
@@ -198,6 +198,99 @@ function MvRow({ mv, onTap }: { mv: Movement; onTap: () => void }) {
   );
 }
 
+// ─── Detail sheet ─────────────────────────────────────────────────────────────
+
+function DetailSheet({
+  mv,
+  onEdit,
+  onDelete,
+  onClose,
+}: {
+  mv: Movement;
+  onEdit: () => void;
+  onDelete: (id: string) => void;
+  onClose: () => void;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const muscle = mv.muscle ?? mv.bodyPart ?? "";
+  const equip = mv.equipmentType ?? "";
+
+  return (
+    <>
+      <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true" />
+      <div className={s.sheet} role="dialog" aria-modal="true" aria-label={mv.name}>
+        <div className={s.sheetHandle} />
+
+        {mv.gifUrl && (
+          <div className={s.gifWrap}>
+            <img src={mv.gifUrl} alt={`${mv.name} demonstration`} className={s.gif} />
+          </div>
+        )}
+
+        <div className={s.sheetHead}>
+          <span className={s.sheetTitle}>{mv.name}</span>
+          <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div className={s.detailBody}>
+          {(muscle || equip || mv.kind) && (
+            <div className={s.mvMeta}>
+              {muscle && <span className={s.mvChip}>{muscle}</span>}
+              {equip && <span className={s.mvChip}>{equip}</span>}
+              {mv.kind && <span className={s.mvChip}>{mv.kind}</span>}
+            </div>
+          )}
+
+          {mv.secondaryMuscles && mv.secondaryMuscles.length > 0 && (
+            <div className={s.detailSection}>
+              <div className={s.detailSectionLabel}>Also works</div>
+              <div className={s.mvMeta}>
+                {mv.secondaryMuscles.map((m) => (
+                  <span key={m} className={s.mvChip}>{m}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mv.instructions && mv.instructions.length > 0 && (
+            <div className={s.detailSection}>
+              <div className={s.detailSectionLabel}>How to</div>
+              <ol className={s.instructionsList}>
+                {mv.instructions.map((step, i) => (
+                  <li key={i} className={s.instructionStep}>{step}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+
+        <div className={s.editActions}>
+          <button type="button" className={s.btnSave} onClick={onEdit}>
+            Edit
+          </button>
+          {confirmDelete ? (
+            <button
+              type="button"
+              className={`${s.btnDelete} ${s.btnDeleteConfirm}`}
+              onClick={() => onDelete(mv.id)}
+            >
+              Confirm remove
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={s.btnDelete}
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Create / Edit sheet ──────────────────────────────────────────────────────
 
 function MvSheet({
@@ -206,7 +299,7 @@ function MvSheet({
   onDelete,
   onClose,
 }: {
-  sheet: NonNullable<Sheet>;
+  sheet: { mode: "create" } | { mode: "edit"; mv: Movement };
   onSave: (mv: Movement) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -236,6 +329,10 @@ function MvSheet({
       equipmentType: equip || undefined,
       kind: kind || undefined,
       canonicalMovement: existing?.canonicalMovement ?? name.trim(),
+      // Preserve existing GIF/instruction data when editing
+      gifUrl: existing?.gifUrl,
+      secondaryMuscles: existing?.secondaryMuscles,
+      instructions: existing?.instructions,
     };
     onSave(mv);
   }

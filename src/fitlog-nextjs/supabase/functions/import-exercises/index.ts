@@ -1,10 +1,9 @@
 // import-exercises — Supabase Edge Function
-// Fetches exercises from ExerciseDB and inserts them into the movements table
-// using the service-role key (bypasses RLS).
+// Fetches exercises from ExerciseDB and upserts them into the movements table
+// using the service-role key (bypasses RLS). Captures GIF URLs, instructions,
+// and secondary muscles. Re-importing updates existing rows with new data.
 //
 // POST body: { userId: string, bodyParts?: string[] }
-//   userId  — the caller's auth.uid(); used as movements.user_id
-//   bodyParts — optional subset of ALL_BODY_PARTS to fetch
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -24,7 +23,6 @@ const ALL_BODY_PARTS = [
   "upper legs", "lower legs", "waist", "cardio", "neck",
 ];
 
-// Maps ExerciseDB bodyPart → our body_part label
 const BODY_PART_MAP: Record<string, string> = {
   "chest": "chest",
   "back": "back",
@@ -38,7 +36,6 @@ const BODY_PART_MAP: Record<string, string> = {
   "neck": "other",
 };
 
-// Maps ExerciseDB target muscle → our body_part label (more specific)
 const TARGET_MAP: Record<string, string> = {
   "biceps": "biceps",
   "triceps": "triceps",
@@ -82,7 +79,7 @@ serve(async (req) => {
     if (!RAPIDAPI_KEY) throw new Error("EXERCISEDB_API_KEY secret not set");
     if (!userId) throw new Error("userId is required");
 
-    // Fetch in batches of 3 with 300 ms between batches to stay under rate limit
+    // Fetch in batches of 3 with 300ms between batches to stay under rate limit
     const raw: any[] = [];
     for (let i = 0; i < parts.length; i += 3) {
       const batch = parts.slice(i, i + 3);
@@ -101,9 +98,6 @@ serve(async (req) => {
 
       const bodyPart = toBodyPart(item);
       const kind = item.bodyPart === "cardio" ? "cardio" : "weight";
-      const notes = Array.isArray(item.instructions)
-        ? item.instructions.slice(0, 2).join(" ").slice(0, 500)
-        : null;
 
       rows.push({
         id: crypto.randomUUID(),
@@ -112,31 +106,34 @@ serve(async (req) => {
         kind,
         body_part: bodyPart,
         equipment_type: item.equipment ?? null,
-        notes: notes || null,
+        gif_url: item.gifUrl ?? null,
+        secondary_muscles: Array.isArray(item.secondaryMuscles) ? item.secondaryMuscles : [],
+        instructions: Array.isArray(item.instructions) ? item.instructions : [],
+        notes: null,
       });
     }
 
     if (rows.length === 0) {
       return new Response(
-        JSON.stringify({ inserted: 0, total: 0, message: "No exercises fetched from ExerciseDB" }),
+        JSON.stringify({ inserted: 0, total: 0, message: "No exercises fetched" }),
         { headers: { ...CORS, "Content-Type": "application/json" } }
       );
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Upsert in chunks of 100; conflict on (user_id, name) → skip duplicates
+    // Upsert in chunks of 100; update existing rows on conflict (user_id, name)
+    // so re-importing enriches rows with gif_url, instructions, etc.
     let inserted = 0;
     for (let i = 0; i < rows.length; i += 100) {
       const chunk = rows.slice(i, i + 100);
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from("movements")
-        .upsert(chunk, { onConflict: "user_id,name", ignoreDuplicates: true })
-        .select("id", { count: "exact", head: true });
+        .upsert(chunk, { onConflict: "user_id,name" });
       if (error) {
-        console.error("Chunk insert error:", JSON.stringify(error));
+        console.error("Chunk upsert error:", JSON.stringify(error));
       } else {
-        inserted += count ?? chunk.length;
+        inserted += chunk.length;
       }
     }
 
