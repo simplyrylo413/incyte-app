@@ -26,6 +26,8 @@ export default function AuthGuard() {
   const router = useRouter();
 
   useEffect(() => {
+    // Skip in local dev so previews work without an active session.
+    if (process.env.NODE_ENV === "development") return;
     if (isPublic(pathname)) return;
 
     const supabase = createClient();
