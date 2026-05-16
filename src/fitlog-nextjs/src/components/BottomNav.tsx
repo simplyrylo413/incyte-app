@@ -122,6 +122,7 @@ export default function BottomNav() {
             style={{ color: active ? "#5d9bb8" : undefined }}
           >
             {tab.icon}
+            <span className={styles.label}>{tab.label}</span>
           </Link>
         );
       })}
@@ -137,6 +138,7 @@ export default function BottomNav() {
         style={{ color: moreActive ? "#5d9bb8" : undefined }}
       >
         {MORE_ICON}
+        <span className={styles.label}>More</span>
       </Link>
     </nav>
   );

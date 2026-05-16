@@ -52,7 +52,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 3px;
   min-width: 48px;
   color: #5e6a82; /* --muted */
   transition:
@@ -60,6 +60,15 @@
     background 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     box-shadow 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     transform 0.22s cubic-bezier(0.34, 1.08, 0.64, 1);
+}
+
+/* ── Tab label ──────────────────────────────────────────────────────────── */
+.label {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .tab:not(.active):active {

@@ -4,7 +4,7 @@
 
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import BottomNav from "@/components/BottomNav";
+import NavGuard from "@/components/NavGuard";
 
 export const metadata: Metadata = {
   title: "INCYTE",
@@ -43,7 +43,7 @@ export default function RootLayout({
         }}
       >
         {children}
-        <BottomNav />
+        <NavGuard />
       </body>
     </html>
   );

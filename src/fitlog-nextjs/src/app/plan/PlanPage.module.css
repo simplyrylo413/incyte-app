@@ -219,6 +219,9 @@
   line-height: 1;
   text-transform: uppercase;
   color: var(--accent, #5d9bb8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .dayEta {
