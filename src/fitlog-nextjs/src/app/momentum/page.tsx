@@ -235,6 +235,7 @@ function FatigueCard({
 }) {
   const [tab, setTab] = useState<"upper" | "lower">("upper");
   const rows = computeMuscleFatigue(workouts, movements, tab);
+  const sectionLabel = tab === "upper" ? "Upper body" : "Lower · Cardio";
 
   return (
     <section className={s.heroCard}>
@@ -246,6 +247,7 @@ function FatigueCard({
       </div>
 
       <div className={s.heroInner}>
+        {/* Toggle pill — mirrors .fatigue-toggle-pill */}
         <div className={s.fatigueTogglePill}>
           <button
             type="button"
@@ -259,14 +261,23 @@ function FatigueCard({
             className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
             onClick={() => setTab("lower")}
           >
-            Lower body
+            Lower · Cardio
           </button>
         </div>
 
-        <div className={s.fatigueRows}>
-          {rows.map((row) => (
-            <FatigueRow key={row.key} row={row} />
-          ))}
+        {/* Glass column — mirrors .fatigue-col */}
+        <div className={s.fatigueCol}>
+          {/* Section header — mirrors .fatigue-col-label */}
+          <div className={s.fatigueColHeader}>
+            <span>{sectionLabel}</span>
+            <span className={s.fatigueColRightLabel}>% Fatigued</span>
+          </div>
+          {/* 2-column grid — mirrors .fatigue-col-body */}
+          <div className={s.fatigueColBody}>
+            {rows.map((row) => (
+              <FatigueRow key={row.key} row={row} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -279,18 +290,21 @@ function FatigueRow({ row }: { row: MuscleFatigueRow }) {
     : row.daysAgo === 0 ? "today"
     : `${row.daysAgo}d ago`;
 
+  const valLabel = row.pct > 0 ? `${row.pct}%` : daysLabel;
+
   return (
     <div className={s.fatigueRow}>
-      <span className={s.fatigueRowName}>{row.label}</span>
+      <span className={s.fatigueRowName}>
+        <span className={s.fatigueChev} aria-hidden="true">▶</span>
+        {row.label}
+      </span>
       <div className={s.fatigueBarWrap}>
         <div
           className={`${s.fatigueBarFill} ${s[row.tier]}`}
           style={{ width: `${row.pct}%` }}
         />
       </div>
-      <span className={s.fatiguePct}>
-        {row.pct > 0 ? `${row.pct}%` : daysLabel}
-      </span>
+      <span className={s.fatigueRowVal}>{valLabel}</span>
     </div>
   );
 }

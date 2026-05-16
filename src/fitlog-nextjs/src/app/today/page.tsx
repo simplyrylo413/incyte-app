@@ -215,8 +215,8 @@ export default function TodayPage() {
         </>
       )}
 
-      {/* ── Add movement FAB ── */}
-      {!loading && !err && (
+      {/* ── Add movement FAB — only visible when movements already exist ── */}
+      {!loading && !err && hasMovements && (
         <button
           className={s.addCta}
           aria-label="Add movement"
