@@ -75,8 +75,10 @@ export default function MomentumPage() {
   return (
     <div className={s.page}>
       <div className={s.head}>
-        <div className={s.subline}>Momentum</div>
-        <h1 className={s.headline}>Insights</h1>
+        <div className={s.headInner}>
+          <h1 className={s.headline}>Insights</h1>
+          <div className={s.subline}>Readiness · Fatigue · Stimulus · PRs</div>
+        </div>
       </div>
 
       {loading ? (
