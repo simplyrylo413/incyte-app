@@ -488,3 +488,32 @@
   color: #c89aa3;
   border-color: #c89aa3;
 }
+
+/* ── ExerciseDB import bar ──────────────────────────────────────── */
+.importBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 12px;
+}
+
+.importBtn {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: rgba(93,155,184,0.08);
+  border: 1.2px solid rgba(93,155,184,0.28);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.importBtn:hover { background: rgba(93,155,184,0.14); }
+.importBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.importMsg {
+  font-size: 11px;
+  color: var(--muted);
+}

@@ -171,6 +171,58 @@ async function seedDefaultMovements(deviceId: string): Promise<Movement[]> {
   }));
 }
 
+/**
+ * Imports exercises from the ExerciseDB edge function and bulk-inserts them
+ * into the movements table. Returns the count inserted or -1 on error.
+ */
+export async function importExercisesFromDB(
+  bodyParts?: string[]
+): Promise<number> {
+  const supabase = createClient();
+  const id = await getIdentifier();
+
+  const { data, error } = await supabase.functions.invoke<{
+    exercises: Array<{
+      id: string; name: string; muscle: string; category: string;
+      kind: string; equipment: string; notes: string;
+    }>;
+    count: number;
+  }>("import-exercises", { body: bodyParts ? { bodyParts } : {} });
+
+  if (error) {
+    console.error("[db] importExercisesFromDB edge fn failed:", error);
+    return -1;
+  }
+  if (!data?.exercises?.length) return 0;
+
+  // Chunk into batches of 100 to avoid Supabase payload limits
+  const rows = data.exercises.map((e) => ({
+    id: e.id,
+    device_id: id,
+    name: e.name,
+    category: e.category,
+    muscle: e.muscle,
+    kind: e.kind,
+    unit: "",
+    notes: e.notes,
+    tags: [] as string[],
+  }));
+
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100);
+    const { error: insErr } = await supabase
+      .from("movements")
+      .upsert(chunk, { onConflict: "id" });
+    if (insErr) {
+      console.error("[db] importExercisesFromDB batch insert failed:", insErr);
+    } else {
+      inserted += chunk.length;
+    }
+  }
+  return inserted;
+}
+
 export async function listMovements(): Promise<Movement[]> {
   const supabase = createClient();
   const id = await getIdentifier();

@@ -5,7 +5,7 @@
 // Features: search, group by muscle, tap to edit, FAB to create, two-tap delete.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listMovements, upsertMovement, deleteMovement } from "@/lib/db";
+import { listMovements, upsertMovement, deleteMovement, importExercisesFromDB } from "@/lib/db";
 import type { Movement, MovementKind } from "@/lib/types";
 import s from "./MovementsPage.module.css";
 
@@ -32,6 +32,8 @@ export default function MovementsPage() {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [query, setQuery] = useState("");
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +48,19 @@ export default function MovementsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleImport = useCallback(async () => {
+    setImporting(true);
+    setImportMsg(null);
+    const count = await importExercisesFromDB();
+    if (count < 0) {
+      setImportMsg("Import failed — check that the edge function is deployed and EXERCISEDB_API_KEY is set.");
+    } else {
+      setImportMsg(`Imported ${count} exercises.`);
+      await load();
+    }
+    setImporting(false);
+  }, [load]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -93,6 +108,20 @@ export default function MovementsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+      </div>
+
+      <div className={s.importBar}>
+        <button
+          type="button"
+          className={s.importBtn}
+          onClick={handleImport}
+          disabled={importing}
+        >
+          {importing ? "Importing…" : "⬇ Import from ExerciseDB"}
+        </button>
+        {importMsg && (
+          <span className={s.importMsg}>{importMsg}</span>
+        )}
       </div>
 
       {loading ? (
