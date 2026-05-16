@@ -1,10 +1,12 @@
-// Phase 2 shell layout — adds the BottomNav + safe-area padding.
-// Auth is anonymous via device_id during the build/test phase (no getUser).
-// Phase 8 restores user-aware chrome (per pm/nextjs-port-plan.md).
+// Root layout — shell, safe-area padding, nav + auth guards.
+// NavGuard suppresses BottomNav on /login and /auth/*.
+// AuthGuard replaces the server middleware for the static/Capacitor export:
+//   unauthenticated users are redirected to /login client-side.
 
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import NavGuard from "@/components/NavGuard";
+import AuthGuard from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
   title: "INCYTE",
@@ -44,6 +46,7 @@ export default function RootLayout({
       >
         {children}
         <NavGuard />
+        <AuthGuard />
       </body>
     </html>
   );
