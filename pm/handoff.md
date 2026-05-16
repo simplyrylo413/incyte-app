@@ -24,7 +24,7 @@ _Last updated: 2026-05-15_
 
 | Path | What |
 |---|---|
-| `~/fitness-app/src/fitlog-mobile.html` | HTML build (~21.6k lines, vanilla JS/HTML/CSS, no build step). **Visual parity reference** — mobile351 baseline. Engine logic is canonical here. |
+| `~/fitness-app/src/fitlog-mobile.html` | HTML build (~21.6k lines, vanilla JS/HTML/CSS, no build step). **Visual reference only** — mobile351 baseline. Engine logic is canonical here. |
 | `~/fitness-app/src/fitlog-nextjs/` | **Primary active build.** Next.js 14 app router + React 18 + TypeScript + Tailwind + Supabase SSR. Phases 0–8 complete. This is what ships. |
 | `~/fitness-app/pm/` | All PM artifacts (this doc, roadmap, backlog, decisions, nextjs-port-plan, etc.). |
 | `~/fitness-app/pm/mockups/` | Design mockups; `prototype.html` is the Today + Workout Mode reference. |
@@ -41,25 +41,25 @@ _Last updated: 2026-05-15_
 - **Identity:** `getIdentifier()` in `db.ts` — tries `auth.uid()` first (via `getSession()`, no network), falls back to `getDeviceId()`. All list/upsert/delete helpers call it.
 - **Schema:** HTML build's schema — `workouts` row carries inline `entries: WorkoutEntry[]` jsonb, keyed by `device_id`. `movements` and `plans` tables same pattern.
 - **Dev:** `cd src/fitlog-nextjs && npm run dev` → `http://localhost:3000`
-- **Build:** `npm run build` — static export, all 14 pages prerender cleanly.
+- **Build:** `npm run build` — static export, all pages prerender cleanly.
 
-### HTML build (parity reference)
-- Single-file vanilla JS/HTML/CSS. Mobile-first. Capacitor-wrappable.
+### HTML build (visual reference)
+- Single-file vanilla JS/HTML/CSS. Mobile-first. **Read it for visual and engine reference; do not edit during active Next.js development.**
 - Engine logic (fatigue, 1RM, RPE calibration, recommendations, same-day merge) lives here. Next.js ports behavior from it — cite HTML line numbers in ported function headers.
-- Not edited during Next.js active development unless a bug is critical.
+- mobile351 baseline is the canonical visual parity target.
 
 ---
 
 ## 4. Information architecture
 
-**Canonical bottom-nav tabs** (locked, [decisions.md 2026-05-12](decisions.md)):
+**Canonical bottom-nav tabs** (icons only, no labels):
 
-| Tab | Route | Surface |
-|---|---|---|
-| **Today** | `/today` | Current-day session. Build/log/finish today's training. FAB adds movements. |
-| **Plan** | `/plan` | Weekly grid editor (Mon–Sun) with day cards, movement rows, bottom-sheet CRUD. |
-| **Momentum** | `/momentum` | Progress analytics — PR hero, volume trend, recent history. |
-| **More** | `/more` | Hub: History, Movement Library, Appearance (theme toggle), Account (sign out). |
+| Tab | Route | Icon | Surface |
+|---|---|---|---|
+| **Today** | `/today` | Calendar | Current-day session. Build/log/finish today's training. FAB adds movements. |
+| **Insights** | `/momentum` | Bar chart | Progress analytics — PR hero, volume trend, recent history. |
+| **Momentum** | `/plan` | Lightning bolt | Weekly grid editor (Mon–Sun) with day cards, movement rows, bottom-sheet CRUD. |
+| **More** | `/more` | Grid | Hub: History, Movement Library, Appearance (theme toggle), Account (sign out). |
 
 Sub-routes under More:
 
@@ -83,11 +83,13 @@ Sub-routes under More:
 | 2 — Shell + nav | layout.tsx, BottomNav, routing scaffold | ✅ Done |
 | 3 — Today page | Session stats, movement cards, equipment popover, FAB, add-movement sheet | ✅ Done |
 | 4 — Workout Mode | Set rows, WU/WS, BW, picker overlay, mobility variant, rest pill | ✅ Done |
-| 5 — Insights | Readiness/Fatigue/Recovery/PR cards on Momentum | ✅ Done |
+| 5 — Insights | Readiness/Fatigue/Recovery/PR cards on Momentum page | ✅ Done |
 | 6 — Plan editor | Week strip, day cards, movement rows, add/edit sheet | ✅ Done |
 | 7 — More hub + History + Movements | Glass nav cards, workout log, movement CRUD | ✅ Done |
 | 8 — Auth | Supabase signup/signin/reset, middleware gate, device_id migration | ✅ Done |
 | **9 — Capacitor wrap** | **iOS shell, app icon, provisioning, App Store Connect** | ⬜ Next |
+
+**Nav:** Bottom nav shows icons only (no text labels). Tab order: Today / Insights / Momentum / More, matching mobile351 baseline. `NavGuard` component in layout suppresses nav on `/login` and `/auth/*`.
 
 **Dark mode:** Fully implemented. `globals.css` flips all `:root` tokens at `prefers-color-scheme: dark` and on `body.theme-dark`. Every CSS module has `@media` + `:global(body.theme-dark)` override blocks. Manual toggle lives in More → Appearance (Light / System / Dark pill), writes to `localStorage.fitlog_theme`.
 
@@ -139,7 +141,7 @@ Sub-routes under More:
 src/fitlog-nextjs/src/
 ├── app/
 │   ├── globals.css            ← INCYTE tokens, body bg, dark mode
-│   ├── layout.tsx             ← Shell, BottomNav, viewport meta
+│   ├── layout.tsx             ← Shell, NavGuard, viewport meta
 │   ├── page.tsx               ← Redirect → /today
 │   ├── today/
 │   │   ├── page.tsx           ← Today screen (session stats, mv cards, FAB)
@@ -148,10 +150,10 @@ src/fitlog-nextjs/src/
 │   │       ├── page.tsx       ← Workout mode (set rows, picker, mobility)
 │   │       └── WorkoutPage.module.css
 │   ├── plan/
-│   │   ├── page.tsx           ← Week strip + day cards + edit sheet
+│   │   ├── page.tsx           ← Week strip + day cards + edit sheet  [nav: Momentum tab]
 │   │   └── PlanPage.module.css
 │   ├── momentum/
-│   │   ├── page.tsx           ← PR hero, volume chart, insights cards
+│   │   ├── page.tsx           ← PR hero, volume chart, insights cards  [nav: Insights tab]
 │   │   └── MomentumPage.module.css
 │   ├── more/
 │   │   ├── page.tsx           ← Hub: history / movements / theme / sign out
@@ -167,8 +169,9 @@ src/fitlog-nextjs/src/
 │   └── auth/callback/
 │       └── route.ts           ← Supabase PKCE exchange
 ├── components/
-│   ├── BottomNav.tsx          ← Glass pill nav, active tab lift
+│   ├── BottomNav.tsx          ← Glass pill nav, icon-only tabs, active tab lift
 │   ├── BottomNav.module.css
+│   ├── NavGuard.tsx           ← Suppresses BottomNav on /login and /auth/*
 │   ├── AuthForm.tsx           ← Signin / signup / reset (3-mode)
 │   └── AuthForm.module.css
 └── lib/
@@ -211,11 +214,11 @@ src/fitlog-nextjs/src/
 
 ## 10. Workflow rules
 
-- **Edit `src/fitlog-nextjs/` for all active development.** The HTML build (`fitlog-mobile.html`) is the visual parity reference only — read it when porting engine behavior, don't edit it for the Next.js work.
+- **Edit `src/fitlog-nextjs/` for all active development.** The HTML build (`fitlog-mobile.html`) is the visual reference only — read it when porting engine behavior or checking icon glyphs, don't edit it for the Next.js work.
 - **Commits:** prefix Next.js commits with `nextjs:`, HTML build commits with `src:`.
 - **Type check before committing:** `npx tsc --noEmit` from `src/fitlog-nextjs/`.
 - **Tokens are locked.** All CSS uses `var(--ink)` etc. or the explicit hex values from the locked palette. No hardcoded substitutions.
-- **No emojis as structural icons.** SVG only. (Emojis currently used as placeholder icons in nav cards — replace before launch.)
+- **No emojis as structural icons.** SVG only.
 - **No fabricated demo data** shown as if real.
 - **PM artifacts in `~/fitness-app/pm/`.** Append to `decisions.md` when direction is set.
 
@@ -251,7 +254,8 @@ src/fitlog-nextjs/src/
 
 - Read this doc + linked docs **before** proposing changes. Don't re-litigate settled decisions; flag them if you think they need revisiting.
 - The user is solo dev + PM. Help him ship — bias toward concrete, small, verified changes over open-ended exploration.
+- **mobile351.html is visual reference only.** Use it to check icon glyphs, spacing, and active-state treatment. Do not treat it as the IA source of truth for the Next.js build.
 - **Before reporting done:** run `npx tsc --noEmit && npm run build` from `src/fitlog-nextjs/`. A clean static build is the bar.
 - Memory is loaded automatically and reflects user preferences; trust it.
-- When the user describes the IA, use the canonical Today / Plan / Momentum / More — even if they say it differently in a given prompt.
+- When the user describes the IA, use the canonical Today / Insights / Momentum / More.
 - Commits use the `nextjs:` prefix. Co-author line: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
