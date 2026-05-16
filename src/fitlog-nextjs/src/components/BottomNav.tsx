@@ -1,9 +1,9 @@
 "use client";
 
 // BottomNav — floating glass-pill primary navigation.
-// Visual reference: src/fitlog-mobile.html lines 9508–9540 (mobile351 baseline).
-// IA: Today / Insights / Momentum / More — matching mobile351's data-bn-view order.
-// Icons: inline SVG, 22×22, stroke-width 1.6, matching the HTML build's glyphs.
+// mobile351.html is visual reference only (icon glyphs, active-state treatment).
+// IA: Today / Insights / Momentum / More.
+// Icons: inline SVG, 22×22, stroke-width 1.6.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -122,7 +122,6 @@ export default function BottomNav() {
             style={{ color: active ? "#5d9bb8" : undefined }}
           >
             {tab.icon}
-            <span className={styles.label}>{tab.label}</span>
           </Link>
         );
       })}
@@ -138,7 +137,6 @@ export default function BottomNav() {
         style={{ color: moreActive ? "#5d9bb8" : undefined }}
       >
         {MORE_ICON}
-        <span className={styles.label}>More</span>
       </Link>
     </nav>
   );
