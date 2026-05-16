@@ -104,11 +104,11 @@
 .mvRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
   background: rgba(255,255,255,0.65);
   border: 1.2px solid rgba(255,255,255,0.78);
-  border-radius: 12px;
+  border-radius: 14px;
   margin-bottom: 5px;
   cursor: pointer;
   width: 100%;
@@ -117,6 +117,33 @@
   box-shadow: 0 1px 4px rgba(15,22,34,0.06);
   position: relative;
   overflow: hidden;
+}
+
+/* ─── Thumbnail ──────────────────────────────────────────────────────────── */
+.mvThumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background: rgba(15,22,34,0.05);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mvThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mvThumbPlaceholder {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #c0c8d5;
+  line-height: 1;
 }
 
 .mvRow::after {
@@ -387,6 +414,9 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
 
+  :global(body:not(.theme-light)) .mvThumb { background: rgba(255,255,255,0.06); }
+  :global(body:not(.theme-light)) .mvThumbPlaceholder { color: #3a4255; }
+
   :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
 
   :global(body:not(.theme-light)) .mvChip {
@@ -449,6 +479,9 @@
   border-color: rgba(255,255,255,0.10);
   box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
 }
+
+:global(body.theme-dark) .mvThumb { background: rgba(255,255,255,0.06); }
+:global(body.theme-dark) .mvThumbPlaceholder { color: #3a4255; }
 
 :global(body.theme-dark) .mvName { color: #f7f9fc; }
 

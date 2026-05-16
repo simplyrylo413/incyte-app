@@ -185,12 +185,24 @@ function MvRow({ mv, onTap }: { mv: Movement; onTap: () => void }) {
 
   return (
     <button type="button" className={s.mvRow} onClick={onTap}>
+      <div className={s.mvThumb}>
+        {mv.gifUrl ? (
+          <img
+            src={mv.gifUrl}
+            alt=""
+            className={s.mvThumbImg}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <span className={s.mvThumbPlaceholder}>{mv.name.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
       <div className={s.mvRowBody}>
         <span className={s.mvName}>{mv.name}</span>
         <div className={s.mvMeta}>
           {muscle && <span className={s.mvChip}>{muscle}</span>}
           {equip && <span className={s.mvChip}>{equip}</span>}
-          {mv.kind && <span className={s.mvChip}>{mv.kind}</span>}
         </div>
       </div>
       <span className={s.mvChevron}>›</span>
