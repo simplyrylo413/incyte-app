@@ -181,46 +181,20 @@ export async function importExercisesFromDB(
   const supabase = createClient();
   const id = await getIdentifier();
 
+  // Edge function handles both fetching AND inserting server-side (bypasses RLS)
   const { data, error } = await supabase.functions.invoke<{
-    exercises: Array<{
-      id: string; name: string; muscle: string; category: string;
-      kind: string; equipment: string; notes: string;
-    }>;
-    count: number;
-  }>("import-exercises", { body: bodyParts ? { bodyParts } : {} });
+    inserted: number;
+    total: number;
+  }>("import-exercises", {
+    body: { deviceId: id, ...(bodyParts ? { bodyParts } : {}) },
+  });
 
   if (error) {
-    console.error("[db] importExercisesFromDB edge fn failed:", error);
+    console.error("[db] importExercisesFromDB failed:", JSON.stringify(error));
     return -1;
   }
-  if (!data?.exercises?.length) return 0;
-
-  // Chunk into batches of 100 to avoid Supabase payload limits
-  const rows = data.exercises.map((e) => ({
-    id: e.id,
-    device_id: id,
-    name: e.name,
-    category: e.category,
-    muscle: e.muscle,
-    kind: e.kind,
-    unit: "",
-    notes: e.notes,
-    tags: [] as string[],
-  }));
-
-  let inserted = 0;
-  for (let i = 0; i < rows.length; i += 100) {
-    const chunk = rows.slice(i, i + 100);
-    const { error: insErr } = await supabase
-      .from("movements")
-      .upsert(chunk, { onConflict: "id" });
-    if (insErr) {
-      console.error("[db] importExercisesFromDB batch insert failed:", insErr);
-    } else {
-      inserted += chunk.length;
-    }
-  }
-  return inserted;
+  console.log("[db] importExercisesFromDB result:", JSON.stringify(data));
+  return data?.inserted ?? 0;
 }
 
 export async function listMovements(): Promise<Movement[]> {

@@ -54,9 +54,11 @@ export default function MovementsPage() {
     setImportMsg(null);
     const count = await importExercisesFromDB();
     if (count < 0) {
-      setImportMsg("Import failed — check that the edge function is deployed and EXERCISEDB_API_KEY is set.");
+      setImportMsg("Import failed — check console for details.");
+    } else if (count === 0) {
+      setImportMsg("Import ran but 0 exercises were added. Check Supabase edge function logs.");
     } else {
-      setImportMsg(`Imported ${count} exercises.`);
+      setImportMsg(`Added ${count} exercises to your library.`);
       await load();
     }
     setImporting(false);
