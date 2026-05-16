@@ -143,26 +143,32 @@ const DEFAULT_MOVEMENTS: Array<{
 async function seedDefaultMovements(deviceId: string): Promise<Movement[]> {
   const supabase = createClient();
   const now = Date.now();
+  // Only include columns that exist in the live table (HTML build schema):
+  // id, device_id, name, category, muscle, kind, unit, notes, tags
   const rows = DEFAULT_MOVEMENTS.map((m, i) => ({
     id: `mv_seed_${i}_${now}`,
     device_id: deviceId,
     name: m.name,
+    category: m.muscle.charAt(0).toUpperCase() + m.muscle.slice(1),
     muscle: m.muscle,
-    body_part: m.muscle,
-    kind: m.kind ?? null,
-    equipment_type: m.equipmentType ?? null,
-    canonical_movement: m.name,
-    variant: null,
-    unit: null,
-    default_sets: null,
-    notes: null,
+    kind: m.kind ?? "strength",
+    unit: "",
+    notes: "",
+    tags: [] as string[],
   }));
   const { error } = await supabase.from("movements").insert(rows);
   if (error) {
     console.warn("[db] seedDefaultMovements failed:", error);
     return [];
   }
-  return rows.map(rowToMovement);
+  // Map back to Movement type using the fields we do have
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    muscle: r.muscle,
+    bodyPart: r.muscle,
+    kind: r.kind === "cardio" ? "cardio" : undefined,
+  }));
 }
 
 export async function listMovements(): Promise<Movement[]> {
@@ -188,19 +194,17 @@ export async function listMovements(): Promise<Movement[]> {
 export async function upsertMovement(m: Movement): Promise<boolean> {
   const supabase = createClient();
   const id = await getIdentifier();
+  // Live table schema (HTML build): id, device_id, name, category, muscle, kind, unit, notes, tags
   const { error } = await supabase.from("movements").upsert({
     id: m.id,
     device_id: id,
     name: m.name,
-    kind: m.kind ?? null,
-    muscle: m.muscle ?? null,
-    body_part: m.bodyPart ?? null,
-    unit: m.unit ?? null,
-    equipment_type: m.equipmentType ?? null,
-    variant: m.variant ?? null,
-    canonical_movement: m.canonicalMovement ?? null,
-    default_sets: m.defaultSets ?? null,
-    notes: m.notes ?? null,
+    category: m.muscle ?? m.bodyPart ?? "",
+    muscle: m.muscle ?? m.bodyPart ?? null,
+    kind: m.kind ?? "strength",
+    unit: m.unit ?? "",
+    notes: m.notes ?? "",
+    tags: [],
   });
   if (error) {
     console.warn("[db] upsertMovement failed:", error);
@@ -348,17 +352,19 @@ export async function deletePlan(id: string): Promise<boolean> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToMovement(r: any): Movement {
+  // Live table columns: id, device_id, name, category, muscle, kind, unit, notes, tags
+  // Plus optional extended columns added by migrations: body_part, equipment_type, etc.
   return {
     id: r.id,
     name: r.name,
-    kind: r.kind ?? undefined,
-    muscle: r.muscle ?? undefined,
-    bodyPart: r.body_part ?? undefined,
-    unit: r.unit ?? undefined,
-    notes: r.notes ?? null,
+    kind: r.kind === "cardio" ? "cardio" : undefined,
+    muscle: r.muscle ?? r.category?.toLowerCase() ?? undefined,
+    bodyPart: r.body_part ?? r.muscle ?? r.category?.toLowerCase() ?? undefined,
+    unit: r.unit || undefined,
+    notes: r.notes || null,
     equipmentType: r.equipment_type ?? undefined,
     variant: r.variant ?? undefined,
-    canonicalMovement: r.canonical_movement ?? undefined,
+    canonicalMovement: r.canonical_movement ?? r.name,
     defaultSets: r.default_sets ?? undefined,
   };
 }
