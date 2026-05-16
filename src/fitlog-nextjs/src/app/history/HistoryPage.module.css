@@ -259,40 +259,40 @@
 
 /* ─── Dark mode ──────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  .subline { color: #6a7384; }
-  .headline { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .subline { color: #6a7384; }
+  :global(body:not(.theme-light)) .headline { color: #f7f9fc; }
 
-  .stateMsg { color: #8d96a5; }
-  .stateErr { color: #c89aa3; }
+  :global(body:not(.theme-light)) .stateMsg { color: #8d96a5; }
+  :global(body:not(.theme-light)) .stateErr { color: #c89aa3; }
 
-  .emptyTitle { color: #f7f9fc; }
-  .emptySub { color: #8d96a5; }
+  :global(body:not(.theme-light)) .emptyTitle { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .emptySub { color: #8d96a5; }
 
-  .monthLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .monthLabel { color: #6a7384; }
 
-  .workoutCard {
+  :global(body:not(.theme-light)) .workoutCard {
     background: rgba(14,18,23,0.55);
     border: 1.2px solid rgba(255,255,255,0.12);
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
 
-  .workoutCard::after { opacity: 0.25; }
+  :global(body:not(.theme-light)) .workoutCard::after { opacity: 0.25; }
 
-  .workoutDay { color: #f7f9fc; }
-  .workoutDow { color: #4dd0e1; }
-  .workoutName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .workoutDay { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .workoutDow { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .workoutName { color: #f7f9fc; }
 
-  .metaChip {
+  :global(body:not(.theme-light)) .metaChip {
     color: #6a7384;
     background: rgba(255,255,255,0.08);
   }
 
-  .workoutChev { color: #6a7384; }
+  :global(body:not(.theme-light)) .workoutChev { color: #6a7384; }
 
-  .detailList { border-top-color: rgba(255,255,255,0.10); }
-  .detailEntryName { color: #d4dae3; }
-  .detailEntryMeta { color: #6a7384; }
-  .detailEntryDone { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .detailList { border-top-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .detailEntryName { color: #d4dae3; }
+  :global(body:not(.theme-light)) .detailEntryMeta { color: #6a7384; }
+  :global(body:not(.theme-light)) .detailEntryDone { color: #7ec0a8; }
 }
 
 :global(body.theme-dark) .subline { color: #6a7384; }

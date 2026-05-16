@@ -364,63 +364,63 @@
 
 /* ─── Dark mode ──────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  .subline { color: #6a7384; }
-  .headline { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .subline { color: #6a7384; }
+  :global(body:not(.theme-light)) .headline { color: #f7f9fc; }
 
-  .searchInput {
+  :global(body:not(.theme-light)) .searchInput {
     background: rgba(255,255,255,0.08);
     border-color: rgba(255,255,255,0.12);
     color: #f7f9fc;
   }
 
-  .stateMsg { color: #8d96a5; }
-  .stateErr { color: #c89aa3; }
+  :global(body:not(.theme-light)) .stateMsg { color: #8d96a5; }
+  :global(body:not(.theme-light)) .stateErr { color: #c89aa3; }
 
-  .emptyTitle { color: #f7f9fc; }
-  .emptySub { color: #8d96a5; }
+  :global(body:not(.theme-light)) .emptyTitle { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .emptySub { color: #8d96a5; }
 
-  .groupLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .groupLabel { color: #6a7384; }
 
-  .mvRow {
+  :global(body:not(.theme-light)) .mvRow {
     background: rgba(255,255,255,0.06);
     border-color: rgba(255,255,255,0.10);
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
 
-  .mvName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
 
-  .mvChip {
+  :global(body:not(.theme-light)) .mvChip {
     color: #6a7384;
     background: rgba(255,255,255,0.08);
   }
 
-  .mvChevron { color: #6a7384; }
+  :global(body:not(.theme-light)) .mvChevron { color: #6a7384; }
 
-  .sheet { background: #161b23; }
-  .sheetHandle { background: rgba(255,255,255,0.18); }
+  :global(body:not(.theme-light)) .sheet { background: #161b23; }
+  :global(body:not(.theme-light)) .sheetHandle { background: rgba(255,255,255,0.18); }
 
-  .sheetHead { border-bottom-color: rgba(255,255,255,0.10); }
-  .sheetTitle { color: #f7f9fc; }
-  .sheetClose { color: #6a7384; }
-  .sheetClose:hover { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .sheetHead { border-bottom-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .sheetTitle { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .sheetClose { color: #6a7384; }
+  :global(body:not(.theme-light)) .sheetClose:hover { color: #f7f9fc; }
 
-  .editLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .editLabel { color: #6a7384; }
 
-  .editInput,
-  .editSelect {
+  :global(body:not(.theme-light)) .editInput,
+  :global(body:not(.theme-light)) .editSelect {
     background: rgba(255,255,255,0.06);
     border-color: rgba(255,255,255,0.14);
     color: #f7f9fc;
   }
 
-  .editActions { border-top-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .editActions { border-top-color: rgba(255,255,255,0.10); }
 
-  .btnDelete {
+  :global(body:not(.theme-light)) .btnDelete {
     color: #c89aa3;
     border-color: rgba(200,154,163,0.45);
   }
 
-  .btnDeleteConfirm {
+  :global(body:not(.theme-light)) .btnDeleteConfirm {
     background: rgba(200,154,163,0.12);
     color: #c89aa3;
     border-color: #c89aa3;

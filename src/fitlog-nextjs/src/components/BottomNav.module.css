@@ -84,7 +84,7 @@
 
 /* ─── Dark mode ─────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  .nav {
+  :global(body:not(.theme-light)) .nav {
     background: rgba(14,18,23,0.72);
     border-color: rgba(255,255,255,0.14);
     box-shadow:
@@ -93,8 +93,8 @@
       0 4px 12px rgba(0,0,0,0.55),
       0 12px 28px rgba(0,0,0,0.60);
   }
-  .tab { color: #6a7384; }
-  .tab.active {
+  :global(body:not(.theme-light)) .tab { color: #6a7384; }
+  :global(body:not(.theme-light)) .tab.active {
     background: rgba(30,38,50,0.95);
     color: #f7f9fc;
     box-shadow:

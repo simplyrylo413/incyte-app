@@ -670,18 +670,18 @@
 
 /* ─── Dark mode ──────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  .headline { color: #f7f9fc; }
-  .subline { color: #6a7384; }
+  :global(body:not(.theme-light)) .headline { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .subline { color: #6a7384; }
 
-  .wdayLetter { color: #8d96a5; }
-  .wday.today .wdayLetter { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .wdayLetter { color: #8d96a5; }
+  :global(body:not(.theme-light)) .wday.today .wdayLetter { color: #4dd0e1; }
 
-  .wdayDot {
+  :global(body:not(.theme-light)) .wdayDot {
     border-color: rgba(255,255,255,0.18);
     color: #8d96a5;
   }
 
-  .wday.today .wdayDot {
+  :global(body:not(.theme-light)) .wday.today .wdayDot {
     background:
       radial-gradient(ellipse at 20% 20%, rgba(77,208,225,0.40) 0%, transparent 60%),
       radial-gradient(ellipse at 80% 80%, rgba(215,123,168,0.35) 0%, transparent 60%),
@@ -690,88 +690,88 @@
     color: #f7f9fc;
   }
 
-  .wdayCount { color: #8d96a5; }
-  .wday.today .wdayCount { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .wdayCount { color: #8d96a5; }
+  :global(body:not(.theme-light)) .wday.today .wdayCount { color: #f7f9fc; }
 
-  .dayCard {
+  :global(body:not(.theme-light)) .dayCard {
     background: rgba(14,18,23,0.55);
     border-color: rgba(255,255,255,0.12);
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
 
-  .dayHead { border-bottom-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .dayHead { border-bottom-color: rgba(255,255,255,0.10); }
 
-  .dayEyebrow { color: #6a7384; }
-  .dayName { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .dayEyebrow { color: #6a7384; }
+  :global(body:not(.theme-light)) .dayName { color: #4dd0e1; }
 
-  .dayEta {
+  :global(body:not(.theme-light)) .dayEta {
     color: #8d96a5;
     border-color: rgba(255,255,255,0.10);
     background: rgba(255,255,255,0.04);
   }
 
-  .dayChev { color: #8d96a5; }
+  :global(body:not(.theme-light)) .dayChev { color: #8d96a5; }
 
-  .dayServings { color: #d4dae3; }
-  .dayServingsLabel { color: #8d96a5; }
+  :global(body:not(.theme-light)) .dayServings { color: #d4dae3; }
+  :global(body:not(.theme-light)) .dayServingsLabel { color: #8d96a5; }
 
-  .muscleEyebrow { color: #6a7384; }
+  :global(body:not(.theme-light)) .muscleEyebrow { color: #6a7384; }
 
-  .mvRow {
+  :global(body:not(.theme-light)) .mvRow {
     background: rgba(255,255,255,0.06);
     border-color: rgba(255,255,255,0.10);
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
 
-  .mvName { color: #f7f9fc; }
-  .mvRow.undone .mvName { color: #4dd0e1; }
-  .mvRow.done .mvName { color: #8d96a5; }
+  :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .mvRow.undone .mvName { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .mvRow.done .mvName { color: #8d96a5; }
 
-  .mvMeta { color: #8d96a5; }
-  .mvChev { color: #8d96a5; }
+  :global(body:not(.theme-light)) .mvMeta { color: #8d96a5; }
+  :global(body:not(.theme-light)) .mvChev { color: #8d96a5; }
 
-  .restLabel { color: #8d96a5; }
-  .restSub { color: #6a7384; }
+  :global(body:not(.theme-light)) .restLabel { color: #8d96a5; }
+  :global(body:not(.theme-light)) .restSub { color: #6a7384; }
 
-  .addRow { color: #8d96a5; border-top-color: rgba(255,255,255,0.10); }
-  .addRow:active { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .addRow { color: #8d96a5; border-top-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .addRow:active { color: #f7f9fc; }
 
-  .sheet { background: #161b23; }
-  .sheetHandle { background: rgba(255,255,255,0.18); }
-  .sheetTitle { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .sheet { background: #161b23; }
+  :global(body:not(.theme-light)) .sheetHandle { background: rgba(255,255,255,0.18); }
+  :global(body:not(.theme-light)) .sheetTitle { color: #f7f9fc; }
 
-  .sheetClose {
+  :global(body:not(.theme-light)) .sheetClose {
     background: rgba(255,255,255,0.08);
     color: #8d96a5;
   }
 
-  .searchInput {
+  :global(body:not(.theme-light)) .searchInput {
     background: rgba(255,255,255,0.08);
     border-color: rgba(255,255,255,0.14);
     color: #f7f9fc;
   }
 
-  .pickerGroupLabel { color: #6a7384; }
-  .pickerItemName { color: #f7f9fc; }
-  .pickerItemMeta { color: #6a7384; }
-  .pickerItem:active { background: rgba(255,255,255,0.06); }
+  :global(body:not(.theme-light)) .pickerGroupLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .pickerItemName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .pickerItemMeta { color: #6a7384; }
+  :global(body:not(.theme-light)) .pickerItem:active { background: rgba(255,255,255,0.06); }
 
-  .fieldLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .fieldLabel { color: #6a7384; }
 
-  .fieldInput {
+  :global(body:not(.theme-light)) .fieldInput {
     background: rgba(255,255,255,0.06);
     border-color: rgba(255,255,255,0.14);
     color: #f7f9fc;
   }
 
-  .editMvName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .editMvName { color: #f7f9fc; }
 
-  .btnRemove {
+  :global(body:not(.theme-light)) .btnRemove {
     color: #c89aa3;
     border-color: #c89aa3;
   }
 
-  .emptyPicker { color: #8d96a5; }
+  :global(body:not(.theme-light)) .emptyPicker { color: #8d96a5; }
 }
 
 :global(body.theme-dark) .headline { color: #f7f9fc; }

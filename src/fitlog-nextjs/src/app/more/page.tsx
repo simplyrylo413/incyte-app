@@ -12,8 +12,8 @@ import s from "./MorePage.module.css";
 const THEME_KEY = "fitlog_theme";
 
 function getStoredTheme(): "light" | "dark" | "system" {
-  if (typeof localStorage === "undefined") return "system";
-  return (localStorage.getItem(THEME_KEY) as "light" | "dark" | "system") ?? "system";
+  if (typeof localStorage === "undefined") return "light";
+  return (localStorage.getItem(THEME_KEY) as "light" | "dark" | "system") ?? "light";
 }
 
 function applyTheme(theme: "light" | "dark" | "system") {
@@ -26,7 +26,7 @@ function applyTheme(theme: "light" | "dark" | "system") {
 
 export default function MorePage() {
   const router = useRouter();
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
 
   useEffect(() => {
     const stored = getStoredTheme();
