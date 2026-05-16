@@ -1,10 +1,11 @@
 "use client";
 
-// Phase 5 Momentum / Insights screen.
-// Visual parity target: src/fitlog-mobile.html #view-insights (mobile351 baseline).
-// Cards: Readiness · Recovery Map · Muscle Stimulus · PRs — all collapsible.
+// Momentum / Insights — horizontal snap-scroll carousel.
+// Visual parity: src/mobile351.html .insights-carousel-wrap (lines 9041–9193).
+// 4 cards: Readiness · Recovery Map · Muscle Stimulus · PRs
+// Cards are always expanded in carousel mode (no collapse toggle).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { listWorkouts, listMovements } from "@/lib/db";
 import type { Workout, Movement } from "@/lib/types";
 import {
@@ -19,6 +20,8 @@ import {
 } from "@/lib/engine/momentum";
 import s from "./MomentumPage.module.css";
 
+const CARD_LABELS = ["Readiness", "Recovery", "Stimulus", "PRs"];
+
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export default function MomentumPage() {
@@ -26,6 +29,8 @@ export default function MomentumPage() {
   const [err, setErr] = useState<string | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -45,9 +50,27 @@ export default function MomentumPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const scores = computeReadiness(workouts, movements);
+  // Track scroll position → active dot
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const onScroll = () => {
+      const idx = Math.round(track.scrollLeft / track.clientWidth);
+      setActiveIdx(idx);
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  }, []);
+
+  function scrollToCard(idx: number) {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
+  }
+
+  const scores   = computeReadiness(workouts, movements);
   const stimulus = computeWeeklyStimulus(workouts, movements);
-  const prs = computePRs(workouts, movements);
+  const prs      = computePRs(workouts, movements);
 
   return (
     <div className={s.page}>
@@ -65,12 +88,38 @@ export default function MomentumPage() {
           {err}
         </div>
       ) : (
-        <div className={s.cardList}>
-          <ReadinessCard scores={scores} />
-          <FatigueCard workouts={workouts} movements={movements} />
-          <StimulusCard stimulus={stimulus} />
-          <PRsCard prs={prs} />
-        </div>
+        <>
+          {/* ── Carousel ────────────────────────────────────────────────── */}
+          <div className={s.carouselWrap}>
+            <div className={s.carouselTrack} ref={trackRef}>
+              <div className={s.carouselSlide}>
+                <ReadinessCard scores={scores} />
+              </div>
+              <div className={s.carouselSlide}>
+                <FatigueCard workouts={workouts} movements={movements} />
+              </div>
+              <div className={s.carouselSlide}>
+                <StimulusCard stimulus={stimulus} />
+              </div>
+              <div className={s.carouselSlide}>
+                <PRsCard prs={prs} />
+              </div>
+            </div>
+
+            {/* ── Dot pagination ──────────────────────────────────────── */}
+            <div className={s.dots}>
+              {CARD_LABELS.map((label, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-label={label}
+                  className={`${s.dot} ${activeIdx === i ? s.dotActive : ""}`}
+                  onClick={() => scrollToCard(i)}
+                />
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -79,7 +128,6 @@ export default function MomentumPage() {
 // ─── Readiness card ───────────────────────────────────────────────────────────
 
 function ReadinessCard({ scores }: { scores: ReadinessScores }) {
-  const [collapsed, setCollapsed] = useState(false);
   const [recOpen, setRecOpen] = useState(false);
 
   const toneClass =
@@ -89,105 +137,84 @@ function ReadinessCard({ scores }: { scores: ReadinessScores }) {
     : "";
 
   return (
-    <section className={`${s.heroCard} ${s.readinessCard} ${collapsed ? s.heroCardCollapsed : ""}`}>
-      <button
-        className={s.heroCardHead}
-        onClick={() => setCollapsed((c) => !c)}
-        aria-expanded={!collapsed}
-        type="button"
-      >
+    <section className={`${s.heroCard} ${s.readinessCard}`}>
+      <div className={s.heroCardHead}>
         <div>
           <div className={s.heroCardTitle}>{scores.title}</div>
         </div>
-        <span className={s.heroCardChev} aria-hidden="true">▼</span>
-      </button>
+      </div>
 
-      <div className={s.heroCardBody}>
-        <div className={s.heroInner}>
-          {/* 3-stat grid */}
-          <div className={s.readinessGrid}>
-            {/* Readiness */}
-            <div className={s.readinessStat}>
-              <div className={s.readinessStatLabel}>Readiness</div>
-              <div className={s.readinessStatNumRow}>
-                <span className={s.readinessStatValue}>
-                  {scores.readiness != null ? scores.readiness : "—"}
-                </span>
-                {scores.readiness != null && (
-                  <span className={s.readinessStatSuffix}>%</span>
-                )}
-              </div>
-              <div className={s.readinessBar}>
-                <div
-                  className={s.readinessBarFill}
-                  style={{ width: `${scores.readiness ?? 0}%` }}
-                />
-              </div>
-              <div className={s.readinessStatCaption}>
-                {scores.readinessCap}
-              </div>
-            </div>
-
-            {/* Recovery */}
-            <div className={s.readinessStat}>
-              <div className={s.readinessStatLabel}>Recovery</div>
-              <div className={s.readinessStatNumRow}>
-                <span className={s.readinessStatValue}>{scores.recovery}</span>
+      <div className={s.heroInner}>
+        {/* 3-stat grid */}
+        <div className={s.readinessGrid}>
+          <div className={s.readinessStat}>
+            <div className={s.readinessStatLabel}>Readiness</div>
+            <div className={s.readinessStatNumRow}>
+              <span className={s.readinessStatValue}>
+                {scores.readiness != null ? scores.readiness : "—"}
+              </span>
+              {scores.readiness != null && (
                 <span className={s.readinessStatSuffix}>%</span>
-              </div>
-              <div className={s.readinessBar}>
-                <div
-                  className={s.readinessBarFill}
-                  style={{ width: `${scores.recovery}%` }}
-                />
-              </div>
-              <div className={s.readinessStatCaption}>
-                {scores.recoveryCap}
-              </div>
+              )}
             </div>
-
-            {/* Fatigue */}
-            <div className={s.readinessStat}>
-              <div className={s.readinessStatLabel}>Fatigue</div>
-              <div className={s.readinessStatNumRow}>
-                <span className={s.readinessStatValue}>{scores.fatigue}</span>
-                <span className={s.readinessStatSuffix}>%</span>
-              </div>
-              <div className={s.readinessBar}>
-                <div
-                  className={s.readinessBarFill}
-                  style={{ width: `${scores.fatigue}%` }}
-                />
-              </div>
-              <div className={s.readinessStatCaption}>
-                {scores.fatigueCap}
-              </div>
+            <div className={s.readinessBar}>
+              <div
+                className={s.readinessBarFill}
+                style={{ width: `${scores.readiness ?? 0}%` }}
+              />
             </div>
+            <div className={s.readinessStatCaption}>{scores.readinessCap}</div>
           </div>
 
-          {/* Training recommendation — collapsible */}
-          <div
-            className={`${s.rdRecommendation} ${recOpen ? "" : s.rdRecCollapsed}`}
-          >
-            <button
-              type="button"
-              className={`${s.rdRecHead} ${recOpen ? s.rdRecOpen : ""}`}
-              onClick={() => setRecOpen((o) => !o)}
-              aria-expanded={recOpen}
-            >
-              <span className={s.rdRecTri} aria-hidden="true">▶</span>
-              <span className={s.rdRecLabel}>Recommendation:</span>
-              <span className={`${s.rdRecAction} ${toneClass}`}>
-                {scores.recAction}
-              </span>
-            </button>
-            <div className={s.rdRecBody}>
-              <ul className={s.rdRecBullets}>
-                {scores.recBullets.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
-              </ul>
+          <div className={s.readinessStat}>
+            <div className={s.readinessStatLabel}>Recovery</div>
+            <div className={s.readinessStatNumRow}>
+              <span className={s.readinessStatValue}>{scores.recovery}</span>
+              <span className={s.readinessStatSuffix}>%</span>
             </div>
+            <div className={s.readinessBar}>
+              <div
+                className={s.readinessBarFill}
+                style={{ width: `${scores.recovery}%` }}
+              />
+            </div>
+            <div className={s.readinessStatCaption}>{scores.recoveryCap}</div>
+          </div>
+
+          <div className={s.readinessStat}>
+            <div className={s.readinessStatLabel}>Fatigue</div>
+            <div className={s.readinessStatNumRow}>
+              <span className={s.readinessStatValue}>{scores.fatigue}</span>
+              <span className={s.readinessStatSuffix}>%</span>
+            </div>
+            <div className={s.readinessBar}>
+              <div
+                className={s.readinessBarFill}
+                style={{ width: `${scores.fatigue}%` }}
+              />
+            </div>
+            <div className={s.readinessStatCaption}>{scores.fatigueCap}</div>
+          </div>
+        </div>
+
+        {/* Training recommendation — collapsible */}
+        <div className={`${s.rdRecommendation} ${recOpen ? "" : s.rdRecCollapsed}`}>
+          <button
+            type="button"
+            className={`${s.rdRecHead} ${recOpen ? s.rdRecOpen : ""}`}
+            onClick={() => setRecOpen((o) => !o)}
+            aria-expanded={recOpen}
+          >
+            <span className={s.rdRecTri} aria-hidden="true">▶</span>
+            <span className={s.rdRecLabel}>Recommendation:</span>
+            <span className={`${s.rdRecAction} ${toneClass}`}>{scores.recAction}</span>
+          </button>
+          <div className={s.rdRecBody}>
+            <ul className={s.rdRecBullets}>
+              {scores.recBullets.map((b, i) => (
+                <li key={i}>{b}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -204,51 +231,40 @@ function FatigueCard({
   workouts: Workout[];
   movements: Movement[];
 }) {
-  const [collapsed, setCollapsed] = useState(true);
   const [tab, setTab] = useState<"upper" | "lower">("upper");
-
   const rows = computeMuscleFatigue(workouts, movements, tab);
 
   return (
-    <section className={`${s.heroCard} ${collapsed ? s.heroCardCollapsed : ""}`}>
-      <button
-        className={s.heroCardHead}
-        onClick={() => setCollapsed((c) => !c)}
-        aria-expanded={!collapsed}
-        type="button"
-      >
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
         <div>
           <div className={s.heroCardEyebrow}>Body fatigue</div>
           <div className={s.heroCardTitle}>Recovery map</div>
         </div>
-        <span className={s.heroCardChev} aria-hidden="true">▼</span>
-      </button>
+      </div>
 
-      <div className={s.heroCardBody}>
-        <div className={s.heroInner}>
-          {/* Upper / Lower toggle pill */}
-          <div className={s.fatigueTogglePill}>
-            <button
-              type="button"
-              className={`${s.fatigueToggleBtn} ${tab === "upper" ? s.on : ""}`}
-              onClick={() => setTab("upper")}
-            >
-              Upper body
-            </button>
-            <button
-              type="button"
-              className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
-              onClick={() => setTab("lower")}
-            >
-              Lower body
-            </button>
-          </div>
+      <div className={s.heroInner}>
+        <div className={s.fatigueTogglePill}>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "upper" ? s.on : ""}`}
+            onClick={() => setTab("upper")}
+          >
+            Upper body
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
+            onClick={() => setTab("lower")}
+          >
+            Lower body
+          </button>
+        </div>
 
-          <div className={s.fatigueRows}>
-            {rows.map((row) => (
-              <FatigueRow key={row.key} row={row} />
-            ))}
-          </div>
+        <div className={s.fatigueRows}>
+          {rows.map((row) => (
+            <FatigueRow key={row.key} row={row} />
+          ))}
         </div>
       </div>
     </section>
@@ -284,8 +300,6 @@ function StimulusCard({
 }: {
   stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
 }) {
-  const [collapsed, setCollapsed] = useState(true);
-
   const tierClass =
     stimulus.tierTone === "pos" ? s.tonePos
     : stimulus.tierTone === "med" ? s.toneMed
@@ -293,54 +307,44 @@ function StimulusCard({
     : "";
 
   return (
-    <section className={`${s.heroCard} ${collapsed ? s.heroCardCollapsed : ""}`}>
-      <button
-        className={s.heroCardHead}
-        onClick={() => setCollapsed((c) => !c)}
-        aria-expanded={!collapsed}
-        type="button"
-      >
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
         <div>
           <div className={s.heroCardEyebrow}>Hypertrophy share</div>
           <div className={s.heroCardTitle}>Muscle Stimulus</div>
         </div>
-        <span className={s.heroCardChev} aria-hidden="true">▼</span>
-      </button>
+      </div>
 
-      <div className={s.heroCardBody}>
-        <div className={s.heroInner}>
-          <div className={s.stimulusHero}>
-            <div>
-              <span className={s.stimulusNum}>{stimulus.totalSets}</span>
-              <span className={s.stimulusSuffix}>sets</span>
-            </div>
-            <div className={s.stimulusLabel}>Weekly sets</div>
-            <div className={`${s.stimulusTier} ${tierClass}`}>
-              {stimulus.tier}
-            </div>
+      <div className={s.heroInner}>
+        <div className={s.stimulusHero}>
+          <div>
+            <span className={s.stimulusNum}>{stimulus.totalSets}</span>
+            <span className={s.stimulusSuffix}>sets</span>
           </div>
-
-          {stimulus.bars.length === 0 ? (
-            <div className={s.stimulusEmpty}>
-              Log working sets this week to see your stimulus distribution.
-            </div>
-          ) : (
-            <div className={s.stimulusBars}>
-              {stimulus.bars.map((bar) => (
-                <div key={bar.key} className={s.stimulusBarRow}>
-                  <span className={s.stimulusBarName}>{bar.label}</span>
-                  <div className={s.stimulusBarTrack}>
-                    <div
-                      className={s.stimulusBarFill}
-                      style={{ width: `${bar.pct}%` }}
-                    />
-                  </div>
-                  <span className={s.stimulusSets}>{bar.sets}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className={s.stimulusLabel}>Weekly sets</div>
+          <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
         </div>
+
+        {stimulus.bars.length === 0 ? (
+          <div className={s.stimulusEmpty}>
+            Log working sets this week to see your stimulus distribution.
+          </div>
+        ) : (
+          <div className={s.stimulusBars}>
+            {stimulus.bars.map((bar) => (
+              <div key={bar.key} className={s.stimulusBarRow}>
+                <span className={s.stimulusBarName}>{bar.label}</span>
+                <div className={s.stimulusBarTrack}>
+                  <div
+                    className={s.stimulusBarFill}
+                    style={{ width: `${bar.pct}%` }}
+                  />
+                </div>
+                <span className={s.stimulusSets}>{bar.sets}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -349,49 +353,39 @@ function StimulusCard({
 // ─── PRs card ─────────────────────────────────────────────────────────────────
 
 function PRsCard({ prs }: { prs: PRBadge[] }) {
-  const [collapsed, setCollapsed] = useState(true);
-
   return (
-    <section className={`${s.heroCard} ${collapsed ? s.heroCardCollapsed : ""}`}>
-      <button
-        className={s.heroCardHead}
-        onClick={() => setCollapsed((c) => !c)}
-        aria-expanded={!collapsed}
-        type="button"
-      >
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
         <div>
           <div className={s.heroCardEyebrow}>Achievements</div>
           <div className={s.heroCardTitle}>Recent PRs</div>
         </div>
-        <span className={s.heroCardChev} aria-hidden="true">▼</span>
-      </button>
+      </div>
 
-      <div className={s.heroCardBody}>
-        <div className={s.heroInner}>
-          {prs.length === 0 ? (
-            <div className={s.prList}>
-              <div className={s.prBadge}>
-                <span className={s.prGlyph}>★</span>
-                <span className={s.prLabel}>Top set</span>
-                <span className={s.prValue}>No PRs yet</span>
-                <span className={s.prSub}>
-                  Finish a session to seed your first record.
-                </span>
+      <div className={s.heroInner}>
+        {prs.length === 0 ? (
+          <div className={s.prList}>
+            <div className={s.prBadge}>
+              <span className={s.prGlyph}>★</span>
+              <span className={s.prLabel}>Top set</span>
+              <span className={s.prValue}>No PRs yet</span>
+              <span className={s.prSub}>
+                Finish a session to seed your first record.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className={s.prList}>
+            {prs.map((badge, i) => (
+              <div key={i} className={s.prBadge}>
+                <span className={s.prGlyph}>{badge.glyph}</span>
+                <span className={s.prLabel}>{badge.label}</span>
+                <span className={s.prValue}>{badge.value}</span>
+                <span className={s.prSub}>{badge.sub}</span>
               </div>
-            </div>
-          ) : (
-            <div className={s.prList}>
-              {prs.map((badge, i) => (
-                <div key={i} className={s.prBadge}>
-                  <span className={s.prGlyph}>{badge.glyph}</span>
-                  <span className={s.prLabel}>{badge.label}</span>
-                  <span className={s.prValue}>{badge.value}</span>
-                  <span className={s.prSub}>{badge.sub}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
