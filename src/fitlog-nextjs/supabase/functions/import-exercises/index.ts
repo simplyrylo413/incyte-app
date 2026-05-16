@@ -1,7 +1,10 @@
 // import-exercises — Supabase Edge Function
-// Fetches exercises from ExerciseDB, inserts them directly into the
-// movements table using the Supabase admin client (bypasses RLS).
-// POST body: { deviceId: string, bodyParts?: string[] }
+// Fetches exercises from ExerciseDB and inserts them into the movements table
+// using the service-role key (bypasses RLS).
+//
+// POST body: { userId: string, bodyParts?: string[] }
+//   userId  — the caller's auth.uid(); used as movements.user_id
+//   bodyParts — optional subset of ALL_BODY_PARTS to fetch
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -21,27 +24,50 @@ const ALL_BODY_PARTS = [
   "upper legs", "lower legs", "waist", "cardio", "neck",
 ];
 
-const TARGET_MUSCLE_MAP: Record<string, string> = {
-  "biceps": "biceps", "triceps": "triceps", "quads": "quads",
-  "hamstrings": "hamstrings", "glutes": "glutes", "calves": "calves",
-  "lats": "back", "traps": "back", "delts": "shoulders", "abs": "core",
-};
+// Maps ExerciseDB bodyPart → our body_part label
 const BODY_PART_MAP: Record<string, string> = {
-  "chest": "chest", "back": "back", "shoulders": "shoulders",
-  "upper arms": "biceps", "lower arms": "biceps", "upper legs": "quads",
-  "lower legs": "calves", "waist": "core", "cardio": "cardio", "neck": "other",
+  "chest": "chest",
+  "back": "back",
+  "shoulders": "shoulders",
+  "upper arms": "biceps",
+  "lower arms": "biceps",
+  "upper legs": "quads",
+  "lower legs": "calves",
+  "waist": "core",
+  "cardio": "cardio",
+  "neck": "other",
 };
 
-function toMuscle(item: any): string {
-  return TARGET_MUSCLE_MAP[item.target] ?? BODY_PART_MAP[item.bodyPart] ?? "other";
+// Maps ExerciseDB target muscle → our body_part label (more specific)
+const TARGET_MAP: Record<string, string> = {
+  "biceps": "biceps",
+  "triceps": "triceps",
+  "quads": "quads",
+  "hamstrings": "hamstrings",
+  "glutes": "glutes",
+  "calves": "calves",
+  "lats": "back",
+  "traps": "back",
+  "delts": "shoulders",
+  "abs": "core",
+};
+
+function toBodyPart(item: { target: string; bodyPart: string }): string {
+  return TARGET_MAP[item.target] ?? BODY_PART_MAP[item.bodyPart] ?? "other";
 }
 
 async function fetchByBodyPart(bodyPart: string): Promise<any[]> {
-  const res = await fetch(
-    `https://${RAPIDAPI_HOST}/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=100&offset=0`,
-    { headers: { "X-RapidAPI-Key": RAPIDAPI_KEY, "X-RapidAPI-Host": RAPIDAPI_HOST } }
-  );
-  if (!res.ok) { console.warn(`ExerciseDB ${bodyPart}: ${res.status}`); return []; }
+  const url = `https://${RAPIDAPI_HOST}/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=100&offset=0`;
+  const res = await fetch(url, {
+    headers: {
+      "X-RapidAPI-Key": RAPIDAPI_KEY,
+      "X-RapidAPI-Host": RAPIDAPI_HOST,
+    },
+  });
+  if (!res.ok) {
+    console.warn(`ExerciseDB ${bodyPart}: HTTP ${res.status}`);
+    return [];
+  }
   return res.json();
 }
 
@@ -50,49 +76,68 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const deviceId: string = body.deviceId ?? "";
+    const userId: string = body.userId ?? "";
     const parts: string[] = body.bodyParts ?? ALL_BODY_PARTS;
 
-    if (!RAPIDAPI_KEY) throw new Error("EXERCISEDB_API_KEY not set");
-    if (!deviceId) throw new Error("deviceId required");
+    if (!RAPIDAPI_KEY) throw new Error("EXERCISEDB_API_KEY secret not set");
+    if (!userId) throw new Error("userId is required");
 
-    // Fetch exercises sequentially to avoid rate limiting
+    // Fetch in batches of 3 with 300 ms between batches to stay under rate limit
     const raw: any[] = [];
-    for (const part of parts) {
-      const items = await fetchByBodyPart(part);
-      raw.push(...items);
-      await new Promise((r) => setTimeout(r, 600));
+    for (let i = 0; i < parts.length; i += 3) {
+      const batch = parts.slice(i, i + 3);
+      const results = await Promise.all(batch.map(fetchByBodyPart));
+      results.forEach((items) => raw.push(...items));
+      if (i + 3 < parts.length) await new Promise((r) => setTimeout(r, 300));
     }
 
-    // Deduplicate by name
+    // Deduplicate by lowercase name
     const seen = new Set<string>();
     const rows: any[] = [];
     for (const item of raw) {
       const key = item.name.toLowerCase().trim();
       if (seen.has(key)) continue;
       seen.add(key);
-      const muscle = toMuscle(item);
+
+      const bodyPart = toBodyPart(item);
+      const kind = item.bodyPart === "cardio" ? "cardio" : "weight";
+      const notes = Array.isArray(item.instructions)
+        ? item.instructions.slice(0, 2).join(" ").slice(0, 500)
+        : null;
+
       rows.push({
-        id: `mv_edb_${item.id}`,
-        device_id: deviceId,
+        id: crypto.randomUUID(),
+        user_id: userId,
         name: item.name.charAt(0).toUpperCase() + item.name.slice(1),
-        category: muscle.charAt(0).toUpperCase() + muscle.slice(1),
-        muscle,
-        kind: item.bodyPart === "cardio" ? "cardio" : "strength",
-        unit: "",
-        notes: (item.instructions ?? []).slice(0, 2).join(" "),
-        tags: [],
+        kind,
+        body_part: bodyPart,
+        equipment_type: item.equipment ?? null,
+        notes: notes || null,
       });
     }
 
-    // Insert directly using service role key (bypasses RLS)
+    if (rows.length === 0) {
+      return new Response(
+        JSON.stringify({ inserted: 0, total: 0, message: "No exercises fetched from ExerciseDB" }),
+        { headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    // Upsert in chunks of 100; conflict on (user_id, name) → skip duplicates
     let inserted = 0;
     for (let i = 0; i < rows.length; i += 100) {
       const chunk = rows.slice(i, i + 100);
-      const { error } = await supabase.from("movements").upsert(chunk, { onConflict: "id" });
-      if (error) console.error("Insert error:", JSON.stringify(error));
-      else inserted += chunk.length;
+      const { error, count } = await supabase
+        .from("movements")
+        .upsert(chunk, { onConflict: "user_id,name", ignoreDuplicates: true })
+        .select("id", { count: "exact", head: true });
+      if (error) {
+        console.error("Chunk insert error:", JSON.stringify(error));
+      } else {
+        inserted += count ?? chunk.length;
+      }
     }
 
     return new Response(
@@ -100,6 +145,7 @@ serve(async (req) => {
       { headers: { ...CORS, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("import-exercises error:", err);
     return new Response(
       JSON.stringify({ error: String(err) }),
       { status: 500, headers: { ...CORS, "Content-Type": "application/json" } }

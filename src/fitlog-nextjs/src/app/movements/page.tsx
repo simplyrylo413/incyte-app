@@ -229,7 +229,7 @@ function MvSheet({
   function handleSave() {
     if (!name.trim()) return;
     const mv: Movement = {
-      id: existing?.id ?? `mv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      id: existing?.id ?? crypto.randomUUID(),
       name: name.trim(),
       muscle: muscle || undefined,
       bodyPart: muscle || undefined,
