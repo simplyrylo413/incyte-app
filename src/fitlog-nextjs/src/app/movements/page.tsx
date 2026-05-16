@@ -60,7 +60,8 @@ export default function MovementsPage() {
       return [...prev, mv].sort((a, b) => a.name.localeCompare(b.name));
     });
     setSheet(null);
-    await upsertMovement(mv);
+    const ok = await upsertMovement(mv);
+    if (!ok) setErr("Save failed — check console for details.");
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {

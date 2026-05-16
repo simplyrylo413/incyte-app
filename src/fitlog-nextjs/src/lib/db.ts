@@ -207,7 +207,7 @@ export async function upsertMovement(m: Movement): Promise<boolean> {
     tags: [],
   });
   if (error) {
-    console.warn("[db] upsertMovement failed:", error);
+    console.error("[db] upsertMovement failed:", JSON.stringify(error));
     return false;
   }
   return true;
