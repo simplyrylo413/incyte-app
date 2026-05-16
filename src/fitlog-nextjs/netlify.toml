@@ -1,0 +1,18 @@
+# Netlify build configuration for INCYTE (Next.js static export → Capacitor).
+# output: 'export' in next.config.js produces the /out directory.
+
+[build]
+  base    = "src/fitlog-nextjs"
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA-style fallback so direct URL access (/momentum, /today, etc.) works.
+# Next.js static export generates /momentum/index.html so this only fires
+# for truly unmatched paths.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
