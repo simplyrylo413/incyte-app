@@ -1,8 +1,8 @@
 "use client";
 
 // BottomNav — floating glass-pill primary navigation.
-// Visual reference: src/fitlog-mobile.html lines 5416–5512 + 9508–9538.
-// IA: Today / Plan / Momentum / More (locked per pm/decisions.md 2026-05-12).
+// Visual reference: src/fitlog-mobile.html lines 9508–9540 (mobile351 baseline).
+// IA: Today / Insights / Momentum / More — matching mobile351's data-bn-view order.
 // Icons: inline SVG, 22×22, stroke-width 1.6, matching the HTML build's glyphs.
 
 import Link from "next/link";
@@ -13,7 +13,7 @@ const TABS = [
   {
     href: "/today",
     label: "Today",
-    // Calendar with a dot — matches HTML build's Today glyph
+    // Calendar with a dot — matches HTML build's Today glyph (data-bn-view="today")
     icon: (
       <svg
         width="22"
@@ -33,29 +33,9 @@ const TABS = [
     ),
   },
   {
-    href: "/plan",
-    label: "Plan",
-    // Lightning bolt — week/plan glyph from HTML build
-    icon: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M13 3 5 14h5l-1 7 8-11h-5l1-7Z" />
-      </svg>
-    ),
-  },
-  {
     href: "/momentum",
-    label: "Momentum",
-    // Bar chart — insights/analytics glyph from HTML build
+    label: "Insights",
+    // Bar chart — analytics/insights glyph (data-bn-view="insights" in mobile351)
     icon: (
       <svg
         width="22"
@@ -72,6 +52,26 @@ const TABS = [
         <rect x="6" y="12" width="3" height="6" />
         <rect x="11" y="8" width="3" height="10" />
         <rect x="16" y="4" width="3" height="14" />
+      </svg>
+    ),
+  },
+  {
+    href: "/plan",
+    label: "Momentum",
+    // Lightning bolt — week/plan glyph (data-bn-view="week", aria-label="Momentum" in mobile351)
+    icon: (
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M13 3 5 14h5l-1 7 8-11h-5l1-7Z" />
       </svg>
     ),
   },
