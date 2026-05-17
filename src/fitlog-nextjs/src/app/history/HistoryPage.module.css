@@ -2,7 +2,7 @@
 
 .page {
   min-height: 100dvh;
-    padding-bottom: 90px;
+  padding-bottom: 90px;
 }
 
 .head {
@@ -75,7 +75,7 @@
   padding: 16px 20px 6px;
 }
 
-/* ─── Workout row ────────────────────────────────────────────────────────── */
+/* ─── Workout card ───────────────────────────────────────────────────────── */
 .workoutCard {
   margin: 0 12px 6px;
   background: rgba(255,255,255,0.72);
@@ -104,22 +104,30 @@
   border-radius: inherit;
 }
 
+/* Header row — flex container for tap area + ⋯ button */
 .workoutHead {
   display: flex;
   align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Full-width tap area inside the header */
+.workoutHeadBtn {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  width: 100%;
+  padding: 14px 8px 14px 16px;
+  flex: 1;
+  min-width: 0;
   background: none;
   border: 0;
   text-align: left;
   cursor: pointer;
   transition: background 150ms;
-  position: relative;
-  z-index: 1;
 }
 
-.workoutHead:active { background: rgba(15,22,34,0.03); }
+.workoutHeadBtn:active { background: rgba(15,22,34,0.03); }
 
 .workoutDateBlock {
   display: flex;
@@ -201,6 +209,163 @@
   transform: rotate(90deg);
 }
 
+/* ─── ⋯ menu ─────────────────────────────────────────────────────────────── */
+.menuWrap {
+  position: relative;
+  flex-shrink: 0;
+  padding-right: 10px;
+  z-index: 2;
+}
+
+.menuTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: none;
+  border: 0;
+  font-size: 16px;
+  color: #8893a8;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 150ms, color 150ms;
+}
+
+.menuTrigger:hover { background: rgba(15,22,34,0.06); color: #2c3548; }
+.menuTrigger:active { background: rgba(15,22,34,0.10); transform: scale(0.94); }
+
+.menuDropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: rgba(255,255,255,0.95);
+  border: 1.2px solid rgba(15,22,34,0.12);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,22,34,0.13), 0 2px 6px rgba(15,22,34,0.07);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  min-width: 148px;
+  overflow: hidden;
+  animation: menuIn 140ms ease-out;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.menuItemDelete {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  background: none;
+  border: 0;
+  text-align: left;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b08092;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.menuItemDelete:hover { background: rgba(176,128,146,0.08); }
+.menuItemDelete:active { background: rgba(176,128,146,0.14); }
+
+/* ─── Delete confirmation dialog ─────────────────────────────────────────── */
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,22,34,0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 24px;
+  animation: fadeIn 160ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.dialog {
+  background: rgba(255,255,255,0.96);
+  border: 1.2px solid rgba(255,255,255,0.90);
+  border-radius: 20px;
+  padding: 24px 22px 20px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 20px 48px rgba(15,22,34,0.22), 0 4px 12px rgba(15,22,34,0.10);
+  animation: dialogIn 180ms ease-out;
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dialogTitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f1622;
+  margin: 0 0 8px;
+}
+
+.dialogBody {
+  font-size: 13px;
+  color: #5e6a82;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.dialogActions {
+  display: flex;
+  gap: 10px;
+}
+
+.dialogCancel {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1.2px solid rgba(15,22,34,0.14);
+  background: none;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3548;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.dialogCancel:hover { background: rgba(15,22,34,0.05); }
+.dialogCancel:active { transform: scale(0.96); }
+.dialogCancel:disabled { opacity: 0.5; }
+
+.dialogDelete {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: 0;
+  background: #b08092;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 150ms, transform 150ms;
+}
+
+.dialogDelete:hover { opacity: 0.88; }
+.dialogDelete:active { transform: scale(0.96); }
+.dialogDelete:disabled { opacity: 0.55; cursor: not-allowed; }
+
 /* ─── Workout detail (collapsible) ───────────────────────────────────────── */
 .workoutDetail {
   display: grid;
@@ -220,21 +385,29 @@
 
 .detailList {
   border-top: 1.2px solid rgba(15,22,34,0.08);
-  padding: 8px 0 12px;
+  padding: 4px 0 10px;
 }
 
-.detailEntry {
+/* ─── Entry block ────────────────────────────────────────────────────────── */
+.entryBlock {
+  padding: 8px 0 4px;
+  border-bottom: 1.2px solid rgba(15,22,34,0.05);
+}
+
+.entryBlock:last-child { border-bottom: 0; }
+
+.entryHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 16px;
+  padding: 2px 16px 6px;
   gap: 10px;
 }
 
 .detailEntryName {
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #2c3548;
   flex: 1;
   min-width: 0;
@@ -253,21 +426,154 @@
   flex-shrink: 0;
 }
 
-.detailEntryDone {
-  color: #4f9aa8;
+.detailEntryDone { color: #4f9aa8; }
+
+/* ─── Set table ──────────────────────────────────────────────────────────── */
+.setList {
+  padding: 0 12px 4px;
 }
+
+.setColRow {
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr 1fr 52px;
+  align-items: center;
+  padding: 0 4px 4px;
+  gap: 6px;
+}
+
+.setColNum {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8893a8;
+  text-align: center;
+}
+
+.setCol {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8893a8;
+}
+
+.setColAct { /* spacer for edit button */ }
+
+.setRow {
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr 1fr 52px;
+  align-items: center;
+  padding: 3px 4px;
+  gap: 6px;
+  border-radius: 6px;
+  transition: background 120ms;
+}
+
+.setRow:hover { background: rgba(15,22,34,0.03); }
+
+.setNumCell {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8893a8;
+  text-align: center;
+}
+
+.setValCell {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2c3548;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.setValUnit {
+  font-size: 8.5px;
+  font-weight: 500;
+  color: #8893a8;
+  letter-spacing: 0.04em;
+}
+
+.setEditBtn {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5d9bb8;
+  background: rgba(93,155,184,0.08);
+  border: 1.2px solid rgba(93,155,184,0.18);
+  border-radius: 5px;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: background 120ms, transform 120ms;
+}
+
+.setEditBtn:hover { background: rgba(93,155,184,0.14); }
+.setEditBtn:active { transform: scale(0.94); }
+
+/* ─── Set edit row ───────────────────────────────────────────────────────── */
+.setEditRow {
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr 1fr 52px;
+  align-items: center;
+  gap: 6px;
+}
+
+.setInput {
+  width: 100%;
+  background: rgba(15,22,34,0.05);
+  border: 1.2px solid rgba(15,22,34,0.14);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0f1622;
+  outline: none;
+  min-width: 0;
+  -moz-appearance: textfield;
+}
+
+.setInput::-webkit-outer-spin-button,
+.setInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.setInput:focus {
+  border-color: rgba(93,155,184,0.55);
+  background: rgba(93,155,184,0.06);
+}
+
+.setSaveBtn {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #5d9bb8;
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 7px;
+  cursor: pointer;
+  transition: opacity 120ms, transform 120ms;
+}
+
+.setSaveBtn:hover { opacity: 0.88; }
+.setSaveBtn:active { transform: scale(0.94); }
 
 /* ─── Dark mode ──────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :global(body:not(.theme-light)) .subline { color: #6a7384; }
   :global(body:not(.theme-light)) .headline { color: #f7f9fc; }
-
   :global(body:not(.theme-light)) .stateMsg { color: #8d96a5; }
   :global(body:not(.theme-light)) .stateErr { color: #c89aa3; }
-
   :global(body:not(.theme-light)) .emptyTitle { color: #f7f9fc; }
   :global(body:not(.theme-light)) .emptySub { color: #8d96a5; }
-
   :global(body:not(.theme-light)) .monthLabel { color: #6a7384; }
 
   :global(body:not(.theme-light)) .workoutCard {
@@ -275,35 +581,60 @@
     border: 1.2px solid rgba(255,255,255,0.12);
     box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
   }
-
   :global(body:not(.theme-light)) .workoutCard::after { opacity: 0.25; }
-
   :global(body:not(.theme-light)) .workoutDay { color: #f7f9fc; }
   :global(body:not(.theme-light)) .workoutDow { color: #4dd0e1; }
   :global(body:not(.theme-light)) .workoutName { color: #f7f9fc; }
-
-  :global(body:not(.theme-light)) .metaChip {
-    color: #6a7384;
-    background: rgba(255,255,255,0.08);
-  }
-
+  :global(body:not(.theme-light)) .metaChip { color: #6a7384; background: rgba(255,255,255,0.08); }
   :global(body:not(.theme-light)) .workoutChev { color: #6a7384; }
 
-  :global(body:not(.theme-light)) .detailList { border-top-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .menuTrigger { color: #6a7384; }
+  :global(body:not(.theme-light)) .menuTrigger:hover { background: rgba(255,255,255,0.08); color: #d4dae3; }
+
+  :global(body:not(.theme-light)) .menuDropdown {
+    background: rgba(20,26,36,0.96);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+  }
+
+  :global(body:not(.theme-light)) .dialog {
+    background: rgba(18,24,34,0.97);
+    border-color: rgba(255,255,255,0.12);
+  }
+  :global(body:not(.theme-light)) .dialogTitle { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .dialogBody { color: #8d96a5; }
+  :global(body:not(.theme-light)) .dialogCancel { border-color: rgba(255,255,255,0.14); color: #d4dae3; }
+
+  :global(body:not(.theme-light)) .detailList { border-top-color: rgba(255,255,255,0.08); }
+  :global(body:not(.theme-light)) .entryBlock { border-bottom-color: rgba(255,255,255,0.06); }
   :global(body:not(.theme-light)) .detailEntryName { color: #d4dae3; }
   :global(body:not(.theme-light)) .detailEntryMeta { color: #6a7384; }
   :global(body:not(.theme-light)) .detailEntryDone { color: #7ec0a8; }
+
+  :global(body:not(.theme-light)) .setColNum,
+  :global(body:not(.theme-light)) .setCol { color: #6a7384; }
+  :global(body:not(.theme-light)) .setNumCell { color: #6a7384; }
+  :global(body:not(.theme-light)) .setValCell { color: #d4dae3; }
+  :global(body:not(.theme-light)) .setValUnit { color: #6a7384; }
+  :global(body:not(.theme-light)) .setRow:hover { background: rgba(255,255,255,0.04); }
+
+  :global(body:not(.theme-light)) .setInput {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+    color: #f7f9fc;
+  }
+  :global(body:not(.theme-light)) .setInput:focus {
+    border-color: rgba(93,155,184,0.55);
+    background: rgba(93,155,184,0.10);
+  }
 }
 
 :global(body.theme-dark) .subline { color: #6a7384; }
 :global(body.theme-dark) .headline { color: #f7f9fc; }
-
 :global(body.theme-dark) .stateMsg { color: #8d96a5; }
 :global(body.theme-dark) .stateErr { color: #c89aa3; }
-
 :global(body.theme-dark) .emptyTitle { color: #f7f9fc; }
 :global(body.theme-dark) .emptySub { color: #8d96a5; }
-
 :global(body.theme-dark) .monthLabel { color: #6a7384; }
 
 :global(body.theme-dark) .workoutCard {
@@ -311,21 +642,49 @@
   border: 1.2px solid rgba(255,255,255,0.12);
   box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
 }
-
 :global(body.theme-dark) .workoutCard::after { opacity: 0.25; }
-
 :global(body.theme-dark) .workoutDay { color: #f7f9fc; }
 :global(body.theme-dark) .workoutDow { color: #4dd0e1; }
 :global(body.theme-dark) .workoutName { color: #f7f9fc; }
-
-:global(body.theme-dark) .metaChip {
-  color: #6a7384;
-  background: rgba(255,255,255,0.08);
-}
-
+:global(body.theme-dark) .metaChip { color: #6a7384; background: rgba(255,255,255,0.08); }
 :global(body.theme-dark) .workoutChev { color: #6a7384; }
 
-:global(body.theme-dark) .detailList { border-top-color: rgba(255,255,255,0.10); }
+:global(body.theme-dark) .menuTrigger { color: #6a7384; }
+:global(body.theme-dark) .menuTrigger:hover { background: rgba(255,255,255,0.08); color: #d4dae3; }
+
+:global(body.theme-dark) .menuDropdown {
+  background: rgba(20,26,36,0.96);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+}
+
+:global(body.theme-dark) .dialog {
+  background: rgba(18,24,34,0.97);
+  border-color: rgba(255,255,255,0.12);
+}
+:global(body.theme-dark) .dialogTitle { color: #f7f9fc; }
+:global(body.theme-dark) .dialogBody { color: #8d96a5; }
+:global(body.theme-dark) .dialogCancel { border-color: rgba(255,255,255,0.14); color: #d4dae3; }
+
+:global(body.theme-dark) .detailList { border-top-color: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .entryBlock { border-bottom-color: rgba(255,255,255,0.06); }
 :global(body.theme-dark) .detailEntryName { color: #d4dae3; }
 :global(body.theme-dark) .detailEntryMeta { color: #6a7384; }
 :global(body.theme-dark) .detailEntryDone { color: #7ec0a8; }
+
+:global(body.theme-dark) .setColNum,
+:global(body.theme-dark) .setCol { color: #6a7384; }
+:global(body.theme-dark) .setNumCell { color: #6a7384; }
+:global(body.theme-dark) .setValCell { color: #d4dae3; }
+:global(body.theme-dark) .setValUnit { color: #6a7384; }
+:global(body.theme-dark) .setRow:hover { background: rgba(255,255,255,0.04); }
+
+:global(body.theme-dark) .setInput {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  color: #f7f9fc;
+}
+:global(body.theme-dark) .setInput:focus {
+  border-color: rgba(93,155,184,0.55);
+  background: rgba(93,155,184,0.10);
+}
