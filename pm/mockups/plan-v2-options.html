@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Plan Page v2 Options</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1622;
+    --ink-2: #2c3548;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --paper: #f4f6fa;
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+    --font-d: "Inter Tight", system-ui, sans-serif;
+    --font-m: "Geist Mono", ui-monospace, monospace;
+  }
+
+  body {
+    font-family: var(--font-d);
+    background: #e8ecf2;
+    padding: 32px 16px 60px;
+  }
+
+  h2.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8893a8;
+    font-family: var(--font-m);
+    margin-bottom: 24px;
+    padding-left: 4px;
+  }
+
+  .layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* ── Phone frame ── */
+  .phone {
+    width: 390px;
+    flex-shrink: 0;
+    border-radius: 44px;
+    overflow: hidden;
+    background: #1a1f2e;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1.5px rgba(255,255,255,0.10);
+    position: relative;
+  }
+
+  .phone-screen {
+    background: #f4f6fa;
+    overflow: hidden;
+    height: 760px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .phone-screen::-webkit-scrollbar { display: none; }
+
+  .phone-label {
+    text-align: center;
+    font-family: var(--font-m);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: #5e6a82;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .phone-desc {
+    text-align: center;
+    font-size: 13px;
+    color: #8893a8;
+    line-height: 1.5;
+    max-width: 340px;
+    margin: 0 auto 36px;
+    padding: 0 8px;
+  }
+
+  /* ══════════════════════════════════════════
+     OPTION 1 — COMMAND CENTER
+  ══════════════════════════════════════════ */
+
+  /* Gradient bg */
+  .o1-bg {
+    background: linear-gradient(160deg, #e8eef6 0%, #eef0f7 50%, #f4f0f6 100%);
+    min-height: 100%;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  .o1-head {
+    padding: 52px 24px 12px;
+  }
+  .o1-sub {
+    font-family: var(--font-m);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #8893a8;
+    margin-bottom: 2px;
+  }
+  .o1-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f1622;
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+  }
+
+  /* Streak + XP hero card */
+  .o1-hero {
+    margin: 8px 16px 12px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+    border: 1.2px solid rgba(255,255,255,0.80);
+    border-radius: 20px;
+    padding: 16px 18px 14px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(93,155,184,0.14), 0 1px 4px rgba(15,22,34,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .o1-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(155deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 60%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  .o1-hero-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .o1-streak {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .o1-flame {
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(200,120,60,0.35));
+  }
+  .o1-streak-bd {
+    display: flex;
+    flex-direction: column;
+  }
+  .o1-streak-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f1622;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .o1-streak-label {
+    font-family: var(--font-m);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #8893a8;
+  }
+  .o1-weekly-score {
+    text-align: right;
+  }
+  .o1-score-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #4f9aa8;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .o1-score-label {
+    font-family: var(--font-m);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #8893a8;
+    display: block;
+  }
+
+  /* XP bar */
+  .o1-xp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .o1-xp-label {
+    font-family: var(--font-m);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8893a8;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .o1-xp-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(15,22,34,0.10);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .o1-xp-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #9e82c8 100%);
+    width: 68%;
+    transition: width 600ms cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .o1-xp-next {
+    font-family: var(--font-m);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #8893a8;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Week strip v2 — rings */
+  .o1-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    padding: 0 16px 12px;
+  }
+  .o1-wday {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0 6px;
+    border-radius: 14px;
+    border: 1.2px solid transparent;
+    background: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .o1-wday.today {
+    border-color: rgba(93,155,184,0.55);
+    background: rgba(93,155,184,0.10);
+  }
+  .o1-wday.active {
+    background: #0f1622;
+    border-color: #0f1622;
+  }
+  .o1-wday.done {
+    background: rgba(79,154,168,0.12);
+    border-color: rgba(79,154,168,0.38);
+  }
+  .o1-ring-wrap {
+    width: 32px;
+    height: 32px;
+    position: relative;
+  }
+  .o1-ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .o1-wday-letter {
+    font-family: var(--font-m);
+    font-size: 10px;
+    font-weight: 700;
+    color: #5e6a82;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(90deg);
+  }
+  .o1-wday.active .o1-wday-letter { color: #fff; }
+  .o1-wday.done .o1-wday-letter { color: #4f9aa8; }
+  .o1-wday-count {
+    font-family: var(--font-m);
+    font-size: 9px;
+    font-weight: 700;
+    color: #8893a8;
+    letter-spacing: 0.03em;
+  }
+  .o1-wday.active .o1-wday-count { color: rgba(255,255,255,0.6); }
+  .o1-wday.done .o1-wday-count { color: #4f9aa8; }
+
+  /* Day card v2 */
+  .o1-day-list { padding: 0 12px; }
+  .o1-day-card {
+    margin-bottom: 6px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.70);
+    border: 1.2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 2px 8px rgba(15,22,34,0.06);
+  }
+  .o1-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 14px;
+    cursor: pointer;
+    width: 100%;
+    background: none;
+    border: 0;
+    text-align: left;
+  }
+  .o1-day-left { display: flex; flex-direction: column; gap: 2px; }
+  .o1-day-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f1622;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .o1-today-badge {
+    font-family: var(--font-m);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #fff;
+    background: #5d9bb8;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .o1-day-meta {
+    font-family: var(--font-m);
+    font-size: 10px;
+    font-weight: 700;
+    color: #8893a8;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .o1-day-right { display: flex; align-items: center; gap: 10px; }
+  .o1-day-vol {
+    font-family: var(--font-m);
+    font-size: 10px;
+    font-weight: 700;
+    color: #8893a8;
+    letter-spacing: 0.04em;
+  }
+  .o1-day-check {
+    color: #4f9aa8;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .o1-day-chev {
+    font-size: 12px;
+    color: #8893a8;
+    transition: transform 200ms;
+  }
+  .o1-day-card.expanded .o1-day-chev { transform: rotate(180deg); }
+
+  /* Expanded body */
+  .o1-day-body { padding: 0 12px 12px; }
+  .o1-mv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: rgba(15,22,34,0.03);
+    border-radius: 10px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border: 1.2px solid transparent;
+    transition: background 150ms;
+  }
+  .o1-mv-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1622;
+  }
+  .o1-mv-meta {
+    font-family: var(--font-m);
+    font-size: 10px;
+    color: #8893a8;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  /* Progress arrow on movement */
+  .o1-mv-right { display: flex; align-items: center; gap: 8px; }
+  .o1-prog-up {
+    font-size: 10px;
+    font-weight: 800;
+    color: #4f9aa8;
+    font-family: var(--font-m);
+    background: rgba(79,154,168,0.12);
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .o1-prog-pr {
+    font-size: 10px;
+    font-weight: 800;
+    color: #9e82c8;
+    font-family: var(--font-m);
+    background: rgba(158,130,200,0.12);
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .o1-add-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1.2px dashed rgba(15,22,34,0.16);
+    cursor: pointer;
+    background: none;
+    width: 100%;
+    margin-top: 4px;
+    transition: background 150ms;
+  }
+  .o1-add-plus { font-size: 16px; color: #5d9bb8; line-height: 1; }
+  .o1-add-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5d9bb8;
+    font-family: var(--font-m);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* bottom nav */
+  .bnav {
+    position: sticky;
+    bottom: 0;
+    background: rgba(244,246,250,0.92);
+    backdrop-filter: blur(14px);
+    border-top: 1.2px solid rgba(15,22,34,0.08);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 6px 0 16px;
+  }
+  .bnav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .bnav-icon { font-size: 20px; color: #8893a8; }
+  .bnav-icon.active { color: #5d9bb8; }
+  .bnav-label {
+    font-family: var(--font-m);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8893a8;
+  }
+  .bnav-label.active { color: #5d9bb8; }
+
+  /* ══════════════════════════════════════════
+     OPTION 2 — TRAINING PASSPORT
+  ══════════════════════════════════════════ */
+
+  .o2-bg {
+    background: linear-gradient(160deg, #e8eef6 0%, #eef0f7 50%, #f4f0f6 100%);
+    min-height: 100%;
+    padding-bottom: 80px;
+  }
+
+  .o2-head { padding: 52px 24px 12px; }
+  .o2-sub {
+    font-family: var(--font-m);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 2px;
+  }
+  .o2-title {
+    font-size: 28px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.022em;
+    line-height: 1.1;
+  }
+
+  /* Week passport stamps */
+  .o2-passport {
+    margin: 8px 16px 14px;
+    background: rgba(255,255,255,0.72);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 18px;
+    padding: 14px 12px;
+    box-shadow: 0 2px 12px rgba(15,22,34,0.07);
+  }
+  .o2-passport-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .o2-passport-label {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8;
+  }
+  .o2-passport-streak {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .o2-streak-fire { font-size: 14px; }
+  .o2-streak-val {
+    font-family: var(--font-m);
+    font-size: 12px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.01em;
+  }
+  .o2-streak-unit {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* Stamp grid */
+  .o2-stamps {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .o2-stamp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    aspect-ratio: 0.85;
+    border-radius: 10px;
+    border: 1.5px solid rgba(15,22,34,0.11);
+    background: rgba(15,22,34,0.03);
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 150ms;
+  }
+  .o2-stamp.done {
+    background: rgba(79,154,168,0.15);
+    border-color: rgba(79,154,168,0.45);
+  }
+  .o2-stamp.today {
+    border-color: rgba(93,155,184,0.55);
+    background: rgba(93,155,184,0.10);
+  }
+  .o2-stamp.active {
+    background: #0f1622;
+    border-color: #0f1622;
+  }
+  .o2-stamp-emoji {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .o2-stamp-letter {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #5e6a82;
+    letter-spacing: 0.03em;
+  }
+  .o2-stamp.done .o2-stamp-letter { color: #4f9aa8; }
+  .o2-stamp.active .o2-stamp-letter { color: rgba(255,255,255,0.75); }
+  .o2-stamp-check {
+    position: absolute;
+    bottom: 2px; right: 3px;
+    font-size: 8px; color: #4f9aa8;
+    font-weight: 800;
+  }
+
+  /* XP + Level bar */
+  .o2-level-card {
+    margin: 0 16px 12px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.16) 0%, rgba(155,130,200,0.11) 55%, rgba(201,160,190,0.09) 100%);
+    border: 1.2px solid rgba(255,255,255,0.78);
+    border-radius: 16px;
+    padding: 13px 16px;
+    box-shadow: 0 3px 14px rgba(93,155,184,0.12);
+  }
+  .o2-level-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .o2-level-left { display: flex; align-items: center; gap: 10px; }
+  .o2-level-badge {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5d9bb8 0%, #9e82c8 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 3px 10px rgba(93,155,184,0.35);
+  }
+  .o2-level-bd { display: flex; flex-direction: column; gap: 1px; }
+  .o2-level-name {
+    font-size: 14px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .o2-level-sub {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #8893a8; letter-spacing: 1.1px;
+    text-transform: uppercase;
+  }
+  .o2-level-xp {
+    font-family: var(--font-m);
+    font-size: 12px; font-weight: 800;
+    color: #5d9bb8;
+  }
+
+  .o2-xp-bar-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .o2-xp-track {
+    flex: 1; height: 6px;
+    background: rgba(15,22,34,0.09);
+    border-radius: 999px; overflow: hidden;
+  }
+  .o2-xp-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #9e82c8 100%);
+    width: 68%;
+  }
+  .o2-xp-label {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #8893a8; white-space: nowrap;
+  }
+
+  /* Today focus */
+  .o2-today-head {
+    padding: 0 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .o2-today-label {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8;
+  }
+  .o2-today-day {
+    font-size: 13px; font-weight: 700;
+    color: #5d9bb8;
+  }
+
+  /* Today card */
+  .o2-today-card {
+    margin: 0 12px 10px;
+    background: rgba(255,255,255,0.75);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 3px 14px rgba(15,22,34,0.07);
+  }
+  .o2-today-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #9e82c8 100%);
+  }
+  .o2-today-body { padding: 12px 14px 14px; }
+  .o2-session-stat {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    background: rgba(15,22,34,0.04);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .o2-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 9px 0;
+    border-right: 1.2px solid rgba(15,22,34,0.07);
+  }
+  .o2-stat:last-child { border-right: 0; }
+  .o2-stat-val {
+    font-family: var(--font-m);
+    font-size: 14px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.01em;
+  }
+  .o2-stat-lbl {
+    font-family: var(--font-m);
+    font-size: 9px; font-weight: 700;
+    color: #8893a8; letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .o2-mv {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 10px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    background: rgba(15,22,34,0.03);
+    cursor: pointer;
+  }
+  .o2-mv-left { display: flex; flex-direction: column; gap: 2px; }
+  .o2-mv-name {
+    font-size: 13px; font-weight: 600;
+    color: #0f1622;
+  }
+  .o2-mv-sub {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em;
+  }
+  .o2-mv-right { display: flex; align-items: center; gap: 6px; }
+  .o2-chip-teal {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 800;
+    color: #4f9aa8;
+    background: rgba(79,154,168,0.12);
+    padding: 2px 6px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .o2-chip-purple {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 800;
+    color: #9e82c8;
+    background: rgba(158,130,200,0.12);
+    padding: 2px 6px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Other days — compact strip */
+  .o2-other-days {
+    padding: 0 12px;
+  }
+  .o2-day-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.60);
+    border: 1.2px solid rgba(255,255,255,0.82);
+    border-radius: 12px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background 150ms;
+  }
+  .o2-day-pill-left { display: flex; align-items: center; gap: 10px; }
+  .o2-day-dot {
+    width: 8px; height: 8px;
+    border-radius: 999px;
+    background: rgba(15,22,34,0.14);
+  }
+  .o2-day-dot.done { background: #4f9aa8; }
+  .o2-day-dot.rest { background: transparent; border: 1.5px solid rgba(15,22,34,0.18); }
+  .o2-day-pill-name {
+    font-size: 13px; font-weight: 700;
+    color: #0f1622;
+  }
+  .o2-day-pill-meta {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .o2-day-pill-right { display: flex; align-items: center; gap: 6px; }
+
+  /* ══════════════════════════════════════════
+     OPTION 3 — PERFORMANCE DASHBOARD
+  ══════════════════════════════════════════ */
+
+  .o3-bg {
+    background: linear-gradient(160deg, #e8eef6 0%, #eef0f7 50%, #f4f0f6 100%);
+    min-height: 100%;
+    padding-bottom: 80px;
+  }
+
+  .o3-head { padding: 52px 24px 12px; }
+  .o3-sub {
+    font-family: var(--font-m);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 2px;
+  }
+  .o3-title {
+    font-size: 28px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.022em;
+    line-height: 1.1;
+  }
+
+  /* Stats trio */
+  .o3-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin: 8px 16px 12px;
+  }
+  .o3-stat-card {
+    background: rgba(255,255,255,0.72);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(15,22,34,0.06);
+  }
+  .o3-stat-val {
+    font-size: 22px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.02em;
+    line-height: 1;
+    display: flex; align-items: baseline; justify-content: center; gap: 2px;
+  }
+  .o3-stat-unit {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em;
+  }
+  .o3-stat-lbl {
+    font-family: var(--font-m);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 1.1px; text-transform: uppercase;
+    color: #8893a8; margin-top: 3px;
+  }
+
+  /* Consistency heatmap */
+  .o3-heat {
+    margin: 0 16px 12px;
+    background: rgba(255,255,255,0.72);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 14px 14px;
+    box-shadow: 0 2px 8px rgba(15,22,34,0.06);
+  }
+  .o3-heat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .o3-heat-label {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8;
+  }
+  .o3-heat-streak {
+    display: flex; align-items: center; gap: 5px;
+    font-family: var(--font-m);
+    font-size: 11px; font-weight: 800;
+    color: #0f1622;
+  }
+  /* 8-week grid */
+  .o3-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+  }
+  .o3-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: rgba(15,22,34,0.06);
+  }
+  .o3-cell.l1 { background: rgba(79,154,168,0.20); }
+  .o3-cell.l2 { background: rgba(79,154,168,0.38); }
+  .o3-cell.l3 { background: rgba(79,154,168,0.60); }
+  .o3-cell.l4 { background: rgba(79,154,168,0.85); }
+  .o3-heat-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    justify-content: flex-end;
+  }
+  .o3-heat-legend span {
+    font-family: var(--font-m);
+    font-size: 9px; color: #8893a8;
+    font-weight: 700; letter-spacing: 0.03em;
+  }
+  .o3-leg-cell {
+    width: 9px; height: 9px;
+    border-radius: 2px;
+  }
+
+  /* Muscle balance */
+  .o3-balance {
+    margin: 0 16px 12px;
+    background: rgba(255,255,255,0.72);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 14px 14px;
+    box-shadow: 0 2px 8px rgba(15,22,34,0.06);
+  }
+  .o3-balance-head {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 12px;
+  }
+  .o3-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .o3-bar-label {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #5e6a82; letter-spacing: 0.04em;
+    width: 68px; flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .o3-bar-track {
+    flex: 1; height: 6px;
+    background: rgba(15,22,34,0.08);
+    border-radius: 999px; overflow: hidden;
+  }
+  .o3-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #7fa5c7 100%);
+  }
+  .o3-bar-val {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 800;
+    color: #5d9bb8; width: 24px;
+    text-align: right; flex-shrink: 0;
+  }
+
+  /* Level / rank card */
+  .o3-rank {
+    margin: 0 16px 12px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+    border: 1.2px solid rgba(255,255,255,0.80);
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 18px rgba(93,155,184,0.14);
+    position: relative;
+    overflow: hidden;
+  }
+  .o3-rank::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(155deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 60%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  .o3-rank-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .o3-rank-left { display: flex; align-items: center; gap: 12px; }
+  .o3-rank-badge {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #5d9bb8 0%, #9e82c8 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(93,155,184,0.40);
+  }
+  .o3-rank-bd {}
+  .o3-rank-name {
+    font-size: 16px; font-weight: 800;
+    color: #0f1622; letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .o3-rank-level {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #8893a8; letter-spacing: 1.2px;
+    text-transform: uppercase; margin-top: 2px;
+  }
+  .o3-rank-next {
+    text-align: right;
+  }
+  .o3-rank-pts {
+    font-family: var(--font-m);
+    font-size: 13px; font-weight: 800;
+    color: #5d9bb8;
+  }
+  .o3-rank-to {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.03em;
+    text-transform: uppercase; display: block;
+  }
+
+  .o3-xp-row { display: flex; align-items: center; gap: 8px; }
+  .o3-xp-lbl {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.03em;
+    text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+  }
+  .o3-xp-track {
+    flex: 1; height: 7px;
+    background: rgba(15,22,34,0.10);
+    border-radius: 999px; overflow: hidden;
+  }
+  .o3-xp-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #9e82c8 100%);
+    width: 68%;
+    position: relative;
+  }
+  .o3-xp-glow {
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 10px; height: 10px;
+    border-radius: 999px;
+    background: #9e82c8;
+    box-shadow: 0 0 8px 2px rgba(158,130,200,0.60);
+  }
+  .o3-xp-next {
+    font-family: var(--font-m);
+    font-size: 9.5px; font-weight: 700;
+    color: #5d9bb8; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* This week plan */
+  .o3-week-head {
+    padding: 0 16px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .o3-week-lbl {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8;
+  }
+  .o3-week-link {
+    font-size: 12px; font-weight: 600;
+    color: #5d9bb8;
+  }
+
+  .o3-day-list { padding: 0 12px; }
+  .o3-day-row {
+    display: flex; align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.70);
+    border: 1.2px solid rgba(255,255,255,0.85);
+    border-radius: 14px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background 150ms;
+    position: relative;
+    overflow: hidden;
+  }
+  .o3-day-row.today {
+    background: rgba(93,155,184,0.08);
+    border-color: rgba(93,155,184,0.38);
+  }
+  .o3-today-stripe {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #5d9bb8 0%, #9e82c8 100%);
+  }
+  .o3-day-letter {
+    font-family: var(--font-m);
+    font-size: 12px; font-weight: 800;
+    color: #2c3548; letter-spacing: 0.03em;
+    width: 20px; flex-shrink: 0;
+  }
+  .o3-day-row.today .o3-day-letter { color: #5d9bb8; }
+  .o3-day-row-body { flex: 1; min-width: 0; }
+  .o3-day-row-name {
+    font-size: 13px; font-weight: 700;
+    color: #0f1622; display: flex;
+    align-items: center; gap: 6px;
+  }
+  .o3-day-row-meta {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em;
+    text-transform: uppercase; margin-top: 1px;
+  }
+  .o3-day-row-right {
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .o3-vol-chip {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 800;
+    color: #5e6a82;
+    background: rgba(15,22,34,0.06);
+    padding: 3px 7px; border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+  .o3-done-chip {
+    font-family: var(--font-m);
+    font-size: 10px; font-weight: 800;
+    color: #4f9aa8;
+    background: rgba(79,154,168,0.12);
+    padding: 3px 7px; border-radius: 6px;
+  }
+  .o3-today-chip {
+    font-family: var(--font-m);
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: #fff; background: #5d9bb8;
+    padding: 2px 7px; border-radius: 4px;
+  }
+
+  /* shared bottom nav */
+  .bnav2 {
+    position: sticky;
+    bottom: 0;
+    background: rgba(244,246,250,0.94);
+    backdrop-filter: blur(14px);
+    border-top: 1.2px solid rgba(15,22,34,0.08);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 6px 0 18px;
+  }
+  .bnav2-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .bnav2-icon { font-size: 20px; color: #8893a8; }
+  .bnav2-icon.a { color: #5d9bb8; }
+  .bnav2-lbl {
+    font-family: var(--font-m);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: #8893a8;
+  }
+  .bnav2-lbl.a { color: #5d9bb8; }
+
+  /* comparison label area */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 390px);
+    gap: 24px;
+    justify-content: center;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1260px) {
+    .compare-grid {
+      grid-template-columns: 390px;
+    }
+  }
+
+  .top-intro {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 40px;
+  }
+  .top-intro h1 {
+    font-family: var(--font-m);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 8px;
+  }
+  .top-intro p {
+    font-size: 13px; color: #5e6a82;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-intro">
+  <h1>INCYTE — Plan Page v2 — 3 Options</h1>
+  <p>Each option is functional + gamified. All share: streak counter, XP/level bar, progression indicators on movements, weekly completion state.</p>
+</div>
+
+<div class="compare-grid">
+
+  <!-- ════════════════════════════════════
+       OPTION 1 — COMMAND CENTER
+  ════════════════════════════════════ -->
+  <div>
+    <div class="phone-label">Option 1 — Command Center</div>
+    <div class="phone-desc">Day-ring week strip + streak/XP hero card. Expanded today card shows progression badges (↑ PR ↑) per movement. Clean collapsible cards for other days.</div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="o1-bg">
+
+          <!-- Header -->
+          <div class="o1-head">
+            <div class="o1-sub">Weekly</div>
+            <div class="o1-title">Plan</div>
+          </div>
+
+          <!-- Streak + XP hero -->
+          <div class="o1-hero">
+            <div class="o1-hero-row">
+              <div class="o1-streak">
+                <div class="o1-flame">🔥</div>
+                <div class="o1-streak-bd">
+                  <span class="o1-streak-num">14</span>
+                  <span class="o1-streak-label">Day streak</span>
+                </div>
+              </div>
+              <div class="o1-weekly-score">
+                <div class="o1-score-num">4/5</div>
+                <span class="o1-score-label">This week</span>
+              </div>
+            </div>
+            <div class="o1-xp-row">
+              <span class="o1-xp-label">LVL 8</span>
+              <div class="o1-xp-track"><div class="o1-xp-fill"></div></div>
+              <span class="o1-xp-next">340 XP to 9</span>
+            </div>
+          </div>
+
+          <!-- Week strip with rings -->
+          <div class="o1-week">
+
+            <!-- Sun — done -->
+            <button class="o1-wday done">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+                  <circle cx="16" cy="16" r="13" stroke="#4f9aa8" stroke-width="2.5" stroke-dasharray="81.68" stroke-dashoffset="0" stroke-linecap="round"/>
+                </svg>
+                <span class="o1-wday-letter">S</span>
+              </div>
+              <span class="o1-wday-count">✓</span>
+            </button>
+
+            <!-- Mon — done -->
+            <button class="o1-wday done">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+                  <circle cx="16" cy="16" r="13" stroke="#4f9aa8" stroke-width="2.5" stroke-dasharray="81.68" stroke-dashoffset="0" stroke-linecap="round"/>
+                </svg>
+                <span class="o1-wday-letter">M</span>
+              </div>
+              <span class="o1-wday-count">✓</span>
+            </button>
+
+            <!-- Tue — rest -->
+            <button class="o1-wday">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(15,22,34,0.09)" stroke-width="2.5" stroke-dasharray="4 4"/>
+                </svg>
+                <span class="o1-wday-letter">T</span>
+              </div>
+              <span class="o1-wday-count">—</span>
+            </button>
+
+            <!-- Wed — today, active -->
+            <button class="o1-wday active">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/>
+                  <circle cx="16" cy="16" r="13" stroke="rgba(255,255,255,0.55)" stroke-width="2.5" stroke-dasharray="81.68" stroke-dashoffset="20.42" stroke-linecap="round"/>
+                </svg>
+                <span class="o1-wday-letter">W</span>
+              </div>
+              <span class="o1-wday-count">3/4</span>
+            </button>
+
+            <!-- Thu — partial done -->
+            <button class="o1-wday done">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+                  <circle cx="16" cy="16" r="13" stroke="#4f9aa8" stroke-width="2.5" stroke-dasharray="81.68" stroke-dashoffset="0" stroke-linecap="round"/>
+                </svg>
+                <span class="o1-wday-letter">T</span>
+              </div>
+              <span class="o1-wday-count">✓</span>
+            </button>
+
+            <!-- Fri — planned -->
+            <button class="o1-wday">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(15,22,34,0.09)" stroke-width="2.5"/>
+                </svg>
+                <span class="o1-wday-letter">F</span>
+              </div>
+              <span class="o1-wday-count">5</span>
+            </button>
+
+            <!-- Sat — rest -->
+            <button class="o1-wday">
+              <div class="o1-ring-wrap">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="rgba(15,22,34,0.09)" stroke-width="2.5" stroke-dasharray="4 4"/>
+                </svg>
+                <span class="o1-wday-letter">S</span>
+              </div>
+              <span class="o1-wday-count">—</span>
+            </button>
+
+          </div>
+
+          <!-- Day cards -->
+          <div class="o1-day-list">
+
+            <!-- Today — Wednesday expanded -->
+            <div class="o1-day-card expanded">
+              <button class="o1-day-head">
+                <div class="o1-day-left">
+                  <span class="o1-day-name">Wednesday <span class="o1-today-badge">TODAY</span></span>
+                  <span class="o1-day-meta">4 movements · ~52 min</span>
+                </div>
+                <div class="o1-day-right">
+                  <span class="o1-day-vol">18 sets</span>
+                  <span class="o1-day-chev">▲</span>
+                </div>
+              </button>
+              <div class="o1-day-body">
+                <div class="o1-mv-row">
+                  <div>
+                    <div class="o1-mv-name">Bench Press</div>
+                    <div class="o1-mv-meta">4 sets · 6–8 reps · Barbell</div>
+                  </div>
+                  <div class="o1-mv-right">
+                    <span class="o1-prog-pr">PR ★</span>
+                    <span style="font-size:12px;color:#8893a8;">›</span>
+                  </div>
+                </div>
+                <div class="o1-mv-row">
+                  <div>
+                    <div class="o1-mv-name">Incline DB Press</div>
+                    <div class="o1-mv-meta">3 sets · 8–10 reps · Dumbbell</div>
+                  </div>
+                  <div class="o1-mv-right">
+                    <span class="o1-prog-up">↑ +5 lbs</span>
+                    <span style="font-size:12px;color:#8893a8;">›</span>
+                  </div>
+                </div>
+                <div class="o1-mv-row">
+                  <div>
+                    <div class="o1-mv-name">Cable Fly</div>
+                    <div class="o1-mv-meta">3 sets · 12–15 reps · Cable</div>
+                  </div>
+                  <div class="o1-mv-right">
+                    <span style="font-size:12px;color:#8893a8;">›</span>
+                  </div>
+                </div>
+                <div class="o1-mv-row">
+                  <div>
+                    <div class="o1-mv-name">Tricep Pushdown</div>
+                    <div class="o1-mv-meta">3 sets · 10–12 reps · Cable</div>
+                  </div>
+                  <div class="o1-mv-right">
+                    <span class="o1-prog-up">↑ +2.5 lbs</span>
+                    <span style="font-size:12px;color:#8893a8;">›</span>
+                  </div>
+                </div>
+                <button class="o1-add-row">
+                  <span class="o1-add-plus">+</span>
+                  <span class="o1-add-label">Add movement</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Thursday collapsed (done) -->
+            <div class="o1-day-card">
+              <button class="o1-day-head">
+                <div class="o1-day-left">
+                  <span class="o1-day-name">Thursday</span>
+                  <span class="o1-day-meta">5 movements · ~58 min</span>
+                </div>
+                <div class="o1-day-right">
+                  <span class="o1-day-check">✓</span>
+                  <span class="o1-day-chev">▼</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Friday -->
+            <div class="o1-day-card">
+              <button class="o1-day-head">
+                <div class="o1-day-left">
+                  <span class="o1-day-name">Friday</span>
+                  <span class="o1-day-meta">5 movements · ~60 min</span>
+                </div>
+                <div class="o1-day-right">
+                  <span class="o1-day-vol">20 sets</span>
+                  <span class="o1-day-chev">▼</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Saturday — rest -->
+            <div class="o1-day-card">
+              <button class="o1-day-head">
+                <div class="o1-day-left">
+                  <span class="o1-day-name">Saturday</span>
+                  <span class="o1-day-meta">Rest</span>
+                </div>
+                <div class="o1-day-right">
+                  <span class="o1-day-chev">▼</span>
+                </div>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bnav">
+          <div class="bnav-item"><div class="bnav-icon">🏠</div><div class="bnav-label">Today</div></div>
+          <div class="bnav-item"><div class="bnav-icon a" style="color:#5d9bb8">📋</div><div class="bnav-label active">Plan</div></div>
+          <div class="bnav-item"><div class="bnav-icon">📈</div><div class="bnav-label">Momentum</div></div>
+          <div class="bnav-item"><div class="bnav-icon">⋯</div><div class="bnav-label">More</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       OPTION 2 — TRAINING PASSPORT
+  ════════════════════════════════════ -->
+  <div>
+    <div class="phone-label">Option 2 — Training Passport</div>
+    <div class="phone-desc">Stamp-style week grid fills as you complete days. Today expanded with session stats panel. Level/badge card. Other days as compact tappable pills.</div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="o2-bg">
+
+          <div class="o2-head">
+            <div class="o2-sub">Weekly</div>
+            <div class="o2-title">Plan</div>
+          </div>
+
+          <!-- Passport stamps -->
+          <div class="o2-passport">
+            <div class="o2-passport-head">
+              <span class="o2-passport-label">This week</span>
+              <div class="o2-passport-streak">
+                <span class="o2-streak-fire">🔥</span>
+                <span class="o2-streak-val">14</span>
+                <span class="o2-streak-unit">-day streak</span>
+              </div>
+            </div>
+            <div class="o2-stamps">
+              <!-- Sun done -->
+              <div class="o2-stamp done">
+                <span class="o2-stamp-emoji">💪</span>
+                <span class="o2-stamp-letter">SUN</span>
+                <span class="o2-stamp-check">✓</span>
+              </div>
+              <!-- Mon done -->
+              <div class="o2-stamp done">
+                <span class="o2-stamp-emoji">💪</span>
+                <span class="o2-stamp-letter">MON</span>
+                <span class="o2-stamp-check">✓</span>
+              </div>
+              <!-- Tue rest -->
+              <div class="o2-stamp">
+                <span class="o2-stamp-emoji">😴</span>
+                <span class="o2-stamp-letter">TUE</span>
+              </div>
+              <!-- Wed — today active -->
+              <div class="o2-stamp active">
+                <span class="o2-stamp-emoji" style="filter:brightness(1.5)">⚡</span>
+                <span class="o2-stamp-letter">WED</span>
+              </div>
+              <!-- Thu done -->
+              <div class="o2-stamp done">
+                <span class="o2-stamp-emoji">💪</span>
+                <span class="o2-stamp-letter">THU</span>
+                <span class="o2-stamp-check">✓</span>
+              </div>
+              <!-- Fri planned -->
+              <div class="o2-stamp today">
+                <span class="o2-stamp-emoji">📋</span>
+                <span class="o2-stamp-letter">FRI</span>
+              </div>
+              <!-- Sat rest -->
+              <div class="o2-stamp">
+                <span class="o2-stamp-emoji">😴</span>
+                <span class="o2-stamp-letter">SAT</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Level card -->
+          <div class="o2-level-card">
+            <div class="o2-level-row">
+              <div class="o2-level-left">
+                <div class="o2-level-badge">🏋️</div>
+                <div class="o2-level-bd">
+                  <div class="o2-level-name">Iron Athlete</div>
+                  <div class="o2-level-sub">Level 8 · 1,240 XP</div>
+                </div>
+              </div>
+              <div class="o2-level-xp">+340 XP to Lv9</div>
+            </div>
+            <div class="o2-xp-bar-wrap">
+              <span class="o2-xp-label">LV8</span>
+              <div class="o2-xp-track"><div class="o2-xp-fill"></div></div>
+              <span class="o2-xp-label">LV9</span>
+            </div>
+          </div>
+
+          <!-- Today focus -->
+          <div class="o2-today-head">
+            <span class="o2-today-label">Today</span>
+            <span class="o2-today-day">Wednesday · May 14</span>
+          </div>
+
+          <div class="o2-today-card">
+            <div class="o2-today-bar"></div>
+            <div class="o2-today-body">
+              <div class="o2-session-stat">
+                <div class="o2-stat">
+                  <span class="o2-stat-val">4</span>
+                  <span class="o2-stat-lbl">Moves</span>
+                </div>
+                <div class="o2-stat">
+                  <span class="o2-stat-val">18</span>
+                  <span class="o2-stat-lbl">Sets</span>
+                </div>
+                <div class="o2-stat">
+                  <span class="o2-stat-val">~52</span>
+                  <span class="o2-stat-lbl">Min</span>
+                </div>
+              </div>
+
+              <div class="o2-mv">
+                <div class="o2-mv-left">
+                  <span class="o2-mv-name">Bench Press</span>
+                  <span class="o2-mv-sub">4 sets · 6–8 reps · Barbell</span>
+                </div>
+                <div class="o2-mv-right">
+                  <span class="o2-chip-purple">★ PR</span>
+                  <span style="font-size:12px;color:#8893a8;">›</span>
+                </div>
+              </div>
+
+              <div class="o2-mv">
+                <div class="o2-mv-left">
+                  <span class="o2-mv-name">Incline DB Press</span>
+                  <span class="o2-mv-sub">3 sets · 8–10 reps · Dumbbell</span>
+                </div>
+                <div class="o2-mv-right">
+                  <span class="o2-chip-teal">↑ +5 lbs</span>
+                  <span style="font-size:12px;color:#8893a8;">›</span>
+                </div>
+              </div>
+
+              <div class="o2-mv">
+                <div class="o2-mv-left">
+                  <span class="o2-mv-name">Cable Fly</span>
+                  <span class="o2-mv-sub">3 sets · 12–15 reps</span>
+                </div>
+                <div class="o2-mv-right">
+                  <span style="font-size:12px;color:#8893a8;">›</span>
+                </div>
+              </div>
+
+              <div class="o2-mv">
+                <div class="o2-mv-left">
+                  <span class="o2-mv-name">Tricep Pushdown</span>
+                  <span class="o2-mv-sub">3 sets · 10–12 reps</span>
+                </div>
+                <div class="o2-mv-right">
+                  <span class="o2-chip-teal">↑ +2.5 lbs</span>
+                  <span style="font-size:12px;color:#8893a8;">›</span>
+                </div>
+              </div>
+
+              <button class="o1-add-row" style="margin-top:6px">
+                <span class="o1-add-plus">+</span>
+                <span class="o1-add-label">Add movement</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Other days — compact pills -->
+          <div class="o2-other-days" style="margin-top:6px">
+            <div class="o2-today-head" style="padding-bottom:8px">
+              <span class="o2-today-label">Rest of week</span>
+            </div>
+
+            <div class="o2-day-pill">
+              <div class="o2-day-pill-left">
+                <div class="o2-day-dot done"></div>
+                <div>
+                  <div class="o2-day-pill-name">Thursday <span style="font-size:10px;color:#4f9aa8;font-weight:800;">✓ Done</span></div>
+                  <div class="o2-day-pill-meta">Back · 5 moves · 58 min</div>
+                </div>
+              </div>
+              <span style="font-size:12px;color:#8893a8;">›</span>
+            </div>
+
+            <div class="o2-day-pill">
+              <div class="o2-day-pill-left">
+                <div class="o2-day-dot"></div>
+                <div>
+                  <div class="o2-day-pill-name">Friday</div>
+                  <div class="o2-day-pill-meta">Legs · 5 moves · 60 min</div>
+                </div>
+              </div>
+              <span style="font-size:12px;color:#8893a8;">›</span>
+            </div>
+
+            <div class="o2-day-pill">
+              <div class="o2-day-pill-left">
+                <div class="o2-day-dot rest"></div>
+                <div>
+                  <div class="o2-day-pill-name">Saturday</div>
+                  <div class="o2-day-pill-meta">Rest</div>
+                </div>
+              </div>
+              <span style="font-size:12px;color:#8893a8;">›</span>
+            </div>
+          </div>
+
+        </div>
+        <div class="bnav2">
+          <div class="bnav2-item"><div class="bnav2-icon">🏠</div><div class="bnav2-lbl">Today</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon a">📋</div><div class="bnav2-lbl a">Plan</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon">📈</div><div class="bnav2-lbl">Momentum</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon">⋯</div><div class="bnav2-lbl">More</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       OPTION 3 — PERFORMANCE DASHBOARD
+  ════════════════════════════════════ -->
+  <div>
+    <div class="phone-label">Option 3 — Performance Dashboard</div>
+    <div class="phone-desc">8-week consistency heatmap, muscle frequency balance bars, rank badge + glowing XP bar, then a compact scrollable day list — most data-dense of the three.</div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="o3-bg">
+
+          <div class="o3-head">
+            <div class="o3-sub">Weekly</div>
+            <div class="o3-title">Plan</div>
+          </div>
+
+          <!-- Stats trio -->
+          <div class="o3-trio">
+            <div class="o3-stat-card">
+              <div class="o3-stat-val">14<span class="o3-stat-unit">d</span></div>
+              <div class="o3-stat-lbl">🔥 Streak</div>
+            </div>
+            <div class="o3-stat-card">
+              <div class="o3-stat-val">4/5</div>
+              <div class="o3-stat-lbl">This week</div>
+            </div>
+            <div class="o3-stat-card">
+              <div class="o3-stat-val" style="color:#5d9bb8">87<span class="o3-stat-unit">%</span></div>
+              <div class="o3-stat-lbl">Adherence</div>
+            </div>
+          </div>
+
+          <!-- Heatmap -->
+          <div class="o3-heat">
+            <div class="o3-heat-head">
+              <span class="o3-heat-label">8-week consistency</span>
+              <div class="o3-heat-streak">🔥 14-day streak</div>
+            </div>
+            <div class="o3-grid">
+              <!-- Row 1 (oldest week) -->
+              <div class="o3-cell l2"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell l1"></div>
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l2"></div>
+              <!-- Row 2 -->
+              <div class="o3-cell l2"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l1"></div>
+              <div class="o3-cell l2"></div>
+              <!-- Row 3 -->
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell l2"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l2"></div>
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell l1"></div>
+              <!-- Row 4 -->
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l3"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l2"></div>
+              <div class="o3-cell l4"></div>
+              <!-- Row 5 (recent) -->
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell l4"></div>
+              <div class="o3-cell"></div>
+              <div class="o3-cell"></div>
+              <!-- Days of week labels would go here -->
+            </div>
+            <div class="o3-heat-legend">
+              <span>Less</span>
+              <div class="o3-leg-cell" style="background:rgba(79,154,168,0.12)"></div>
+              <div class="o3-leg-cell" style="background:rgba(79,154,168,0.30)"></div>
+              <div class="o3-leg-cell" style="background:rgba(79,154,168,0.55)"></div>
+              <div class="o3-leg-cell" style="background:rgba(79,154,168,0.85)"></div>
+              <span>More</span>
+            </div>
+          </div>
+
+          <!-- Muscle balance -->
+          <div class="o3-balance">
+            <div class="o3-balance-head">Muscle frequency — this week</div>
+            <div class="o3-bar-row">
+              <span class="o3-bar-label">Chest</span>
+              <div class="o3-bar-track"><div class="o3-bar-fill" style="width:90%"></div></div>
+              <span class="o3-bar-val">4×</span>
+            </div>
+            <div class="o3-bar-row">
+              <span class="o3-bar-label">Back</span>
+              <div class="o3-bar-track"><div class="o3-bar-fill" style="width:80%"></div></div>
+              <span class="o3-bar-val">3×</span>
+            </div>
+            <div class="o3-bar-row">
+              <span class="o3-bar-label">Shoulders</span>
+              <div class="o3-bar-track"><div class="o3-bar-fill" style="width:50%"></div></div>
+              <span class="o3-bar-val">2×</span>
+            </div>
+            <div class="o3-bar-row">
+              <span class="o3-bar-label">Legs</span>
+              <div class="o3-bar-track"><div class="o3-bar-fill" style="width:70%"></div></div>
+              <span class="o3-bar-val">3×</span>
+            </div>
+          </div>
+
+          <!-- Rank + XP -->
+          <div class="o3-rank">
+            <div class="o3-rank-row">
+              <div class="o3-rank-left">
+                <div class="o3-rank-badge">🏋️</div>
+                <div class="o3-rank-bd">
+                  <div class="o3-rank-name">Iron Athlete</div>
+                  <div class="o3-rank-level">Level 8 · 1,240 XP earned</div>
+                </div>
+              </div>
+              <div class="o3-rank-next">
+                <div class="o3-rank-pts">+340 XP</div>
+                <span class="o3-rank-to">to Level 9</span>
+              </div>
+            </div>
+            <div class="o3-xp-row">
+              <span class="o3-xp-lbl">LV 8</span>
+              <div class="o3-xp-track">
+                <div class="o3-xp-fill">
+                  <div class="o3-xp-glow"></div>
+                </div>
+              </div>
+              <span class="o3-xp-next">LV 9</span>
+            </div>
+          </div>
+
+          <!-- Week day list -->
+          <div class="o3-week-head">
+            <span class="o3-week-lbl">This week</span>
+          </div>
+          <div class="o3-day-list">
+
+            <!-- Mon done -->
+            <div class="o3-day-row">
+              <span class="o3-day-letter">M</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name">Monday</div>
+                <div class="o3-day-row-meta">Chest · 4 moves · 52 min</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-done-chip">✓ Done</span>
+              </div>
+            </div>
+
+            <!-- Tue rest -->
+            <div class="o3-day-row">
+              <span class="o3-day-letter" style="color:#8893a8">T</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name" style="color:#8893a8">Tuesday</div>
+                <div class="o3-day-row-meta">Rest</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-vol-chip">Rest</span>
+              </div>
+            </div>
+
+            <!-- Wed TODAY -->
+            <div class="o3-day-row today">
+              <div class="o3-today-stripe"></div>
+              <span class="o3-day-letter" style="padding-left:8px">W</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name">Wednesday <span class="o3-today-chip">Today</span></div>
+                <div class="o3-day-row-meta">Chest + Tri · 4 moves · 52 min</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-vol-chip">18 sets</span>
+              </div>
+            </div>
+
+            <!-- Thu done -->
+            <div class="o3-day-row">
+              <span class="o3-day-letter">T</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name">Thursday</div>
+                <div class="o3-day-row-meta">Back · 5 moves · 58 min</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-done-chip">✓ Done</span>
+              </div>
+            </div>
+
+            <!-- Fri planned -->
+            <div class="o3-day-row">
+              <span class="o3-day-letter">F</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name">Friday</div>
+                <div class="o3-day-row-meta">Legs · 5 moves · 60 min</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-vol-chip">20 sets</span>
+              </div>
+            </div>
+
+            <!-- Sat rest -->
+            <div class="o3-day-row">
+              <span class="o3-day-letter" style="color:#8893a8">S</span>
+              <div class="o3-day-row-body">
+                <div class="o3-day-row-name" style="color:#8893a8">Saturday</div>
+                <div class="o3-day-row-meta">Rest</div>
+              </div>
+              <div class="o3-day-row-right">
+                <span class="o3-vol-chip">Rest</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        <div class="bnav2">
+          <div class="bnav2-item"><div class="bnav2-icon">🏠</div><div class="bnav2-lbl">Today</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon a">📋</div><div class="bnav2-lbl a">Plan</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon">📈</div><div class="bnav2-lbl">Momentum</div></div>
+          <div class="bnav2-item"><div class="bnav2-icon">⋯</div><div class="bnav2-lbl">More</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
