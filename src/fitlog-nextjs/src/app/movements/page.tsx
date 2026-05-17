@@ -173,7 +173,7 @@ export default function MovementsPage() {
       await deletePlan(existing.id);
     } else {
       const newPlan: PlanItem = {
-        id: `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${dow}`,
+        id: crypto.randomUUID(),
         mid: mv.id, dow, sets: 3, reps: "", notes: "",
       };
       setPlans((prev) => [...prev, newPlan]);

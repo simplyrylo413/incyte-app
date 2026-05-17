@@ -180,9 +180,9 @@ export default function PlanPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleAddMovement = useCallback(async (mv: Movement, dow: number) => {
-    const id = `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const newPlan: PlanItem = {
-      id, mid: mv.id, dow, sets: 3, reps: "", rpe: "", notes: "",
+      id: crypto.randomUUID(),
+      mid: mv.id, dow, sets: 3, reps: "", rpe: "", notes: "",
       order: plans.filter((p) => p.dow === dow).length,
     };
     setPlans((prev) => [...prev, newPlan]);
@@ -252,10 +252,10 @@ export default function PlanPage() {
 
       {addSheet && (
         <MovementPickerSheet
-          title={`Add to ${DOW_NAMES[addSheet.dow]}`}
+          title="Add to plan"
           movements={movements}
-          excludeMids={new Set(plans.filter((p) => p.dow === addSheet.dow).map((p) => p.mid))}
-          onAdd={(mv) => handleAddMovement(mv, addSheet.dow)}
+          onAddToPlan={(mv, dow) => handleAddMovement(mv, dow)}
+          defaultDow={addSheet.dow}
           onClose={() => setAddSheet(null)}
           onFavoriteToggled={(id, next) =>
             setMovements((prev) => prev.map((m) => m.id === id ? { ...m, favorite: next } : m))

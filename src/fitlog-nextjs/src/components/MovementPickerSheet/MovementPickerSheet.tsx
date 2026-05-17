@@ -3,6 +3,8 @@
 // Shared movement-picker bottom sheet.
 // Used on Today (add to session) and Plan (add to day).
 // Features: search, body-part groups, Favorites tab, heart toggle.
+// Plan mode: when onAddToPlan is provided, tapping "+ Add" opens an inline
+// day-picker step before confirming. defaultDow pre-selects the day.
 
 import { useEffect, useRef, useState } from "react";
 import { toggleMovementFavorite } from "@/lib/db";
@@ -15,6 +17,9 @@ const BODY_PART_ORDER = [
   "Glutes", "Calves", "Cardio", "Other",
 ];
 
+const DOW_SHORT  = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const DOW_FULL   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 type Filter = "all" | "favorites";
 
 interface Props {
@@ -22,7 +27,12 @@ interface Props {
   movements: Movement[];
   /** Movement IDs already in the session / day — hidden from the list */
   excludeMids?: Set<string>;
-  onAdd: (mv: Movement) => void;
+  /** Session-add callback (Today page). When provided, rows show "+ Add" that calls this directly. */
+  onAdd?: (mv: Movement) => void;
+  /** Plan-add callback (Plan page). When provided, tapping "+ Add" opens the day-picker step. */
+  onAddToPlan?: (mv: Movement, dow: number) => void;
+  /** Pre-selects a day in the day-picker step (0=Sun…6=Sat). Defaults to today. */
+  defaultDow?: number;
   onClose: () => void;
   /** Called after a favorite is toggled so the parent can update its movements state */
   onFavoriteToggled?: (id: string, next: boolean) => void;
@@ -33,6 +43,8 @@ export default function MovementPickerSheet({
   movements,
   excludeMids,
   onAdd,
+  onAddToPlan,
+  defaultDow,
   onClose,
   onFavoriteToggled,
 }: Props) {
@@ -40,29 +52,49 @@ export default function MovementPickerSheet({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
+  // Day-picker step state (plan mode only)
+  const [pendingMv, setPendingMv] = useState<Movement | null>(null);
+  const [pendingDow, setPendingDow] = useState<number>(
+    defaultDow ?? new Date().getDay()
+  );
+
   // Local copy so we can optimistically toggle favorites without refetching
   const [localMovements, setLocalMovements] = useState<Movement[]>(movements);
 
-  // Sync when parent list changes (e.g. parent re-fetches after a toggle on another screen)
+  // Sync when parent list changes
   useEffect(() => { setLocalMovements(movements); }, [movements]);
 
-  // Auto-focus search
+  // Auto-focus search (only when not in day-picker step)
   useEffect(() => {
+    if (pendingMv) return;
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
-  }, []);
+  }, [pendingMv]);
 
   async function handleToggleFavorite(e: React.MouseEvent, mv: Movement) {
     e.stopPropagation();
     const next = !mv.favorite;
-    // Optimistic update — immediate UI response
     setLocalMovements((prev) =>
       prev.map((m) => m.id === mv.id ? { ...m, favorite: next } : m)
     );
     await toggleMovementFavorite(mv.id, next);
-    // Notify parent so its movements state stays in sync — prevents stale
-    // favorites when the picker is closed and reopened without a page refresh
     onFavoriteToggled?.(mv.id, next);
+  }
+
+  function handlePick(mv: Movement) {
+    if (onAddToPlan) {
+      // Plan mode: show day-picker step
+      setPendingMv(mv);
+      setPendingDow(defaultDow ?? new Date().getDay());
+    } else {
+      onAdd?.(mv);
+    }
+  }
+
+  function handleConfirmDay() {
+    if (!pendingMv) return;
+    onAddToPlan!(pendingMv, pendingDow);
+    setPendingMv(null);
   }
 
   // Apply exclude + filter + search
@@ -90,7 +122,6 @@ export default function MovementPickerSheet({
     for (const [label, items] of map) grouped.push({ label, items });
   }
 
-  // Count all favorites regardless of excludeMids — the badge shows how many exist total
   const favCount = localMovements.filter((m) => m.favorite).length;
 
   return (
@@ -101,78 +132,116 @@ export default function MovementPickerSheet({
 
         {/* Header */}
         <div className={s.head}>
-          <span className={s.headTitle}>{title}</span>
-          <button type="button" className={s.closeBtn} onClick={onClose} aria-label="Close">✕</button>
-        </div>
-
-        {/* Filter tabs */}
-        <div className={s.tabs}>
-          <button
-            className={`${s.tab} ${filter === "all" ? s.tabActive : ""}`}
-            onClick={() => setFilter("all")}
-          >
-            All
-          </button>
-          <button
-            className={`${s.tab} ${filter === "favorites" ? s.tabActive : ""}`}
-            onClick={() => setFilter("favorites")}
-          >
-            ♥ Favorites
-            {favCount > 0 && <span className={s.tabBadge}>{favCount}</span>}
+          <span className={s.headTitle}>
+            {pendingMv ? pendingMv.name : title}
+          </span>
+          <button type="button" className={s.closeBtn}
+            onClick={pendingMv ? () => setPendingMv(null) : onClose}
+            aria-label={pendingMv ? "Back" : "Close"}>
+            {pendingMv ? "‹" : "✕"}
           </button>
         </div>
 
-        {/* Search */}
-        <div className={s.searchWrap}>
-          <input
-            ref={inputRef}
-            type="search"
-            className={s.searchInput}
-            placeholder="Search movements…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-
-        {/* List */}
-        <div className={s.list}>
-          {query.trim() ? (
-            pool.length === 0 ? (
-              <div className={s.empty}>
-                {filter === "favorites" ? "No favorites match." : "No movements match."}
-              </div>
-            ) : (
-              pool.map((mv) => (
-                <PickerRow
-                  key={mv.id}
-                  mv={mv}
-                  onPick={() => onAdd(mv)}
-                  onToggleFav={(e) => handleToggleFavorite(e, mv)}
-                />
-              ))
-            )
-          ) : grouped.length === 0 ? (
-            <div className={s.empty}>
-              {filter === "favorites"
-                ? "No favorites yet. Tap ♥ on any movement to save it."
-                : "No movements available."}
+        {pendingMv ? (
+          /* ── Day-picker step ── */
+          <div className={s.dayPickStep}>
+            <div className={s.dayPickLabel}>Which day?</div>
+            <div className={s.dayPickRow}>
+              {DOW_SHORT.map((label, dow) => (
+                <button
+                  key={dow}
+                  type="button"
+                  className={`${s.dayPickPill} ${pendingDow === dow ? s.dayPickPillOn : ""}`}
+                  onClick={() => setPendingDow(dow)}
+                  title={DOW_FULL[dow]}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-          ) : (
-            grouped.map(({ label, items }) => (
-              <div key={label}>
-                <div className={s.groupLabel}>{label}</div>
-                {items.map((mv) => (
-                  <PickerRow
-                    key={mv.id}
-                    mv={mv}
-                    onPick={() => onAdd(mv)}
-                    onToggleFav={(e) => handleToggleFavorite(e, mv)}
-                  />
-                ))}
-              </div>
-            ))
-          )}
-        </div>
+            <div className={s.dayPickConfirmRow}>
+              <button type="button" className={s.dayPickCancel}
+                onClick={() => setPendingMv(null)}>
+                Back
+              </button>
+              <button type="button" className={s.dayPickConfirm}
+                onClick={handleConfirmDay}>
+                Add to {DOW_FULL[pendingDow]}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Filter tabs */}
+            <div className={s.tabs}>
+              <button
+                className={`${s.tab} ${filter === "all" ? s.tabActive : ""}`}
+                onClick={() => setFilter("all")}
+              >
+                All
+              </button>
+              <button
+                className={`${s.tab} ${filter === "favorites" ? s.tabActive : ""}`}
+                onClick={() => setFilter("favorites")}
+              >
+                ♥ Favorites
+                {favCount > 0 && <span className={s.tabBadge}>{favCount}</span>}
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className={s.searchWrap}>
+              <input
+                ref={inputRef}
+                type="search"
+                className={s.searchInput}
+                placeholder="Search movements…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+
+            {/* List */}
+            <div className={s.list}>
+              {query.trim() ? (
+                pool.length === 0 ? (
+                  <div className={s.empty}>
+                    {filter === "favorites" ? "No favorites match." : "No movements match."}
+                  </div>
+                ) : (
+                  pool.map((mv) => (
+                    <PickerRow
+                      key={mv.id}
+                      mv={mv}
+                      onPick={() => handlePick(mv)}
+                      onToggleFav={(e) => handleToggleFavorite(e, mv)}
+                    />
+                  ))
+                )
+              ) : grouped.length === 0 ? (
+                <div className={s.empty}>
+                  {filter === "favorites"
+                    ? "No favorites yet. Tap ♥ on any movement to save it."
+                    : "No movements available."}
+                </div>
+              ) : (
+                grouped.map(({ label, items }) => (
+                  <div key={label}>
+                    <div className={s.groupLabel}>{label}</div>
+                    {items.map((mv) => (
+                      <PickerRow
+                        key={mv.id}
+                        mv={mv}
+                        onPick={() => handlePick(mv)}
+                        onToggleFav={(e) => handleToggleFavorite(e, mv)}
+                      />
+                    ))}
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
     </>
   );
@@ -191,7 +260,7 @@ function PickerRow({
 }) {
   return (
     <div className={s.row}>
-      {/* Name + equip — tappable but not the primary CTA */}
+      {/* Name + equip — display only */}
       <div className={s.rowBody}>
         <span className={s.rowName}>{mv.name}</span>
         {mv.equipmentType && (
