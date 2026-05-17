@@ -1001,7 +1001,13 @@
   align-items: center;
   gap: 6px;
   padding: 0 16px 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
+.filterRow::-webkit-scrollbar { display: none; }
 
 .filterPill {
   font-family: "Inter Tight", system-ui, sans-serif;
@@ -1013,7 +1019,10 @@
   border-radius: 999px;
   padding: 5px 14px;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: background 150ms, color 150ms, border-color 150ms, transform 150ms;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .filterPill:active { transform: scale(0.96); }

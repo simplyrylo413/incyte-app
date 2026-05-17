@@ -17,10 +17,29 @@ const BODY_PART_ORDER = [
   "Glutes", "Calves", "Cardio", "Other",
 ];
 
+const BODY_PART_PILLS = [
+  { key: "chest",      label: "Chest" },
+  { key: "back",       label: "Back" },
+  { key: "shoulders",  label: "Shoulders" },
+  { key: "biceps",     label: "Biceps" },
+  { key: "triceps",    label: "Triceps" },
+  { key: "core",       label: "Core" },
+  { key: "quads",      label: "Quads" },
+  { key: "hamstrings", label: "Hamstrings" },
+  { key: "glutes",     label: "Glutes" },
+  { key: "calves",     label: "Calves" },
+  { key: "cardio",     label: "Cardio" },
+];
+
+function matchesBP(mv: Movement, key: string): boolean {
+  const bp = (mv.bodyPart ?? mv.muscle ?? "other").toLowerCase();
+  if (key === "biceps")  return bp === "biceps"  || bp === "bicepts";
+  if (key === "triceps") return bp === "triceps" || bp === "tricepts";
+  return bp === key;
+}
+
 const DOW_SHORT  = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const DOW_FULL   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-type Filter = "all" | "favorites";
 
 interface Props {
   title: string;
@@ -49,8 +68,9 @@ export default function MovementPickerSheet({
   onFavoriteToggled,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery]               = useState("");
+  const [bodyPart, setBodyPart]         = useState<string | null>(null);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
 
   // Day-picker step state (plan mode only)
   const [pendingMv, setPendingMv] = useState<Movement | null>(null);
@@ -97,10 +117,11 @@ export default function MovementPickerSheet({
     setPendingMv(null);
   }
 
-  // Apply exclude + filter + search
+  // Apply exclude + body part + favorites + search
   const pool = localMovements.filter((mv) => {
     if (excludeMids?.has(mv.id)) return false;
-    if (filter === "favorites" && !mv.favorite) return false;
+    if (favoritesOnly && !mv.favorite) return false;
+    if (bodyPart && !matchesBP(mv, bodyPart)) return false;
     if (query.trim()) return mv.name.toLowerCase().includes(query.toLowerCase());
     return true;
   });
@@ -122,7 +143,7 @@ export default function MovementPickerSheet({
     for (const [label, items] of map) grouped.push({ label, items });
   }
 
-  const favCount = localMovements.filter((m) => m.favorite).length;
+  const favCount = localMovements.filter((m) => m.favorite && !excludeMids?.has(m.id)).length;
 
   return (
     <>
@@ -172,20 +193,24 @@ export default function MovementPickerSheet({
           </div>
         ) : (
           <>
-            {/* Filter tabs */}
-            <div className={s.tabs}>
-              <button
-                className={`${s.tab} ${filter === "all" ? s.tabActive : ""}`}
-                onClick={() => setFilter("all")}
-              >
+            {/* Filter pills — horizontally scrollable */}
+            <div className={s.pillRow}>
+              <button type="button"
+                className={`${s.pill} ${!bodyPart && !favoritesOnly ? s.pillActive : ""}`}
+                onClick={() => { setBodyPart(null); setFavoritesOnly(false); }}>
                 All
               </button>
-              <button
-                className={`${s.tab} ${filter === "favorites" ? s.tabActive : ""}`}
-                onClick={() => setFilter("favorites")}
-              >
-                ♥ Favorites
-                {favCount > 0 && <span className={s.tabBadge}>{favCount}</span>}
+              {BODY_PART_PILLS.map(({ key, label }) => (
+                <button key={key} type="button"
+                  className={`${s.pill} ${bodyPart === key ? s.pillActive : ""}`}
+                  onClick={() => setBodyPart(bodyPart === key ? null : key)}>
+                  {label}
+                </button>
+              ))}
+              <button type="button"
+                className={`${s.pill} ${favoritesOnly ? s.pillFavActive : s.pillFav}`}
+                onClick={() => setFavoritesOnly(!favoritesOnly)}>
+                ♥{favCount > 0 ? ` Favorites (${favCount})` : " Favorites"}
               </button>
             </div>
 
@@ -206,7 +231,7 @@ export default function MovementPickerSheet({
               {query.trim() ? (
                 pool.length === 0 ? (
                   <div className={s.empty}>
-                    {filter === "favorites" ? "No favorites match." : "No movements match."}
+                    {favoritesOnly && !bodyPart ? "No favorites match." : "No movements match."}
                   </div>
                 ) : (
                   pool.map((mv) => (
@@ -220,7 +245,7 @@ export default function MovementPickerSheet({
                 )
               ) : grouped.length === 0 ? (
                 <div className={s.empty}>
-                  {filter === "favorites"
+                  {favoritesOnly && !bodyPart
                     ? "No favorites yet. Tap ♥ on any movement to save it."
                     : "No movements available."}
                 </div>

@@ -24,6 +24,27 @@ const MUSCLE_ORDER = [
   "core","quads","hamstrings","glutes","calves","cardio","other",
 ];
 
+const BODY_PART_PILLS = [
+  { key: "chest",      label: "Chest" },
+  { key: "back",       label: "Back" },
+  { key: "shoulders",  label: "Shoulders" },
+  { key: "biceps",     label: "Biceps" },
+  { key: "triceps",    label: "Triceps" },
+  { key: "core",       label: "Core" },
+  { key: "quads",      label: "Quads" },
+  { key: "hamstrings", label: "Hamstrings" },
+  { key: "glutes",     label: "Glutes" },
+  { key: "calves",     label: "Calves" },
+  { key: "cardio",     label: "Cardio" },
+];
+
+function matchesBP(mv: Movement, key: string): boolean {
+  const bp = (mv.bodyPart ?? mv.muscle ?? "other").toLowerCase();
+  if (key === "biceps")  return bp === "biceps"  || bp === "bicepts";
+  if (key === "triceps") return bp === "triceps" || bp === "tricepts";
+  return bp === key;
+}
+
 const DOW_SHORT = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 const DOW_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -35,8 +56,6 @@ type LastSession = {
   topWeight?: number;
   topRpe?: number;
 };
-
-type Filter = "all" | "favorites";
 
 type Sheet =
   | { mode: "create" }
@@ -83,9 +102,10 @@ export default function MovementsPage() {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [plans, setPlans]       = useState<PlanItem[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [query, setQuery]       = useState("");
-  const [filter, setFilter]     = useState<Filter>("all");
-  const [sheet, setSheet]       = useState<Sheet>(null);
+  const [query, setQuery]         = useState("");
+  const [bodyPart, setBodyPart]   = useState<string | null>(null);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sheet, setSheet]         = useState<Sheet>(null);
 
   const load = useCallback(async () => {
     try {
@@ -183,11 +203,20 @@ export default function MovementsPage() {
 
   // ── Derived list content ──────────────────────────────────────────────────
 
-  const queryLower = query.toLowerCase().trim();
-  const matchesQuery = (mv: Movement) => !queryLower || mv.name.toLowerCase().includes(queryLower);
+  const queryLower  = query.toLowerCase().trim();
+  const anyFilter   = !!bodyPart || favoritesOnly || !!queryLower;
 
-  const favMovements  = movements.filter((mv) => mv.favorite && matchesQuery(mv));
-  const allFiltered   = movements.filter(matchesQuery);
+  const matchesFilters = (mv: Movement) => {
+    if (favoritesOnly && !mv.favorite) return false;
+    if (bodyPart && !matchesBP(mv, bodyPart)) return false;
+    if (queryLower) return mv.name.toLowerCase().includes(queryLower);
+    return true;
+  };
+
+  // For the default (no-filter) view
+  const allFavs  = movements.filter((mv) => mv.favorite);
+  const nonFavs  = movements.filter((mv) => !mv.favorite);
+  const grouped  = groupByMuscle(nonFavs);
 
   let listContent: React.ReactNode;
 
@@ -195,35 +224,23 @@ export default function MovementsPage() {
     listContent = <div className={s.stateMsg}>Loading…</div>;
   } else if (err) {
     listContent = <div className={s.stateErr}>{err}</div>;
-  } else if (filter === "favorites") {
-    listContent = favMovements.length === 0 ? (
+  } else if (anyFilter) {
+    // Filtered view: flat list
+    const filtered = movements.filter(matchesFilters);
+    listContent = filtered.length === 0 ? (
       <div className={s.emptyWrap}>
-        <p className={s.emptyTitle}>No favorites yet.</p>
-        <p className={s.emptySub}>Tap ♡ on any movement to save it here.</p>
-      </div>
-    ) : (
-      <div>
-        <div className={`${s.groupLabel} ${s.favGroupLabel}`}>
-          ♥ {favMovements.length} favorite{favMovements.length !== 1 ? "s" : ""}
-        </div>
-        <div className={s.mvList}>
-          {favMovements.map((mv) => (
-            <MvRow key={mv.id} mv={mv} lastSession={lastSessionMap.get(mv.id)}
-              onTap={() => setSheet({ mode: "detail", mv })}
-              onToggleFavorite={() => handleToggleFavorite(mv)} />
-          ))}
-        </div>
-      </div>
-    );
-  } else if (queryLower) {
-    listContent = allFiltered.length === 0 ? (
-      <div className={s.emptyWrap}>
-        <p className={s.emptyTitle}>No matches.</p>
-        <p className={s.emptySub}>Try a different search.</p>
+        <p className={s.emptyTitle}>
+          {favoritesOnly && !bodyPart ? "No favorites yet." : "No movements match."}
+        </p>
+        <p className={s.emptySub}>
+          {favoritesOnly && !bodyPart
+            ? "Tap ♡ on any movement to save it here."
+            : "Try a different filter or search."}
+        </p>
       </div>
     ) : (
       <div className={s.mvList} style={{ padding: "0 12px" }}>
-        {allFiltered.map((mv) => (
+        {filtered.map((mv) => (
           <MvRow key={mv.id} mv={mv} lastSession={lastSessionMap.get(mv.id)}
             onTap={() => setSheet({ mode: "detail", mv })}
             onToggleFavorite={() => handleToggleFavorite(mv)} />
@@ -231,9 +248,7 @@ export default function MovementsPage() {
       </div>
     );
   } else {
-    // All view: favorites pinned, then muscle groups (non-favorites only)
-    const nonFavs = movements.filter((mv) => !mv.favorite);
-    const grouped = groupByMuscle(nonFavs);
+    // Default view: favorites pinned at top, then muscle groups (non-favorites)
     listContent = movements.length === 0 ? (
       <div className={s.emptyWrap}>
         <p className={s.emptyTitle}>No movements yet.</p>
@@ -241,11 +256,11 @@ export default function MovementsPage() {
       </div>
     ) : (
       <>
-        {favMovements.length > 0 && (
+        {allFavs.length > 0 && (
           <div>
             <div className={`${s.groupLabel} ${s.favGroupLabel}`}>♥ Favorites</div>
             <div className={s.mvList}>
-              {favMovements.map((mv) => (
+              {allFavs.map((mv) => (
                 <MvRow key={mv.id} mv={mv} lastSession={lastSessionMap.get(mv.id)}
                   onTap={() => setSheet({ mode: "detail", mv })}
                   onToggleFavorite={() => handleToggleFavorite(mv)} />
@@ -285,16 +300,23 @@ export default function MovementsPage() {
           value={query} onChange={(e) => setQuery(e.target.value)} />
       </div>
 
-      {/* Filter pills */}
+      {/* Filter pills — horizontally scrollable */}
       <div className={s.filterRow}>
         <button type="button"
-          className={`${s.filterPill} ${filter === "all" ? s.filterPillActive : ""}`}
-          onClick={() => setFilter("all")}>
+          className={`${s.filterPill} ${!bodyPart && !favoritesOnly ? s.filterPillActive : ""}`}
+          onClick={() => { setBodyPart(null); setFavoritesOnly(false); }}>
           All
         </button>
+        {BODY_PART_PILLS.map(({ key, label }) => (
+          <button key={key} type="button"
+            className={`${s.filterPill} ${bodyPart === key ? s.filterPillActive : ""}`}
+            onClick={() => setBodyPart(bodyPart === key ? null : key)}>
+            {label}
+          </button>
+        ))}
         <button type="button"
-          className={`${s.filterPill} ${filter === "favorites" ? s.filterPillFav : ""}`}
-          onClick={() => setFilter("favorites")}>
+          className={`${s.filterPill} ${favoritesOnly ? s.filterPillFav : ""}`}
+          onClick={() => setFavoritesOnly(!favoritesOnly)}>
           ♥ Favorites
         </button>
       </div>
