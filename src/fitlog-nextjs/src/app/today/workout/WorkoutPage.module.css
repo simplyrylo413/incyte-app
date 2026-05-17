@@ -24,7 +24,6 @@
 /* Back chip — glass disc with accent border + blue glow.
    Source: fitlog-mobile.html lines 7159–7213 */
 .backChip {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -32,37 +31,19 @@
   height: 40px;
   flex-shrink: 0;
   border-radius: 999px;
-  background:
-    linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
-    rgba(255,255,255,0.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1.5px solid #5d9bb8;
-  color: #5d9bb8;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(15,22,34,0.55);
+  color: #0f1622;
   cursor: pointer;
-  isolation: isolate;
-  overflow: hidden;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.9) inset,
-    0 0 0 1px rgba(93,155,184,0.18),
-    0 10px 22px rgba(93,155,184,0.24),
-    0 4px 8px rgba(15,22,34,0.10);
-  transition: transform 100ms cubic-bezier(0.33,1,0.68,1), box-shadow 220ms ease-out;
+  transition: background 140ms, transform 100ms cubic-bezier(0.33,1,0.68,1);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.backChip::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 55%);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0.7;
-}
-
-.backChip:active { transform: scale(0.95); }
-.backChip svg { width: 14px; height: 14px; position: relative; z-index: 1; }
+.backChip:hover  { background: rgba(255,255,255,0.80); }
+.backChip:active { transform: scale(0.95); background: rgba(255,255,255,0.80); }
+.backChip svg { width: 14px; height: 14px; }
 
 /* Identity block */
 .identity { flex: 1; min-width: 0; padding-top: 2px; }
@@ -911,19 +892,11 @@
   :global(body:not(.theme-light)) .page { background: #161b23; }
 
   :global(body:not(.theme-light)) .backChip {
-    background:
-      linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
-      rgba(14,18,23,0.55);
-    border-color: #4dd0e1;
-    color: #4dd0e1;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.08) inset,
-      0 0 0 1px rgba(77,208,225,0.18),
-      0 10px 22px rgba(77,208,225,0.18),
-      0 4px 8px rgba(0,0,0,0.35);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.45);
+    color: #f7f9fc;
   }
-
-  :global(body:not(.theme-light)) .backChip::after { opacity: 0.25; }
+  :global(body:not(.theme-light)) .backChip:hover { background: rgba(255,255,255,0.14); }
 
   :global(body:not(.theme-light)) .bodyPart { color: #f7f9fc; }
   :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
@@ -1082,19 +1055,11 @@
 :global(body.theme-dark) .page { background: #161b23; }
 
 :global(body.theme-dark) .backChip {
-  background:
-    linear-gradient(155deg, rgba(93,155,184,0.28) 0%, rgba(155,130,200,0.20) 55%, rgba(201,160,190,0.16) 100%),
-    rgba(14,18,23,0.55);
-  border-color: #4dd0e1;
-  color: #4dd0e1;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.08) inset,
-    0 0 0 1px rgba(77,208,225,0.18),
-    0 10px 22px rgba(77,208,225,0.18),
-    0 4px 8px rgba(0,0,0,0.35);
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.45);
+  color: #f7f9fc;
 }
-
-:global(body.theme-dark) .backChip::after { opacity: 0.25; }
+:global(body.theme-dark) .backChip:hover { background: rgba(255,255,255,0.14); }
 
 :global(body.theme-dark) .bodyPart { color: #f7f9fc; }
 :global(body.theme-dark) .mvName { color: #f7f9fc; }

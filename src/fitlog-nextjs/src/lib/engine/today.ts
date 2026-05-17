@@ -99,6 +99,7 @@ export type DayStats = {
   completePct: number;
   volumeByPart: Record<string, number>;
   planMinutes: number;
+  totalMovements: number;
 };
 
 function hasValue(v: unknown): boolean {
@@ -159,6 +160,7 @@ export function calcDayStats(
   finishedToday: Workout[]
 ): DayStats {
   const s = { total: 0, done: 0, volume: 0, rpeSum: 0, rpeCount: 0, byPart: {} as Record<string, number> };
+  const countedMovements = new Set<string>();
 
   // Plan items
   for (const p of planItems) {
@@ -172,6 +174,7 @@ export function calcDayStats(
       return 0;
     })();
     collectEntry(entry, mv, fallback, s);
+    if (p.mid) countedMovements.add(p.mid);
   }
 
   // Adhoc entries (no planId or planId not in today's plan)
@@ -184,6 +187,7 @@ export function calcDayStats(
       return isFinite(lib) && lib > 0 ? lib : 0;
     })();
     collectEntry(e, mv, fallback, s);
+    if (e.movementId) countedMovements.add(e.movementId);
   }
 
   // Already-finished sessions today
@@ -191,12 +195,19 @@ export function calcDayStats(
     for (const e of w.entries ?? []) {
       const mv = mvMap.get(e.movementId) ?? null;
       collectEntry(e, mv, 0, s);
+      if (e.movementId) countedMovements.add(e.movementId);
     }
   }
 
+  const totalMovements = countedMovements.size;
   const avgRpe = s.rpeCount > 0 ? s.rpeSum / s.rpeCount : null;
   const completePct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
-  const planMinutes = Math.max(1, Math.round(s.total * 75 / 60));
+
+  // Realistic estimate: 5 min warm-up + 3 min/set (1 work + 2 rest) + 2 min/movement transition
+  // e.g. 6 sets, 2 movements → 5 + 18 + 2 = 25 min (vs old formula giving 8 min)
+  const planMinutes = s.total > 0
+    ? 5 + s.total * 3 + Math.max(0, totalMovements - 1) * 2
+    : 0;
 
   return {
     totalSets: s.total,
@@ -206,6 +217,7 @@ export function calcDayStats(
     completePct,
     volumeByPart: s.byPart,
     planMinutes,
+    totalMovements,
   };
 }
 

@@ -22,15 +22,16 @@ export function dowName(d: number): string {
 
 /**
  * Estimate session duration in minutes.
- * 1 min per set (work) + 2 min per set (rest) + 1 min per movement transition.
- * HTML build line 12338.
+ * 5 min warm-up + 3 min/set (1 work + 2 rest) + 2 min per movement transition.
+ * e.g. 6 sets, 2 movements → 5 + 18 + 2 = 25 min.
+ * Matches calcDayStats in today.ts. HTML build line 12338.
  */
 export function calcEtaMins(totalSets: number, totalMovements: number): number {
   if (!totalSets) return 0;
-  const work = totalSets * 1;
-  const rest = totalSets * 2;
-  const transitions = Math.max(0, totalMovements - 1) * 1;
-  return work + rest + transitions;
+  const warmup = 5;
+  const setsTime = totalSets * 3;           // 1 min work + 2 min rest
+  const transitions = Math.max(0, totalMovements - 1) * 2;  // 2 min between movements
+  return warmup + setsTime + transitions;
 }
 
 /** Format decimal minutes as "~Xm" or "~Xh Ym". */

@@ -407,7 +407,9 @@ function buildWorkoutName(
 function estimateDuration(entries: WorkoutEntry[]): string {
   const sets = entries.reduce((s, e) => s + (e.sets ?? []).filter((x) => x.done).length, 0);
   if (!sets) return "";
-  const mins = sets * 3;
+  const movements = entries.filter((e) => (e.sets ?? []).some((x) => x.done)).length;
+  // 5 min warm-up + 3 min/set (1 work + 2 rest) + 2 min/movement transition
+  const mins = 5 + sets * 3 + Math.max(0, movements - 1) * 2;
   return mins >= 60
     ? `~${Math.floor(mins / 60)}h ${mins % 60}m`
     : `~${mins}m`;
