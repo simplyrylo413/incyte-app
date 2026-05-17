@@ -271,7 +271,7 @@
 .sheetHead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 14px 20px 10px;
   flex-shrink: 0;
   border-bottom: 1.2px solid rgba(15,22,34,0.08);
@@ -283,6 +283,11 @@
   font-weight: 700;
   color: #0f1622;
   letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sheetClose {
@@ -389,6 +394,118 @@
 
 .btnDelete:active { transform: scale(0.97); }
 
+/* ─── Option C: heart in header ─────────────────────────────────────────── */
+.favHeartBtn {
+  background: none;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: #c0c8d5;
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: color 150ms, transform 150ms;
+}
+.favHeartBtn:active { transform: scale(0.88); }
+
+.favHeartOn {
+  color: #b08092;
+}
+
+/* ─── Option C: thin stat row ────────────────────────────────────────────── */
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 0 12px;
+  border-bottom: 1.2px solid rgba(15,22,34,0.07);
+  flex-shrink: 0;
+}
+
+.statIcon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.statLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #8893a8;
+  flex-shrink: 0;
+}
+
+.statVal {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f1622;
+  letter-spacing: -0.01em;
+}
+
+.statValNever {
+  color: #8893a8;
+  font-weight: 600;
+}
+
+.statSub {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  color: #8893a8;
+  letter-spacing: 0.03em;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ─── Option C: pinned day bar ───────────────────────────────────────────── */
+.dayBar {
+  padding: 10px 20px 8px;
+  border-top: 1.2px solid rgba(15,22,34,0.08);
+  flex-shrink: 0;
+}
+
+.dayBarLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #8893a8;
+  margin-bottom: 8px;
+}
+
+.dayBarRow {
+  display: flex;
+  gap: 4px;
+}
+
+.dayPill {
+  flex: 1;
+  padding: 7px 0;
+  text-align: center;
+  border-radius: 8px;
+  border: 1.2px solid rgba(15,22,34,0.15);
+  background: rgba(255,255,255,0.65);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2c3548;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms, color 150ms, transform 150ms;
+}
+.dayPill:active { transform: scale(0.93); }
+
+.dayPillOn {
+  background: rgba(79,154,168,0.16);
+  border-color: rgba(79,154,168,0.50);
+  color: #4f9aa8;
+}
+
 /* ─── Dark mode ──────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :global(body:not(.theme-light)) .subline { color: #6a7384; }
@@ -455,6 +572,29 @@
     color: #c89aa3;
     border-color: #c89aa3;
   }
+
+  /* Option C dark mode */
+  :global(body:not(.theme-light)) .favHeartBtn { color: #3a4255; }
+  :global(body:not(.theme-light)) .favHeartOn  { color: #c89aa3; }
+
+  :global(body:not(.theme-light)) .statRow { border-bottom-color: rgba(255,255,255,0.08); }
+  :global(body:not(.theme-light)) .statLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .statVal { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .statValNever { color: #6a7384; }
+  :global(body:not(.theme-light)) .statSub { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .dayBar { border-top-color: rgba(255,255,255,0.10); }
+  :global(body:not(.theme-light)) .dayBarLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .dayPill {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+    color: #c8d0db;
+  }
+  :global(body:not(.theme-light)) .dayPillOn {
+    background: rgba(79,154,168,0.18);
+    border-color: rgba(79,154,168,0.48);
+    color: #7ec0a8;
+  }
 }
 
 :global(body.theme-dark) .subline { color: #6a7384; }
@@ -520,6 +660,29 @@
   background: rgba(200,154,163,0.12);
   color: #c89aa3;
   border-color: #c89aa3;
+}
+
+/* Option C dark mode (theme-dark class) */
+:global(body.theme-dark) .favHeartBtn { color: #3a4255; }
+:global(body.theme-dark) .favHeartOn  { color: #c89aa3; }
+
+:global(body.theme-dark) .statRow { border-bottom-color: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .statLabel { color: #6a7384; }
+:global(body.theme-dark) .statVal { color: #f7f9fc; }
+:global(body.theme-dark) .statValNever { color: #6a7384; }
+:global(body.theme-dark) .statSub { color: #6a7384; }
+
+:global(body.theme-dark) .dayBar { border-top-color: rgba(255,255,255,0.10); }
+:global(body.theme-dark) .dayBarLabel { color: #6a7384; }
+:global(body.theme-dark) .dayPill {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+  color: #c8d0db;
+}
+:global(body.theme-dark) .dayPillOn {
+  background: rgba(79,154,168,0.18);
+  border-color: rgba(79,154,168,0.48);
+  color: #7ec0a8;
 }
 
 /* ── ExerciseDB import bar ──────────────────────────────────────── */

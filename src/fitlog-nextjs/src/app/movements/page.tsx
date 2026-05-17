@@ -451,36 +451,31 @@ function DetailSheet({ mv, plans, lastSession, onEdit, onToggleFavorite, onToggl
           </div>
         )}
 
+        {/* Option C header: title + heart inline + close */}
         <div className={s.sheetHead}>
           <span className={s.sheetTitle}>{mv.name}</span>
+          <button
+            type="button"
+            className={`${s.favHeartBtn} ${mv.favorite ? s.favHeartOn : ""}`}
+            onClick={onToggleFavorite}
+            aria-label={mv.favorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            {mv.favorite ? "♥" : "♡"}
+          </button>
           <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
         </div>
 
-        {/* Scrollable detail body — contains all content except sticky edit/delete */}
+        {/* Scrollable body — instructions are first visible content */}
         <div className={s.detailBody}>
-          {/* Last done stat card */}
-          <div className={s.lastDoneStat}>
-            <div className={s.ldsIcon}>{lastSession ? "🕐" : "🆕"}</div>
-            <div className={s.ldsBd}>
-              <span className={s.ldsLabel}>Last done</span>
-              <span className={`${s.ldsVal} ${ld.never ? s.ldsValNever : ""}`}>{ld.text}</span>
-              {ldSub && <span className={s.ldsSub}>{ldSub}</span>}
-              {ld.never && <span className={s.ldsSub}>Log a session to start tracking</span>}
-            </div>
+          {/* Thin stat row — no card, just a line */}
+          <div className={s.statRow}>
+            <span className={s.statIcon}>{lastSession ? "🕐" : "🆕"}</span>
+            <span className={s.statLabel}>Last done</span>
+            <span className={`${s.statVal} ${ld.never ? s.statValNever : ""}`}>{ld.text}</span>
+            {ldSub && <span className={s.statSub}>{ldSub}</span>}
           </div>
 
-          {/* Favorite toggle */}
-          <button
-            type="button"
-            className={`${s.favToggle} ${mv.favorite ? s.favToggleActive : ""}`}
-            onClick={onToggleFavorite}
-          >
-            <span className={s.favToggleIcon}>{mv.favorite ? "♥" : "♡"}</span>
-            <span className={s.favToggleText}>
-              {mv.favorite ? "Saved to Favorites" : "Add to Favorites"}
-            </span>
-          </button>
-
+          {/* Meta chips */}
           {(muscle || equip || mv.kind) && (
             <div className={s.mvMeta}>
               {muscle && <span className={s.mvChip}>{muscle}</span>}
@@ -488,6 +483,7 @@ function DetailSheet({ mv, plans, lastSession, onEdit, onToggleFavorite, onToggl
               {mv.kind && <span className={s.mvChip}>{mv.kind}</span>}
             </div>
           )}
+
           {mv.secondaryMuscles && mv.secondaryMuscles.length > 0 && (
             <div className={s.detailSection}>
               <div className={s.detailSectionLabel}>Also works</div>
@@ -496,6 +492,8 @@ function DetailSheet({ mv, plans, lastSession, onEdit, onToggleFavorite, onToggl
               </div>
             </div>
           )}
+
+          {/* Instructions — prominent, immediately visible */}
           {mv.instructions && mv.instructions.length > 0 && (
             <div className={s.detailSection}>
               <div className={s.detailSectionLabel}>How to</div>
@@ -506,30 +504,26 @@ function DetailSheet({ mv, plans, lastSession, onEdit, onToggleFavorite, onToggl
               </ol>
             </div>
           )}
+        </div>
 
-          {/* Inline plan day strip */}
-          <div className={s.inlinePlanSec}>
-            <div className={s.inlinePlanLabel}>Add to plan</div>
-            <div className={s.inlineDayStrip}>
-              {DOW_SHORT.map((label, dow) => {
-                const planned = plannedDays.has(dow);
-                return (
-                  <button
-                    key={dow}
-                    type="button"
-                    className={`${s.inlineDayChip} ${planned ? s.inlineDayChipPlanned : ""}`}
-                    onClick={() => onTogglePlanDay(dow)}
-                    title={DOW_FULL[dow]}
-                  >
-                    <span className={s.inlineDayChipLabel}>{label}</span>
-                    {planned && <span className={s.inlineDayChipCheck}>✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <div className={`${s.inlineSaveHint} ${plannedDays.size > 0 ? s.inlineSaveHintActive : ""}`}>
-              {planHint}
-            </div>
+        {/* Slim pinned day bar — outside scroll, always visible */}
+        <div className={s.dayBar}>
+          <div className={s.dayBarLabel}>Add to plan</div>
+          <div className={s.dayBarRow}>
+            {DOW_SHORT.map((label, dow) => {
+              const planned = plannedDays.has(dow);
+              return (
+                <button
+                  key={dow}
+                  type="button"
+                  className={`${s.dayPill} ${planned ? s.dayPillOn : ""}`}
+                  onClick={() => onTogglePlanDay(dow)}
+                  title={DOW_FULL[dow]}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
