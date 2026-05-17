@@ -216,7 +216,7 @@ export function archiveEntryToToday(
   if (!session) {
     const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     session = {
-      id: `w${Date.now()}`,
+      id: crypto.randomUUID(),
       name: `${DAYS[today.getDay()]} session`,
       date: today.toISOString(),
       entries: [archived],
