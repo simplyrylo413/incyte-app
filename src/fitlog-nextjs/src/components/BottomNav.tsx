@@ -24,6 +24,21 @@ const TABS = [
     ),
   },
   {
+    href: "/momentum",
+    label: "Insights",
+    // Bar chart — analytics/insights glyph
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+        strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 20h16" />
+        <rect x="6" y="12" width="3" height="6" />
+        <rect x="11" y="8" width="3" height="10" />
+        <rect x="16" y="4" width="3" height="14" />
+      </svg>
+    ),
+  },
+  {
     href: "/plan",
     label: "Plan",
     icon: (
