@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { listMovements, listPlans, listWorkouts, upsertPlan, deletePlan } from "@/lib/db";
+import MovementPickerSheet from "@/components/MovementPickerSheet/MovementPickerSheet";
 import type { Movement, PlanItem, Workout } from "@/lib/types";
 import {
   buildDowStats, calcEtaMins, fmtEta, planItemSets,
@@ -250,11 +251,11 @@ export default function PlanPage() {
       )}
 
       {addSheet && (
-        <AddMovementSheet
-          dow={addSheet.dow}
+        <MovementPickerSheet
+          title={`Add to ${DOW_NAMES[addSheet.dow]}`}
           movements={movements}
-          plans={plans}
-          onAdd={handleAddMovement}
+          excludeMids={new Set(plans.filter((p) => p.dow === addSheet.dow).map((p) => p.mid))}
+          onAdd={(mv) => handleAddMovement(mv, addSheet.dow)}
           onClose={() => setAddSheet(null)}
         />
       )}
@@ -490,82 +491,6 @@ function PlanMvRow({ plan, mv, badge, onEdit }: {
         {badge?.kind === "up" && <span className={s.badgeUp}>↑ +{badge.lbs} lbs</span>}
         <span className={s.mvChev}>›</span>
       </div>
-    </button>
-  );
-}
-
-// ─── Add Movement Sheet ───────────────────────────────────────────────────────
-
-function AddMovementSheet({ dow, movements, plans, onAdd, onClose }: {
-  dow: number;
-  movements: Movement[];
-  plans: PlanItem[];
-  onAdd: (mv: Movement, dow: number) => void;
-  onClose: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { const t = setTimeout(() => inputRef.current?.focus(), 80); return () => clearTimeout(t); }, []);
-
-  const plannedMids = new Set(plans.filter((p) => p.dow === dow).map((p) => p.mid));
-  const filtered = movements.filter((mv) => {
-    if (plannedMids.has(mv.id)) return false;
-    return !query.trim() || mv.name.toLowerCase().includes(query.toLowerCase());
-  });
-
-  const grouped: Array<{ label: string; items: Movement[] }> = [];
-  if (!query.trim()) {
-    const mm = new Map<string, Movement[]>();
-    for (const mv of filtered) {
-      const k = (mv.muscle ?? mv.category ?? "other").toLowerCase();
-      const l = k.charAt(0).toUpperCase() + k.slice(1);
-      if (!mm.has(l)) mm.set(l, []);
-      mm.get(l)!.push(mv);
-    }
-    const ORDER = ["Chest","Back","Shoulders","Biceps","Bicepts","Triceps","Tricepts","Core","Quads","Hamstrings","Glutes","Calves","Cardio","Other"];
-    for (const l of ORDER) { const items = mm.get(l); if (items?.length) { mm.delete(l); grouped.push({ label: l, items }); } }
-    for (const [l, items] of mm) grouped.push({ label: l, items });
-  }
-
-  return (
-    <>
-      <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true">
-        <div className={s.sheet} role="dialog" aria-modal="true"
-          aria-label={`Add to ${DOW_NAMES[dow]}`}
-          onClick={(e) => e.stopPropagation()}>
-          <div className={s.sheetHandle} />
-          <div className={s.sheetHead}>
-            <span className={s.sheetTitle}>Add to {DOW_NAMES[dow]}</span>
-            <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
-          </div>
-          <input ref={inputRef} type="search" className={s.searchInput}
-            placeholder="Search movements…" value={query}
-            onChange={(e) => setQuery(e.target.value)} />
-          <div className={s.pickerList}>
-            {query.trim() ? (
-              filtered.length === 0
-                ? <div className={s.pickerEmpty}>No movements match.</div>
-                : filtered.map((mv) => <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />)
-            ) : (
-              grouped.map((g) => (
-                <div key={g.label}>
-                  <div className={s.pickerGroupLabel}>{g.label}</div>
-                  {g.items.map((mv) => <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />)}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function PickerItem({ mv, onPick }: { mv: Movement; onPick: () => void }) {
-  return (
-    <button type="button" className={s.pickerItem} onClick={onPick}>
-      <span className={s.pickerItemName}>{mv.name}</span>
-      {mv.equipmentType && <span className={s.pickerItemMeta}>{mv.equipmentType}</span>}
     </button>
   );
 }

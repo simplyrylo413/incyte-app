@@ -20,6 +20,7 @@ import {
 import { tryGetDeviceId } from "@/lib/device";
 import type { Movement, Workout, WorkoutEntry, PlanItem } from "@/lib/types";
 import { getDailyHeadline } from "@/lib/engine/aiHeadline";
+import MovementPickerSheet from "@/components/MovementPickerSheet/MovementPickerSheet";
 import {
   todayHeadline,
   todayDateLabel,
@@ -269,10 +270,11 @@ export default function TodayPage() {
 
       {/* ── Add Movement Sheet ── */}
       {addSheetOpen && (
-        <AddMovementSheet
+        <MovementPickerSheet
+          title="Add to today"
           movements={movements}
-          activeMids={activeMids}
-          onAdd={handleAddMovement}
+          excludeMids={activeMids}
+          onAdd={(mv) => { handleAddMovement(mv); setAddSheetOpen(false); }}
           onClose={() => setAddSheetOpen(false)}
         />
       )}
@@ -492,121 +494,6 @@ function MovementRow({
         </button>
       )}
     </div>
-  );
-}
-
-// ─── Add Movement Sheet ───────────────────────────────────────────────────────
-
-function AddMovementSheet({
-  movements,
-  activeMids,
-  onAdd,
-  onClose,
-}: {
-  movements: Movement[];
-  activeMids: Set<string>;
-  onAdd: (mv: Movement) => void;
-  onClose: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 80);
-    return () => clearTimeout(t);
-  }, []);
-
-  const filtered = movements.filter((mv) => {
-    if (activeMids.has(mv.id)) return false;
-    if (!query.trim()) return true;
-    return mv.name.toLowerCase().includes(query.toLowerCase());
-  });
-
-  // Group by body part / muscle when no query
-  const grouped: Array<{ label: string; items: Movement[] }> = [];
-  if (!query.trim()) {
-    const map = new Map<string, Movement[]>();
-    for (const mv of filtered) {
-      const key = (mv.bodyPart ?? mv.muscle ?? "other").toLowerCase();
-      const label = key.charAt(0).toUpperCase() + key.slice(1);
-      if (!map.has(label)) map.set(label, []);
-      map.get(label)!.push(mv);
-    }
-    const ORDER = [
-      "Chest", "Back", "Shoulders", "Biceps", "Bicepts",
-      "Triceps", "Tricepts", "Core", "Quads", "Hamstrings",
-      "Glutes", "Calves", "Cardio", "Other",
-    ];
-    for (const label of ORDER) {
-      const items = map.get(label);
-      if (items?.length) { map.delete(label); grouped.push({ label, items }); }
-    }
-    for (const [label, items] of map) grouped.push({ label, items });
-  }
-
-  return (
-    <>
-      <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true" />
-      <div className={s.sheet} role="dialog" aria-modal="true" aria-label="Add movement">
-        <div className={s.sheetHandle} />
-        <div className={s.sheetHead}>
-          <span className={s.sheetTitle}>Add to today</span>
-          <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
-        </div>
-
-        <div className={s.sheetSearch}>
-          <input
-            ref={inputRef}
-            type="search"
-            className={s.searchInput}
-            placeholder="Search movements…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-
-        <div className={s.pickerList}>
-          {query.trim() ? (
-            filtered.length === 0 ? (
-              <div className={s.pickerEmpty}>No movements match.</div>
-            ) : (
-              filtered.map((mv) => (
-                <button
-                  key={mv.id}
-                  type="button"
-                  className={s.pickerItem}
-                  onClick={() => onAdd(mv)}
-                >
-                  <span className={s.pickerName}>{mv.name}</span>
-                  {mv.equipmentType && (
-                    <span className={s.pickerEquip}>{mv.equipmentType}</span>
-                  )}
-                </button>
-              ))
-            )
-          ) : (
-            grouped.map((group) => (
-              <div key={group.label}>
-                <div className={s.pickerGroupLabel}>{group.label}</div>
-                {group.items.map((mv) => (
-                  <button
-                    key={mv.id}
-                    type="button"
-                    className={s.pickerItem}
-                    onClick={() => onAdd(mv)}
-                  >
-                    <span className={s.pickerName}>{mv.name}</span>
-                    {mv.equipmentType && (
-                      <span className={s.pickerEquip}>{mv.equipmentType}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </>
   );
 }
 
