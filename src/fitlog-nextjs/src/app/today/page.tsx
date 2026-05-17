@@ -166,11 +166,20 @@ export default function TodayPage() {
   }, [activeWorkout]);
 
   const handleRemoveEntry = useCallback(async (planId: string) => {
-    if (!activeWorkout) return;
-    const entries = activeWorkout.entries.filter((e) => e.planId !== planId);
-    const updated = { ...activeWorkout, entries };
-    setActiveWorkout(updated);
-    await upsertWorkout(updated);
+    // If the active workout has an entry for this planId, remove it there
+    if (activeWorkout) {
+      const hasEntry = activeWorkout.entries.some((e) => e.planId === planId);
+      if (hasEntry) {
+        const entries = activeWorkout.entries.filter((e) => e.planId !== planId);
+        const updated = { ...activeWorkout, entries };
+        setActiveWorkout(updated);
+        await upsertWorkout(updated);
+        return;
+      }
+    }
+    // Otherwise it's a plan-only item (not yet started) — hide from today's view locally.
+    // Not persisted to DB so it returns tomorrow as expected.
+    setPlans((prev) => prev.filter((p) => p.id !== planId));
   }, [activeWorkout]);
 
   // ── Navigation ────────────────────────────────────────────────────────────
