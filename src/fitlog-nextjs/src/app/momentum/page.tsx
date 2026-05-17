@@ -205,9 +205,12 @@ function ReadinessCard({
   scores: ReadinessScores;
   ai: import("@/lib/engine/aiInsights").AiReadiness | null;
 }) {
-  // Use AI recommendation if available, fall back to rule-based
-  const recAction = ai?.recommendation ?? scores.recAction;
-  const recBullets = ai?.bullets ?? scores.recBullets;
+  // Use AI values if available, fall back to rule-based
+  const recAction      = ai?.recommendation  ?? scores.recAction;
+  const recBullets     = ai?.bullets         ?? scores.recBullets;
+  const readinessCap   = ai?.readinessCap    ?? scores.readinessCap;
+  const recoveryCap    = ai?.recoveryCap     ?? scores.recoveryCap;
+  const fatigueCap     = ai?.fatigueCap      ?? scores.fatigueCap;
 
   const toneClass =
     scores.recTone === "high" ? s.toneHigh
@@ -242,7 +245,7 @@ function ReadinessCard({
                 style={{ width: `${scores.readiness ?? 0}%` }}
               />
             </div>
-            <div className={s.readinessStatCaption}>{scores.readinessCap}</div>
+            <div className={s.readinessStatCaption}>{readinessCap}</div>
           </div>
 
           <div className={s.readinessStat}>
@@ -257,7 +260,7 @@ function ReadinessCard({
                 style={{ width: `${scores.recovery}%` }}
               />
             </div>
-            <div className={s.readinessStatCaption}>{scores.recoveryCap}</div>
+            <div className={s.readinessStatCaption}>{recoveryCap}</div>
           </div>
 
           <div className={s.readinessStat}>
@@ -272,7 +275,7 @@ function ReadinessCard({
                 style={{ width: `${scores.fatigue}%` }}
               />
             </div>
-            <div className={s.readinessStatCaption}>{scores.fatigueCap}</div>
+            <div className={s.readinessStatCaption}>{fatigueCap}</div>
           </div>
         </div>
 

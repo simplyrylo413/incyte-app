@@ -35,7 +35,10 @@ Return ONLY valid JSON matching this exact schema (no markdown, no extra keys):
   "readiness": {
     "summary": "1–2 sentence assessment referencing the actual readiness/recovery/fatigue numbers",
     "recommendation": "3–7 word action phrase (e.g. 'Train heavy — upper body primed')",
-    "bullets": ["3 specific bullets based on the data — training focus, target intensity, volume note"]
+    "bullets": ["3 specific bullets based on the data — training focus, target intensity, volume note"],
+    "readinessCap": "≤8 word caption for the Readiness stat (e.g. 'Primed — train at full intensity')",
+    "recoveryCap": "≤8 word caption for the Recovery stat (e.g. '3d rest — well recovered')",
+    "fatigueCap": "≤8 word caption for the Fatigue stat (e.g. 'Moderate load — manageable')"
   },
   "recovery": {
     "<muscle_key_lowercase>": {

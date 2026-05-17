@@ -24,6 +24,9 @@ export type AiReadiness = {
   summary: string;
   recommendation: string;
   bullets: string[];
+  readinessCap: string; // ≤8 words, replaces rule-based caption under Readiness bar
+  recoveryCap: string;  // ≤8 words, replaces rule-based caption under Recovery bar
+  fatigueCap: string;   // ≤8 words, replaces rule-based caption under Fatigue bar
 };
 
 export type AiRecoveryEntry = {
