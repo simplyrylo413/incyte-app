@@ -35,6 +35,28 @@ import {
 } from "@/lib/engine/today";
 import s from "./TodayPage.module.css";
 
+// ─── Helpers: persist "hidden for today" plan IDs in localStorage ────────────
+
+const todayKey = () => `hiddenPlanIds_${new Date().toISOString().slice(0, 10)}`;
+
+function getHiddenForToday(): Set<string> {
+  try {
+    const raw = localStorage.getItem(todayKey());
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch { return new Set(); }
+}
+
+function addHiddenForToday(planId: string) {
+  try {
+    const ids = getHiddenForToday();
+    ids.add(planId);
+    localStorage.setItem(todayKey(), JSON.stringify([...ids]));
+    // Clean up yesterday's key (optional housekeeping)
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    localStorage.removeItem(`hiddenPlanIds_${yesterday}`);
+  } catch { /* ignore */ }
+}
+
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export default function TodayPage() {
@@ -87,7 +109,8 @@ export default function TodayPage() {
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const mvMap = new Map<string, Movement>(movements.map((m) => [m.id, m]));
-  const todayPlan = filterTodaysPlan(plans);
+  const hiddenPlanIds = getHiddenForToday();
+  const todayPlan = filterTodaysPlan(plans).filter((p) => !hiddenPlanIds.has(p.id));
   const activeEntries: WorkoutEntry[] = activeWorkout?.entries ?? [];
   const sessionDoneToday = !activeWorkout && finishedToday.length > 0;
 
@@ -177,8 +200,9 @@ export default function TodayPage() {
         return;
       }
     }
-    // Otherwise it's a plan-only item (not yet started) — hide from today's view locally.
-    // Not persisted to DB so it returns tomorrow as expected.
+    // Otherwise it's a plan-only item (not yet started) — hide for today.
+    // Stored in localStorage keyed by date so it survives refresh but auto-clears tomorrow.
+    addHiddenForToday(planId);
     setPlans((prev) => prev.filter((p) => p.id !== planId));
   }, [activeWorkout]);
 
