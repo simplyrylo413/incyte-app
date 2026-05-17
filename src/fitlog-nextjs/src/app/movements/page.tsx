@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  listMovements, upsertMovement, deleteMovement, importExercisesFromDB,
+  listMovements, upsertMovement, deleteMovement,
   listPlans, upsertPlan, deletePlan, toggleMovementFavorite, listWorkouts,
 } from "@/lib/db";
 import type { Movement, MovementKind, PlanItem, Workout } from "@/lib/types";
@@ -86,8 +86,6 @@ export default function MovementsPage() {
   const [query, setQuery]       = useState("");
   const [filter, setFilter]     = useState<Filter>("all");
   const [sheet, setSheet]       = useState<Sheet>(null);
-  const [importing, setImporting] = useState(false);
-  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -135,15 +133,6 @@ export default function MovementsPage() {
   }, [workouts]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-
-  const handleImport = useCallback(async () => {
-    setImporting(true); setImportMsg(null);
-    const count = await importExercisesFromDB();
-    if (count < 0)      setImportMsg("Import failed — check console.");
-    else if (count === 0) setImportMsg("Import ran but 0 exercises were added.");
-    else { setImportMsg(`Synced ${count} exercises.`); await load(); }
-    setImporting(false);
-  }, [load]);
 
   const handleSave = useCallback(async (mv: Movement) => {
     setMovements((prev) => {
@@ -308,13 +297,6 @@ export default function MovementsPage() {
           onClick={() => setFilter("favorites")}>
           ♥ Favorites
         </button>
-      </div>
-
-      <div className={s.importBar}>
-        <button type="button" className={s.importBtn} onClick={handleImport} disabled={importing}>
-          {importing ? "Syncing…" : "⬇ Import from ExerciseDB"}
-        </button>
-        {importMsg && <span className={s.importMsg}>{importMsg}</span>}
       </div>
 
       {listContent}
