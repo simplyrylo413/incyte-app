@@ -87,7 +87,10 @@ function WorkoutCard({
 }) {
   const [open, setOpen] = useState(false);
 
-  const d = new Date(workout.date ?? workout.savedAt ?? 0);
+  // Prefer savedAt (full ISO timestamp) over date (plain date string).
+  // Plain date strings parse as UTC midnight, which shifts the local calendar
+  // date in non-UTC timezones and shows yesterday's date.
+  const d = new Date(workout.savedAt ?? workout.completed_at ?? workout.date ?? 0);
   const day = d.getDate();
   const dow = DOWS[d.getDay()];
 
@@ -181,7 +184,7 @@ function groupByMonth(
 ): Array<{ label: string; items: Workout[] }> {
   const map = new Map<string, Workout[]>();
   for (const w of workouts) {
-    const d = new Date(w.date ?? w.savedAt ?? 0);
+    const d = new Date(w.savedAt ?? w.completed_at ?? w.date ?? 0);
     const key = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(w);
