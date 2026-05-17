@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  let payload: unknown;
+  let payload: Record<string, unknown>;
   try {
     payload = await req.json();
   } catch {
@@ -97,6 +97,49 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // ── Headline action ───────────────────────────────────────────────────────
+  // Lightweight branch: generate one fresh motivational headline for today.
+  // The client caches the result in localStorage so this fires at most once/day.
+  if (payload.action === "headline") {
+    const weekday = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        max_tokens: 24,
+        temperature: 0.9,
+        messages: [
+          {
+            role: "system",
+            content: `You write short motivational headlines for a strength training app used by serious lifters.
+Rules:
+- 2–5 words only. No punctuation at the end.
+- Energetic, direct, training-focused. No profanity. No emoji.
+- Sound like a coach, not a hype-man. Avoid: "crush it", "grind", "hustle", "beast mode".
+- Good examples: "Earn it", "Lock in", "Move with intent", "Add a plate", "Stack the reps", "Beat last week", "Under the bar".
+Respond with ONLY the headline text — no quotes, no explanation.`,
+          },
+          { role: "user", content: `Generate one fresh training headline for ${weekday}.` },
+        ],
+      }),
+    });
+
+    if (openaiRes.ok) {
+      const data = await openaiRes.json();
+      const headline = (data.choices?.[0]?.message?.content ?? "").trim().replace(/['"]/g, "");
+      if (headline) {
+        return new Response(JSON.stringify({ headline }), {
+          headers: { ...CORS, "Content-Type": "application/json" },
+        });
+      }
+    }
+    return new Response(JSON.stringify({ headline: null }), {
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  // ── Insights action (default) ─────────────────────────────────────────────
   try {
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

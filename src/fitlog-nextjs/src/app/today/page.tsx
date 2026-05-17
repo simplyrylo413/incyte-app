@@ -19,6 +19,7 @@ import {
 } from "@/lib/db";
 import { tryGetDeviceId } from "@/lib/device";
 import type { Movement, Workout, WorkoutEntry, PlanItem } from "@/lib/types";
+import { getDailyHeadline } from "@/lib/engine/aiHeadline";
 import {
   todayHeadline,
   todayDateLabel,
@@ -47,6 +48,12 @@ export default function TodayPage() {
 
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [detailEntry, setDetailEntry] = useState<{ entry: WorkoutEntry; workout: Workout } | null>(null);
+  const [aiHeadline, setAiHeadline] = useState<string | null>(null);
+
+  // Fetch AI headline once per day (cached in localStorage)
+  useEffect(() => {
+    getDailyHeadline(todayHeadline()).then(setAiHeadline);
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -105,7 +112,10 @@ export default function TodayPage() {
   const remainingFiltered = remaining.filter((item) => !completedMids.has(item.mid));
 
   const hasMovements = remainingFiltered.length > 0 || completedEntries.length > 0;
-  const headline = hasMovements ? todayHeadline() : "Build today's session.";
+  // AI headline updates once per day; falls back to static pool until loaded
+  const headline = hasMovements
+    ? (aiHeadline ?? todayHeadline())
+    : "Build today's session.";
   const isCompact = stats.doneSets === 0 && stats.totalSets > 0;
   const grouped = groupByBodyPart(remainingFiltered);
 
