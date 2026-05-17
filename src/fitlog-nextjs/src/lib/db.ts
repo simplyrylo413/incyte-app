@@ -277,15 +277,17 @@ export async function listWorkouts(opts?: {
 
 export async function listFinishedTodayWorkouts(): Promise<Workout[]> {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
   const all = await listWorkouts({ finished: true });
   return all.filter((w) => {
-    const ts = new Date(w.date || w.savedAt || 0);
-    return (
-      ts.getFullYear() === today.getFullYear() &&
-      ts.getMonth() === today.getMonth() &&
-      ts.getDate() === today.getDate()
-    );
+    // Prefer savedAt/completed_at (full ISO timestamps) over date (plain date
+    // string). Plain date strings like "2026-05-17" parse as UTC midnight, which
+    // shifts the local date in non-UTC timezones and causes today-filter misses.
+    const raw = w.savedAt || w.completed_at || w.date;
+    if (!raw) return false;
+    const wd = new Date(raw);
+    const wKey = `${wd.getFullYear()}-${wd.getMonth()}-${wd.getDate()}`;
+    return wKey === todayKey;
   });
 }
 
