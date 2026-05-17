@@ -1187,3 +1187,161 @@
 :global(body.theme-dark) .prLabel { color: #6a7384; }
 :global(body.theme-dark) .prValue { color: #f7f9fc; }
 :global(body.theme-dark) .prSub { color: #8d96a5; }
+
+/* ── Muscle Readiness card ───────────────────────────────────────────────────
+   Traffic-light grid: 2-column tiles, Upper / Lower sections.
+   Status colors mapped to INCYTE tokens:
+     ready  → --ok  (#4f9aa8 teal)
+     caution → --accent-2 / --warn range (#8a9fc0 slate-blue)
+     hold   → --bad (#b08092 mauve)
+*/
+
+.mrGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.mrSectionLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9.5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  font-weight: 700;
+  margin-bottom: 7px;
+  margin-top: 11px;
+}
+
+.mrSectionLabel:first-child {
+  margin-top: 0;
+}
+
+.mrDivider {
+  height: 1.2px;
+  background: var(--hairline-soft, rgba(15,22,34,0.11));
+  margin: 12px 0 0;
+}
+
+.mrTile {
+  background: rgba(255,255,255,0.38);
+  border: 1.2px solid var(--hairline-soft, rgba(15,22,34,0.11));
+  border-radius: 11px;
+  padding: 9px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  box-shadow: 0 1px 2px rgba(15,22,34,0.04);
+}
+
+.mrTileName {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink, #0f1622);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mrBarTrack {
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(15,22,34,0.07);
+  overflow: hidden;
+}
+
+.mrBarFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.mrBarFill.ready {
+  background: linear-gradient(90deg, var(--ok, #4f9aa8), #6ec5c8);
+}
+
+.mrBarFill.caution {
+  background: linear-gradient(90deg, #8a9fc0, #a0b4d0);
+}
+
+.mrBarFill.hold {
+  background: linear-gradient(90deg, var(--bad, #b08092), #c09aaa);
+}
+
+.mrTileBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.mrPill {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 5px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mrPill.ready {
+  background: rgba(79,154,168,0.13);
+  color: var(--ok, #4f9aa8);
+}
+
+.mrPill.caution {
+  background: rgba(138,159,192,0.13);
+  color: #7090b8;
+}
+
+.mrPill.hold {
+  background: rgba(176,128,146,0.13);
+  color: var(--bad, #b08092);
+}
+
+.mrTileStat {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  color: var(--label, #8893a8);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Dark mode — Muscle Readiness ────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :global(body:not(.theme-light)) .mrTile {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.09);
+  }
+  :global(body:not(.theme-light)) .mrTileName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .mrBarTrack { background: rgba(255,255,255,0.09); }
+  :global(body:not(.theme-light)) .mrSectionLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .mrDivider { background: rgba(255,255,255,0.09); }
+  :global(body:not(.theme-light)) .mrTileStat { color: #6a7384; }
+  :global(body:not(.theme-light)) .mrPill.ready { background: rgba(79,154,168,0.18); color: #5bbcc8; }
+  :global(body:not(.theme-light)) .mrPill.caution { background: rgba(138,159,192,0.18); color: #90aacc; }
+  :global(body:not(.theme-light)) .mrPill.hold { background: rgba(176,128,146,0.18); color: #c8909e; }
+}
+
+:global(body.theme-dark) .mrTile {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.09);
+}
+:global(body.theme-dark) .mrTileName { color: #f7f9fc; }
+:global(body.theme-dark) .mrBarTrack { background: rgba(255,255,255,0.09); }
+:global(body.theme-dark) .mrSectionLabel { color: #6a7384; }
+:global(body.theme-dark) .mrDivider { background: rgba(255,255,255,0.09); }
+:global(body.theme-dark) .mrTileStat { color: #6a7384; }
+:global(body.theme-dark) .mrPill.ready { background: rgba(79,154,168,0.18); color: #5bbcc8; }
+:global(body.theme-dark) .mrPill.caution { background: rgba(138,159,192,0.18); color: #90aacc; }
+:global(body.theme-dark) .mrPill.hold { background: rgba(176,128,146,0.18); color: #c8909e; }

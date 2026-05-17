@@ -14,8 +14,10 @@ import {
   computeMuscleFatigue,
   computeWeeklyStimulus,
   computePRs,
+  computeMuscleReadiness,
   type ReadinessScores,
   type MuscleFatigueRow,
+  type MuscleReadinessRow,
   type StimulusBar,
   type PRBadge,
 } from "@/lib/engine/momentum";
@@ -28,7 +30,7 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CARD_LABELS = ["Readiness", "Recovery", "Stimulus", "PRs"];
+const CARD_LABELS = ["Readiness", "Recovery", "Stimulus", "PRs", "Muscles"];
 
 // ─── Root page ────────────────────────────────────────────────────────────────
 
@@ -105,9 +107,10 @@ export default function MomentumPage() {
     track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
   }
 
-  const scores   = computeReadiness(workouts, movements);
-  const stimulus = computeWeeklyStimulus(workouts, movements);
-  const prs      = computePRs(workouts, movements);
+  const scores          = computeReadiness(workouts, movements);
+  const stimulus        = computeWeeklyStimulus(workouts, movements);
+  const prs             = computePRs(workouts, movements);
+  const muscleReadiness = computeMuscleReadiness(workouts, movements);
 
   return (
     <div className={s.page}>
@@ -174,6 +177,12 @@ export default function MomentumPage() {
               </div>
               <div className={s.carouselSlide}>
                 <PRsCard prs={prs} aiPrs={ai?.prs ?? null} />
+              </div>
+              <div className={s.carouselSlide}>
+                <MuscleReadinessCard
+                  upper={muscleReadiness.upper}
+                  lower={muscleReadiness.lower}
+                />
               </div>
             </div>
 
@@ -538,5 +547,67 @@ function PRsCard({
         )}
       </div>
     </section>
+  );
+}
+
+// ─── Muscle Readiness card ────────────────────────────────────────────────────
+
+function MuscleReadinessCard({
+  upper,
+  lower,
+}: {
+  upper: MuscleReadinessRow[];
+  lower: MuscleReadinessRow[];
+}) {
+  return (
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
+        <div>
+          <div className={s.heroCardEyebrow}>Recovery status</div>
+          <div className={s.heroCardTitle}>Muscle Readiness</div>
+        </div>
+      </div>
+
+      <div className={s.heroInner}>
+        {/* Upper body */}
+        <p className={s.mrSectionLabel}>Upper</p>
+        <div className={s.mrGrid}>
+          {upper.map((row) => (
+            <MrTile key={row.key} row={row} />
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className={s.mrDivider} />
+
+        {/* Lower body */}
+        <p className={s.mrSectionLabel}>Lower</p>
+        <div className={s.mrGrid}>
+          {lower.map((row) => (
+            <MrTile key={row.key} row={row} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MrTile({ row }: { row: MuscleReadinessRow }) {
+  return (
+    <div className={s.mrTile}>
+      <div className={s.mrTileName}>{row.label}</div>
+      <div className={s.mrBarTrack}>
+        <div
+          className={`${s.mrBarFill} ${s[row.status]}`}
+          style={{ width: `${row.recoveryPct}%` }}
+        />
+      </div>
+      <div className={s.mrTileBottom}>
+        <span className={`${s.mrPill} ${s[row.status]}`}>
+          {row.statusLabel}
+        </span>
+        <span className={s.mrTileStat}>{row.daysStat}</span>
+      </div>
+    </div>
   );
 }

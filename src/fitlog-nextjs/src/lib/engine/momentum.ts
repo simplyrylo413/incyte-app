@@ -562,3 +562,144 @@ export function computePRs(
       };
     });
 }
+
+// ─── Muscle Readiness ─────────────────────────────────────────────────────────
+//
+// Per-muscle readiness gauge: how recovered is each muscle group and should the
+// user train it today? Factors in:
+//   - Working sets logged in the last 7 days (volume load)
+//   - Days since the muscle was last trained (decay rate)
+//   - Avg RPE from the most recent session for that muscle (intensity context)
+//
+// recovery % = 100 − fatigue %, using the same decay model as computeMuscleFatigue.
+// Thresholds: ready ≥ 70 · caution 35–69 · hold < 35
+
+export type MuscleReadinessRow = {
+  key: string;
+  label: string;
+  sets: number;            // working sets in last 7 days
+  recoveryPct: number;     // 0–100, higher = more recovered
+  status: "ready" | "caution" | "hold";
+  daysAgo: number | null;  // null = never trained
+  avgRpe: number | null;   // avg RPE from last session this muscle was trained in
+  statusLabel: string;     // e.g. "Ready" | "Go light · RPE 8" | "Rest · RPE 9"
+  daysStat: string;        // compact display: "today" | "2d ago" | "—"
+};
+
+const ALL_MUSCLES_COMBINED = [...MUSCLE_UPPER, ...MUSCLE_LOWER];
+
+export function computeMuscleReadiness(
+  workouts: Workout[],
+  movements: Movement[]
+): { upper: MuscleReadinessRow[]; lower: MuscleReadinessRow[] } {
+  const mvMap = new Map<string, Movement>(movements.map((m) => [m.id, m]));
+  const weekAgo = Date.now() - 7 * 86400000;
+
+  const setsByMuscle: Record<string, number> = {};
+  const lastTsByMuscle: Record<string, number> = {};
+  // RPE from the most recent session per muscle
+  const lastRpeByMuscle: Record<string, { sum: number; n: number }> = {};
+
+  ALL_MUSCLES_COMBINED.forEach(({ key }) => { setsByMuscle[key] = 0; });
+
+  // Walk all finished workouts, newest-first so first hit per muscle = most recent session
+  const sorted = [...workouts]
+    .filter((w) => w?.finished)
+    .sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
+
+  for (const w of sorted) {
+    const ts = new Date(w.date ?? w.savedAt ?? 0).getTime();
+    if (!isFinite(ts)) continue;
+
+    for (const e of w.entries ?? []) {
+      const mv = mvMap.get(e.movementId ?? "");
+      if (!mv || isCardioMv(mv)) continue;
+      const key = mvMuscleKey(mv);
+      if (!ALL_MUSCLES_COMBINED.find((b) => b.key === key)) continue;
+
+      let setCount = 0;
+      let rpeSum = 0;
+      let rpeN = 0;
+      for (const s of e.sets ?? []) {
+        if (s.done && !s.warmup) {
+          setCount++;
+          const r = Number(s.rpe);
+          if (r > 0) { rpeSum += r; rpeN++; }
+        }
+      }
+
+      // Weekly set tally
+      if (ts >= weekAgo && setCount > 0) {
+        setsByMuscle[key] = (setsByMuscle[key] ?? 0) + setCount;
+      }
+
+      // Most-recent-session tracking (newest-first → first write wins per muscle)
+      const hasDone = (e.sets ?? []).some((s) => s.done);
+      if (hasDone && (!lastTsByMuscle[key] || ts > lastTsByMuscle[key])) {
+        lastTsByMuscle[key] = ts;
+        if (rpeN > 0) {
+          lastRpeByMuscle[key] = { sum: rpeSum, n: rpeN };
+        } else {
+          delete lastRpeByMuscle[key];
+        }
+      }
+    }
+  }
+
+  function buildRow(key: string, label: string): MuscleReadinessRow {
+    const sets = setsByMuscle[key] ?? 0;
+    const lastTs = lastTsByMuscle[key] ?? null;
+    const days = calendarDays(lastTs);
+    const isSmall = SMALL_MUSCLES.has(key);
+
+    // Fatigue via same decay model
+    let fatiguePct = 0;
+    if (sets > 0 && lastTs != null && days != null) {
+      const vol = Math.min(100, sets * 6.5);
+      fatiguePct = Math.round(vol * decayFactor(days, isSmall));
+    }
+    const recoveryPct = Math.max(0, 100 - fatiguePct);
+
+    const status: "ready" | "caution" | "hold" =
+      recoveryPct >= 70 ? "ready" : recoveryPct >= 35 ? "caution" : "hold";
+
+    // Avg RPE from last session
+    const rpeData = lastRpeByMuscle[key];
+    const avgRpe = rpeData && rpeData.n > 0
+      ? Math.round((rpeData.sum / rpeData.n) * 10) / 10
+      : null;
+
+    // Status label with RPE context
+    let statusLabel: string;
+    if (status === "ready") {
+      statusLabel = "Ready";
+    } else if (status === "caution") {
+      statusLabel = avgRpe != null && avgRpe >= 8
+        ? `Go light · RPE ${Math.round(avgRpe)}`
+        : "Go light";
+    } else {
+      statusLabel = avgRpe != null && avgRpe >= 7
+        ? `Rest · RPE ${Math.round(avgRpe)}`
+        : "Rest";
+    }
+
+    // Compact days-since string
+    let daysStat: string;
+    if (days == null) {
+      daysStat = "—";
+    } else if (days === 0) {
+      daysStat = "today";
+    } else if (days === 1) {
+      daysStat = "1d ago";
+    } else {
+      daysStat = `${days}d ago`;
+    }
+
+    return { key, label, sets, recoveryPct, status, daysAgo: days, avgRpe, statusLabel, daysStat };
+  }
+
+  return {
+    upper: MUSCLE_UPPER.map(({ key, label }) => buildRow(key, label)),
+    lower: MUSCLE_LOWER.map(({ key, label }) => buildRow(key, label)),
+  };
+}
