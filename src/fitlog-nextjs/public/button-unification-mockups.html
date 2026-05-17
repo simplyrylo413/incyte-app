@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Add Movement Button Unification</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1622;
+    --ink-2: #2c3548;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --paper: #f4f6fa;
+    --accent: #5d9bb8;
+    --accent-2: #9b82c8;
+    --accent-3: #c9a0be;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+    --font-display: "Inter Tight", system-ui, sans-serif;
+    --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  body {
+    font-family: var(--font-display);
+    background: #e8ecf2;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  h1 {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--label);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  /* ── Option grid ── */
+  .options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .option {
+    background: rgba(255,255,255,0.60);
+    border: 1.2px solid rgba(255,255,255,0.85);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(15,22,34,0.09), 0 1px 4px rgba(15,22,34,0.06);
+    backdrop-filter: blur(20px);
+  }
+
+  .option-label {
+    padding: 16px 20px 12px;
+    border-bottom: 1.2px solid rgba(15,22,34,0.07);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .option-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .option-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .option-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  /* ── Phone frame ── */
+  .phone-wrap {
+    padding: 14px;
+  }
+  .phone {
+    background: #f0f3f8;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.2px solid rgba(15,22,34,0.09);
+  }
+
+  /* ── Screen label ── */
+  .screen-label {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 8px 14px 0;
+    background: #f0f3f8;
+  }
+
+  /* ── Shared screen chrome ── */
+  .screen {
+    padding: 12px 14px;
+    background: #f0f3f8;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Movement list item */
+  .mv-row {
+    background: rgba(255,255,255,0.75);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 1px 4px rgba(15,22,34,0.06);
+  }
+  .mv-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5d9bb8, #9b82c8);
+    flex-shrink: 0;
+  }
+  .mv-name { font-size: 12px; font-weight: 600; color: var(--ink); flex: 1; }
+  .mv-equip {
+    font-family: var(--font-mono);
+    font-size: 8px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--label);
+    background: rgba(15,22,34,0.06);
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .mv-chip {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    color: var(--ok);
+    background: rgba(79,154,168,0.10);
+    border: 1.2px solid rgba(79,154,168,0.20);
+    padding: 2px 7px; border-radius: 4px;
+    margin-left: auto;
+  }
+
+  /* Plan day header */
+  .day-head {
+    background: rgba(255,255,255,0.75);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 1px 4px rgba(15,22,34,0.06);
+  }
+  .day-ring {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(93,155,184,0.18), rgba(155,130,200,0.14));
+    border: 1.2px solid rgba(93,155,184,0.25);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 9px; font-weight: 800; color: var(--accent);
+    flex-shrink: 0;
+  }
+  .day-info { flex: 1; }
+  .day-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .day-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+  /* ── DIVIDER between screens ── */
+  .screen-divider {
+    height: 1.2px;
+    background: rgba(15,22,34,0.08);
+    margin: 0 14px;
+  }
+
+  /* ── Picker sheet preview ── */
+  .picker-sheet {
+    background: rgba(245,248,252,0.98);
+    border-top: 1.2px solid rgba(15,22,34,0.08);
+    border-radius: 12px 12px 0 0;
+    padding: 8px 12px 12px;
+  }
+  .picker-handle {
+    width: 28px; height: 3px;
+    background: rgba(15,22,34,0.12);
+    border-radius: 2px;
+    margin: 0 auto 8px;
+  }
+  .picker-title { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .picker-row {
+    padding: 8px 0;
+    border-bottom: 1.2px solid rgba(15,22,34,0.05);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .picker-row:last-child { border-bottom: 0; }
+  .picker-mv-name { font-size: 12px; font-weight: 500; color: var(--ink); flex: 1; }
+  .picker-mv-equip {
+    font-family: var(--font-mono); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--label); background: rgba(15,22,34,0.06);
+    padding: 2px 5px; border-radius: 3px;
+  }
+  .picker-heart { font-size: 13px; color: #d0d8e2; }
+  .picker-heart.on { color: var(--bad); }
+
+  /* ─────────────────────────────────────────────────────── */
+  /* OPTION A — Dark pill (extend Today's current style) */
+
+  .btn-a-today {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 16px 9px 12px;
+    background: var(--ink);
+    color: #fff;
+    border: 0; border-radius: 999px;
+    font-family: var(--font-display); font-size: 12px; font-weight: 600;
+    width: fit-content; margin: 4px auto 0;
+    box-shadow: 0 4px 12px rgba(15,22,34,0.26), 0 2px 5px rgba(15,22,34,0.16);
+    cursor: default;
+  }
+  .btn-a-today .plus-circle {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: grid; place-items: center;
+    font-size: 13px; line-height: 1;
+  }
+
+  /* Plan day — same pill but smaller, inline */
+  .btn-a-plan {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px 6px 10px;
+    background: var(--ink);
+    color: #fff;
+    border: 0; border-radius: 999px;
+    font-family: var(--font-display); font-size: 11px; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(15,22,34,0.20);
+    cursor: default;
+    margin-left: auto;
+  }
+  .btn-a-plan .plus-sm {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: grid; place-items: center; font-size: 11px;
+  }
+
+  /* Picker — dark pill row button */
+  .btn-a-picker {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    background: var(--ink);
+    color: #fff;
+    border: 0; border-radius: 999px;
+    font-family: var(--font-display); font-size: 10px; font-weight: 600;
+    flex-shrink: 0; cursor: default;
+  }
+
+  /* ─────────────────────────────────────────────────────── */
+  /* OPTION B — Ghost / outline accent (extend Plan's style) */
+
+  .btn-b {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: rgba(93,155,184,0.09);
+    color: var(--accent);
+    border: 1.2px solid rgba(93,155,184,0.32);
+    border-radius: 999px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: default;
+  }
+
+  .btn-b-today {
+    width: fit-content; margin: 4px auto 0;
+  }
+  .btn-b-plan { margin-left: auto; }
+
+  .btn-b-picker {
+    font-size: 9px; padding: 3px 10px;
+    flex-shrink: 0;
+  }
+
+  /* ─────────────────────────────────────────────────────── */
+  /* OPTION C — Brand gradient pill */
+
+  .btn-c {
+    display: flex; align-items: center; gap: 7px;
+    border: 0; border-radius: 999px;
+    font-family: var(--font-display); font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg,
+      rgba(93,155,184,1) 0%,
+      rgba(155,130,200,0.92) 55%,
+      rgba(201,160,190,0.88) 100%);
+    box-shadow: 0 3px 12px rgba(93,155,184,0.35), 0 1px 4px rgba(93,155,184,0.22);
+    cursor: default;
+  }
+
+  .btn-c-today {
+    padding: 9px 18px 9px 13px;
+    font-size: 12px;
+    width: fit-content; margin: 4px auto 0;
+  }
+  .btn-c-today .plus-circle-c {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    display: grid; place-items: center; font-size: 13px;
+  }
+
+  .btn-c-plan {
+    padding: 5px 12px 5px 9px;
+    font-size: 11px;
+    margin-left: auto;
+  }
+  .btn-c-plan .plus-sm-c {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    display: grid; place-items: center; font-size: 11px;
+  }
+
+  .btn-c-picker {
+    padding: 4px 11px; font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  /* ── Summary table ── */
+  .summary {
+    max-width: 1080px;
+    margin: 32px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .sum-card {
+    background: rgba(255,255,255,0.62);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(15,22,34,0.06);
+  }
+  .sum-num {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 800; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .sum-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .sum-body { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .sum-pro { color: var(--ok); font-weight: 600; }
+  .sum-con { color: var(--bad); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<h1>Button unification</h1>
+<h2>3 options for a unified "Add" button</h2>
+<p class="subtitle">Today · Plan · Picker sheet — all three screens shown per option</p>
+
+<div class="options">
+
+  <!-- ══════════════════ OPTION A ══════════════════ -->
+  <div class="option">
+    <div class="option-label">
+      <span class="option-num">Option A</span>
+      <span class="option-name">Dark pill everywhere</span>
+      <span class="option-desc">Extend Today's style</span>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+
+        <!-- Today screen -->
+        <div class="screen-label">Today</div>
+        <div class="screen">
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Bench Press</span>
+            <span class="mv-equip">Barbell</span>
+            <span class="mv-chip">2/3</span>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Cable Row</span>
+            <span class="mv-equip">Cable</span>
+            <span class="mv-chip">0/3</span>
+          </div>
+          <button class="btn-a-today">
+            <span class="plus-circle">+</span>
+            Add movement
+          </button>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Plan screen -->
+        <div class="screen-label">Plan — Monday</div>
+        <div class="screen">
+          <div class="day-head">
+            <div class="day-ring">M</div>
+            <div class="day-info">
+              <div class="day-name">Monday</div>
+              <div class="day-sub">3 movements · ~42 min</div>
+            </div>
+            <button class="btn-a-plan">
+              <span class="plus-sm">+</span>
+              Add
+            </button>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Squat</span>
+            <span class="mv-equip">Barbell</span>
+          </div>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Picker sheet -->
+        <div class="screen-label">Movement picker</div>
+        <div class="screen" style="padding: 0;">
+          <div class="picker-sheet">
+            <div class="picker-handle"></div>
+            <div class="picker-title">Add to today</div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Incline DB Press</span>
+              <span class="picker-mv-equip">Dumbbell</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-a-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Lat Pulldown</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart on">♥</span>
+              <button class="btn-a-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Face Pull</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-a-picker">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ OPTION B ══════════════════ -->
+  <div class="option">
+    <div class="option-label">
+      <span class="option-num">Option B</span>
+      <span class="option-name">Ghost accent everywhere</span>
+      <span class="option-desc">Extend Plan's style</span>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+
+        <!-- Today screen -->
+        <div class="screen-label">Today</div>
+        <div class="screen">
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Bench Press</span>
+            <span class="mv-equip">Barbell</span>
+            <span class="mv-chip">2/3</span>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Cable Row</span>
+            <span class="mv-equip">Cable</span>
+            <span class="mv-chip">0/3</span>
+          </div>
+          <button class="btn-b btn-b-today">+ Add movement</button>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Plan screen -->
+        <div class="screen-label">Plan — Monday</div>
+        <div class="screen">
+          <div class="day-head">
+            <div class="day-ring">M</div>
+            <div class="day-info">
+              <div class="day-name">Monday</div>
+              <div class="day-sub">3 movements · ~42 min</div>
+            </div>
+            <button class="btn-b btn-b-plan">+ Add</button>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Squat</span>
+            <span class="mv-equip">Barbell</span>
+          </div>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Picker sheet -->
+        <div class="screen-label">Movement picker</div>
+        <div class="screen" style="padding: 0;">
+          <div class="picker-sheet">
+            <div class="picker-handle"></div>
+            <div class="picker-title">Add to today</div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Incline DB Press</span>
+              <span class="picker-mv-equip">Dumbbell</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-b btn-b-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Lat Pulldown</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart on">♥</span>
+              <button class="btn-b btn-b-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Face Pull</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-b btn-b-picker">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ OPTION C ══════════════════ -->
+  <div class="option">
+    <div class="option-label">
+      <span class="option-num">Option C</span>
+      <span class="option-name">Brand gradient pill</span>
+      <span class="option-desc">Premium feel</span>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+
+        <!-- Today screen -->
+        <div class="screen-label">Today</div>
+        <div class="screen">
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Bench Press</span>
+            <span class="mv-equip">Barbell</span>
+            <span class="mv-chip">2/3</span>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Cable Row</span>
+            <span class="mv-equip">Cable</span>
+            <span class="mv-chip">0/3</span>
+          </div>
+          <button class="btn-c btn-c-today">
+            <span class="plus-circle-c">+</span>
+            Add movement
+          </button>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Plan screen -->
+        <div class="screen-label">Plan — Monday</div>
+        <div class="screen">
+          <div class="day-head">
+            <div class="day-ring">M</div>
+            <div class="day-info">
+              <div class="day-name">Monday</div>
+              <div class="day-sub">3 movements · ~42 min</div>
+            </div>
+            <button class="btn-c btn-c-plan">
+              <span class="plus-sm-c">+</span>
+              Add
+            </button>
+          </div>
+          <div class="mv-row">
+            <div class="mv-dot"></div>
+            <span class="mv-name">Squat</span>
+            <span class="mv-equip">Barbell</span>
+          </div>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <!-- Picker sheet -->
+        <div class="screen-label">Movement picker</div>
+        <div class="screen" style="padding: 0;">
+          <div class="picker-sheet">
+            <div class="picker-handle"></div>
+            <div class="picker-title">Add to today</div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Incline DB Press</span>
+              <span class="picker-mv-equip">Dumbbell</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-c btn-c-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Lat Pulldown</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart on">♥</span>
+              <button class="btn-c btn-c-picker">+ Add</button>
+            </div>
+            <div class="picker-row">
+              <span class="picker-mv-name">Face Pull</span>
+              <span class="picker-mv-equip">Cable</span>
+              <span class="picker-heart">♡</span>
+              <button class="btn-c btn-c-picker">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Summary -->
+<div class="summary">
+  <div class="sum-card">
+    <div class="sum-num">Option A</div>
+    <div class="sum-title">Dark pill</div>
+    <div class="sum-body">
+      <span class="sum-pro">✓ High contrast — always visible regardless of background</span><br>
+      <span class="sum-pro">✓ Already matches Today's CTA — minimal change</span><br>
+      <span class="sum-pro">✓ Clear primary action feel</span><br>
+      <span class="sum-con">– Heavy inside the picker sheet row</span>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-num">Option B</div>
+    <div class="sum-title">Ghost accent</div>
+    <div class="sum-body">
+      <span class="sum-pro">✓ Lightest — doesn't compete with content</span><br>
+      <span class="sum-pro">✓ Already matches Plan's inline Add — minimal change</span><br>
+      <span class="sum-pro">✓ Works at any size (large CTA or small inline)</span><br>
+      <span class="sum-con">– Can read as secondary on low-contrast backgrounds</span>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-num">Option C</div>
+    <div class="sum-title">Brand gradient</div>
+    <div class="sum-body">
+      <span class="sum-pro">✓ On-brand — same gradient used on hero cards + AI pills</span><br>
+      <span class="sum-pro">✓ Most distinctive — unmistakably INCYTE</span><br>
+      <span class="sum-pro">✓ Premium feel, stands out without being dark</span><br>
+      <span class="sum-con">– Most visually heavy in picker rows</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
