@@ -242,6 +242,7 @@ function WorkoutPage() {
       await handleComplete(newEntry);
       showToast(`Set ${idx + 1} logged — movement complete.`);
       startRest();
+      router.refresh();
       router.push("/today");
       return;
     }
@@ -440,7 +441,7 @@ function WorkoutPage() {
         restRemaining={restRemaining}
         restSecs={restSecs}
         onLogSet={handleLogSet}
-        onComplete={() => { handleComplete(); router.push("/today"); }}
+        onComplete={async () => { await handleComplete(); router.refresh(); router.push("/today"); }}
         onOpenPicker={openPicker}
         onToggleRpe={() => setTrackRpe((v) => !v)}
         onToggleAi={() => setAiOn((v) => !v)}

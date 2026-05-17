@@ -70,6 +70,13 @@ export default function TodayPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Re-fetch when the tab/window regains focus (covers browser back-button return)
+  useEffect(() => {
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [load]);
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const mvMap = new Map<string, Movement>(movements.map((m) => [m.id, m]));
   const todayPlan = filterTodaysPlan(plans);
