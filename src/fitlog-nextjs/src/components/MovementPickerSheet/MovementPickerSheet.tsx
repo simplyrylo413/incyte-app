@@ -200,6 +200,11 @@ export default function MovementPickerSheet({
                 onClick={() => { setBodyPart(null); setFavoritesOnly(false); }}>
                 All
               </button>
+              <button type="button"
+                className={`${s.pill} ${favoritesOnly ? s.pillFavActive : s.pillFav}`}
+                onClick={() => setFavoritesOnly(!favoritesOnly)}>
+                ♥{favCount > 0 ? ` Favorites (${favCount})` : " Favorites"}
+              </button>
               {BODY_PART_PILLS.map(({ key, label }) => (
                 <button key={key} type="button"
                   className={`${s.pill} ${bodyPart === key ? s.pillActive : ""}`}
@@ -207,11 +212,6 @@ export default function MovementPickerSheet({
                   {label}
                 </button>
               ))}
-              <button type="button"
-                className={`${s.pill} ${favoritesOnly ? s.pillFavActive : s.pillFav}`}
-                onClick={() => setFavoritesOnly(!favoritesOnly)}>
-                ♥{favCount > 0 ? ` Favorites (${favCount})` : " Favorites"}
-              </button>
             </div>
 
             {/* Search */}

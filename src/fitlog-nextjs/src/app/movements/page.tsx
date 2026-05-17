@@ -307,6 +307,11 @@ export default function MovementsPage() {
           onClick={() => { setBodyPart(null); setFavoritesOnly(false); }}>
           All
         </button>
+        <button type="button"
+          className={`${s.filterPill} ${favoritesOnly ? s.filterPillFav : ""}`}
+          onClick={() => setFavoritesOnly(!favoritesOnly)}>
+          ♥ Favorites
+        </button>
         {BODY_PART_PILLS.map(({ key, label }) => (
           <button key={key} type="button"
             className={`${s.filterPill} ${bodyPart === key ? s.filterPillActive : ""}`}
@@ -314,11 +319,6 @@ export default function MovementsPage() {
             {label}
           </button>
         ))}
-        <button type="button"
-          className={`${s.filterPill} ${favoritesOnly ? s.filterPillFav : ""}`}
-          onClick={() => setFavoritesOnly(!favoritesOnly)}>
-          ♥ Favorites
-        </button>
       </div>
 
       {listContent}

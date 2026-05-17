@@ -393,8 +393,20 @@ function MovementRow({
   ).toLowerCase();
 
   const [openPop, setOpenPop] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const rippleRef = useRef<HTMLSpanElement>(null);
+
+  const hasLoggedSets = (item.entry?.sets ?? []).some((s) => s.done);
+
+  function handleRemoveClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (hasLoggedSets) {
+      setConfirmRemove(true);
+    } else {
+      onRemove(item.planId);
+    }
+  }
 
   useEffect(() => {
     if (!openPop) return;
@@ -498,12 +510,27 @@ function MovementRow({
           className={s.removeBtn}
           type="button"
           aria-label="Remove"
-          onClick={(e) => { e.stopPropagation(); onRemove(item.planId); }}
+          onClick={handleRemoveClick}
         >
           <svg viewBox="0 0 12 12" fill="none">
             <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
         </button>
+      )}
+
+      {/* Confirm remove overlay — shown when entry has logged sets */}
+      {confirmRemove && (
+        <div className={s.removeConfirm} onClick={(e) => e.stopPropagation()}>
+          <span className={s.removeConfirmMsg}>Sets logged — remove anyway?</span>
+          <button type="button" className={s.removeConfirmCancel}
+            onClick={() => setConfirmRemove(false)}>
+            Keep
+          </button>
+          <button type="button" className={s.removeConfirmOk}
+            onClick={() => { setConfirmRemove(false); onRemove(item.planId); }}>
+            Remove
+          </button>
+        </div>
       )}
     </div>
   );

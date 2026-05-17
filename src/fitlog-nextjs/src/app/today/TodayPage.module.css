@@ -482,6 +482,65 @@
 .removeBtn:hover { color: #b08092; border-color: rgba(176,128,146,0.30); }
 .removeBtn svg { width: 12px; height: 12px; }
 
+/* ─── Remove confirmation strip ─────────────────────────────────────────── */
+.removeConfirm {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(245,240,242,0.97);
+  border-top: 1.2px solid rgba(176,128,146,0.22);
+  border-radius: 0 0 14px 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: confirmSlideIn 140ms cubic-bezier(0.22,1,0.36,1);
+  z-index: 10;
+}
+@keyframes confirmSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.removeConfirmMsg {
+  flex: 1;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5e6a82;
+}
+
+.removeConfirmCancel {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1.2px solid rgba(15,22,34,0.18);
+  background: none;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e6a82;
+  cursor: pointer;
+  transition: background 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+.removeConfirmCancel:active { transform: scale(0.95); }
+
+.removeConfirmOk {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1.2px solid rgba(176,128,146,0.45);
+  background: rgba(176,128,146,0.12);
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9e4060;
+  cursor: pointer;
+  transition: background 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+.removeConfirmOk:active { transform: scale(0.95); }
+
 /* ─── Empty state ────────────────────────────────────────────────────────── */
 .emptyState {
   margin: 28px 22px;
@@ -844,6 +903,14 @@
 
   :global(body:not(.theme-light)) .removeBtn:hover { color: #c89aa3; border-color: rgba(200,154,163,0.30); }
 
+  :global(body:not(.theme-light)) .removeConfirm {
+    background: rgba(20,14,18,0.97);
+    border-top-color: rgba(176,128,146,0.25);
+  }
+  :global(body:not(.theme-light)) .removeConfirmMsg { color: #8d96a5; }
+  :global(body:not(.theme-light)) .removeConfirmCancel { border-color: rgba(255,255,255,0.14); color: #8d96a5; }
+  :global(body:not(.theme-light)) .removeConfirmOk { border-color: rgba(176,128,146,0.45); background: rgba(176,128,146,0.14); color: #c89aa3; }
+
   :global(body:not(.theme-light)) .emptyState {
     background: rgba(14,18,23,0.55);
     border-color: rgba(255,255,255,0.12);
@@ -998,6 +1065,11 @@
 }
 
 :global(body.theme-dark) .removeBtn:hover { color: #c89aa3; border-color: rgba(200,154,163,0.30); }
+
+:global(body.theme-dark) .removeConfirm { background: rgba(20,14,18,0.97); border-top-color: rgba(176,128,146,0.25); }
+:global(body.theme-dark) .removeConfirmMsg { color: #8d96a5; }
+:global(body.theme-dark) .removeConfirmCancel { border-color: rgba(255,255,255,0.14); color: #8d96a5; }
+:global(body.theme-dark) .removeConfirmOk { border-color: rgba(176,128,146,0.45); background: rgba(176,128,146,0.14); color: #c89aa3; }
 
 :global(body.theme-dark) .emptyState {
   background: rgba(14,18,23,0.55);
