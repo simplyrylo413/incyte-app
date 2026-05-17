@@ -2,7 +2,7 @@
 
 > Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-15_
+_Last updated: 2026-05-16_
 
 ---
 
@@ -87,6 +87,7 @@ Sub-routes under More:
 | 6 — Plan editor | Week strip, day cards, movement rows, add/edit sheet | ✅ Done |
 | 7 — More hub + History + Movements | Glass nav cards, workout log, movement CRUD | ✅ Done |
 | 8 — Auth | Supabase signup/signin/reset, middleware gate, device_id migration | ✅ Done |
+| 7b — Movement Library enrichment | ExerciseDB import, detail sheet, thumbnail badges | ✅ Done |
 | **9 — Capacitor wrap** | **iOS shell, app icon, provisioning, App Store Connect** | ⬜ Next |
 
 **Nav:** Bottom nav shows icons only (no text labels). Tab order: Today / Insights / Momentum / More, matching mobile351 baseline. `NavGuard` component in layout suppresses nav on `/login` and `/auth/*`.
@@ -135,6 +136,44 @@ Sub-routes under More:
 
 ---
 
+## 8. Movement library — data layer (settled 2026-05-16)
+
+### Schema columns on `movements` table
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | `crypto.randomUUID()` on insert |
+| `user_id` | uuid | Defaults to `auth.uid()` via DB column default. RLS policy filters rows automatically — no `.eq("user_id", id)` needed in queries. |
+| `name` | text | Unique per user via `(user_id, name)` constraint |
+| `kind` | text | `'weight'` or `'cardio'` only (DB check constraint) |
+| `body_part` | text | Muscle group (e.g. `'chest'`, `'quads'`) |
+| `equipment_type` | text | `'barbell'`, `'dumbbell'`, `'cable'`, `'machine'`, `'bodyweight'`, or null |
+| `gif_url` | text | GIF URL — currently null for all rows (see note below) |
+| `secondary_muscles` | text[] | From ExerciseDB import. Array of muscle names. |
+| `instructions` | text[] | Step-by-step instructions from ExerciseDB |
+| `unit`, `notes`, `created_at` | various | Standard; unit defaults to `'kg'` |
+
+**`rowToMovement()` in `db.ts`** maps these columns to the `Movement` type fields (`muscle`, `bodyPart`, `equipmentType`, `gifUrl`, `secondaryMuscles`, `instructions`).
+
+### ExerciseDB import
+
+- **Edge function:** `supabase/functions/import-exercises/index.ts` — deployed to Supabase. Fetches exercises from ExerciseDB via RapidAPI ($10/mo plan) and upserts into `movements` using `(user_id, name)` conflict key. Triggered via the "⬇ Import from ExerciseDB" button on `/movements`.
+- **Data ownership:** All exercise data (names, instructions, secondary muscles, body parts) is stored in your Supabase `movements` table and is fully independent of RapidAPI after import. Cancelling the RapidAPI subscription does not affect existing rows or app functionality. The import button only matters for adding *new* exercises or refreshing metadata.
+- **~555 exercises** seeded from ExerciseDB. 26 default movements seeded on first login if the table is empty.
+- **GIF images:** ExerciseDB's CDN (`v2.exercisedb.io`) is gated behind a proprietary auth layer that is not exposed via the RapidAPI key — even on paid tiers. `gif_url` is null for all imported rows. The `exercise-gif` edge function (proxy attempt) is deployed but unused.
+
+### Movement list UI
+
+- **Thumbnail:** 56×56px left of each row. Shows `<img loading="lazy">` if `gifUrl` is present; otherwise shows `MuscleBadge` — a colored square with 2-letter muscle group abbreviation.
+- **`MuscleBadge` color map** (INCYTE palette):
+  - CH `#5d9bb8` · BK `#7fa5c7` · SH `#9eb5cb` · BI `#4f9aa8` · TR `#6a8fb8`
+  - CO `#5a9fa8` · QU `#6ba0bc` · HA `#7a9fc2` · GL `#a08090` · CA `#8090a8`
+  - ♥ (cardio) `#b08092` · OT `#8893a8`
+- **Detail sheet:** Tap a row → bottom sheet with GIF (if present), secondary muscles chips, numbered instruction steps, Edit + Delete actions.
+- **Edit sheet:** Preserves `gifUrl`, `secondaryMuscles`, `instructions` on save (passed through, not editable in the form).
+
+---
+
 ## 8. File layout (Next.js build)
 
 ```
@@ -162,7 +201,7 @@ src/fitlog-nextjs/src/
 │   │   ├── page.tsx           ← Workout log grouped by month
 │   │   └── HistoryPage.module.css
 │   ├── movements/
-│   │   ├── page.tsx           ← CRUD library with bottom sheet
+│   │   ├── page.tsx           ← CRUD library; MvRow + MuscleBadge + DetailSheet + MvSheet
 │   │   └── MovementsPage.module.css
 │   ├── login/
 │   │   └── page.tsx           ← Auth gate (wraps AuthForm in Suspense)
@@ -174,9 +213,12 @@ src/fitlog-nextjs/src/
 │   ├── NavGuard.tsx           ← Suppresses BottomNav on /login and /auth/*
 │   ├── AuthForm.tsx           ← Signin / signup / reset (3-mode)
 │   └── AuthForm.module.css
+├── supabase/functions/
+│   ├── import-exercises/index.ts  ← ExerciseDB → movements table (RapidAPI, bypasses RLS)
+│   └── exercise-gif/index.ts      ← GIF proxy (deployed, currently unused — CDN gated)
 └── lib/
-    ├── db.ts                  ← Supabase helpers, getIdentifier(), adoptDeviceRowsIfNeeded()
-    ├── types.ts               ← Movement, WorkoutEntry, Workout, PlanItem
+    ├── db.ts                  ← Supabase helpers, getIdentifier(), adoptDeviceRowsIfNeeded(), importExercisesFromDB()
+    ├── types.ts               ← Movement (+ gifUrl, secondaryMuscles, instructions), WorkoutEntry, Workout, PlanItem
     ├── device.ts              ← getDeviceId(), tryGetDeviceId()
     └── engine/
         ├── fatigue.ts         ← computeOverallFatiguePct
@@ -209,6 +251,8 @@ src/fitlog-nextjs/src/
 - Plan: drag-to-reorder days, long-press movement row to clone to another day
 - Momentum: multi-period sparkline overlay (backlog F-04)
 - `body.theme-dark` persistence across navigations via `layout.tsx` (currently applied per-page on mount via More page; should apply globally in layout from localStorage on mount)
+- Movement library: add `description` and `difficulty` fields from ExerciseDB to DB schema and detail sheet (data available from API, columns not yet added to table)
+- Movement GIFs: ExerciseDB CDN gated — investigate alternative sources (ExRx, Wger, self-hosted GIFs) if images become a priority
 
 ---
 
