@@ -176,6 +176,27 @@ export function allSetsDone(sets: SetEntry[]): boolean {
   return sets.length > 0 && sets.every((s) => s.done);
 }
 
+// ─── Session name helper ──────────────────────────────────────────────────────
+
+/**
+ * Build a session name from its entries' muscle groups.
+ * e.g. "Chest · Back · Shoulders" or "Chest · Back · +" for 4+ groups.
+ * Falls back to the day name if no muscle data is available.
+ */
+export function buildSessionName(entries: WorkoutEntry[], fallback?: string): string {
+  const parts: string[] = [];
+  const seen = new Set<string>();
+  for (const e of entries) {
+    const raw = (e.muscle ?? "").trim().toLowerCase();
+    if (!raw || seen.has(raw)) continue;
+    seen.add(raw);
+    parts.push(raw.charAt(0).toUpperCase() + raw.slice(1));
+  }
+  if (parts.length === 0) return fallback ?? "Session";
+  if (parts.length <= 3) return parts.join(" · ");
+  return parts.slice(0, 3).join(" · ") + " · +";
+}
+
 // ─── Archive helper ───────────────────────────────────────────────────────────
 
 /**
@@ -214,12 +235,12 @@ export function archiveEntryToToday(
   };
 
   if (!session) {
-    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const newEntries = [archived];
     session = {
       id: crypto.randomUUID(),
-      name: `${DAYS[today.getDay()]} session`,
+      name: buildSessionName(newEntries),
       date: today.toISOString(),
-      entries: [archived],
+      entries: newEntries,
       finished: true,
       workout_status: "completed",
       completed_at: nowIso,
@@ -245,6 +266,7 @@ export function archiveEntryToToday(
     }
     const updatedSession: Workout = {
       ...session,
+      name: buildSessionName(newEntries),
       entries: newEntries,
       completed_at: nowIso,
       savedAt: nowIso,

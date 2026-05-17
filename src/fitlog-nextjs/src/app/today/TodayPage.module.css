@@ -1112,6 +1112,8 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 200;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   animation: fadeInOverlay 180ms ease;
 }
 @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
