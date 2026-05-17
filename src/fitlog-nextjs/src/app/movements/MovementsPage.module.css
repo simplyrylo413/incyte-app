@@ -551,6 +551,146 @@
   color: var(--muted);
 }
 
+/* ─── Sheet subtitle (used in AddToPlan header) ─────────────────────────── */
+.sheetSubtitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8893a8;
+  margin-top: 1px;
+}
+
+/* ─── Planned bar (shows existing plan days in detail view) ──────────────── */
+.plannedBar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 20px;
+  padding: 9px 12px;
+  background: rgba(79,154,168,0.10);
+  border: 1.2px solid rgba(79,154,168,0.22);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.plannedBarIcon {
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.plannedBarText {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #4f9aa8;
+  text-transform: uppercase;
+}
+
+/* ─── Add to plan primary action row ─────────────────────────────────────── */
+.planAction {
+  padding: 10px 20px 0;
+  flex-shrink: 0;
+}
+
+.btnAddToPlan {
+  width: 100%;
+  padding: 13px 0;
+  background: rgba(93,155,184,0.12);
+  color: #5d9bb8;
+  border: 1.2px solid rgba(93,155,184,0.38);
+  border-radius: 12px;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: background 150ms, transform 150ms;
+}
+
+.btnAddToPlan:active { transform: scale(0.97); }
+.btnAddToPlan:hover  { background: rgba(93,155,184,0.18); }
+
+/* ─── Day picker (AddToPlanSheet) ────────────────────────────────────────── */
+.dayPickerBody {
+  padding: 20px 20px 8px;
+  flex-shrink: 0;
+}
+
+.dayPickerLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #8893a8;
+  margin-bottom: 14px;
+}
+
+.dayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dayChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1.2px solid rgba(15,22,34,0.14);
+  background: rgba(255,255,255,0.70);
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms, transform 150ms;
+  padding: 0;
+}
+
+.dayChip:active { transform: scale(0.94); }
+
+.dayChipLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2c3548;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.dayChipCheck {
+  font-size: 9px;
+  color: #4f9aa8;
+  line-height: 1;
+}
+
+/* Selected by user this session */
+.dayChipSelected {
+  background: #0f1622;
+  border-color: #0f1622;
+}
+
+.dayChipSelected .dayChipLabel { color: #ffffff; }
+
+/* Already in plan */
+.dayChipPlanned {
+  background: rgba(79,154,168,0.12);
+  border-color: rgba(79,154,168,0.38);
+  cursor: default;
+  opacity: 1;
+}
+
+.dayChipPlanned .dayChipLabel { color: #4f9aa8; }
+
+.dayPickerNote {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: #8893a8;
+  line-height: 1.4;
+}
+
 /* ─── Detail view ────────────────────────────────────────────────────────── */
 .gifWrap {
   width: 100%;
@@ -612,8 +752,82 @@
   :global(body:not(.theme-light)) .gifWrap { background: rgba(255,255,255,0.04); }
   :global(body:not(.theme-light)) .detailSectionLabel { color: #6a7384; }
   :global(body:not(.theme-light)) .instructionStep { color: #c8d0db; }
+
+  :global(body:not(.theme-light)) .sheetSubtitle { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .plannedBar {
+    background: rgba(79,154,168,0.10);
+    border-color: rgba(79,154,168,0.22);
+  }
+  :global(body:not(.theme-light)) .plannedBarText { color: #7ec0a8; }
+
+  :global(body:not(.theme-light)) .btnAddToPlan {
+    background: rgba(77,208,225,0.10);
+    border-color: rgba(77,208,225,0.28);
+    color: #4dd0e1;
+  }
+  :global(body:not(.theme-light)) .btnAddToPlan:hover {
+    background: rgba(77,208,225,0.16);
+  }
+
+  :global(body:not(.theme-light)) .dayPickerLabel { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .dayChip {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+  }
+  :global(body:not(.theme-light)) .dayChipLabel { color: #c8d0db; }
+
+  :global(body:not(.theme-light)) .dayChipSelected { background: #f7f9fc; border-color: #f7f9fc; }
+  :global(body:not(.theme-light)) .dayChipSelected .dayChipLabel { color: #0f1622; }
+
+  :global(body:not(.theme-light)) .dayChipPlanned {
+    background: rgba(79,154,168,0.12);
+    border-color: rgba(79,154,168,0.38);
+  }
+  :global(body:not(.theme-light)) .dayChipPlanned .dayChipLabel { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .dayChipCheck { color: #7ec0a8; }
+
+  :global(body:not(.theme-light)) .dayPickerNote { color: #6a7384; }
 }
 
 :global(body.theme-dark) .gifWrap { background: rgba(255,255,255,0.04); }
 :global(body.theme-dark) .detailSectionLabel { color: #6a7384; }
 :global(body.theme-dark) .instructionStep { color: #c8d0db; }
+
+:global(body.theme-dark) .sheetSubtitle { color: #6a7384; }
+
+:global(body.theme-dark) .plannedBar {
+  background: rgba(79,154,168,0.10);
+  border-color: rgba(79,154,168,0.22);
+}
+:global(body.theme-dark) .plannedBarText { color: #7ec0a8; }
+
+:global(body.theme-dark) .btnAddToPlan {
+  background: rgba(77,208,225,0.10);
+  border-color: rgba(77,208,225,0.28);
+  color: #4dd0e1;
+}
+:global(body.theme-dark) .btnAddToPlan:hover {
+  background: rgba(77,208,225,0.16);
+}
+
+:global(body.theme-dark) .dayPickerLabel { color: #6a7384; }
+
+:global(body.theme-dark) .dayChip {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+:global(body.theme-dark) .dayChipLabel { color: #c8d0db; }
+
+:global(body.theme-dark) .dayChipSelected { background: #f7f9fc; border-color: #f7f9fc; }
+:global(body.theme-dark) .dayChipSelected .dayChipLabel { color: #0f1622; }
+
+:global(body.theme-dark) .dayChipPlanned {
+  background: rgba(79,154,168,0.12);
+  border-color: rgba(79,154,168,0.38);
+}
+:global(body.theme-dark) .dayChipPlanned .dayChipLabel { color: #7ec0a8; }
+:global(body.theme-dark) .dayChipCheck { color: #7ec0a8; }
+
+:global(body.theme-dark) .dayPickerNote { color: #6a7384; }

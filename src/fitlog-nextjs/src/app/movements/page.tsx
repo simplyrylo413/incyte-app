@@ -3,11 +3,12 @@
 // Movement Library — Phase 7
 // Tap a movement → detail sheet (GIF + instructions)
 // From detail sheet → Edit button → edit form
+// From detail sheet → Add to Plan → day picker sheet
 // FAB → create new movement
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listMovements, upsertMovement, deleteMovement, importExercisesFromDB } from "@/lib/db";
-import type { Movement, MovementKind } from "@/lib/types";
+import { listMovements, upsertMovement, deleteMovement, importExercisesFromDB, listPlans, upsertPlan } from "@/lib/db";
+import type { Movement, MovementKind, PlanItem } from "@/lib/types";
 import s from "./MovementsPage.module.css";
 
 const MUSCLE_OPTIONS = [
@@ -20,10 +21,15 @@ const MUSCLE_ORDER = [
   "core","quads","hamstrings","glutes","calves","cardio","other",
 ];
 
+// Day-of-week constants (0=Sun … 6=Sat)
+const DOW_SHORT  = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const DOW_FULL   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
 type Sheet =
   | { mode: "create" }
   | { mode: "edit"; mv: Movement }
   | { mode: "detail"; mv: Movement }
+  | { mode: "addToPlan"; mv: Movement }
   | null;
 
 // ─── Root page ────────────────────────────────────────────────────────────────
@@ -32,6 +38,7 @@ export default function MovementsPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [plans, setPlans] = useState<PlanItem[]>([]);
   const [query, setQuery] = useState("");
   const [sheet, setSheet] = useState<Sheet>(null);
   const [importing, setImporting] = useState(false);
@@ -39,8 +46,9 @@ export default function MovementsPage() {
 
   const load = useCallback(async () => {
     try {
-      const mv = await listMovements();
+      const [mv, pl] = await Promise.all([listMovements(), listPlans()]);
       setMovements(mv);
+      setPlans(pl);
       setErr(null);
     } catch (e) {
       setErr(String(e));
@@ -85,6 +93,22 @@ export default function MovementsPage() {
     setMovements((prev) => prev.filter((m) => m.id !== id));
     setSheet(null);
     await deleteMovement(id);
+  }, []);
+
+  // Add movement to plan for one or more days-of-week
+  const handleAddToPlan = useCallback(async (mv: Movement, days: number[]) => {
+    const newPlans: PlanItem[] = days.map((dow) => ({
+      id: `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${dow}`,
+      mid: mv.id,
+      dow,
+      sets: 3,
+      reps: "",
+      notes: "",
+    }));
+    setPlans((prev) => [...prev, ...newPlans]);
+    // Return to detail sheet after adding
+    setSheet({ mode: "detail", mv });
+    await Promise.all(newPlans.map(upsertPlan));
   }, []);
 
   const filtered = movements.filter((mv) =>
@@ -159,7 +183,9 @@ export default function MovementsPage() {
       {sheet?.mode === "detail" && (
         <DetailSheet
           mv={sheet.mv}
+          plans={plans}
           onEdit={() => setSheet({ mode: "edit", mv: (sheet as { mode: "detail"; mv: Movement }).mv })}
+          onAddToPlan={() => setSheet({ mode: "addToPlan", mv: (sheet as { mode: "detail"; mv: Movement }).mv })}
           onDelete={handleDelete}
           onClose={() => setSheet(null)}
         />
@@ -171,6 +197,15 @@ export default function MovementsPage() {
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setSheet(null)}
+        />
+      )}
+
+      {sheet?.mode === "addToPlan" && (
+        <AddToPlanSheet
+          mv={(sheet as { mode: "addToPlan"; mv: Movement }).mv}
+          plans={plans}
+          onAdd={handleAddToPlan}
+          onClose={() => setSheet({ mode: "detail", mv: (sheet as { mode: "addToPlan"; mv: Movement }).mv })}
         />
       )}
     </div>
@@ -259,18 +294,28 @@ function MvRow({ mv, onTap }: { mv: Movement; onTap: () => void }) {
 
 function DetailSheet({
   mv,
+  plans,
   onEdit,
+  onAddToPlan,
   onDelete,
   onClose,
 }: {
   mv: Movement;
+  plans: PlanItem[];
   onEdit: () => void;
+  onAddToPlan: () => void;
   onDelete: (id: string) => void;
   onClose: () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const muscle = mv.muscle ?? mv.bodyPart ?? "";
   const equip = mv.equipmentType ?? "";
+
+  // Days this movement is already in the plan
+  const plannedDays = plans.filter((p) => p.mid === mv.id).map((p) => p.dow);
+  const plannedLabel = plannedDays.length > 0
+    ? plannedDays.sort((a, b) => a - b).map((d) => DOW_SHORT[d]).join(" · ")
+    : null;
 
   return (
     <>
@@ -321,6 +366,22 @@ function DetailSheet({
           )}
         </div>
 
+        {/* Plan status indicator */}
+        {plannedLabel && (
+          <div className={s.plannedBar}>
+            <span className={s.plannedBarIcon}>📅</span>
+            <span className={s.plannedBarText}>In plan: {plannedLabel}</span>
+          </div>
+        )}
+
+        {/* Add to plan — primary action */}
+        <div className={s.planAction}>
+          <button type="button" className={s.btnAddToPlan} onClick={onAddToPlan}>
+            {plannedLabel ? "Edit plan days" : "Add to plan"}
+          </button>
+        </div>
+
+        {/* Edit / Delete */}
         <div className={s.editActions}>
           <button type="button" className={s.btnSave} onClick={onEdit}>
             Edit
@@ -342,6 +403,109 @@ function DetailSheet({
               Delete
             </button>
           )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Add to Plan sheet ────────────────────────────────────────────────────────
+
+function AddToPlanSheet({
+  mv,
+  plans,
+  onAdd,
+  onClose,
+}: {
+  mv: Movement;
+  plans: PlanItem[];
+  onAdd: (mv: Movement, days: number[]) => void;
+  onClose: () => void;
+}) {
+  // Days this movement is already planned for
+  const alreadyPlanned = new Set(
+    plans.filter((p) => p.mid === mv.id).map((p) => p.dow)
+  );
+
+  // Selected = days the user is toggling in this session (excludes already-planned)
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const toggleDay = (dow: number) => {
+    if (alreadyPlanned.has(dow)) return;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(dow)) next.delete(dow);
+      else next.add(dow);
+      return next;
+    });
+  };
+
+  const newDays = Array.from(selected).sort((a, b) => a - b);
+  const canAdd = newDays.length > 0;
+
+  const confirmLabel = canAdd
+    ? `Add to ${newDays.map((d) => DOW_SHORT[d]).join(", ")}`
+    : "Select days";
+
+  return (
+    <>
+      <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true" />
+      <div className={s.sheet} role="dialog" aria-modal="true" aria-label="Add to plan">
+        <div className={s.sheetHandle} />
+        <div className={s.sheetHead}>
+          <div>
+            <span className={s.sheetTitle}>Add to plan</span>
+            <div className={s.sheetSubtitle}>{mv.name}</div>
+          </div>
+          <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div className={s.dayPickerBody}>
+          <div className={s.dayPickerLabel}>Select days</div>
+          <div className={s.dayGrid}>
+            {DOW_SHORT.map((label, dow) => {
+              const isPlanned  = alreadyPlanned.has(dow);
+              const isSelected = selected.has(dow);
+              const chipCls = [
+                s.dayChip,
+                isPlanned  ? s.dayChipPlanned  : "",
+                isSelected ? s.dayChipSelected : "",
+              ].filter(Boolean).join(" ");
+              return (
+                <button
+                  key={dow}
+                  type="button"
+                  className={chipCls}
+                  onClick={() => toggleDay(dow)}
+                  disabled={isPlanned}
+                  aria-pressed={isSelected || isPlanned}
+                  title={DOW_FULL[dow]}
+                >
+                  <span className={s.dayChipLabel}>{label}</span>
+                  {isPlanned && <span className={s.dayChipCheck}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+          {alreadyPlanned.size > 0 && (
+            <p className={s.dayPickerNote}>
+              ✓ Already in plan for {Array.from(alreadyPlanned).sort((a,b)=>a-b).map(d=>DOW_FULL[d]).join(", ")}
+            </p>
+          )}
+        </div>
+
+        <div className={s.editActions}>
+          <button
+            type="button"
+            className={s.btnSave}
+            disabled={!canAdd}
+            onClick={() => onAdd(mv, newDays)}
+          >
+            {confirmLabel}
+          </button>
+          <button type="button" className={s.btnDelete} onClick={onClose}>
+            Cancel
+          </button>
         </div>
       </div>
     </>
