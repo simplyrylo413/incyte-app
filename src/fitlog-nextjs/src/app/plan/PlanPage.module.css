@@ -1601,15 +1601,20 @@
   padding: 3px 8px; border-radius: 6px;
 }
 .dayAddBtn {
-  font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
-  color: #5d9bb8; background: rgba(93,155,184,0.10);
-  border: 1.2px solid rgba(93,155,184,0.32);
-  border-radius: 8px; padding: 6px 13px; cursor: pointer;
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  color: #0f1622;
+  background: rgba(255,255,255,0.55);
+  border: 1.5px solid rgba(15,22,34,0.55);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer;
   flex-shrink: 0; white-space: nowrap;
-  transition: background 150ms, transform 150ms;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 140ms, transform 150ms;
+  -webkit-tap-highlight-color: transparent;
 }
-.dayAddBtn:active { transform: scale(0.95); }
+.dayAddBtn:hover  { background: rgba(255,255,255,0.80); }
+.dayAddBtn:active { transform: scale(0.95); background: rgba(255,255,255,0.80); }
 
 .dayViewBody { display: flex; flex-direction: column; gap: 6px; }
 

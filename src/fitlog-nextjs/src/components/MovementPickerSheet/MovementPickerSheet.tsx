@@ -184,12 +184,14 @@ function PickerRow({
 }) {
   return (
     <div className={s.row}>
-      <button type="button" className={s.rowBody} onClick={onPick}>
+      {/* Name + equip — tappable but not the primary CTA */}
+      <div className={s.rowBody}>
         <span className={s.rowName}>{mv.name}</span>
         {mv.equipmentType && (
           <span className={s.rowEquip}>{mv.equipmentType}</span>
         )}
-      </button>
+      </div>
+      {/* Favorite heart */}
       <button
         type="button"
         className={`${s.favBtn} ${mv.favorite ? s.favOn : ""}`}
@@ -197,6 +199,15 @@ function PickerRow({
         aria-label={mv.favorite ? "Remove from favorites" : "Add to favorites"}
       >
         {mv.favorite ? "♥" : "♡"}
+      </button>
+      {/* Ghost add button */}
+      <button
+        type="button"
+        className={s.rowAddBtn}
+        onClick={onPick}
+        aria-label={`Add ${mv.name}`}
+      >
+        + Add
       </button>
     </div>
   );
