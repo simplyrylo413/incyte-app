@@ -177,6 +177,51 @@ export default function MovementsPage() {
   );
 }
 
+// ─── Muscle badge ─────────────────────────────────────────────────────────────
+
+const MUSCLE_BADGE: Record<string, { bg: string; label: string }> = {
+  chest:      { bg: "#5d9bb8", label: "CH" },
+  back:       { bg: "#7fa5c7", label: "BK" },
+  shoulders:  { bg: "#9eb5cb", label: "SH" },
+  biceps:     { bg: "#4f9aa8", label: "BI" },
+  bicepts:    { bg: "#4f9aa8", label: "BI" },
+  triceps:    { bg: "#6a8fb8", label: "TR" },
+  tricepts:   { bg: "#6a8fb8", label: "TR" },
+  core:       { bg: "#5a9fa8", label: "CO" },
+  waist:      { bg: "#5a9fa8", label: "CO" },
+  quads:      { bg: "#6ba0bc", label: "QU" },
+  hamstrings: { bg: "#7a9fc2", label: "HA" },
+  glutes:     { bg: "#a08090", label: "GL" },
+  calves:     { bg: "#8090a8", label: "CA" },
+  cardio:     { bg: "#b08092", label: "♥" },
+  other:      { bg: "#8893a8", label: "OT" },
+};
+
+function MuscleBadge({ muscle }: { muscle: string }) {
+  const key = muscle.toLowerCase().trim();
+  const badge = MUSCLE_BADGE[key] ?? MUSCLE_BADGE.other;
+  return (
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: "100%",
+        borderRadius: "10px",
+        background: badge.bg,
+        color: "#fff",
+        fontSize: badge.label === "♥" ? "20px" : "13px",
+        fontWeight: 800,
+        letterSpacing: badge.label === "♥" ? 0 : "0.04em",
+        fontFamily: "var(--font-mono, 'Geist Mono', monospace)",
+      }}
+    >
+      {badge.label}
+    </span>
+  );
+}
+
 // ─── Movement row ─────────────────────────────────────────────────────────────
 
 function MvRow({ mv, onTap }: { mv: Movement; onTap: () => void }) {
@@ -195,7 +240,7 @@ function MvRow({ mv, onTap }: { mv: Movement; onTap: () => void }) {
             decoding="async"
           />
         ) : (
-          <span className={s.mvThumbPlaceholder}>{mv.name.charAt(0).toUpperCase()}</span>
+          <MuscleBadge muscle={muscle} />
         )}
       </div>
       <div className={s.mvRowBody}>
