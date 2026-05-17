@@ -831,3 +831,417 @@
 :global(body.theme-dark) .dayChipCheck { color: #7ec0a8; }
 
 :global(body.theme-dark) .dayPickerNote { color: #6a7384; }
+
+/* ─── Filter pills ───────────────────────────────────────────────────────────── */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 10px;
+}
+
+.filterPill {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e6a82;
+  background: rgba(255,255,255,0.65);
+  border: 1.2px solid rgba(15,22,34,0.12);
+  border-radius: 999px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: background 150ms, color 150ms, border-color 150ms, transform 150ms;
+}
+
+.filterPill:active { transform: scale(0.96); }
+
+.filterPillActive {
+  background: #0f1622;
+  border-color: #0f1622;
+  color: #ffffff;
+}
+
+.filterPillFav {
+  background: rgba(176,128,146,0.14);
+  border-color: rgba(176,128,146,0.42);
+  color: #9e4060;
+}
+
+/* ─── Favorites group label ──────────────────────────────────────────────────── */
+.favGroupLabel {
+  color: #b08092;
+}
+
+/* ─── Last-done row (in MvRow) ───────────────────────────────────────────────── */
+.lastDone {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8893a8;
+}
+
+.lastDoneDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #8893a8;
+  flex-shrink: 0;
+  transition: background 150ms;
+}
+
+.lastDoneRecent { color: #4f9aa8; }
+.lastDoneRecent .lastDoneDot { background: #4f9aa8; }
+
+.lastDoneNever { color: #b08092; }
+.lastDoneNever .lastDoneDot { background: #b08092; }
+
+/* ─── Heart button ───────────────────────────────────────────────────────────── */
+.heartBtn {
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  font-size: 18px;
+  color: #c0c8d5;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  border-radius: 8px;
+  transition: color 150ms, transform 150ms;
+}
+
+.heartBtn:active { transform: scale(0.88); }
+
+.heartFilled {
+  color: #b08092;
+}
+
+/* ─── Last-done stat card (detail sheet) ─────────────────────────────────────── */
+.lastDoneStat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 20px 4px;
+  padding: 12px 14px;
+  background: rgba(15,22,34,0.04);
+  border: 1.2px solid rgba(15,22,34,0.08);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.ldsIcon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ldsBd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ldsLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #8893a8;
+}
+
+.ldsVal {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f1622;
+  letter-spacing: -0.01em;
+}
+
+.ldsValNever {
+  color: #8893a8;
+  font-weight: 600;
+}
+
+.ldsSub {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  color: #8893a8;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Favorite toggle button (detail sheet) ──────────────────────────────────── */
+.favToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 20px 4px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.60);
+  border: 1.2px solid rgba(15,22,34,0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  width: calc(100% - 40px);
+  text-align: left;
+  transition: background 150ms, border-color 150ms, transform 150ms;
+  flex-shrink: 0;
+}
+
+.favToggle:active { transform: scale(0.98); }
+.favToggle:hover  { background: rgba(255,255,255,0.80); }
+
+.favToggleActive {
+  background: rgba(176,128,146,0.10);
+  border-color: rgba(176,128,146,0.38);
+}
+
+.favToggleIcon {
+  font-size: 18px;
+  line-height: 1;
+  color: #c0c8d5;
+  flex-shrink: 0;
+  transition: color 150ms;
+}
+
+.favToggleActive .favToggleIcon {
+  color: #b08092;
+}
+
+.favToggleText {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3548;
+  transition: color 150ms;
+}
+
+.favToggleActive .favToggleText {
+  color: #9e4060;
+}
+
+/* ─── Inline plan day strip (detail sheet) ───────────────────────────────────── */
+.inlinePlanSec {
+  padding: 4px 20px 0;
+  flex-shrink: 0;
+}
+
+.inlinePlanLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #8893a8;
+  margin-bottom: 10px;
+}
+
+.inlineDayStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.inlineDayChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1.2px solid rgba(15,22,34,0.14);
+  background: rgba(255,255,255,0.70);
+  cursor: pointer;
+  padding: 0;
+  transition: background 150ms, border-color 150ms, transform 150ms;
+}
+
+.inlineDayChip:active { transform: scale(0.92); }
+
+.inlineDayChipPlanned {
+  background: rgba(79,154,168,0.14);
+  border-color: rgba(79,154,168,0.45);
+}
+
+.inlineDayChipLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2c3548;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.inlineDayChipPlanned .inlineDayChipLabel {
+  color: #4f9aa8;
+}
+
+.inlineDayChipCheck {
+  font-size: 9px;
+  color: #4f9aa8;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.inlineSaveHint {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #8893a8;
+  text-align: center;
+  min-height: 16px;
+  transition: color 150ms;
+  margin-bottom: 4px;
+}
+
+.inlineSaveHintActive {
+  color: #4f9aa8;
+}
+
+/* ─── Dark mode — new classes ────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :global(body:not(.theme-light)) .filterPill {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.13);
+    color: #8d96a5;
+  }
+  :global(body:not(.theme-light)) .filterPillActive {
+    background: #f7f9fc;
+    border-color: #f7f9fc;
+    color: #0f1622;
+  }
+  :global(body:not(.theme-light)) .filterPillFav {
+    background: rgba(200,154,163,0.12);
+    border-color: rgba(200,154,163,0.38);
+    color: #c89aa3;
+  }
+
+  :global(body:not(.theme-light)) .favGroupLabel { color: #c89aa3; }
+
+  :global(body:not(.theme-light)) .lastDone { color: #6a7384; }
+  :global(body:not(.theme-light)) .lastDoneDot { background: #6a7384; }
+  :global(body:not(.theme-light)) .lastDoneRecent { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .lastDoneRecent .lastDoneDot { background: #7ec0a8; }
+  :global(body:not(.theme-light)) .lastDoneNever { color: #c89aa3; }
+  :global(body:not(.theme-light)) .lastDoneNever .lastDoneDot { background: #c89aa3; }
+
+  :global(body:not(.theme-light)) .heartBtn { color: #3a4255; }
+  :global(body:not(.theme-light)) .heartFilled { color: #c89aa3; }
+
+  :global(body:not(.theme-light)) .lastDoneStat {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.09);
+  }
+  :global(body:not(.theme-light)) .ldsLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .ldsVal { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .ldsValNever { color: #6a7384; }
+  :global(body:not(.theme-light)) .ldsSub { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .favToggle {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.11);
+  }
+  :global(body:not(.theme-light)) .favToggle:hover {
+    background: rgba(255,255,255,0.09);
+  }
+  :global(body:not(.theme-light)) .favToggleActive {
+    background: rgba(200,154,163,0.10);
+    border-color: rgba(200,154,163,0.35);
+  }
+  :global(body:not(.theme-light)) .favToggleIcon { color: #3a4255; }
+  :global(body:not(.theme-light)) .favToggleActive .favToggleIcon { color: #c89aa3; }
+  :global(body:not(.theme-light)) .favToggleText { color: #c8d0db; }
+  :global(body:not(.theme-light)) .favToggleActive .favToggleText { color: #c89aa3; }
+
+  :global(body:not(.theme-light)) .inlinePlanLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .inlineDayChip {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+  }
+  :global(body:not(.theme-light)) .inlineDayChipLabel { color: #c8d0db; }
+  :global(body:not(.theme-light)) .inlineDayChipPlanned {
+    background: rgba(79,154,168,0.14);
+    border-color: rgba(79,154,168,0.40);
+  }
+  :global(body:not(.theme-light)) .inlineDayChipPlanned .inlineDayChipLabel { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .inlineDayChipCheck { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .inlineSaveHint { color: #6a7384; }
+  :global(body:not(.theme-light)) .inlineSaveHintActive { color: #7ec0a8; }
+}
+
+:global(body.theme-dark) .filterPill {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.13);
+  color: #8d96a5;
+}
+:global(body.theme-dark) .filterPillActive {
+  background: #f7f9fc;
+  border-color: #f7f9fc;
+  color: #0f1622;
+}
+:global(body.theme-dark) .filterPillFav {
+  background: rgba(200,154,163,0.12);
+  border-color: rgba(200,154,163,0.38);
+  color: #c89aa3;
+}
+
+:global(body.theme-dark) .favGroupLabel { color: #c89aa3; }
+
+:global(body.theme-dark) .lastDone { color: #6a7384; }
+:global(body.theme-dark) .lastDoneDot { background: #6a7384; }
+:global(body.theme-dark) .lastDoneRecent { color: #7ec0a8; }
+:global(body.theme-dark) .lastDoneRecent .lastDoneDot { background: #7ec0a8; }
+:global(body.theme-dark) .lastDoneNever { color: #c89aa3; }
+:global(body.theme-dark) .lastDoneNever .lastDoneDot { background: #c89aa3; }
+
+:global(body.theme-dark) .heartBtn { color: #3a4255; }
+:global(body.theme-dark) .heartFilled { color: #c89aa3; }
+
+:global(body.theme-dark) .lastDoneStat {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.09);
+}
+:global(body.theme-dark) .ldsLabel { color: #6a7384; }
+:global(body.theme-dark) .ldsVal { color: #f7f9fc; }
+:global(body.theme-dark) .ldsValNever { color: #6a7384; }
+:global(body.theme-dark) .ldsSub { color: #6a7384; }
+
+:global(body.theme-dark) .favToggle {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.11);
+}
+:global(body.theme-dark) .favToggle:hover {
+  background: rgba(255,255,255,0.09);
+}
+:global(body.theme-dark) .favToggleActive {
+  background: rgba(200,154,163,0.10);
+  border-color: rgba(200,154,163,0.35);
+}
+:global(body.theme-dark) .favToggleIcon { color: #3a4255; }
+:global(body.theme-dark) .favToggleActive .favToggleIcon { color: #c89aa3; }
+:global(body.theme-dark) .favToggleText { color: #c8d0db; }
+:global(body.theme-dark) .favToggleActive .favToggleText { color: #c89aa3; }
+
+:global(body.theme-dark) .inlinePlanLabel { color: #6a7384; }
+:global(body.theme-dark) .inlineDayChip {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+:global(body.theme-dark) .inlineDayChipLabel { color: #c8d0db; }
+:global(body.theme-dark) .inlineDayChipPlanned {
+  background: rgba(79,154,168,0.14);
+  border-color: rgba(79,154,168,0.40);
+}
+:global(body.theme-dark) .inlineDayChipPlanned .inlineDayChipLabel { color: #7ec0a8; }
+:global(body.theme-dark) .inlineDayChipCheck { color: #7ec0a8; }
+:global(body.theme-dark) .inlineSaveHint { color: #6a7384; }
+:global(body.theme-dark) .inlineSaveHintActive { color: #7ec0a8; }

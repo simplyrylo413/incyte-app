@@ -58,6 +58,7 @@ export type Movement = {
   gifUrl?: string;
   secondaryMuscles?: string[];
   instructions?: string[];
+  favorite?: boolean;
 };
 
 export type WorkoutEntry = {

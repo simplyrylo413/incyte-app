@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add to Plan — 3 Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:      #0f1622;
+  --ink-2:    #2c3548;
+  --muted:    #5e6a82;
+  --label:    #8893a8;
+  --paper:    #f2f4f8;
+  --accent:   #5d9bb8;
+  --accent-2: #7fa5c7;
+  --ok:       #4f9aa8;
+  --bad:      #b08092;
+  --fd: "Inter Tight", system-ui, sans-serif;
+  --fm: "Geist Mono", ui-monospace, monospace;
+}
+
+body {
+  background: linear-gradient(155deg,
+    rgba(93,155,184,.14) 0%,
+    rgba(155,130,200,.10) 55%,
+    rgba(201,160,190,.08) 100%), #eaecf2;
+  min-height: 100vh;
+  font-family: var(--fd);
+  padding: 40px 32px 80px;
+}
+
+/* ── Page header ── */
+.pg-hd { text-align:center; margin-bottom: 52px; }
+.pg-hd .eyebrow {
+  font-family: var(--fm); font-size:10px; font-weight:700;
+  letter-spacing:1.6px; text-transform:uppercase; color:var(--label); margin-bottom:6px;
+}
+.pg-hd h1 { font-size:26px; font-weight:800; color:var(--ink); letter-spacing:-.022em; }
+
+/* ── Option block ── */
+.option-block { margin-bottom: 64px; }
+
+.option-header {
+  display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1.2px solid rgba(15,22,34,.10);
+}
+.option-num {
+  font-family: var(--fm); font-size:9px; font-weight:700; letter-spacing:1.4px;
+  text-transform:uppercase; color:var(--label);
+}
+.option-title { font-size:17px; font-weight:800; color:var(--ink); letter-spacing:-.018em; }
+.option-summary { font-size:13px; color:var(--muted); line-height:1.5; flex:1; }
+.option-tag {
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; padding:4px 10px; border-radius:999px;
+  white-space:nowrap; flex-shrink:0;
+}
+.tag-n  { color:var(--muted);  background:rgba(15,22,34,.06); }
+.tag-ok { color:var(--ok);    background:rgba(79,154,168,.10); }
+.tag-ac { color:var(--accent); background:rgba(93,155,184,.10); }
+
+/* ── Phone row ── */
+.phone-row {
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.phone-col { display:flex; flex-direction:column; align-items:center; gap:10px; }
+.step-label {
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:1.2px;
+  text-transform:uppercase; color:var(--label);
+}
+.step-arrow {
+  align-self:center; margin-top:80px;
+  font-size:22px; color:rgba(15,22,34,.20); flex-shrink:0;
+}
+
+/* ── Phone frame ── */
+.phone {
+  width:240px; height:490px;
+  background:var(--paper);
+  border-radius:32px; overflow:hidden;
+  box-shadow:
+    0 0 0 7px #1a2235,
+    0 20px 48px rgba(15,22,34,.30),
+    0 6px 16px rgba(15,22,34,.18);
+  position:relative; flex-shrink:0;
+}
+.phone::before {          /* notch */
+  content:""; position:absolute;
+  top:9px; left:50%; transform:translateX(-50%);
+  width:68px; height:18px;
+  background:#1a2235; border-radius:0 0 12px 12px; z-index:50;
+}
+.screen {
+  width:100%; height:100%;
+  background: linear-gradient(155deg,
+    rgba(93,155,184,.12) 0%,
+    rgba(155,130,200,.08) 55%,
+    rgba(201,160,190,.06) 100%), #f2f4f8;
+  position:relative; overflow:hidden;
+}
+
+/* ── Shared movement list ── */
+.mv-list { padding:38px 10px 10px; }
+.pg-ey { font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--label); margin-bottom:1px; }
+.pg-t  { font-size:20px; font-weight:800; color:var(--ink); letter-spacing:-.022em; line-height:1.1; margin-bottom:8px; }
+.grp   { font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; color:var(--label); padding:6px 6px 3px; }
+
+.mv-row {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 9px 6px 6px;
+  background:rgba(255,255,255,.65); border:1.2px solid rgba(255,255,255,.82);
+  border-radius:12px; margin-bottom:4px; position:relative; overflow:hidden;
+}
+.mv-row::after {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(155deg,rgba(255,255,255,.4) 0%,transparent 60%);
+  mix-blend-mode:screen; pointer-events:none;
+}
+.mv-row.hi { background:rgba(93,155,184,.08); border-color:rgba(93,155,184,.28); }
+
+.thumb {
+  width:38px; height:38px; border-radius:7px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--fm); font-size:10px; font-weight:800; color:#fff; letter-spacing:.04em;
+}
+.mv-bd { flex:1; min-width:0; }
+.mv-nm { font-size:11px; font-weight:600; color:var(--ink); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mv-mt { display:flex; gap:3px; margin-top:2px; flex-wrap:wrap; }
+.chip  { font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--label); background:rgba(15,22,34,.06); padding:2px 4px; border-radius:3px; }
+.chev  { font-size:12px; color:var(--label); flex-shrink:0; }
+
+/* plan badge on row */
+.plan-pill {
+  font-family:var(--fm); font-size:7px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ok); background:rgba(79,154,168,.12); border:1.2px solid rgba(79,154,168,.28);
+  padding:2px 5px; border-radius:999px; flex-shrink:0;
+}
+
+/* ── Bottom sheet ── */
+.overlay {
+  position:absolute; inset:0;
+  background:rgba(15,22,34,.38); z-index:10;
+}
+.sheet {
+  position:absolute; bottom:0; left:0; right:0; z-index:11;
+  background:#f4f6fa; border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(15,22,34,.14);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.sh-handle {
+  width:28px; height:3px; border-radius:999px;
+  background:rgba(15,22,34,.18); margin:8px auto 0; flex-shrink:0;
+}
+.sh-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 14px 7px;
+  border-bottom:1.2px solid rgba(15,22,34,.08); flex-shrink:0;
+}
+.sh-t  { font-size:12px; font-weight:700; color:var(--ink); letter-spacing:-.01em; }
+.sh-st { font-size:9.5px; font-weight:500; color:var(--muted); margin-top:1px; }
+.sh-x  { font-size:11px; color:var(--label); }
+
+/* action bar */
+.act-bar {
+  display:flex; gap:7px;
+  padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 10px);
+  border-top:1.2px solid rgba(15,22,34,.08); flex-shrink:0;
+}
+.btn-p  { flex:1; padding:9px 0; background:var(--ink); color:#fff; border-radius:9px; font-size:11px; font-weight:700; text-align:center; }
+.btn-ac { flex:1; padding:9px 0; background:rgba(93,155,184,.12); color:var(--accent); border:1.2px solid rgba(93,155,184,.36); border-radius:9px; font-size:11px; font-weight:700; text-align:center; }
+.btn-s  { padding:9px 11px; background:none; color:var(--bad); border:1.2px solid rgba(176,128,146,.38); border-radius:9px; font-size:11px; font-weight:600; text-align:center; }
+.btn-cf { flex:1; padding:9px 0; background:var(--ink); color:#fff; border-radius:9px; font-size:11px; font-weight:700; text-align:center; }
+.btn-cf.dim { opacity:.3; }
+
+/* detail body */
+.det-bd { padding:9px 14px; display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
+.sec-lbl { font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:1.1px; text-transform:uppercase; color:var(--label); margin-bottom:3px; }
+.step { font-size:9.5px; color:var(--ink-2); line-height:1.45; margin-left:12px; }
+
+/* plan bar in detail */
+.plan-bar {
+  margin:0 14px; padding:6px 9px;
+  background:rgba(79,154,168,.10); border:1.2px solid rgba(79,154,168,.22);
+  border-radius:7px; flex-shrink:0;
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ok);
+}
+
+/* ── OPTION 1: day chip grid ── */
+.dp-lbl { font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:1.1px; text-transform:uppercase; color:var(--label); padding:10px 14px 0; }
+.dp-note { font-size:8.5px; color:var(--muted); padding:5px 14px 0; line-height:1.4; }
+.day-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; padding:8px 14px; }
+.dc {
+  aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  border-radius:8px; border:1.2px solid rgba(15,22,34,.13); background:rgba(255,255,255,.70);
+  font-family:var(--fm); font-size:8px; font-weight:700; color:var(--ink-2); letter-spacing:.02em;
+}
+.dc.sel { background:var(--ink); border-color:var(--ink); color:#fff; }
+.dc.pln { background:rgba(79,154,168,.12); border-color:rgba(79,154,168,.36); color:var(--ok); }
+.dc-ck  { font-size:6px; color:var(--ok); line-height:1; }
+
+/* ── OPTION 2: inline strip ── */
+.inline-sec {
+  padding:8px 14px 6px;
+  border-top:1.2px solid rgba(15,22,34,.07); flex-shrink:0;
+}
+.inline-strip { display:flex; gap:4px; margin-top:7px; }
+.ic {
+  flex:1; aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  border-radius:8px; border:1.2px solid rgba(15,22,34,.11); background:rgba(255,255,255,.60);
+  font-family:var(--fm); font-size:8px; font-weight:700; color:var(--ink-2);
+}
+.ic.pln { background:rgba(79,154,168,.13); border-color:rgba(79,154,168,.38); color:var(--ok); }
+.ic.sel { background:var(--ink); border-color:var(--ink); color:#fff; }
+.save-hint { font-size:8.5px; color:var(--muted); margin-top:5px; text-align:center; }
+
+/* ── OPTION 3: day context cards ── */
+.day-cards { padding:8px 12px; display:flex; flex-direction:column; gap:5px; overflow:hidden; flex-shrink:0; }
+.dcard {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px; background:rgba(255,255,255,.65);
+  border:1.2px solid rgba(255,255,255,.82); border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,22,34,.05); position:relative; overflow:hidden;
+}
+.dcard::after {
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.32) 0%,transparent 55%);
+  mix-blend-mode:screen; pointer-events:none;
+}
+.dcard.checked { background:rgba(79,154,168,.09); border-color:rgba(79,154,168,.28); }
+.dcard.selcard { background:rgba(15,22,34,.06); border-color:rgba(15,22,34,.22); }
+.dcard.today   { border-color:rgba(93,155,184,.35); background:rgba(93,155,184,.05); }
+
+.dc-left {
+  width:30px; height:30px; border-radius:7px; background:rgba(15,22,34,.06);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.dcard.checked .dc-left  { background:var(--ok); }
+.dcard.selcard .dc-left  { background:var(--ink); }
+
+.dc-lt { font-family:var(--fm); font-size:9px; font-weight:700; color:var(--ink); line-height:1; }
+.dc-dt { font-family:var(--fm); font-size:6.5px; font-weight:600; color:var(--label); line-height:1; margin-top:1px; }
+.dcard.checked .dc-lt, .dcard.checked .dc-dt { color:#fff; }
+.dcard.selcard .dc-lt, .dcard.selcard .dc-dt { color:#fff; }
+.dcard.today   .dc-lt { color:var(--accent); }
+
+.dc-bd { flex:1; }
+.dc-nm { font-size:10px; font-weight:600; color:var(--ink); display:block; }
+.dc-ct { font-family:var(--fm); font-size:7.5px; font-weight:600; color:var(--muted); display:block; margin-top:1px; }
+.dcard.checked .dc-ct { color:var(--ok); }
+.dcard.selcard .dc-ct { color:rgba(255,255,255,.7); }
+.dcard.selcard .dc-nm { color:#fff; }
+
+.dc-chk {
+  width:16px; height:16px; border-radius:50%;
+  border:1.5px solid rgba(15,22,34,.16); background:rgba(255,255,255,.5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:8px; flex-shrink:0;
+}
+.dcard.checked .dc-chk { background:var(--ok); border-color:var(--ok); color:#fff; }
+.dcard.selcard .dc-chk { background:var(--ink); border-color:var(--ink); color:#fff; }
+
+.today-badge {
+  font-family:var(--fm); font-size:6px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+  color:var(--accent); background:rgba(93,155,184,.12); padding:1px 4px; border-radius:3px; margin-left:3px;
+}
+</style>
+</head>
+<body>
+
+<div class="pg-hd">
+  <div class="eyebrow">Movements Library</div>
+  <h1>Add to Plan — 3 Options</h1>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     OPTION 1 — Sheet Stack
+══════════════════════════════════════════════════════════ -->
+<div class="option-block">
+  <div class="option-header">
+    <span class="option-num">Option 1</span>
+    <span class="option-title">Sheet Stack</span>
+    <span class="option-summary">Detail sheet → tap "Add to plan" → second sheet slides up with a 7-chip day grid. Selected chips go dark, already-planned go teal. Explicit two-step confirm.</span>
+    <span class="option-tag tag-n">3 taps</span>
+  </div>
+
+  <div class="phone-row">
+
+    <!-- Step 1: Detail sheet -->
+    <div class="phone-col">
+      <span class="step-label">Detail Sheet</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">dumbbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Cable Fly</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">cable</span></div></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+                <li class="step">Lower bar to mid-chest under control…</li>
+              </ol>
+            </div>
+          </div>
+          <!-- Add to plan primary action -->
+          <div style="padding:6px 14px 0; flex-shrink:0;">
+            <div class="btn-ac">Add to plan</div>
+          </div>
+          <div class="act-bar" style="border-top:none; padding-top:6px;">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 2: Day picker sheet -->
+    <div class="phone-col">
+      <span class="step-label">Day Picker</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span><div class="mv-mt"><span class="chip">chest</span></div></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd">
+            <div><div class="sh-t">Add to plan</div><div class="sh-st">Bench Press</div></div>
+            <span class="sh-x">✕</span>
+          </div>
+          <div class="dp-lbl">Select days</div>
+          <div class="day-grid">
+            <div class="dc">Su</div>
+            <div class="dc sel">Mo</div>
+            <div class="dc">Tu</div>
+            <div class="dc sel">We</div>
+            <div class="dc">Th</div>
+            <div class="dc pln">Fr<span class="dc-ck">✓</span></div>
+            <div class="dc">Sa</div>
+          </div>
+          <div class="dp-note">✓ Already in plan for Friday</div>
+          <div class="act-bar">
+            <div class="btn-cf">Add to Mon, Wed</div>
+            <div class="btn-s">Cancel</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 3: Back to detail, plan bar visible -->
+    <div class="phone-col">
+      <span class="step-label">Confirmed</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+          <!-- Plan bar now shows -->
+          <div class="plan-bar">📅 &nbsp;In plan: Mo · We · Fr</div>
+          <div style="padding:6px 14px 0; flex-shrink:0;">
+            <div class="btn-ac">Edit plan days</div>
+          </div>
+          <div class="act-bar" style="border-top:none; padding-top:6px;">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     OPTION 2 — Inline Strip
+══════════════════════════════════════════════════════════ -->
+<div class="option-block">
+  <div class="option-header">
+    <span class="option-num">Option 2</span>
+    <span class="option-title">Inline Strip</span>
+    <span class="option-summary">Day chips live inside the detail sheet — no second sheet. Tap any chip to toggle it on/off. Changes save automatically. Fastest path, fewest taps.</span>
+    <span class="option-tag tag-ok">2 taps</span>
+  </div>
+
+  <div class="phone-row">
+
+    <!-- Step 1: Detail sheet with strip (nothing selected) -->
+    <div class="phone-col">
+      <span class="step-label">Detail Sheet</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Cable Fly</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd" style="gap:6px;">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+          <!-- Inline strip — nothing planned yet -->
+          <div class="inline-sec">
+            <div class="sec-lbl">Add to plan — tap to toggle</div>
+            <div class="inline-strip">
+              <div class="ic">Su</div>
+              <div class="ic">Mo</div>
+              <div class="ic">Tu</div>
+              <div class="ic">We</div>
+              <div class="ic">Th</div>
+              <div class="ic">Fr</div>
+              <div class="ic">Sa</div>
+            </div>
+            <div class="save-hint">Saves automatically</div>
+          </div>
+          <div class="act-bar">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 2: Tapped Mon + Wed -->
+    <div class="phone-col">
+      <span class="step-label">Days Tapped</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd" style="gap:6px;">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+          <!-- Mon + Wed toggled on -->
+          <div class="inline-sec">
+            <div class="sec-lbl">Add to plan — tap to toggle</div>
+            <div class="inline-strip">
+              <div class="ic">Su</div>
+              <div class="ic pln">Mo<br/><span style="font-size:7px;color:var(--ok)">✓</span></div>
+              <div class="ic">Tu</div>
+              <div class="ic pln">We<br/><span style="font-size:7px;color:var(--ok)">✓</span></div>
+              <div class="ic">Th</div>
+              <div class="ic">Fr</div>
+              <div class="ic">Sa</div>
+            </div>
+            <div class="save-hint" style="color:var(--ok);">✓ Saved to Monday, Wednesday</div>
+          </div>
+          <div class="act-bar">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 3: Movement list updated — plan badge visible -->
+    <div class="phone-col">
+      <span class="step-label">Back in List</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row" style="background:rgba(255,255,255,.65)">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd">
+              <span class="mv-nm">Bench Press</span>
+              <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div>
+            </div>
+            <span class="plan-pill">Mo · We</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span><div class="mv-mt"><span class="chip">chest</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Cable Fly</span><div class="mv-mt"><span class="chip">chest</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="grp">Back</div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#7fa5c7">BK</div>
+            <div class="mv-bd"><span class="mv-nm">Deadlift</span><div class="mv-mt"><span class="chip">back</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#7fa5c7">BK</div>
+            <div class="mv-bd"><span class="mv-nm">Pull-Up</span><div class="mv-mt"><span class="chip">back</span></div></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     OPTION 3 — Day Context Cards
+══════════════════════════════════════════════════════════ -->
+<div class="option-block">
+  <div class="option-header">
+    <span class="option-num">Option 3</span>
+    <span class="option-title">Day Context Cards</span>
+    <span class="option-summary">Full cards per day show how many movements are already planned. Lets you see load distribution before deciding. Best for structured programming.</span>
+    <span class="option-tag tag-ac">3 taps, more context</span>
+  </div>
+
+  <div class="phone-row">
+
+    <!-- Step 1: Detail sheet with Add to Plan -->
+    <div class="phone-col">
+      <span class="step-label">Detail Sheet</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Cable Fly</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+                <li class="step">Lower bar to mid-chest under control…</li>
+              </ol>
+            </div>
+          </div>
+          <div style="padding:6px 14px 0; flex-shrink:0;">
+            <div class="btn-ac">Add to plan →</div>
+          </div>
+          <div class="act-bar" style="border-top:none; padding-top:6px;">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 2: Day card picker -->
+    <div class="phone-col">
+      <span class="step-label">Day Cards</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd">
+            <div><div class="sh-t">Add to plan</div><div class="sh-st">Bench Press</div></div>
+            <span class="sh-x">✕</span>
+          </div>
+          <div class="day-cards">
+            <div class="dcard today">
+              <div class="dc-left"><div class="dc-lt">Sa</div><div class="dc-dt">May 17</div></div>
+              <div class="dc-bd"><span class="dc-nm">Saturday <span class="today-badge">TODAY</span></span><span class="dc-ct">4 movements planned</span></div>
+              <div class="dc-chk"></div>
+            </div>
+            <div class="dcard">
+              <div class="dc-left"><div class="dc-lt">Su</div><div class="dc-dt">May 18</div></div>
+              <div class="dc-bd"><span class="dc-nm">Sunday</span><span class="dc-ct">Rest day</span></div>
+              <div class="dc-chk"></div>
+            </div>
+            <div class="dcard checked">
+              <div class="dc-left"><div class="dc-lt">Mo</div><div class="dc-dt">May 19</div></div>
+              <div class="dc-bd"><span class="dc-nm">Monday</span><span class="dc-ct">✓ Already planned</span></div>
+              <div class="dc-chk">✓</div>
+            </div>
+            <div class="dcard selcard">
+              <div class="dc-left"><div class="dc-lt">We</div><div class="dc-dt">May 21</div></div>
+              <div class="dc-bd"><span class="dc-nm">Wednesday</span><span class="dc-ct">5 movements · Selected</span></div>
+              <div class="dc-chk">✓</div>
+            </div>
+            <div class="dcard">
+              <div class="dc-left"><div class="dc-lt">Fr</div><div class="dc-dt">May 23</div></div>
+              <div class="dc-bd"><span class="dc-nm">Friday</span><span class="dc-ct">2 movements planned</span></div>
+              <div class="dc-chk"></div>
+            </div>
+          </div>
+          <div class="act-bar">
+            <div class="btn-cf">Add to Wednesday</div>
+            <div class="btn-s">Cancel</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="step-arrow">→</div>
+
+    <!-- Step 3: Back to detail, plan bar showing -->
+    <div class="phone-col">
+      <span class="step-label">Confirmed</span>
+      <div class="phone"><div class="screen">
+        <div class="mv-list">
+          <div class="pg-ey">Library</div>
+          <div class="pg-t">Movements</div>
+          <div class="grp">Chest</div>
+          <div class="mv-row hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span></div></div>
+            <span class="chev">›</span>
+          </div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Incline DB Press</span></div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd"><span class="sh-t">Bench Press</span><span class="sh-x">✕</span></div>
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat, grip slightly wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+          <div class="plan-bar">📅 &nbsp;In plan: Mo · We</div>
+          <div style="padding:6px 14px 0; flex-shrink:0;">
+            <div class="btn-ac">Edit plan days →</div>
+          </div>
+          <div class="act-bar" style="border-top:none; padding-top:6px;">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Movements v2 — Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#0f1622; --ink2:#2c3548; --muted:#5e6a82; --label:#8893a8;
+  --paper:#f2f4f8; --accent:#5d9bb8; --ok:#4f9aa8; --bad:#b08092;
+  --fav:#c47a8a;
+  --fd:"Inter Tight",system-ui,sans-serif;
+  --fm:"Geist Mono",ui-monospace,monospace;
+}
+
+body{
+  background:linear-gradient(155deg,rgba(93,155,184,.14) 0%,rgba(155,130,200,.10) 55%,rgba(201,160,190,.08) 100%),#eaecf2;
+  min-height:100vh; font-family:var(--fd); padding:48px 40px 100px;
+}
+
+/* ── Page header ── */
+.pg-hd{text-align:center;margin-bottom:12px}
+.pg-hd .ey{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--label);margin-bottom:6px}
+.pg-hd h1{font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-.022em;margin-bottom:6px}
+.pg-hd p{font-size:14px;color:var(--muted);line-height:1.5;max-width:600px;margin:0 auto}
+
+/* ── Section divider ── */
+.section{margin-top:52px}
+.sec-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1.2px solid rgba(15,22,34,.09)}
+.sec-num{font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--label)}
+.sec-title{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.018em}
+.sec-desc{font-size:13px;color:var(--muted);line-height:1.5;flex:1}
+
+/* ── Phone row ── */
+.phone-row{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+.step-lbl{font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--label)}
+.arrow{align-self:center;margin-top:90px;font-size:22px;color:rgba(15,22,34,.18);flex-shrink:0}
+
+/* ── Phone frame ── */
+.phone{
+  width:248px;height:520px;background:var(--paper);border-radius:34px;overflow:hidden;
+  box-shadow:0 0 0 7px #1a2235,0 22px 52px rgba(15,22,34,.30),0 6px 16px rgba(15,22,34,.18);
+  position:relative;flex-shrink:0;
+}
+.phone::before{
+  content:"";position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:70px;height:18px;background:#1a2235;border-radius:0 0 12px 12px;z-index:50;
+}
+.screen{
+  width:100%;height:100%;
+  background:linear-gradient(155deg,rgba(93,155,184,.11) 0%,rgba(155,130,200,.07) 55%,rgba(201,160,190,.05) 100%),#f2f4f8;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+
+/* ── Scrollable content area ── */
+.scroll-area{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── Page header inside phone ── */
+.phead{padding:36px 12px 6px}
+.pey{font-family:var(--fm);font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--label);margin-bottom:1px}
+.ptitle{font-size:21px;font-weight:800;color:var(--ink);letter-spacing:-.022em;line-height:1.1}
+
+/* ── Search ── */
+.search-wrap{padding:6px 12px}
+.search{
+  width:100%;background:rgba(255,255,255,.72);border:1.2px solid rgba(255,255,255,.84);
+  border-radius:10px;padding:7px 11px;font-family:var(--fd);font-size:11px;color:var(--ink);
+  box-shadow:0 1px 4px rgba(15,22,34,.06);display:flex;align-items:center;gap:6px;
+}
+.search-icon{font-size:10px;color:var(--label)}
+.search-placeholder{font-size:11px;color:var(--label)}
+
+/* ── Filter pills ── */
+.filter-row{display:flex;gap:6px;padding:0 12px 8px}
+.fpill{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 11px;border-radius:999px;
+  font-family:var(--fd);font-size:10.5px;font-weight:600;
+  border:1.2px solid rgba(15,22,34,.13);background:rgba(255,255,255,.60);
+  color:var(--muted);cursor:pointer;white-space:nowrap;
+  box-shadow:0 1px 3px rgba(15,22,34,.05);
+}
+.fpill.active{
+  background:var(--ink);border-color:var(--ink);color:#fff;
+  box-shadow:0 2px 8px rgba(15,22,34,.18);
+}
+.fpill.fav-active{
+  background:var(--fav);border-color:var(--fav);color:#fff;
+  box-shadow:0 2px 8px rgba(196,122,138,.28);
+}
+
+/* ── Group label ── */
+.grp{
+  font-family:var(--fm);font-size:7.5px;font-weight:700;letter-spacing:1.3px;
+  text-transform:uppercase;color:var(--label);padding:8px 12px 3px;
+}
+.grp.fav-grp{color:var(--fav);}
+
+/* ── Movement row ── */
+.mv-list{padding:0 10px;flex:1;overflow:hidden}
+.mv-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px 6px 6px;
+  background:rgba(255,255,255,.65);border:1.2px solid rgba(255,255,255,.82);
+  border-radius:12px;margin-bottom:4px;position:relative;overflow:hidden;
+}
+.mv-row::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(155deg,rgba(255,255,255,.4) 0%,transparent 60%);
+  mix-blend-mode:screen;pointer-events:none;
+}
+.mv-row.hi{background:rgba(93,155,184,.08);border-color:rgba(93,155,184,.28)}
+.mv-row.fav-hi{background:rgba(196,122,138,.06);border-color:rgba(196,122,138,.22)}
+
+/* Thumb */
+.thumb{
+  width:38px;height:38px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fm);font-size:10px;font-weight:800;color:#fff;letter-spacing:.04em;
+}
+
+/* Row body */
+.mv-bd{flex:1;min-width:0}
+.mv-nm{font-size:11.5px;font-weight:600;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv-mt{display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;align-items:center}
+.chip{font-family:var(--fm);font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--label);background:rgba(15,22,34,.06);padding:2px 4px;border-radius:3px}
+
+/* Last done — key new element */
+.last-done{
+  font-family:var(--fm);font-size:8px;font-weight:600;
+  color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:3px;
+}
+.last-done-dot{width:4px;height:4px;border-radius:50%;background:rgba(15,22,34,.15);flex-shrink:0}
+.last-done.recent .last-done-dot{background:var(--ok)}
+.last-done.recent{color:var(--ok)}
+.last-done.never{color:var(--label)}
+
+/* Heart icon */
+.heart{
+  font-size:14px;flex-shrink:0;line-height:1;
+  padding:4px;margin-right:-2px;color:rgba(15,22,34,.18);
+}
+.heart.filled{color:var(--fav)}
+
+.chev{font-size:12px;color:var(--label);flex-shrink:0}
+
+/* ── Bottom sheet ── */
+.overlay{position:absolute;inset:0;background:rgba(15,22,34,.38);z-index:10}
+.sheet{
+  position:absolute;bottom:0;left:0;right:0;z-index:11;
+  background:#f4f6fa;border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(15,22,34,.14);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sh-handle{width:28px;height:3px;border-radius:999px;background:rgba(15,22,34,.18);margin:8px auto 0;flex-shrink:0}
+.sh-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 14px 7px;border-bottom:1.2px solid rgba(15,22,34,.08);flex-shrink:0}
+.sh-t{font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.sh-st{font-size:9.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.sh-x{font-size:11px;color:var(--label)}
+
+/* Detail body */
+.det-bd{padding:10px 14px 6px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.sec-lbl{font-family:var(--fm);font-size:7.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--label);margin-bottom:3px}
+.step{font-size:9.5px;color:var(--ink2);line-height:1.45;margin-left:12px;list-style:decimal}
+
+/* Last done stat — prominent in detail sheet */
+.last-done-stat{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 11px;background:rgba(255,255,255,.72);
+  border:1.2px solid rgba(255,255,255,.85);border-radius:9px;
+  box-shadow:0 1px 3px rgba(15,22,34,.05);flex-shrink:0;
+  margin:0 14px;
+}
+.lds-icon{font-size:14px;flex-shrink:0}
+.lds-bd{}
+.lds-label{font-family:var(--fm);font-size:7.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--label);display:block}
+.lds-val{font-size:11px;font-weight:600;color:var(--ink);display:block;margin-top:1px}
+.lds-sub{font-family:var(--fm);font-size:8px;font-weight:600;color:var(--muted);display:block;margin-top:1px}
+
+/* Favorite toggle in detail */
+.fav-toggle{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 11px;background:rgba(196,122,138,.08);
+  border:1.2px solid rgba(196,122,138,.22);border-radius:9px;
+  margin:0 14px;flex-shrink:0;cursor:pointer;
+}
+.fav-toggle.active{background:rgba(196,122,138,.14);border-color:rgba(196,122,138,.40)}
+.fav-toggle-icon{font-size:14px}
+.fav-toggle-text{font-size:11px;font-weight:600;color:var(--fav)}
+
+/* Inline plan section */
+.inline-sec{padding:8px 14px 6px;border-top:1.2px solid rgba(15,22,34,.07);flex-shrink:0}
+.inline-strip{display:flex;gap:4px;margin-top:7px}
+.ic{
+  flex:1;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  border-radius:8px;border:1.2px solid rgba(15,22,34,.11);background:rgba(255,255,255,.60);
+  font-family:var(--fm);font-size:8px;font-weight:700;color:var(--ink2);
+}
+.ic.pln{background:rgba(79,154,168,.13);border-color:rgba(79,154,168,.38);color:var(--ok)}
+.ic.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+.save-hint{font-size:8.5px;color:var(--muted);margin-top:5px;text-align:center}
+.save-hint.saved{color:var(--ok)}
+
+/* Action bar */
+.act-bar{display:flex;gap:7px;padding:8px 14px 14px;border-top:1.2px solid rgba(15,22,34,.08);flex-shrink:0}
+.btn-p{flex:1;padding:9px 0;background:var(--ink);color:#fff;border-radius:9px;font-size:11px;font-weight:700;text-align:center}
+.btn-s{padding:9px 11px;background:none;color:var(--bad);border:1.2px solid rgba(176,128,146,.38);border-radius:9px;font-size:11px;font-weight:600;text-align:center}
+
+/* ── Bottom nav ── */
+.bnav{
+  position:absolute;bottom:0;left:0;right:0;height:52px;
+  background:rgba(244,246,250,.92);border-top:1.2px solid rgba(15,22,34,.08);
+  backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:0 8px 4px;z-index:5;
+}
+.bnav-icon{font-size:17px;opacity:.35}
+.bnav-icon.active{opacity:1}
+
+</style>
+</head>
+<body>
+
+<div class="pg-hd">
+  <div class="ey">Movements Library</div>
+  <h1>Movements v2 — Mockup</h1>
+  <p>Favorites, last-done timestamps, and inline day planning. Four screens showing the complete flow.</p>
+</div>
+
+<!-- ══════════════ ROW 1: Full movement list flow ══════════════ -->
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-num">Screen 1 → 2</span>
+    <span class="sec-title">Movement List</span>
+    <span class="sec-desc">Filter tabs switch between All and Favorites. Heart icon on each row to favorite instantly. Last done shown inline per row.</span>
+  </div>
+
+  <div class="phone-row">
+
+    <!-- Screen 1: All movements, some favorited -->
+    <div class="phone-col">
+      <span class="step-lbl">All Movements</span>
+      <div class="phone"><div class="screen">
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+
+        <!-- Filter pills -->
+        <div class="filter-row">
+          <div class="fpill active">All</div>
+          <div class="fpill">♥ Favorites</div>
+        </div>
+
+        <div class="scroll-area">
+          <div class="mv-list">
+            <!-- Favorites section pinned at top -->
+            <div class="grp fav-grp">♥ Favorites</div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Bench Press</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#7fa5c7">BK</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Deadlift</span>
+                <div class="mv-mt"><span class="chip">back</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#9eb5cb">SH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Overhead Press</span>
+                <div class="mv-mt"><span class="chip">shoulders</span></div>
+                <div class="last-done"><span class="last-done-dot"></span>1 week ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+
+            <!-- All other movements -->
+            <div class="grp" style="margin-top:4px">Chest</div>
+            <div class="mv-row">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Incline DB Press</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">dumbbell</span></div>
+                <div class="last-done"><span class="last-done-dot"></span>5 days ago</div>
+              </div>
+              <span class="heart">♡</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Cable Fly</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">cable</span></div>
+                <div class="last-done never"><span class="last-done-dot"></span>Never done</div>
+              </div>
+              <span class="heart">♡</span>
+              <span class="chev">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bnav">
+          <span class="bnav-icon">📅</span>
+          <span class="bnav-icon">⚡</span>
+          <span class="bnav-icon">📊</span>
+          <span class="bnav-icon active">⋯</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Screen 2: Favorites filter active -->
+    <div class="phone-col">
+      <span class="step-lbl">★ Favorites Filter</span>
+      <div class="phone"><div class="screen">
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+
+        <div class="filter-row">
+          <div class="fpill">All</div>
+          <div class="fpill fav-active">♥ Favorites</div>
+        </div>
+
+        <div class="scroll-area">
+          <div class="mv-list">
+            <div class="grp fav-grp">3 favorites</div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Bench Press</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#7fa5c7">BK</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Deadlift</span>
+                <div class="mv-mt"><span class="chip">back</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#9eb5cb">SH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Overhead Press</span>
+                <div class="mv-mt"><span class="chip">shoulders</span></div>
+                <div class="last-done"><span class="last-done-dot"></span>1 week ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+
+            <!-- Empty hint -->
+            <div style="padding:20px 12px;text-align:center">
+              <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:4px">Your go-to movements</div>
+              <div style="font-size:10px;color:var(--muted);line-height:1.5">Tap ♡ on any movement<br>to add it here</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bnav">
+          <span class="bnav-icon">📅</span>
+          <span class="bnav-icon">⚡</span>
+          <span class="bnav-icon">📊</span>
+          <span class="bnav-icon active">⋯</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Screen 3: Favoriting a row (tapping the heart) -->
+    <div class="phone-col">
+      <span class="step-lbl">Tap ♡ to Favorite</span>
+      <div class="phone"><div class="screen">
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+
+        <div class="filter-row">
+          <div class="fpill active">All</div>
+          <div class="fpill">♥ Favorites</div>
+        </div>
+
+        <div class="scroll-area">
+          <div class="mv-list">
+            <div class="grp fav-grp">♥ Favorites</div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Bench Press</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="mv-row fav-hi">
+              <div class="thumb" style="background:#7fa5c7">BK</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Deadlift</span>
+                <div class="mv-mt"><span class="chip">back</span><span class="chip">barbell</span></div>
+                <div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div>
+              </div>
+              <span class="heart filled">♥</span>
+              <span class="chev">›</span>
+            </div>
+
+            <div class="grp" style="margin-top:4px">Chest</div>
+            <div class="mv-row">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Incline DB Press</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">dumbbell</span></div>
+                <div class="last-done"><span class="last-done-dot"></span>5 days ago</div>
+              </div>
+              <span class="heart">♡</span>
+              <span class="chev">›</span>
+            </div>
+            <!-- Cable Fly being favorited — heart filling in -->
+            <div class="mv-row" style="border-color:rgba(196,122,138,.35);background:rgba(196,122,138,.06)">
+              <div class="thumb" style="background:#5d9bb8">CH</div>
+              <div class="mv-bd">
+                <span class="mv-nm">Cable Fly</span>
+                <div class="mv-mt"><span class="chip">chest</span><span class="chip">cable</span></div>
+                <div class="last-done never"><span class="last-done-dot"></span>Never done</div>
+              </div>
+              <!-- Heart in transition state — filling pink -->
+              <span class="heart filled" style="font-size:16px;transform:scale(1.2);display:inline-block">♥</span>
+              <span class="chev">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bnav">
+          <span class="bnav-icon">📅</span>
+          <span class="bnav-icon">⚡</span>
+          <span class="bnav-icon">📊</span>
+          <span class="bnav-icon active">⋯</span>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ ROW 2: Detail sheet + plan days ══════════════ -->
+<div class="section">
+  <div class="sec-hd">
+    <span class="sec-num">Screen 4 → 5</span>
+    <span class="sec-title">Detail Sheet</span>
+    <span class="sec-desc">Tap a movement row to open the detail sheet. Shows last session stats, favorite toggle, instructions — and the inline day strip at the bottom (Option 2).</span>
+  </div>
+
+  <div class="phone-row">
+
+    <!-- Screen 4: Detail sheet open -->
+    <div class="phone-col">
+      <span class="step-lbl">Detail Sheet</span>
+      <div class="phone"><div class="screen">
+        <!-- bg list -->
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+        <div class="filter-row">
+          <div class="fpill active">All</div>
+          <div class="fpill">♥ Favorites</div>
+        </div>
+        <div class="mv-list" style="padding-top:4px">
+          <div class="grp fav-grp">♥ Favorites</div>
+          <div class="mv-row fav-hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span></div><div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div></div>
+            <span class="heart filled">♥</span><span class="chev">›</span>
+          </div>
+        </div>
+
+        <div class="overlay"></div>
+
+        <!-- Detail sheet -->
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd">
+            <span class="sh-t">Bench Press</span>
+            <span class="sh-x">✕</span>
+          </div>
+
+          <!-- Last done stat card -->
+          <div class="last-done-stat" style="margin-top:10px">
+            <span class="lds-icon">🕐</span>
+            <div class="lds-bd">
+              <span class="lds-label">Last done</span>
+              <span class="lds-val">Wednesday, May 14</span>
+              <span class="lds-sub">4 sets · 225 lbs · RPE 8</span>
+            </div>
+          </div>
+
+          <!-- Favorite toggle -->
+          <div class="fav-toggle active" style="margin-top:8px">
+            <span class="fav-toggle-icon">♥</span>
+            <span class="fav-toggle-text">Saved to Favorites</span>
+          </div>
+
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat on bench, grip wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Inline plan strip -->
+          <div class="inline-sec">
+            <div class="sec-lbl">Add to plan — tap to toggle</div>
+            <div class="inline-strip">
+              <div class="ic">Su</div>
+              <div class="ic pln">Mo<br/><span style="font-size:6px;color:var(--ok)">✓</span></div>
+              <div class="ic">Tu</div>
+              <div class="ic">We</div>
+              <div class="ic">Th</div>
+              <div class="ic">Fr</div>
+              <div class="ic">Sa</div>
+            </div>
+            <div class="save-hint">Saves automatically</div>
+          </div>
+
+          <div class="act-bar">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Screen 5: Days toggled, saved -->
+    <div class="phone-col">
+      <span class="step-lbl">Days Toggled &amp; Saved</span>
+      <div class="phone"><div class="screen">
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+        <div class="filter-row">
+          <div class="fpill active">All</div>
+          <div class="fpill">♥ Favorites</div>
+        </div>
+        <div class="mv-list" style="padding-top:4px">
+          <div class="grp fav-grp">♥ Favorites</div>
+          <div class="mv-row fav-hi">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Bench Press</span><div class="mv-mt"><span class="chip">chest</span></div><div class="last-done recent"><span class="last-done-dot"></span>3 days ago</div></div>
+            <span class="heart filled">♥</span><span class="chev">›</span>
+          </div>
+        </div>
+
+        <div class="overlay"></div>
+
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd">
+            <span class="sh-t">Bench Press</span>
+            <span class="sh-x">✕</span>
+          </div>
+
+          <div class="last-done-stat" style="margin-top:10px">
+            <span class="lds-icon">🕐</span>
+            <div class="lds-bd">
+              <span class="lds-label">Last done</span>
+              <span class="lds-val">Wednesday, May 14</span>
+              <span class="lds-sub">4 sets · 225 lbs · RPE 8</span>
+            </div>
+          </div>
+
+          <div class="fav-toggle active" style="margin-top:8px">
+            <span class="fav-toggle-icon">♥</span>
+            <span class="fav-toggle-text">Saved to Favorites</span>
+          </div>
+
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">barbell</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">triceps</span><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Lie flat on bench, grip wider than shoulders…</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Mon + Thu + Fri now planned -->
+          <div class="inline-sec">
+            <div class="sec-lbl">Add to plan — tap to toggle</div>
+            <div class="inline-strip">
+              <div class="ic">Su</div>
+              <div class="ic pln">Mo<br/><span style="font-size:6px;color:var(--ok)">✓</span></div>
+              <div class="ic">Tu</div>
+              <div class="ic">We</div>
+              <div class="ic pln">Th<br/><span style="font-size:6px;color:var(--ok)">✓</span></div>
+              <div class="ic pln">Fr<br/><span style="font-size:6px;color:var(--ok)">✓</span></div>
+              <div class="ic">Sa</div>
+            </div>
+            <div class="save-hint saved">✓ Saved to Monday, Thursday, Friday</div>
+          </div>
+
+          <div class="act-bar">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <!-- Screen 6: Never done movement, unfavorited -->
+    <div class="phone-col">
+      <span class="step-lbl">New Movement</span>
+      <div class="phone"><div class="screen">
+        <div class="phead"><div class="pey">Library</div><div class="ptitle">Movements</div></div>
+        <div class="search-wrap">
+          <div class="search"><span class="search-icon">🔍</span><span class="search-placeholder">Search movements…</span></div>
+        </div>
+        <div class="filter-row">
+          <div class="fpill active">All</div>
+          <div class="fpill">♥ Favorites</div>
+        </div>
+        <div class="mv-list" style="padding-top:4px">
+          <div class="grp">Chest</div>
+          <div class="mv-row">
+            <div class="thumb" style="background:#5d9bb8">CH</div>
+            <div class="mv-bd"><span class="mv-nm">Cable Fly</span><div class="mv-mt"><span class="chip">chest</span></div><div class="last-done never"><span class="last-done-dot"></span>Never done</div></div>
+            <span class="heart">♡</span><span class="chev">›</span>
+          </div>
+        </div>
+
+        <div class="overlay"></div>
+
+        <div class="sheet">
+          <div class="sh-handle"></div>
+          <div class="sh-hd">
+            <span class="sh-t">Cable Fly</span>
+            <span class="sh-x">✕</span>
+          </div>
+
+          <!-- Never done state -->
+          <div class="last-done-stat" style="margin-top:10px">
+            <span class="lds-icon">🆕</span>
+            <div class="lds-bd">
+              <span class="lds-label">Last done</span>
+              <span class="lds-val" style="color:var(--label)">Never logged</span>
+              <span class="lds-sub">Add to plan to get started</span>
+            </div>
+          </div>
+
+          <!-- Not favorited -->
+          <div class="fav-toggle" style="margin-top:8px">
+            <span class="fav-toggle-icon" style="opacity:.5">♡</span>
+            <span class="fav-toggle-text" style="color:var(--muted)">Add to Favorites</span>
+          </div>
+
+          <div class="det-bd">
+            <div class="mv-mt"><span class="chip">chest</span><span class="chip">cable</span><span class="chip">weight</span></div>
+            <div>
+              <div class="sec-lbl">Also works</div>
+              <div class="mv-mt"><span class="chip">shoulders</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl">How to</div>
+              <ol style="padding-left:12px">
+                <li class="step">Stand at cable machine, set pulleys high…</li>
+                <li class="step">Pull handles down and inward in arc…</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="inline-sec">
+            <div class="sec-lbl">Add to plan — tap to toggle</div>
+            <div class="inline-strip">
+              <div class="ic">Su</div>
+              <div class="ic">Mo</div>
+              <div class="ic">Tu</div>
+              <div class="ic">We</div>
+              <div class="ic">Th</div>
+              <div class="ic">Fr</div>
+              <div class="ic">Sa</div>
+            </div>
+            <div class="save-hint">Saves automatically</div>
+          </div>
+
+          <div class="act-bar">
+            <div class="btn-p">Edit</div>
+            <div class="btn-s">Delete</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

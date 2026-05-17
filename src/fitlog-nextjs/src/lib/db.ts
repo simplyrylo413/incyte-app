@@ -269,6 +269,19 @@ export async function deleteMovement(id: string): Promise<boolean> {
   return true;
 }
 
+export async function toggleMovementFavorite(id: string, favorite: boolean): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("movements")
+    .update({ favorite })
+    .eq("id", id);
+  if (error) {
+    console.error("[db] toggleMovementFavorite failed:", JSON.stringify(error));
+    return false;
+  }
+  return true;
+}
+
 // ============================================================================
 // WORKOUTS
 // ============================================================================
@@ -399,7 +412,8 @@ export async function deletePlan(id: string): Promise<boolean> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToMovement(r: any): Movement {
   // Schema columns: id, user_id, name, kind, unit, notes, created_at
-  // Extended columns (added via migration): body_part, equipment_type
+  // Extended columns (added via migration): body_part, equipment_type, gif_url,
+  //   secondary_muscles, instructions, favorite
   return {
     id: r.id,
     name: r.name,
@@ -413,8 +427,10 @@ function rowToMovement(r: any): Movement {
     gifUrl: r.gif_url ?? undefined,
     secondaryMuscles: r.secondary_muscles ?? undefined,
     instructions: r.instructions ?? undefined,
+    favorite: r.favorite ?? false,
   };
 }
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToWorkout(r: any): Workout {
