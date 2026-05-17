@@ -169,38 +169,6 @@ async function seedDefaultMovements(): Promise<Movement[]> {
   return (data ?? []).map(rowToMovement);
 }
 
-/**
- * Imports exercises from the ExerciseDB edge function and bulk-inserts them
- * into the movements table. Returns the count inserted or -1 on error.
- * Requires the user to be signed in (uses auth.uid() as user_id).
- */
-export async function importExercisesFromDB(
-  bodyParts?: string[]
-): Promise<number> {
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
-  if (!userId) {
-    console.error("[db] importExercisesFromDB: user not signed in");
-    return -1;
-  }
-
-  // Edge function fetches from ExerciseDB and inserts server-side (bypasses RLS)
-  const { data, error } = await supabase.functions.invoke<{
-    inserted: number;
-    total: number;
-  }>("import-exercises", {
-    body: { userId, ...(bodyParts ? { bodyParts } : {}) },
-  });
-
-  if (error) {
-    console.error("[db] importExercisesFromDB failed:", JSON.stringify(error));
-    return -1;
-  }
-  console.log("[db] importExercisesFromDB result:", JSON.stringify(data));
-  return data?.inserted ?? 0;
-}
-
 export async function listMovements(): Promise<Movement[]> {
   const supabase = createClient();
   // RLS policy (auth.uid() = user_id) filters rows automatically — no explicit filter needed.
