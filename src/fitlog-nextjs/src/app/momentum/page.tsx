@@ -205,8 +205,6 @@ function ReadinessCard({
   scores: ReadinessScores;
   ai: import("@/lib/engine/aiInsights").AiReadiness | null;
 }) {
-  const [recOpen, setRecOpen] = useState(false);
-
   // Use AI recommendation if available, fall back to rule-based
   const recAction = ai?.recommendation ?? scores.recAction;
   const recBullets = ai?.bullets ?? scores.recBullets;
@@ -278,30 +276,13 @@ function ReadinessCard({
           </div>
         </div>
 
-        {/* AI summary — shown above the recommendation when AI is available */}
-        {ai?.summary && (
-          <div className={s.aiSummary}>{ai.summary}</div>
-        )}
-
-        {/* Training recommendation — collapsible */}
-        <div className={`${s.rdRecommendation} ${recOpen ? "" : s.rdRecCollapsed}`}>
-          <button
-            type="button"
-            className={`${s.rdRecHead} ${recOpen ? s.rdRecOpen : ""}`}
-            onClick={() => setRecOpen((o) => !o)}
-            aria-expanded={recOpen}
-          >
-            <span className={s.rdRecTri} aria-hidden="true">▶</span>
+        {/* Recommendation — always visible, single paragraph */}
+        <div className={s.rdRecommendation}>
+          <div className={s.rdRecHead}>
             <span className={s.rdRecLabel}>{ai ? "AI:" : "Recommendation:"}</span>
             <span className={`${s.rdRecAction} ${toneClass}`}>{recAction}</span>
-          </button>
-          <div className={s.rdRecBody}>
-            <ul className={s.rdRecBullets}>
-              {recBullets.map((b, i) => (
-                <li key={i}>{b}</li>
-              ))}
-            </ul>
           </div>
+          <p className={s.rdRecPara}>{recBullets.join(" ")}</p>
         </div>
       </div>
     </section>
