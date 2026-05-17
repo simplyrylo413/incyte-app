@@ -45,7 +45,6 @@ export default function TodayPage() {
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [finishedToday, setFinishedToday] = useState<Workout[]>([]);
 
-  const [tab, setTab] = useState<"remaining" | "completed">("remaining");
   const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [detailEntry, setDetailEntry] = useState<{ entry: WorkoutEntry; workout: Workout } | null>(null);
 
@@ -94,11 +93,14 @@ export default function TodayPage() {
     sessionDoneToday,
   });
 
-  const hasMovements = remaining.length > 0 || completed.length > 0;
+  // Completed movements live only in the logged strip — exclude them from the list
+  const completedMids = new Set(completedEntries.map((c) => c.entry.movementId));
+  const remainingFiltered = remaining.filter((item) => !completedMids.has(item.mid));
+
+  const hasMovements = remainingFiltered.length > 0 || completedEntries.length > 0;
   const headline = hasMovements ? todayHeadline() : "Build today's session.";
   const isCompact = stats.doneSets === 0 && stats.totalSets > 0;
-  const visibleItems = tab === "completed" ? completed : remaining;
-  const grouped = groupByBodyPart(visibleItems);
+  const grouped = groupByBodyPart(remainingFiltered);
 
   // ── Active session mutation helpers ───────────────────────────────────────
 
@@ -107,7 +109,7 @@ export default function TodayPage() {
     if (activeWorkout) return activeWorkout;
     const deviceId = tryGetDeviceId();
     return {
-      id: `wk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      id: crypto.randomUUID(),
       device_id: deviceId ?? undefined,
       date: new Date().toISOString(),
       finished: false,
@@ -211,26 +213,10 @@ export default function TodayPage() {
         <EmptyState onAdd={() => setAddSheetOpen(true)} />
       ) : (
         <>
-          {/* Remaining / Completed toggle */}
-          <div className={s.tabToggle}>
-            <button
-              className={`${s.tabBtn} ${tab === "remaining" ? s.tabBtnActive : ""}`}
-              onClick={() => setTab("remaining")}
-            >
-              Remaining{remaining.length > 0 ? ` · ${remaining.length}` : ""}
-            </button>
-            <button
-              className={`${s.tabBtn} ${tab === "completed" ? s.tabBtnActive : ""}`}
-              onClick={() => setTab("completed")}
-            >
-              Completed{completed.length > 0 ? ` · ${completed.length}` : ""}
-            </button>
-          </div>
-
           <div style={{ paddingBottom: 8 }}>
             {grouped.length === 0 ? (
               <div style={{ padding: "16px 26px", fontSize: 13, color: "#8893a8" }}>
-                {tab === "completed" ? "Nothing completed yet." : "Nothing remaining."}
+                {completedEntries.length > 0 ? "All movements done for today." : "Nothing remaining."}
               </div>
             ) : (
               grouped.map(([bp, items]) => (

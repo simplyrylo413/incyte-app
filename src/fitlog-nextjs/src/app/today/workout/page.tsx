@@ -155,7 +155,7 @@ function WorkoutPage() {
           const today = new Date();
           const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
           aw = {
-            id: `w${Date.now()}`,
+            id: crypto.randomUUID(),
             name: `${DAYS[today.getDay()]} session`,
             date: today.toISOString(),
             entries: [activeEntry],
@@ -365,6 +365,25 @@ function WorkoutPage() {
   const doneSets  = (entry.sets ?? []).map((s, i) => ({ s, i })).filter((x) =>  x.s.done && x.i !== cur);
   const targetSets = (entry.sets ?? []).map((s, i) => ({ s, i })).filter((x) => !x.s.done && x.i !== cur);
 
+  // Rule-based next-set recommendation (shown when AI toggle is on + ≥1 done set with RPE)
+  const nextSetRec = (() => {
+    if (!aiOn || doneSets.length === 0) return null;
+    const last = doneSets[doneSets.length - 1].s;
+    const rpe = last.rpe != null && last.rpe !== "" ? Number(last.rpe) : null;
+    const w   = last.weight != null && last.weight !== "" ? Number(last.weight) : null;
+    const r   = last.reps   != null && last.reps   !== "" ? Number(last.reps)   : null;
+    if (rpe == null) return null;
+    const wLabel = w != null ? `${w} lb` : "same weight";
+    const rLabel = r != null ? `${r} reps` : "same reps";
+    if (rpe >= 9.5) return `Drop 10 lb · ${rLabel} · high effort last set`;
+    if (rpe >= 9)   return `−5–10 lb · ${rLabel} · near max`;
+    if (rpe >= 8.5) return `${wLabel} or −5 lb · ${rLabel}`;
+    if (rpe >= 8)   return `Hold ${wLabel} · ${rLabel}`;
+    if (rpe >= 7)   return `${wLabel} or +5 lb · ${rLabel}`;
+    if (rpe >= 6)   return `+5–10 lb · ${rLabel} · room to push`;
+    return `+10 lb · ${rLabel} · effort too low`;
+  })();
+
   // Prior session summary
   let priorSummary = "";
   let priorDate = "";
@@ -453,6 +472,14 @@ function WorkoutPage() {
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── AI next-set recommendation ── */}
+      {nextSetRec && (
+        <div className={s.aiRec}>
+          <span className={s.aiRecLabel}>AI</span>
+          <span className={s.aiRecText}>{nextSetRec}</span>
         </div>
       )}
 
