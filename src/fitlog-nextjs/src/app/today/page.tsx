@@ -47,6 +47,7 @@ export default function TodayPage() {
 
   const [tab, setTab] = useState<"remaining" | "completed">("remaining");
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [detailEntry, setDetailEntry] = useState<{ entry: WorkoutEntry; workout: Workout } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -75,6 +76,14 @@ export default function TodayPage() {
   const todayPlan = filterTodaysPlan(plans);
   const activeEntries: WorkoutEntry[] = activeWorkout?.entries ?? [];
   const sessionDoneToday = !activeWorkout && finishedToday.length > 0;
+
+  // Flat list of all completed entries from today's finished workouts
+  const completedEntries: Array<{ entry: WorkoutEntry; workout: Workout }> = [];
+  for (const wk of finishedToday) {
+    for (const e of wk.entries ?? []) {
+      completedEntries.push({ entry: e, workout: wk });
+    }
+  }
 
   const stats = calcDayStats(todayPlan, activeEntries, mvMap, finishedToday);
   const { remaining, completed } = buildTodayItems({
@@ -151,6 +160,26 @@ export default function TodayPage() {
     router.push(`/today/workout?${params}`);
   }
 
+  // Save edited sets back to Supabase
+  const handleSaveEditedSets = useCallback(async (
+    workout: Workout,
+    entryMovementId: string,
+    newSets: WorkoutEntry["sets"]
+  ) => {
+    const updatedEntries = workout.entries.map((e) =>
+      e.movementId === entryMovementId ? { ...e, sets: newSets } : e
+    );
+    const updated: Workout = { ...workout, entries: updatedEntries };
+    setFinishedToday((prev) =>
+      prev.map((w) => w.id === workout.id ? updated : w)
+    );
+    if (detailEntry?.workout.id === workout.id) {
+      const updatedEntry = updated.entries.find((e) => e.movementId === entryMovementId);
+      if (updatedEntry) setDetailEntry({ entry: updatedEntry, workout: updated });
+    }
+    await upsertWorkout(updated);
+  }, [detailEntry]);
+
   // IDs already in active session — filter these out of the add sheet
   const activeMids = new Set(activeEntries.map((e) => e.movementId));
 
@@ -164,6 +193,14 @@ export default function TodayPage() {
 
       {/* ── Session-stats glass panel ── */}
       <SessionStats stats={stats} isCompact={isCompact} />
+
+      {/* ── Logged strip — only when movements have been completed today ── */}
+      {completedEntries.length > 0 && (
+        <LoggedStrip
+          entries={completedEntries}
+          onChipTap={(item) => setDetailEntry(item)}
+        />
+      )}
 
       {/* ── Content ── */}
       {loading ? (
@@ -234,6 +271,16 @@ export default function TodayPage() {
           activeMids={activeMids}
           onAdd={handleAddMovement}
           onClose={() => setAddSheetOpen(false)}
+        />
+      )}
+
+      {/* ── Logged Detail Sheet ── */}
+      {detailEntry && (
+        <LoggedDetailSheet
+          entry={detailEntry.entry}
+          workout={detailEntry.workout}
+          onClose={() => setDetailEntry(null)}
+          onSave={handleSaveEditedSets}
         />
       )}
     </div>
@@ -572,5 +619,225 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
         + Add movement
       </button>
     </div>
+  );
+}
+
+// ─── Logged Strip ─────────────────────────────────────────────────────────────
+
+function LoggedStrip({
+  entries,
+  onChipTap,
+}: {
+  entries: Array<{ entry: WorkoutEntry; workout: Workout }>;
+  onChipTap: (item: { entry: WorkoutEntry; workout: Workout }) => void;
+}) {
+  return (
+    <div className={s.loggedStrip}>
+      <span className={s.loggedEyebrow}>Done</span>
+      <span className={s.loggedCount}>{entries.length}</span>
+      <div className={s.loggedChipRail}>
+        {entries.map((item, i) => (
+          <button
+            key={`${item.workout.id}-${item.entry.movementId}-${i}`}
+            type="button"
+            className={s.loggedChip}
+            onClick={() => onChipTap(item)}
+          >
+            <span className={s.loggedChipCheck}>✓</span>
+            {item.entry.name ?? item.entry.movementId}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Logged Detail Sheet ──────────────────────────────────────────────────────
+
+type EditingSet = {
+  idx: number;
+  weight: string;
+  reps: string;
+  rpe: string;
+};
+
+function LoggedDetailSheet({
+  entry,
+  workout,
+  onClose,
+  onSave,
+}: {
+  entry: WorkoutEntry;
+  workout: Workout;
+  onClose: () => void;
+  onSave: (workout: Workout, entryMovementId: string, sets: WorkoutEntry["sets"]) => Promise<void>;
+}) {
+  const sets = entry.sets ?? [];
+  const doneSets = sets.filter((s) => s.done);
+  const [editingSet, setEditingSet] = useState<EditingSet | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function rpeClass(rpe: number | null | undefined) {
+    if (rpe == null) return "";
+    if (rpe <= 7) return s.rpeOk;
+    if (rpe <= 8) return s.rpeMed;
+    return s.rpeHard;
+  }
+
+  function startEdit(idx: number) {
+    const set = sets[idx];
+    setEditingSet({
+      idx,
+      weight: set.weight != null ? String(set.weight) : "",
+      reps:   set.reps   != null ? String(set.reps)   : "",
+      rpe:    set.rpe    != null ? String(set.rpe)     : "",
+    });
+  }
+
+  async function commitEdit() {
+    if (!editingSet) return;
+    setSaving(true);
+    const newSets = sets.map((set, i) => {
+      if (i !== editingSet.idx) return set;
+      return {
+        ...set,
+        weight: editingSet.weight !== "" ? Number(editingSet.weight) : null,
+        reps:   editingSet.reps   !== "" ? Number(editingSet.reps)   : null,
+        rpe:    editingSet.rpe    !== "" ? Number(editingSet.rpe)     : null,
+      };
+    });
+    await onSave(workout, entry.movementId, newSets);
+    setEditingSet(null);
+    setSaving(false);
+  }
+
+  const displaySets = doneSets.length > 0 ? doneSets : sets;
+
+  return (
+    <>
+      <div className={s.detailOverlay} onClick={onClose} aria-hidden="true" />
+      <div className={s.detailSheet} role="dialog" aria-modal="true">
+        <div className={s.detailHandle} />
+
+        <div className={s.detailHead}>
+          <div className={s.detailTitleWrap}>
+            <div className={s.detailTitle}>{entry.name ?? entry.movementId}</div>
+            <div className={s.detailMeta}>
+              {entry.equipmentType && (
+                <span className={s.detailEquip}>{entry.equipmentType}</span>
+              )}
+              <span>{displaySets.length} sets logged</span>
+            </div>
+          </div>
+          <button type="button" className={s.detailClose} onClick={onClose}>
+            Done
+          </button>
+        </div>
+
+        <div className={s.detailBody}>
+          {/* Column headers */}
+          <div className={s.setTableColHeaders}>
+            <span className={s.setColHead}>#</span>
+            <span className={s.setColHead}>Weight</span>
+            <span className={s.setColHead}>Reps</span>
+            <span className={s.setColHead}>RPE</span>
+            <span className={s.setColHead}></span>
+          </div>
+
+          {/* Set rows */}
+          {sets.map((set, i) => {
+            if (!set.done) return null;
+            const isEditing = editingSet?.idx === i;
+
+            if (isEditing) {
+              return (
+                <div key={i} className={s.setEditRow}>
+                  <span className={s.setNumCell}>S{i + 1}</span>
+                  <div className={s.setEditInputs}>
+                    <div className={s.setInputGroup}>
+                      <span className={s.setInputLabel}>lb</span>
+                      <input
+                        className={s.setInput}
+                        type="number"
+                        inputMode="decimal"
+                        value={editingSet.weight}
+                        onChange={(e) => setEditingSet((v) => v ? { ...v, weight: e.target.value } : v)}
+                      />
+                    </div>
+                    <div className={s.setInputGroup}>
+                      <span className={s.setInputLabel}>reps</span>
+                      <input
+                        className={s.setInput}
+                        type="number"
+                        inputMode="numeric"
+                        value={editingSet.reps}
+                        onChange={(e) => setEditingSet((v) => v ? { ...v, reps: e.target.value } : v)}
+                      />
+                    </div>
+                    <div className={s.setInputGroup}>
+                      <span className={s.setInputLabel}>RPE</span>
+                      <input
+                        className={s.setInput}
+                        type="number"
+                        inputMode="decimal"
+                        min="1" max="10" step="0.5"
+                        value={editingSet.rpe}
+                        onChange={(e) => setEditingSet((v) => v ? { ...v, rpe: e.target.value } : v)}
+                      />
+                    </div>
+                  </div>
+                  <div className={s.setEditActions}>
+                    <button
+                      type="button"
+                      className={s.setSaveBtn}
+                      onClick={commitEdit}
+                      disabled={saving}
+                    >
+                      {saving ? "…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className={s.setCancelBtn}
+                      onClick={() => setEditingSet(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={i} className={s.setDataRow}>
+                <span className={s.setNumCell}>
+                  {set.warmup ? <span className={s.setWarmupBadge}>W</span> : `S${i + 1}`}
+                </span>
+                <span className={s.setValCell}>
+                  {set.weight != null ? <>{set.weight}<span className={s.setValUnit}> lb</span></> : "—"}
+                </span>
+                <span className={s.setValCell}>
+                  {set.reps != null ? <>{set.reps}<span className={s.setValUnit}> reps</span></> : "—"}
+                </span>
+                <span className={s.setValCell}>
+                  {set.rpe != null
+                    ? <span className={`${s.setRpeChip} ${rpeClass(Number(set.rpe))}`}>@{set.rpe}</span>
+                    : <span style={{ color: "#8893a8" }}>—</span>
+                  }
+                </span>
+                <div className={s.setActionsCell}>
+                  <button
+                    type="button"
+                    className={s.setEditBtn}
+                    onClick={() => startEdit(i)}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
 }
