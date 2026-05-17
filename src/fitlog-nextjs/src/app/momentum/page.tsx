@@ -11,12 +11,10 @@ import { listWorkouts, listMovements } from "@/lib/db";
 import type { Workout, Movement } from "@/lib/types";
 import {
   computeReadiness,
-  computeMuscleFatigue,
   computeWeeklyStimulus,
   computePRs,
   computeMuscleReadiness,
   type ReadinessScores,
-  type MuscleFatigueRow,
   type MuscleReadinessRow,
   type StimulusBar,
   type PRBadge,
@@ -26,11 +24,10 @@ import {
   invalidateAiCache,
   ageLabel,
   type AiInsights,
-  type AiRecovery,
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CARD_LABELS = ["Readiness", "Recovery", "Stimulus", "PRs", "Muscles"];
+const CARD_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
 
 // ─── Root page ────────────────────────────────────────────────────────────────
 
@@ -112,6 +109,7 @@ export default function MomentumPage() {
   const prs             = computePRs(workouts, movements);
   const muscleReadiness = computeMuscleReadiness(workouts, movements);
 
+
   return (
     <div className={s.page}>
       <div className={s.head}>
@@ -164,13 +162,6 @@ export default function MomentumPage() {
             <div className={s.carouselTrack} ref={trackRef}>
               <div className={s.carouselSlide}>
                 <ReadinessCard scores={scores} ai={ai?.readiness ?? null} />
-              </div>
-              <div className={s.carouselSlide}>
-                <FatigueCard
-                  workouts={workouts}
-                  movements={movements}
-                  aiRecovery={ai?.recovery ?? null}
-                />
               </div>
               <div className={s.carouselSlide}>
                 <StimulusCard stimulus={stimulus} ai={ai?.stimulus ?? null} />
@@ -314,108 +305,6 @@ function ReadinessCard({
         </div>
       </div>
     </section>
-  );
-}
-
-// ─── Fatigue / Recovery Map card ──────────────────────────────────────────────
-
-function FatigueCard({
-  workouts,
-  movements,
-  aiRecovery,
-}: {
-  workouts: Workout[];
-  movements: Movement[];
-  aiRecovery: AiRecovery | null;
-}) {
-  const [tab, setTab] = useState<"upper" | "lower">("upper");
-  const rows = computeMuscleFatigue(workouts, movements, tab);
-  const sectionLabel = tab === "upper" ? "Upper body" : "Lower · Cardio";
-
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>Body fatigue</div>
-          <div className={s.heroCardTitle}>Recovery map</div>
-        </div>
-      </div>
-
-      <div className={s.heroInner}>
-        {/* Toggle pill — mirrors .fatigue-toggle-pill */}
-        <div className={s.fatigueTogglePill}>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "upper" ? s.on : ""}`}
-            onClick={() => setTab("upper")}
-          >
-            Upper body
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
-            onClick={() => setTab("lower")}
-          >
-            Lower · Cardio
-          </button>
-        </div>
-
-        {/* Glass column — mirrors .fatigue-col */}
-        <div className={s.fatigueCol}>
-          {/* Section header — mirrors .fatigue-col-label */}
-          <div className={s.fatigueColHeader}>
-            <span>{sectionLabel}</span>
-            <span className={s.fatigueColRightLabel}>% Fatigued</span>
-          </div>
-          {/* 2-column grid — mirrors .fatigue-col-body */}
-          <div className={s.fatigueColBody}>
-            {rows.map((row) => (
-              <FatigueRow
-                key={row.key}
-                row={row}
-                aiAdvice={aiRecovery?.[row.key] ?? null}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FatigueRow({
-  row,
-  aiAdvice,
-}: {
-  row: MuscleFatigueRow;
-  aiAdvice: import("@/lib/engine/aiInsights").AiRecoveryEntry | null;
-}) {
-  const daysLabel =
-    row.daysAgo == null ? "—"
-    : row.daysAgo === 0 ? "today"
-    : `${row.daysAgo}d ago`;
-
-  const valLabel = row.pct > 0 ? `${row.pct}%` : daysLabel;
-
-  return (
-    <div className={s.fatigueRow}>
-      <span className={s.fatigueRowName}>
-        <span className={s.fatigueChev} aria-hidden="true">▶</span>
-        {row.label}
-      </span>
-      <div className={s.fatigueBarWrap}>
-        <div
-          className={`${s.fatigueBarFill} ${s[row.tier]}`}
-          style={{ width: `${row.pct}%` }}
-        />
-      </div>
-      <span className={s.fatigueRowVal}>{valLabel}</span>
-      {aiAdvice && (
-        <span className={`${s.fatigueAiAdvice} ${s[`aiTone${aiAdvice.tone.charAt(0).toUpperCase() + aiAdvice.tone.slice(1)}`]}`}>
-          {aiAdvice.advice}
-        </span>
-      )}
-    </div>
   );
 }
 
