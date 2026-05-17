@@ -559,6 +559,9 @@ function MuscleReadinessCard({
   upper: MuscleReadinessRow[];
   lower: MuscleReadinessRow[];
 }) {
+  const [tab, setTab] = useState<"upper" | "lower">("upper");
+  const rows = tab === "upper" ? upper : lower;
+
   return (
     <section className={s.heroCard}>
       <div className={s.heroCardHead}>
@@ -569,21 +572,27 @@ function MuscleReadinessCard({
       </div>
 
       <div className={s.heroInner}>
-        {/* Upper body */}
-        <p className={s.mrSectionLabel}>Upper</p>
-        <div className={s.mrGrid}>
-          {upper.map((row) => (
-            <MrTile key={row.key} row={row} />
-          ))}
+        {/* Tab toggle — mirrors Recovery Map pill */}
+        <div className={s.fatigueTogglePill}>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "upper" ? s.on : ""}`}
+            onClick={() => setTab("upper")}
+          >
+            Upper body
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
+            onClick={() => setTab("lower")}
+          >
+            Lower body
+          </button>
         </div>
 
-        {/* Divider */}
-        <div className={s.mrDivider} />
-
-        {/* Lower body */}
-        <p className={s.mrSectionLabel}>Lower</p>
+        {/* Active section grid */}
         <div className={s.mrGrid}>
-          {lower.map((row) => (
+          {rows.map((row) => (
             <MrTile key={row.key} row={row} />
           ))}
         </div>
