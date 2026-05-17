@@ -878,7 +878,7 @@
 :global(body.theme-dark) .emptyPicker { color: #8d96a5; }
 
 /* ════════════════════════════════════════════════════════
-   Plan v2 — new classes
+   Plan v3 — new classes
    ════════════════════════════════════════════════════════ */
 
 /* ─── State messages ─────────────────────────────────── */
@@ -1421,3 +1421,391 @@
   color: #c89aa3;
   border-color: #c89aa3;
 }
+
+/* ─── Recent wins card ─────────────────────────────── */
+.winsCard {
+  margin: 4px 16px 12px;
+  background: linear-gradient(155deg,
+    rgba(93,155,184,0.16) 0%,
+    rgba(155,130,200,0.11) 55%,
+    rgba(201,160,190,0.09) 100%);
+  border: 1.2px solid rgba(255,255,255,0.82);
+  border-radius: 18px;
+  padding: 14px 16px 13px;
+  box-shadow: 0 3px 16px rgba(93,155,184,0.12), 0 1px 4px rgba(15,22,34,0.05);
+  position: relative;
+  overflow: hidden;
+}
+.winsCard::after {
+  content: "";
+  position: absolute; inset: 0; border-radius: 18px;
+  background: linear-gradient(155deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 60%);
+  mix-blend-mode: screen; pointer-events: none;
+}
+.winsHead {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.3px; text-transform: uppercase;
+  color: #8893a8; margin-bottom: 10px;
+}
+.winRow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1.2px solid rgba(15,22,34,0.06);
+}
+.winRow:last-child { border-bottom: 0; padding-bottom: 0; }
+.winIcon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+.winBody { flex: 1; min-width: 0; }
+.winName {
+  font-size: 13px; font-weight: 700; color: #0f1622;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+.winSub {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700; color: #8893a8;
+  letter-spacing: 0.04em; margin-top: 1px;
+}
+.winBadgePr {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px; font-weight: 800;
+  color: #9e82c8; background: rgba(158,130,200,0.15);
+  padding: 3px 7px; border-radius: 5px;
+  letter-spacing: 0.05em; flex-shrink: 0;
+}
+.winBadgeUp {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px; font-weight: 800;
+  color: #4f9aa8; background: rgba(79,154,168,0.13);
+  padding: 3px 7px; border-radius: 5px;
+  letter-spacing: 0.05em; flex-shrink: 0;
+}
+
+/* ─── Ring week strip ──────────────────────────────── */
+.ringStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  padding: 0 16px 12px;
+}
+
+.ringDay {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 0; background: none; border: 0; cursor: pointer;
+  color: #8893a8;
+  transition: transform 150ms, color 150ms;
+}
+.ringDay:active { transform: scale(0.92); }
+
+.ringWrap {
+  width: 40px; height: 40px; position: relative;
+}
+.ringWrap svg { width: 100%; height: 100%; }
+
+.ringLetter {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 800;
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: 0.02em;
+  transition: color 150ms;
+}
+.ringCount {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: color 150ms;
+}
+
+/* State variants */
+.ringDayToday  { color: #5d9bb8; }
+.ringDayDone   { color: #4f9aa8; }
+.ringDayPartial { color: #5d9bb8; }
+.ringDayRest   { color: #c0c8d5; }
+
+.ringDayActive { color: #0f1622; }
+.ringDayActive .ringLetter { color: #0f1622; }
+.ringDayActive .ringCount  { color: #0f1622; font-weight: 800; }
+
+/* ─── Muscle balance ───────────────────────────────── */
+.balanceCard {
+  margin: 0 16px 12px;
+  background: rgba(255,255,255,0.65);
+  border: 1.2px solid rgba(255,255,255,0.85);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(15,22,34,0.05);
+}
+.balanceHead {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.3px; text-transform: uppercase;
+  color: #8893a8; margin-bottom: 10px;
+}
+.balRow {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.balRow:last-child { margin-bottom: 0; }
+.balLabel {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700;
+  color: #5e6a82; letter-spacing: 0.04em; text-transform: uppercase;
+  width: 40px; flex-shrink: 0;
+}
+.balTrack {
+  flex: 1; height: 5px;
+  background: rgba(15,22,34,0.08);
+  border-radius: 999px; overflow: hidden;
+}
+.balFill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #5d9bb8 0%, #7fa5c7 100%);
+  transition: width 500ms cubic-bezier(0.34,1.56,0.64,1);
+}
+.balVal {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 800;
+  color: #5d9bb8; width: 24px; text-align: right; flex-shrink: 0;
+}
+.balValLow { color: #b08092; }
+
+/* ─── Day view ─────────────────────────────────────── */
+.dayView { padding: 0 16px 100px; }
+
+.dayViewHead {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dayViewName {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 20px; font-weight: 800; color: #0f1622;
+  letter-spacing: -0.02em; line-height: 1.1;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+}
+.dayViewTodayBadge {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: #fff; background: #5d9bb8; padding: 3px 7px; border-radius: 4px;
+}
+.dayViewMeta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: #8893a8; display: flex; align-items: center; gap: 5px;
+}
+.dayViewDot { opacity: 0.40; }
+.dayViewDate { color: #5e6a82; }
+.dayViewRestChip {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: #8893a8; background: rgba(15,22,34,0.06);
+  padding: 3px 8px; border-radius: 6px;
+}
+.dayAddBtn {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #5d9bb8; background: rgba(93,155,184,0.10);
+  border: 1.2px solid rgba(93,155,184,0.32);
+  border-radius: 8px; padding: 6px 13px; cursor: pointer;
+  flex-shrink: 0; white-space: nowrap;
+  transition: background 150ms, transform 150ms;
+}
+.dayAddBtn:active { transform: scale(0.95); }
+
+.dayViewBody { display: flex; flex-direction: column; gap: 6px; }
+
+/* ─── Movement row (v3) ────────────────────────────── */
+/* Override old .mvRow definition for v3 layout */
+.mvRow {
+  display: flex; align-items: center; gap: 0;
+  padding: 11px 13px 11px 0;
+  background: rgba(255,255,255,0.72);
+  border: 1.2px solid rgba(255,255,255,0.88);
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(15,22,34,0.06);
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: transform 150ms, box-shadow 150ms;
+  margin-bottom: 0;
+  text-align: left;
+}
+.mvRow:active { transform: translateY(1px); box-shadow: none; }
+
+/* Left accent stripe */
+.mvStripe {
+  width: 3px; align-self: stretch; flex-shrink: 0;
+  border-radius: 2px 0 0 2px; margin-right: 12px;
+}
+.stripe_pr   { background: linear-gradient(180deg, #9e82c8 0%, #b08092 100%); }
+.stripe_up   { background: #4f9aa8; }
+.stripe_none { background: transparent; }
+
+.mvBody { flex: 1; min-width: 0; }
+.mvName {
+  font-size: 14px; font-weight: 700; color: #0f1622;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+.mvMeta {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 10px; font-weight: 700; color: #8893a8;
+  letter-spacing: 0.03em; margin-top: 2px;
+}
+.mvRowRight {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.mvChev { font-size: 14px; color: #8893a8; }
+
+/* Progression badges */
+.badgePr {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px; font-weight: 800;
+  color: #9e82c8; background: rgba(158,130,200,0.14);
+  padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+}
+.badgeUp {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9.5px; font-weight: 800;
+  color: #4f9aa8; background: rgba(79,154,168,0.12);
+  padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+}
+
+/* Day empty state */
+.dayEmpty {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 28px 20px 22px; text-align: center;
+  background: rgba(255,255,255,0.50);
+  border: 1.2px solid rgba(255,255,255,0.80);
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(15,22,34,0.05);
+}
+.dayEmptyIcon { font-size: 28px; opacity: 0.55; }
+.dayEmptyTitle {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 14px; font-weight: 700; color: #2c3548;
+}
+.dayEmptySub { font-size: 12px; color: #8893a8; line-height: 1.45; }
+
+/* pickerEmpty */
+.pickerEmpty {
+  padding: 24px 16px; text-align: center;
+  font-size: 13px; color: #5e6a82;
+}
+
+/* ─── Dark mode — v3 new classes ───────────────────── */
+@media (prefers-color-scheme: dark) {
+  :global(body:not(.theme-light)) .winsCard {
+    background: linear-gradient(155deg,
+      rgba(93,155,184,0.12) 0%,
+      rgba(155,130,200,0.09) 55%,
+      rgba(201,160,190,0.07) 100%);
+    border-color: rgba(255,255,255,0.10);
+  }
+  :global(body:not(.theme-light)) .winsHead { color: #6a7384; }
+  :global(body:not(.theme-light)) .winRow { border-bottom-color: rgba(255,255,255,0.07); }
+  :global(body:not(.theme-light)) .winName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .winSub { color: #6a7384; }
+  :global(body:not(.theme-light)) .winBadgePr { color: #c8aaee; background: rgba(158,130,200,0.16); }
+  :global(body:not(.theme-light)) .winBadgeUp { color: #7ec0a8; background: rgba(79,154,168,0.14); }
+
+  :global(body:not(.theme-light)) .ringDay { color: #6a7384; }
+  :global(body:not(.theme-light)) .ringDayToday  { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .ringDayDone   { color: #7ec0a8; }
+  :global(body:not(.theme-light)) .ringDayPartial { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .ringDayRest   { color: #3a4255; }
+  :global(body:not(.theme-light)) .ringDayActive { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .ringDayActive .ringLetter { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .ringDayActive .ringCount  { color: #f7f9fc; }
+
+  :global(body:not(.theme-light)) .balanceCard {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.09);
+  }
+  :global(body:not(.theme-light)) .balanceHead { color: #6a7384; }
+  :global(body:not(.theme-light)) .balLabel { color: #8d96a5; }
+  :global(body:not(.theme-light)) .balTrack { background: rgba(255,255,255,0.08); }
+  :global(body:not(.theme-light)) .balVal { color: #4dd0e1; }
+  :global(body:not(.theme-light)) .balValLow { color: #c89aa3; }
+
+  :global(body:not(.theme-light)) .dayViewName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .dayViewMeta { color: #6a7384; }
+  :global(body:not(.theme-light)) .dayViewDate { color: #8d96a5; }
+  :global(body:not(.theme-light)) .dayViewRestChip { background: rgba(255,255,255,0.07); color: #6a7384; }
+  :global(body:not(.theme-light)) .dayAddBtn {
+    color: #4dd0e1; background: rgba(77,208,225,0.08);
+    border-color: rgba(77,208,225,0.28);
+  }
+  :global(body:not(.theme-light)) .dayEmpty {
+    background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08);
+  }
+  :global(body:not(.theme-light)) .dayEmptyTitle { color: #c8d0db; }
+  :global(body:not(.theme-light)) .dayEmptySub   { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .mvRow {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+  }
+  :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .mvMeta { color: #8d96a5; }
+  :global(body:not(.theme-light)) .mvChev { color: #6a7384; }
+  :global(body:not(.theme-light)) .badgePr { color: #c8aaee; background: rgba(158,130,200,0.16); }
+  :global(body:not(.theme-light)) .badgeUp { color: #7ec0a8; background: rgba(79,154,168,0.14); }
+}
+
+:global(body.theme-dark) .winsCard {
+  background: linear-gradient(155deg,
+    rgba(93,155,184,0.12) 0%,
+    rgba(155,130,200,0.09) 55%,
+    rgba(201,160,190,0.07) 100%);
+  border-color: rgba(255,255,255,0.10);
+}
+:global(body.theme-dark) .winsHead { color: #6a7384; }
+:global(body.theme-dark) .winRow { border-bottom-color: rgba(255,255,255,0.07); }
+:global(body.theme-dark) .winName { color: #f7f9fc; }
+:global(body.theme-dark) .winSub { color: #6a7384; }
+:global(body.theme-dark) .winBadgePr { color: #c8aaee; background: rgba(158,130,200,0.16); }
+:global(body.theme-dark) .winBadgeUp { color: #7ec0a8; background: rgba(79,154,168,0.14); }
+
+:global(body.theme-dark) .ringDay { color: #6a7384; }
+:global(body.theme-dark) .ringDayToday  { color: #4dd0e1; }
+:global(body.theme-dark) .ringDayDone   { color: #7ec0a8; }
+:global(body.theme-dark) .ringDayPartial { color: #4dd0e1; }
+:global(body.theme-dark) .ringDayRest   { color: #3a4255; }
+:global(body.theme-dark) .ringDayActive { color: #f7f9fc; }
+:global(body.theme-dark) .ringDayActive .ringLetter { color: #f7f9fc; }
+:global(body.theme-dark) .ringDayActive .ringCount  { color: #f7f9fc; }
+
+:global(body.theme-dark) .balanceCard {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.09);
+}
+:global(body.theme-dark) .balanceHead { color: #6a7384; }
+:global(body.theme-dark) .balLabel { color: #8d96a5; }
+:global(body.theme-dark) .balTrack { background: rgba(255,255,255,0.08); }
+:global(body.theme-dark) .balVal { color: #4dd0e1; }
+:global(body.theme-dark) .balValLow { color: #c89aa3; }
+
+:global(body.theme-dark) .dayViewName { color: #f7f9fc; }
+:global(body.theme-dark) .dayViewMeta { color: #6a7384; }
+:global(body.theme-dark) .dayViewDate { color: #8d96a5; }
+:global(body.theme-dark) .dayViewRestChip { background: rgba(255,255,255,0.07); color: #6a7384; }
+:global(body.theme-dark) .dayAddBtn {
+  color: #4dd0e1; background: rgba(77,208,225,0.08);
+  border-color: rgba(77,208,225,0.28);
+}
+:global(body.theme-dark) .dayEmpty {
+  background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08);
+}
+:global(body.theme-dark) .dayEmptyTitle { color: #c8d0db; }
+:global(body.theme-dark) .dayEmptySub   { color: #6a7384; }
+
+:global(body.theme-dark) .mvRow {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+:global(body.theme-dark) .mvName { color: #f7f9fc; }
+:global(body.theme-dark) .mvMeta { color: #8d96a5; }
+:global(body.theme-dark) .mvChev { color: #6a7384; }
+:global(body.theme-dark) .badgePr { color: #c8aaee; background: rgba(158,130,200,0.16); }
+:global(body.theme-dark) .badgeUp { color: #7ec0a8; background: rgba(79,154,168,0.14); }

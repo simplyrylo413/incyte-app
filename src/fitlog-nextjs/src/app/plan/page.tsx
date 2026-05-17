@@ -1,26 +1,19 @@
 "use client";
 
-// Plan — v2
-// Single-day view: tap a day circle → see only that day's workout.
-// Gamification: streak counter, weekly completion score, XP bar, progression
-// badges (↑ +N lbs / ★ PR / New) derived from workout history.
-// Data-sync fix: visibilitychange listener ensures fresh data whenever the
-// user navigates back from the movements page.
+// Plan — v3 (Option 1 + 3 hybrid, no gamification)
+// - Recent performance card: PRs + weight gains across all movements
+// - Ring week strip (Option 1): SVG progress rings per day
+// - Muscle balance bars (Option 3): push/pull/legs/core frequency
+// - Single-day view: tap a ring to see that day, movements have left
+//   accent stripe + PR/↑ badge from workout history
+// - Data-sync: visibilitychange reloads on return from movements page
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  listMovements, listPlans, listWorkouts,
-  upsertPlan, deletePlan,
-} from "@/lib/db";
+import { listMovements, listPlans, listWorkouts, upsertPlan, deletePlan } from "@/lib/db";
 import type { Movement, PlanItem, Workout } from "@/lib/types";
 import {
-  buildDowStats,
-  calcEtaMins,
-  fmtEta,
-  planItemSets,
-  DOW_NAMES,
-  DOW_LETTERS,
-  type DowStats,
+  buildDowStats, calcEtaMins, fmtEta, planItemSets,
+  DOW_NAMES, DOW_LETTERS, type DowStats,
 } from "@/lib/engine/plan";
 import s from "./PlanPage.module.css";
 
@@ -30,69 +23,120 @@ type AddSheet  = { dow: number } | null;
 type EditSheet = { plan: PlanItem; mv: Movement } | null;
 
 type ProgBadge =
-  | { kind: "pr" }
+  | { kind: "pr"; weight: number }
   | { kind: "up"; lbs: number }
-  | { kind: "new" }
   | null;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+type WinItem = {
+  mid: string;
+  name: string;
+  kind: "pr" | "up";
+  detail: string;
+  badge: string;
+};
 
-/** Derive progression badge by comparing the last two sessions for a movement. */
-function deriveProgBadge(
-  mid: string,
-  workouts: Workout[],
-): ProgBadge {
-  const sessions: Array<{ topWeight: number; date: Date }> = [];
+// ─── Per-movement history ─────────────────────────────────────────────────────
+
+type MvHistory = {
+  sessions: Array<{ topWeight: number; date: Date }>;
+};
+
+function buildMvHistory(workouts: Workout[]): Map<string, MvHistory> {
+  const map = new Map<string, MvHistory>();
   for (const w of workouts) {
     if (!w.finished) continue;
+    const wDate = new Date(w.date || w.savedAt || 0);
     for (const e of w.entries) {
-      if (e.movementId !== mid) continue;
-      const done = (e.sets ?? []).filter((s) => s.done && !s.warmup);
+      if (!e.movementId) continue;
+      const done    = (e.sets ?? []).filter((s) => s.done && !s.warmup);
       const weights = done.map((s) => Number(s.weight) || 0).filter((n) => n > 0);
       if (!weights.length) continue;
-      sessions.push({ topWeight: Math.max(...weights), date: new Date(w.date) });
+      const top = Math.max(...weights);
+      if (!map.has(e.movementId)) map.set(e.movementId, { sessions: [] });
+      map.get(e.movementId)!.sessions.push({ topWeight: top, date: wDate });
     }
   }
-  if (!sessions.length) return { kind: "new" };
-  sessions.sort((a, b) => b.date.getTime() - a.date.getTime());
-  if (sessions.length === 1) return null;
-  const delta = sessions[0].topWeight - sessions[1].topWeight;
-  const isPR = sessions[0].topWeight >= Math.max(...sessions.map((s) => s.topWeight));
-  if (isPR && delta > 0) return { kind: "pr" };
-  if (delta > 0)         return { kind: "up", lbs: delta };
+  // Sort sessions newest-first per movement
+  for (const h of map.values()) {
+    h.sessions.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }
+  return map;
+}
+
+function deriveProgBadge(mid: string, history: Map<string, MvHistory>): ProgBadge {
+  const h = history.get(mid);
+  if (!h || h.sessions.length < 2) return null;
+  const allTime = Math.max(...h.sessions.map((s) => s.topWeight));
+  const latest  = h.sessions[0].topWeight;
+  const prev    = h.sessions[1].topWeight;
+  if (latest >= allTime && latest > prev) return { kind: "pr", weight: latest };
+  if (latest > prev) return { kind: "up", lbs: latest - prev };
   return null;
 }
 
-/** How many days this week (Sun–Sat) had at least one finished workout. */
-function completedDaysThisWeek(workouts: Workout[]): number {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-  const days = new Set<string>();
-  for (const w of workouts) {
-    if (!w.finished) continue;
-    const d = new Date(w.date || w.savedAt || 0);
-    if (d >= startOfWeek) days.add(d.toDateString());
+/** Recent PRs and gains across all movements — up to 3 items. */
+function buildRecentWins(
+  plans: PlanItem[],
+  movements: Movement[],
+  history: Map<string, MvHistory>,
+): WinItem[] {
+  const mvMap = new Map(movements.map((m) => [m.id, m]));
+  // Only show wins for movements that appear anywhere in the plan
+  const plannedMids = new Set(plans.map((p) => p.mid));
+  const wins: WinItem[] = [];
+
+  for (const [mid, h] of history) {
+    if (!plannedMids.has(mid)) continue;
+    const mv = mvMap.get(mid);
+    if (!mv || h.sessions.length < 2) continue;
+    const badge = deriveProgBadge(mid, history);
+    if (!badge) continue;
+    wins.push({
+      mid,
+      name: mv.name,
+      kind: badge.kind,
+      detail: badge.kind === "pr"
+        ? `${badge.weight} lbs · all-time best`
+        : `Up ${badge.lbs} lbs from last session`,
+      badge: badge.kind === "pr" ? "★ PR" : `↑ +${badge.lbs} lbs`,
+    });
   }
-  return days.size;
+
+  // PRs first, then gains; cap at 3
+  wins.sort((a, b) => (a.kind === "pr" ? -1 : 1) - (b.kind === "pr" ? -1 : 1));
+  return wins.slice(0, 3);
 }
 
-/** Longest current streak in days ending today. */
-function currentStreak(workouts: Workout[]): number {
-  const doneDays = new Set<string>(
-    workouts
-      .filter((w) => w.finished)
-      .map((w) => new Date(w.date || w.savedAt || 0).toDateString()),
-  );
-  let streak = 0;
-  const cursor = new Date();
-  cursor.setHours(12, 0, 0, 0);
-  while (doneDays.has(cursor.toDateString())) {
-    streak++;
-    cursor.setDate(cursor.getDate() - 1);
+/** Weekly muscle frequency — counts distinct days each muscle group is hit. */
+function buildMuscleBalance(
+  plans: PlanItem[],
+  movements: Movement[],
+): Array<{ label: string; count: number; pct: number }> {
+  const mvMap = new Map(movements.map((m) => [m.id, m]));
+  const groups: Record<string, Set<number>> = {
+    Push: new Set(), Pull: new Set(), Legs: new Set(), Core: new Set(),
+  };
+  const PUSH = new Set(["chest","shoulders","triceps","tricepts"]);
+  const PULL = new Set(["back","biceps","bicepts"]);
+  const LEGS = new Set(["quads","hamstrings","glutes","calves"]);
+  const CORE = new Set(["core","waist"]);
+
+  for (const p of plans) {
+    const mv = mvMap.get(p.mid);
+    if (!mv) continue;
+    const key = (mv.muscle ?? mv.bodyPart ?? "").toLowerCase();
+    if (PUSH.has(key)) groups.Push.add(p.dow);
+    else if (PULL.has(key)) groups.Pull.add(p.dow);
+    else if (LEGS.has(key)) groups.Legs.add(p.dow);
+    else if (CORE.has(key)) groups.Core.add(p.dow);
   }
-  return streak;
+
+  const max = Math.max(1, ...Object.values(groups).map((s) => s.size));
+  return Object.entries(groups).map(([label, days]) => ({
+    label,
+    count: days.size,
+    pct: Math.round((days.size / max) * 100),
+  }));
 }
 
 // ─── Root page ────────────────────────────────────────────────────────────────
@@ -103,19 +147,14 @@ export default function PlanPage() {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [plans,     setPlans]     = useState<PlanItem[]>([]);
   const [workouts,  setWorkouts]  = useState<Workout[]>([]);
-
-  // Selected dow — defaults to today
-  const [selDow, setSelDow] = useState<number>(() => new Date().getDay());
-
+  const [selDow,    setSelDow]    = useState(() => new Date().getDay());
   const [addSheet,  setAddSheet]  = useState<AddSheet>(null);
   const [editSheet, setEditSheet] = useState<EditSheet>(null);
 
   const load = useCallback(async () => {
     try {
       const [mv, pl, wk] = await Promise.all([
-        listMovements(),
-        listPlans(),
-        listWorkouts({ finished: true }),
+        listMovements(), listPlans(), listWorkouts({ finished: true }),
       ]);
       setMovements(mv);
       setPlans(pl);
@@ -128,14 +167,11 @@ export default function PlanPage() {
     }
   }, []);
 
-  // Initial load
   useEffect(() => { load(); }, [load]);
 
-  // Re-fetch when the user navigates back to this tab/page from movements
+  // Re-fetch whenever user navigates back (e.g. from movements page)
   useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === "visible") load();
-    };
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [load]);
@@ -167,10 +203,10 @@ export default function PlanPage() {
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
-  const dowStats  = useMemo(() => buildDowStats(plans, movements, workouts), [plans, movements, workouts]);
-  const streak    = useMemo(() => currentStreak(workouts), [workouts]);
-  const weekDone  = useMemo(() => completedDaysThisWeek(workouts), [workouts]);
-  const weekPlanned = dowStats.filter((d) => !d.isRest).length;
+  const dowStats     = useMemo(() => buildDowStats(plans, movements, workouts), [plans, movements, workouts]);
+  const mvHistory    = useMemo(() => buildMvHistory(workouts), [workouts]);
+  const recentWins   = useMemo(() => buildRecentWins(plans, movements, mvHistory), [plans, movements, mvHistory]);
+  const muscleBalance = useMemo(() => buildMuscleBalance(plans, movements), [plans, movements]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -189,23 +225,24 @@ export default function PlanPage() {
         <div className={s.stateErr}>{err}</div>
       ) : (
         <>
-          {/* Gamification hero card */}
-          <GamHero streak={streak} weekDone={weekDone} weekPlanned={weekPlanned} />
+          {/* Recent performance wins */}
+          {recentWins.length > 0 && (
+            <RecentWins wins={recentWins} />
+          )}
 
-          {/* Day selector — 7 circles */}
-          <DaySelector
-            stats={dowStats}
-            selDow={selDow}
-            onSelect={setSelDow}
-          />
+          {/* Ring week strip */}
+          <RingWeekStrip stats={dowStats} selDow={selDow} onSelect={setSelDow} />
 
-          {/* Single-day workout view */}
+          {/* Muscle balance */}
+          <MuscleBalance rows={muscleBalance} />
+
+          {/* Single-day view */}
           <DayView
             dow={selDow}
             stats={dowStats[selDow]}
             plans={plans}
             movements={movements}
-            workouts={workouts}
+            mvHistory={mvHistory}
             onAdd={() => setAddSheet({ dow: selDow })}
             onEdit={(plan, mv) => setEditSheet({ plan, mv })}
           />
@@ -235,91 +272,84 @@ export default function PlanPage() {
   );
 }
 
-// ─── Gamification hero card ───────────────────────────────────────────────────
+// ─── Recent wins card ─────────────────────────────────────────────────────────
 
-function GamHero({
-  streak,
-  weekDone,
-  weekPlanned,
-}: {
-  streak: number;
-  weekDone: number;
-  weekPlanned: number;
-}) {
-  // Fake XP for now — will wire to real XP system in a future phase
-  const xpPct = Math.min(100, (streak * 7) % 100);
-  const level  = Math.floor(streak / 14) + 1;
-
+function RecentWins({ wins }: { wins: WinItem[] }) {
   return (
-    <div className={s.gamHero}>
-      <div className={s.gamHeroRow}>
-        {/* Streak */}
-        <div className={s.gamStreak}>
-          <span className={s.gamFlame}>🔥</span>
-          <div className={s.gamStreakBd}>
-            <span className={s.gamStreakNum}>{streak}</span>
-            <span className={s.gamStreakLabel}>Day streak</span>
+    <div className={s.winsCard}>
+      <div className={s.winsHead}>Recent performance</div>
+      {wins.map((w) => (
+        <div key={w.mid} className={s.winRow}>
+          <span className={s.winIcon}>{w.kind === "pr" ? "🏆" : "📈"}</span>
+          <div className={s.winBody}>
+            <div className={s.winName}>{w.name}</div>
+            <div className={s.winSub}>{w.detail}</div>
           </div>
+          {w.kind === "pr"
+            ? <span className={s.winBadgePr}>{w.badge}</span>
+            : <span className={s.winBadgeUp}>{w.badge}</span>
+          }
         </div>
-
-        {/* Weekly score */}
-        <div className={s.gamWeekScore}>
-          <span className={s.gamWeekNum}>
-            {weekDone}<span className={s.gamWeekDenom}>/{weekPlanned || "—"}</span>
-          </span>
-          <span className={s.gamWeekLabel}>This week</span>
-        </div>
-      </div>
-
-      {/* XP bar */}
-      <div className={s.gamXpRow}>
-        <span className={s.gamXpLabel}>LV {level}</span>
-        <div className={s.gamXpTrack}>
-          <div className={s.gamXpFill} style={{ width: `${xpPct}%` }} />
-        </div>
-        <span className={s.gamXpNext}>LV {level + 1}</span>
-      </div>
+      ))}
     </div>
   );
 }
 
-// ─── Day selector ─────────────────────────────────────────────────────────────
+// ─── Ring week strip ──────────────────────────────────────────────────────────
 
-function DaySelector({
-  stats,
-  selDow,
-  onSelect,
+function RingWeekStrip({
+  stats, selDow, onSelect,
 }: {
   stats: DowStats[];
   selDow: number;
   onSelect: (dow: number) => void;
 }) {
   return (
-    <div className={s.daySelector}>
+    <div className={s.ringStrip}>
       {stats.map((st) => {
         const isSelected = selDow === st.dow;
+        // Progress fraction for the ring (done / total planned)
+        const frac = st.mvCount > 0 ? st.doneCount / st.mvCount : 0;
+        const circ = 100.53; // 2π × 16
+        const offset = circ * (1 - frac);
+
         const cls = [
-          s.daySel,
-          isSelected  ? s.daySelActive  : "",
-          st.isToday  ? s.daySelToday   : "",
-          st.allDone  ? s.daySelDone    : "",
-          st.partial  ? s.daySelPartial : "",
-          st.isRest   ? s.daySelRest    : "",
+          s.ringDay,
+          isSelected  ? s.ringDayActive   : "",
+          st.allDone  ? s.ringDayDone     : "",
+          st.partial  ? s.ringDayPartial  : "",
+          st.isToday  ? s.ringDayToday    : "",
+          st.isRest   ? s.ringDayRest     : "",
         ].filter(Boolean).join(" ");
 
         return (
-          <button
-            key={st.dow}
-            type="button"
-            className={cls}
-            onClick={() => onSelect(st.dow)}
-            aria-pressed={isSelected}
-          >
-            <div className={s.daySelCircle}>
-              {st.allDone ? "✓" : DOW_LETTERS[st.dow]}
+          <button key={st.dow} type="button" className={cls}
+            onClick={() => onSelect(st.dow)} aria-pressed={isSelected}>
+            <div className={s.ringWrap}>
+              <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                {/* Track */}
+                {st.isRest
+                  ? <circle cx="20" cy="20" r="16"
+                      stroke="currentColor" strokeOpacity="0.15"
+                      strokeWidth="2" strokeDasharray="5 4" />
+                  : <circle cx="20" cy="20" r="16"
+                      stroke="currentColor" strokeOpacity="0.14" strokeWidth="2.5" />
+                }
+                {/* Fill arc — only when there's progress */}
+                {!st.isRest && frac > 0 && (
+                  <circle cx="20" cy="20" r="16"
+                    stroke="currentColor" strokeWidth="2.5"
+                    strokeDasharray={circ} strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
+                )}
+              </svg>
+              <span className={s.ringLetter}>
+                {st.allDone ? "✓" : DOW_LETTERS[st.dow]}
+              </span>
             </div>
-            <span className={s.daySelCount}>
-              {st.isRest ? "—" : `${st.mvCount}`}
+            <span className={s.ringCount}>
+              {st.isRest ? "—" : st.allDone ? "done" : `${st.mvCount}`}
             </span>
           </button>
         );
@@ -328,22 +358,40 @@ function DaySelector({
   );
 }
 
+// ─── Muscle balance ───────────────────────────────────────────────────────────
+
+function MuscleBalance({ rows }: { rows: Array<{ label: string; count: number; pct: number }> }) {
+  const allZero = rows.every((r) => r.count === 0);
+  if (allZero) return null;
+  const max = Math.max(...rows.map((r) => r.count));
+  return (
+    <div className={s.balanceCard}>
+      <div className={s.balanceHead}>Muscle balance — this week</div>
+      {rows.map((r) => (
+        <div key={r.label} className={s.balRow}>
+          <span className={s.balLabel}>{r.label}</span>
+          <div className={s.balTrack}>
+            <div className={s.balFill} style={{ width: `${r.pct}%` }} />
+          </div>
+          <span className={`${s.balVal} ${r.count > 0 && r.count < max / 2 ? s.balValLow : ""}`}>
+            {r.count > 0 ? `${r.count}×` : "—"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Single day view ──────────────────────────────────────────────────────────
 
 function DayView({
-  dow,
-  stats,
-  plans,
-  movements,
-  workouts,
-  onAdd,
-  onEdit,
+  dow, stats, plans, movements, mvHistory, onAdd, onEdit,
 }: {
   dow: number;
   stats: DowStats;
   plans: PlanItem[];
   movements: Movement[];
-  workouts: Workout[];
+  mvHistory: Map<string, MvHistory>;
   onAdd: () => void;
   onEdit: (plan: PlanItem, mv: Movement) => void;
 }) {
@@ -359,73 +407,58 @@ function DayView({
     [plans, dow, mvMap],
   );
 
-  const totalSets = dayPlans.reduce((acc, p) => acc + planItemSets(p), 0);
-  const etaLabel  = fmtEta(calcEtaMins(totalSets, dayPlans.length));
-
-  // Date label for the selected day
-  const todayDow = new Date().getDay();
-  const diff  = (dow - todayDow + 7) % 7;
-  const d     = new Date();
-  d.setDate(d.getDate() + diff);
+  const totalSets = dayPlans.reduce((a, p) => a + planItemSets(p), 0);
+  const eta       = fmtEta(calcEtaMins(totalSets, dayPlans.length));
+  const todayDow  = new Date().getDay();
+  const diff      = (dow - todayDow + 7) % 7;
+  const d = new Date(); d.setDate(d.getDate() + diff);
   const dateLabel = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
   return (
     <div className={s.dayView}>
-      {/* Day header */}
       <div className={s.dayViewHead}>
-        <div className={s.dayViewName}>
-          {DOW_NAMES[dow]}
-          {stats.isToday && <span className={s.dayViewTodayBadge}>TODAY</span>}
-        </div>
-        <div className={s.dayViewMeta}>
-          {stats.isRest
-            ? <span className={s.dayViewRestChip}>Rest day</span>
-            : (
+        <div>
+          <div className={s.dayViewName}>
+            {DOW_NAMES[dow]}
+            {stats.isToday && <span className={s.dayViewTodayBadge}>TODAY</span>}
+          </div>
+          <div className={s.dayViewMeta}>
+            {stats.isRest ? (
+              <span className={s.dayViewRestChip}>Rest day</span>
+            ) : (
               <>
                 <span className={s.dayViewDate}>{dateLabel}</span>
                 <span className={s.dayViewDot}>·</span>
                 <span>{dayPlans.length} movement{dayPlans.length !== 1 ? "s" : ""}</span>
-                {etaLabel && <><span className={s.dayViewDot}>·</span><span>{etaLabel}</span></>}
+                {eta && <><span className={s.dayViewDot}>·</span><span>{eta}</span></>}
               </>
-            )
-          }
+            )}
+          </div>
         </div>
+        <button type="button" className={s.dayAddBtn} onClick={onAdd}>+ Add</button>
       </div>
 
-      {/* Movement list or empty */}
       <div className={s.dayViewBody}>
         {dayPlans.length === 0 ? (
           <div className={s.dayEmpty}>
             <div className={s.dayEmptyIcon}>{stats.isRest ? "😴" : "📋"}</div>
             <div className={s.dayEmptyTitle}>
-              {stats.isRest ? "Rest day" : "No movements planned"}
+              {stats.isRest ? "Rest day" : "Nothing planned yet"}
             </div>
             <div className={s.dayEmptySub}>
-              {stats.isRest
-                ? "Add movements below to turn this into a training day."
-                : "Tap + to build this session."}
+              {stats.isRest ? "Tap + Add to turn this into a training day." : "Tap + Add to build this session."}
             </div>
           </div>
         ) : (
           dayPlans.map((plan) => {
-            const mv = mvMap.get(plan.mid)!;
-            const badge = deriveProgBadge(plan.mid, workouts);
+            const mv    = mvMap.get(plan.mid)!;
+            const badge = deriveProgBadge(plan.mid, mvHistory);
             return (
-              <PlanMvRow
-                key={plan.id}
-                plan={plan}
-                mv={mv}
-                badge={badge}
-                onEdit={() => onEdit(plan, mv)}
-              />
+              <PlanMvRow key={plan.id} plan={plan} mv={mv} badge={badge}
+                onEdit={() => onEdit(plan, mv)} />
             );
           })
         )}
-
-        <button type="button" className={s.addRow} onClick={onAdd}>
-          <span className={s.addRowPlus}>+</span>
-          <span className={s.addRowLabel}>Add movement</span>
-        </button>
       </div>
     </div>
   );
@@ -433,32 +466,28 @@ function DayView({
 
 // ─── Plan movement row ────────────────────────────────────────────────────────
 
-function PlanMvRow({
-  plan,
-  mv,
-  badge,
-  onEdit,
-}: {
+function PlanMvRow({ plan, mv, badge, onEdit }: {
   plan: PlanItem;
   mv: Movement;
   badge: ProgBadge;
   onEdit: () => void;
 }) {
   const sets  = planItemSets(plan);
-  const reps  = plan.reps ? `${plan.reps} reps` : "";
+  const reps  = plan.reps  ? `${plan.reps} reps` : "";
   const equip = mv.equipmentType ?? "";
   const meta  = [`${sets} sets`, reps, equip].filter(Boolean).join(" · ");
+  const stripeKind = badge?.kind ?? "none";
 
   return (
     <button type="button" className={s.mvRow} onClick={onEdit}>
+      <span className={`${s.mvStripe} ${s[`stripe_${stripeKind}`]}`} aria-hidden="true" />
       <div className={s.mvBody}>
         <span className={s.mvName}>{mv.name}</span>
         <span className={s.mvMeta}>{meta}</span>
       </div>
       <div className={s.mvRowRight}>
-        {badge?.kind === "pr"  && <span className={s.badgePr}>★ PR</span>}
-        {badge?.kind === "up"  && <span className={s.badgeUp}>↑ +{badge.lbs} lbs</span>}
-        {badge?.kind === "new" && <span className={s.badgeNew}>New</span>}
+        {badge?.kind === "pr" && <span className={s.badgePr}>★ PR</span>}
+        {badge?.kind === "up" && <span className={s.badgeUp}>↑ +{badge.lbs} lbs</span>}
         <span className={s.mvChev}>›</span>
       </div>
     </button>
@@ -467,13 +496,7 @@ function PlanMvRow({
 
 // ─── Add Movement Sheet ───────────────────────────────────────────────────────
 
-function AddMovementSheet({
-  dow,
-  movements,
-  plans,
-  onAdd,
-  onClose,
-}: {
+function AddMovementSheet({ dow, movements, plans, onAdd, onClose }: {
   dow: number;
   movements: Movement[];
   plans: PlanItem[];
@@ -482,83 +505,52 @@ function AddMovementSheet({
 }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 80);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { const t = setTimeout(() => inputRef.current?.focus(), 80); return () => clearTimeout(t); }, []);
 
   const plannedMids = new Set(plans.filter((p) => p.dow === dow).map((p) => p.mid));
-
   const filtered = movements.filter((mv) => {
     if (plannedMids.has(mv.id)) return false;
-    if (!query.trim()) return true;
-    return mv.name.toLowerCase().includes(query.toLowerCase());
+    return !query.trim() || mv.name.toLowerCase().includes(query.toLowerCase());
   });
 
-  // Group by muscle when not searching
   const grouped: Array<{ label: string; items: Movement[] }> = [];
   if (!query.trim()) {
-    const muscleMap = new Map<string, Movement[]>();
+    const mm = new Map<string, Movement[]>();
     for (const mv of filtered) {
-      const key   = (mv.muscle ?? mv.category ?? "other").toLowerCase();
-      const label = key.charAt(0).toUpperCase() + key.slice(1);
-      if (!muscleMap.has(label)) muscleMap.set(label, []);
-      muscleMap.get(label)!.push(mv);
+      const k = (mv.muscle ?? mv.category ?? "other").toLowerCase();
+      const l = k.charAt(0).toUpperCase() + k.slice(1);
+      if (!mm.has(l)) mm.set(l, []);
+      mm.get(l)!.push(mv);
     }
-    const ORDER = [
-      "Chest","Back","Shoulders","Biceps","Bicepts",
-      "Triceps","Tricepts","Core","Quads","Hamstrings",
-      "Glutes","Calves","Cardio","Other",
-    ];
-    for (const label of ORDER) {
-      const items = muscleMap.get(label);
-      if (items?.length) { muscleMap.delete(label); grouped.push({ label, items }); }
-    }
-    for (const [label, items] of muscleMap) grouped.push({ label, items });
+    const ORDER = ["Chest","Back","Shoulders","Biceps","Bicepts","Triceps","Tricepts","Core","Quads","Hamstrings","Glutes","Calves","Cardio","Other"];
+    for (const l of ORDER) { const items = mm.get(l); if (items?.length) { mm.delete(l); grouped.push({ label: l, items }); } }
+    for (const [l, items] of mm) grouped.push({ label: l, items });
   }
 
   return (
     <>
       <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true">
-        <div
-          className={s.sheet}
-          role="dialog"
-          aria-modal="true"
+        <div className={s.sheet} role="dialog" aria-modal="true"
           aria-label={`Add to ${DOW_NAMES[dow]}`}
-          onClick={(e) => e.stopPropagation()}
-        >
+          onClick={(e) => e.stopPropagation()}>
           <div className={s.sheetHandle} />
           <div className={s.sheetHead}>
             <span className={s.sheetTitle}>Add to {DOW_NAMES[dow]}</span>
             <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
           </div>
-
-          <input
-            ref={inputRef}
-            type="search"
-            className={s.searchInput}
-            placeholder="Search movements…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-
+          <input ref={inputRef} type="search" className={s.searchInput}
+            placeholder="Search movements…" value={query}
+            onChange={(e) => setQuery(e.target.value)} />
           <div className={s.pickerList}>
             {query.trim() ? (
-              filtered.length === 0 ? (
-                <div className={s.pickerEmpty}>No movements match.</div>
-              ) : (
-                filtered.map((mv) => (
-                  <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />
-                ))
-              )
+              filtered.length === 0
+                ? <div className={s.pickerEmpty}>No movements match.</div>
+                : filtered.map((mv) => <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />)
             ) : (
-              grouped.map((group) => (
-                <div key={group.label}>
-                  <div className={s.pickerGroupLabel}>{group.label}</div>
-                  {group.items.map((mv) => (
-                    <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />
-                  ))}
+              grouped.map((g) => (
+                <div key={g.label}>
+                  <div className={s.pickerGroupLabel}>{g.label}</div>
+                  {g.items.map((mv) => <PickerItem key={mv.id} mv={mv} onPick={() => onAdd(mv, dow)} />)}
                 </div>
               ))
             )}
@@ -573,22 +565,14 @@ function PickerItem({ mv, onPick }: { mv: Movement; onPick: () => void }) {
   return (
     <button type="button" className={s.pickerItem} onClick={onPick}>
       <span className={s.pickerItemName}>{mv.name}</span>
-      {mv.equipmentType && (
-        <span className={s.pickerItemMeta}>{mv.equipmentType}</span>
-      )}
+      {mv.equipmentType && <span className={s.pickerItemMeta}>{mv.equipmentType}</span>}
     </button>
   );
 }
 
 // ─── Edit Plan Sheet ──────────────────────────────────────────────────────────
 
-function EditPlanSheet({
-  plan,
-  mv,
-  onSave,
-  onRemove,
-  onClose,
-}: {
+function EditPlanSheet({ plan, mv, onSave, onRemove, onClose }: {
   plan: PlanItem;
   mv: Movement;
   onSave: (updated: PlanItem) => void;
@@ -600,66 +584,40 @@ function EditPlanSheet({
   const [note,          setNote]          = useState(plan.notes ?? "");
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const handleSave = () => {
-    onSave({
-      ...plan,
-      sets: Number(sets) > 0 ? Number(sets) : 3,
-      reps,
-      notes: note,
-    });
-  };
-
   return (
     <>
       <div className={s.sheetOverlay} onClick={onClose} aria-hidden="true">
-        <div
-          className={s.sheet}
-          role="dialog"
-          aria-modal="true"
+        <div className={s.sheet} role="dialog" aria-modal="true"
           aria-label={`Edit ${mv.name}`}
-          onClick={(e) => e.stopPropagation()}
-        >
+          onClick={(e) => e.stopPropagation()}>
           <div className={s.sheetHandle} />
           <div className={s.sheetHead}>
             <span className={s.sheetTitle}>{mv.name}</span>
             <button type="button" className={s.sheetClose} onClick={onClose} aria-label="Close">✕</button>
           </div>
-
           <div className={s.editForm}>
             <div className={s.fieldRow}>
               <label className={s.fieldLabel}>Sets</label>
-              <input type="number" className={s.fieldInput}
-                value={sets} min={1} max={20}
-                onChange={(e) => setSets(e.target.value)} />
+              <input type="number" className={s.fieldInput} value={sets}
+                min={1} max={20} onChange={(e) => setSets(e.target.value)} />
             </div>
             <div className={s.fieldRow}>
               <label className={s.fieldLabel}>Reps</label>
-              <input type="text" className={s.fieldInput}
-                value={reps} placeholder="e.g. 8–10"
-                onChange={(e) => setReps(e.target.value)} />
+              <input type="text" className={s.fieldInput} value={reps}
+                placeholder="e.g. 8–10" onChange={(e) => setReps(e.target.value)} />
             </div>
             <div className={s.fieldRow}>
               <label className={s.fieldLabel}>Note</label>
-              <input type="text" className={s.fieldInput}
-                value={note} placeholder="Optional cue…"
-                onChange={(e) => setNote(e.target.value)} />
+              <input type="text" className={s.fieldInput} value={note}
+                placeholder="Optional cue…" onChange={(e) => setNote(e.target.value)} />
             </div>
           </div>
-
           <div className={s.editActions}>
-            <button type="button" className={s.btnSave} onClick={handleSave}>Save</button>
-            {confirmRemove ? (
-              <button type="button"
-                className={`${s.btnRemove} ${s.btnRemoveConfirm}`}
-                onClick={() => onRemove(plan.id)}>
-                Remove from plan?
-              </button>
-            ) : (
-              <button type="button" className={s.btnRemove}
-                onClick={() => setConfirmRemove(true)}>
-                Remove
-              </button>
-            )}
+            <button type="button" className={s.btnSave} onClick={() => onSave({ ...plan, sets: Number(sets) > 0 ? Number(sets) : 3, reps, notes: note })}>Save</button>
+            {confirmRemove
+              ? <button type="button" className={`${s.btnRemove} ${s.btnRemoveConfirm}`} onClick={() => onRemove(plan.id)}>Remove from plan?</button>
+              : <button type="button" className={s.btnRemove} onClick={() => setConfirmRemove(true)}>Remove</button>
+            }
           </div>
         </div>
       </div>

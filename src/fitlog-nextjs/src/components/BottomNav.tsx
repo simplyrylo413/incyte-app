@@ -13,19 +13,10 @@ const TABS = [
   {
     href: "/today",
     label: "Today",
-    // Calendar with a dot — matches HTML build's Today glyph (data-bn-view="today")
     icon: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+        strokeLinejoin="round" aria-hidden="true">
         <rect x="4" y="5" width="16" height="16" rx="2" />
         <path d="M16 3v4M8 3v4M4 11h16" />
         <circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none" />
@@ -33,45 +24,15 @@ const TABS = [
     ),
   },
   {
-    href: "/momentum",
-    label: "Insights",
-    // Bar chart — analytics/insights glyph (data-bn-view="insights" in mobile351)
-    icon: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M4 20h16" />
-        <rect x="6" y="12" width="3" height="6" />
-        <rect x="11" y="8" width="3" height="10" />
-        <rect x="16" y="4" width="3" height="14" />
-      </svg>
-    ),
-  },
-  {
     href: "/plan",
-    label: "Momentum",
-    // Lightning bolt — week/plan glyph (data-bn-view="week", aria-label="Momentum" in mobile351)
+    label: "Plan",
     icon: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M13 3 5 14h5l-1 7 8-11h-5l1-7Z" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+        strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="4" width="16" height="16" rx="2" />
+        <path d="M8 9h8M8 13h5" />
+        <circle cx="16" cy="16" r="2.5" fill="currentColor" stroke="none" />
       </svg>
     ),
   },

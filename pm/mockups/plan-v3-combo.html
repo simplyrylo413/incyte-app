@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Plan v3 Combo (1 + 3, no gamification)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0f1622; --ink-2: #2c3548; --muted: #5e6a82; --label: #8893a8;
+    --accent: #5d9bb8; --ok: #4f9aa8; --bad: #b08092;
+    --fm: "Geist Mono", ui-monospace, monospace;
+    --fd: "Inter Tight", system-ui, sans-serif;
+  }
+  body { font-family: var(--fd); background: #dde3ec; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 60px; gap: 10px; }
+
+  .label {
+    font-family: var(--fm); font-size: 11px; font-weight: 700;
+    letter-spacing: 1.8px; text-transform: uppercase; color: #8893a8;
+    margin-bottom: 6px; text-align: center;
+  }
+  .desc {
+    font-size: 13px; color: #5e6a82; line-height: 1.55;
+    max-width: 360px; text-align: center; margin-bottom: 20px;
+  }
+
+  /* Phone */
+  .phone {
+    width: 390px;
+    border-radius: 44px;
+    overflow: hidden;
+    background: #1a1f2e;
+    box-shadow: 0 40px 90px rgba(0,0,0,0.50), 0 0 0 1.5px rgba(255,255,255,0.09);
+  }
+  .screen {
+    height: 820px;
+    background: linear-gradient(160deg, #e8eef6 0%, #eef0f7 50%, #f4f0f6 100%);
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-bottom: 72px;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* ── Header ── */
+  .hd { padding: 52px 24px 10px; }
+  .hd-sub {
+    font-family: var(--fm); font-size: 11px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase; color: #8893a8; margin-bottom: 2px;
+  }
+  .hd-title {
+    font-size: 28px; font-weight: 800; color: #0f1622;
+    letter-spacing: -0.022em; line-height: 1.1;
+  }
+
+  /* ── Recent wins card ── */
+  .wins {
+    margin: 4px 16px 12px;
+    background: linear-gradient(155deg, rgba(93,155,184,0.16) 0%, rgba(155,130,200,0.11) 55%, rgba(201,160,190,0.09) 100%);
+    border: 1.2px solid rgba(255,255,255,0.82);
+    border-radius: 18px;
+    padding: 14px 16px 13px;
+    box-shadow: 0 3px 16px rgba(93,155,184,0.12), 0 1px 4px rgba(15,22,34,0.05);
+    position: relative; overflow: hidden;
+  }
+  .wins::after {
+    content: "";
+    position: absolute; inset: 0; border-radius: 18px;
+    background: linear-gradient(155deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 60%);
+    mix-blend-mode: screen; pointer-events: none;
+  }
+  .wins-head {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase; color: #8893a8;
+    margin-bottom: 10px;
+  }
+  .win-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1.2px solid rgba(15,22,34,0.06);
+  }
+  .win-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .win-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .win-body { flex: 1; min-width: 0; }
+  .win-name {
+    font-size: 13px; font-weight: 700; color: #0f1622;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .win-sub {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em; margin-top: 1px;
+  }
+  .win-badge-pr {
+    font-family: var(--fm); font-size: 9.5px; font-weight: 800;
+    color: #9e82c8; background: rgba(158,130,200,0.15);
+    padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+  .win-badge-up {
+    font-family: var(--fm); font-size: 9.5px; font-weight: 800;
+    color: #4f9aa8; background: rgba(79,154,168,0.13);
+    padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  /* ── Week ring strip (Option 1) ── */
+  .week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    padding: 0 16px 14px;
+  }
+  .wday {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 6px 0; background: none; border: 0; cursor: pointer;
+    transition: transform 150ms;
+  }
+  .wday:active { transform: scale(0.93); }
+  .ring-wrap {
+    width: 40px; height: 40px; position: relative;
+  }
+  .ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring-letter {
+    font-family: var(--fm); font-size: 11px; font-weight: 800;
+    color: #5e6a82; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(90deg); letter-spacing: 0.02em;
+    transition: color 150ms;
+  }
+  .wday.done .ring-letter   { color: #4f9aa8; }
+  .wday.active .ring-letter { color: #0f1622; }
+  .wday-count {
+    font-family: var(--fm); font-size: 9px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.03em;
+  }
+  .wday.done  .wday-count { color: #4f9aa8; }
+  .wday.today .wday-count { color: #5d9bb8; }
+
+  /* ── Muscle balance (Option 3, compact) ── */
+  .balance {
+    margin: 0 16px 12px;
+    background: rgba(255,255,255,0.65);
+    border: 1.2px solid rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(15,22,34,0.05);
+  }
+  .bal-head {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 10px;
+  }
+  .bal-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+  }
+  .bal-row:last-child { margin-bottom: 0; }
+  .bal-lbl {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    color: #5e6a82; letter-spacing: 0.04em; text-transform: uppercase;
+    width: 68px; flex-shrink: 0;
+  }
+  .bal-track {
+    flex: 1; height: 5px; background: rgba(15,22,34,0.08);
+    border-radius: 999px; overflow: hidden;
+  }
+  .bal-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #5d9bb8 0%, #7fa5c7 100%);
+    transition: width 600ms;
+  }
+  .bal-val {
+    font-family: var(--fm); font-size: 10px; font-weight: 800;
+    color: #5d9bb8; width: 22px; text-align: right; flex-shrink: 0;
+  }
+  .bal-val.low { color: #b08092; }
+
+  /* ── Day view header ── */
+  .dv-head {
+    padding: 0 16px 10px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .dv-name {
+    font-size: 20px; font-weight: 800; color: #0f1622;
+    letter-spacing: -0.02em; line-height: 1.1;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dv-today-badge {
+    font-family: var(--fm); font-size: 9px; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: #fff; background: #5d9bb8; padding: 3px 7px; border-radius: 4px;
+  }
+  .dv-meta {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px; margin-top: 3px;
+  }
+  .dv-dot { opacity: 0.4; }
+  .dv-add-btn {
+    font-family: var(--fm); font-size: 10px; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: #5d9bb8; background: rgba(93,155,184,0.12);
+    border: 1.2px solid rgba(93,155,184,0.35);
+    border-radius: 8px; padding: 6px 12px; cursor: pointer;
+    flex-shrink: 0; white-space: nowrap;
+    transition: background 150ms, transform 150ms;
+  }
+  .dv-add-btn:active { transform: scale(0.95); }
+
+  /* ── Movement rows ── */
+  .mv-list { padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
+  .mv-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 13px;
+    background: rgba(255,255,255,0.72);
+    border: 1.2px solid rgba(255,255,255,0.88);
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(15,22,34,0.06);
+    cursor: pointer;
+    transition: transform 150ms, box-shadow 150ms;
+  }
+  .mv-row:active { transform: translateY(1px); box-shadow: none; }
+
+  /* Left accent stripe for progress state */
+  .mv-row { position: relative; overflow: hidden; }
+  .mv-stripe {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 2px 0 0 2px;
+  }
+  .mv-stripe.pr   { background: linear-gradient(180deg, #9e82c8 0%, #b08092 100%); }
+  .mv-stripe.up   { background: #4f9aa8; }
+  .mv-stripe.new  { background: rgba(15,22,34,0.10); }
+  .mv-stripe.none { display: none; }
+
+  .mv-body { flex: 1; min-width: 0; padding-left: 6px; }
+  .mv-name {
+    font-size: 14px; font-weight: 700; color: #0f1622;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+  .mv-sub {
+    font-family: var(--fm); font-size: 10px; font-weight: 700;
+    color: #8893a8; letter-spacing: 0.04em; margin-top: 2px;
+  }
+  .mv-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+  .badge-pr {
+    font-family: var(--fm); font-size: 9.5px; font-weight: 800;
+    color: #9e82c8; background: rgba(158,130,200,0.14);
+    padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+  }
+  .badge-up {
+    font-family: var(--fm); font-size: 9.5px; font-weight: 800;
+    color: #4f9aa8; background: rgba(79,154,168,0.12);
+    padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+  }
+  .badge-new {
+    font-family: var(--fm); font-size: 9.5px; font-weight: 700;
+    color: #8893a8; background: rgba(15,22,34,0.06);
+    padding: 3px 7px; border-radius: 5px; letter-spacing: 0.05em;
+  }
+  .mv-chev { font-size: 14px; color: #8893a8; }
+
+  /* ── Bottom nav ── */
+  .bnav {
+    position: sticky; bottom: 0;
+    background: rgba(244,246,250,0.94);
+    backdrop-filter: blur(14px);
+    border-top: 1.2px solid rgba(15,22,34,0.08);
+    display: grid; grid-template-columns: repeat(4,1fr);
+    padding: 6px 0 18px;
+  }
+  .bnav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bnav-icon { font-size: 20px; color: #8893a8; }
+  .bnav-icon.a { color: #5d9bb8; }
+  .bnav-lbl {
+    font-family: var(--fm); font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; color: #8893a8;
+  }
+  .bnav-lbl.a { color: #5d9bb8; }
+
+  /* ── Divider between sections ── */
+  .sec-gap { height: 6px; }
+</style>
+</head>
+<body>
+
+<div class="label">Plan v3 — Option 1 + 3 Hybrid · No Gamification</div>
+<div class="desc">Ring week strip + recent performance wins + muscle balance overview. Encouragement through real progress — PRs, weight gains, balance gaps — not points or levels.</div>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="hd">
+      <div class="hd-sub">Weekly</div>
+      <div class="hd-title">Plan</div>
+    </div>
+
+    <!-- Recent wins card -->
+    <div class="wins">
+      <div class="wins-head">Recent performance</div>
+
+      <div class="win-row">
+        <span class="win-icon">🏆</span>
+        <div class="win-body">
+          <div class="win-name">Bench Press</div>
+          <div class="win-sub">225 lbs · all-time best</div>
+        </div>
+        <span class="win-badge-pr">★ PR</span>
+      </div>
+
+      <div class="win-row">
+        <span class="win-icon">📈</span>
+        <div class="win-body">
+          <div class="win-name">Romanian Deadlift</div>
+          <div class="win-sub">Up 10 lbs from last week</div>
+        </div>
+        <span class="win-badge-up">↑ +10 lbs</span>
+      </div>
+
+      <div class="win-row">
+        <span class="win-icon">📈</span>
+        <div class="win-body">
+          <div class="win-name">OHP</div>
+          <div class="win-sub">Up 5 lbs from last week</div>
+        </div>
+        <span class="win-badge-up">↑ +5 lbs</span>
+      </div>
+
+    </div>
+
+    <!-- Week ring strip -->
+    <div class="week">
+
+      <!-- Sun — done -->
+      <button class="wday done">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+            <circle cx="20" cy="20" r="16" stroke="#4f9aa8" stroke-width="2.5"
+              stroke-dasharray="100.53" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <span class="ring-letter">S</span>
+        </div>
+        <span class="wday-count">✓</span>
+      </button>
+
+      <!-- Mon — done -->
+      <button class="wday done">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+            <circle cx="20" cy="20" r="16" stroke="#4f9aa8" stroke-width="2.5"
+              stroke-dasharray="100.53" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <span class="ring-letter">M</span>
+        </div>
+        <span class="wday-count">✓</span>
+      </button>
+
+      <!-- Tue — rest -->
+      <button class="wday">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(15,22,34,0.09)" stroke-width="2"
+              stroke-dasharray="5 5"/>
+          </svg>
+          <span class="ring-letter" style="color:#c0c8d5">T</span>
+        </div>
+        <span class="wday-count">—</span>
+      </button>
+
+      <!-- Wed — today, active, in progress -->
+      <button class="wday active">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(15,22,34,0.10)" stroke-width="2.5"/>
+            <circle cx="20" cy="20" r="16" stroke="#0f1622" stroke-width="2.5"
+              stroke-dasharray="100.53" stroke-dashoffset="25.13" stroke-linecap="round"/>
+          </svg>
+          <span class="ring-letter" style="color:#0f1622;font-size:10px">W</span>
+        </div>
+        <span class="wday-count" style="color:#0f1622;font-weight:800">3/4</span>
+      </button>
+
+      <!-- Thu — done -->
+      <button class="wday done">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(79,154,168,0.18)" stroke-width="2.5"/>
+            <circle cx="20" cy="20" r="16" stroke="#4f9aa8" stroke-width="2.5"
+              stroke-dasharray="100.53" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <span class="ring-letter">T</span>
+        </div>
+        <span class="wday-count">✓</span>
+      </button>
+
+      <!-- Fri — planned, not done -->
+      <button class="wday today">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(93,155,184,0.25)" stroke-width="2.5"/>
+          </svg>
+          <span class="ring-letter" style="color:#5d9bb8">F</span>
+        </div>
+        <span class="wday-count" style="color:#5d9bb8">5</span>
+      </button>
+
+      <!-- Sat — rest -->
+      <button class="wday">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="16" stroke="rgba(15,22,34,0.09)" stroke-width="2"
+              stroke-dasharray="5 5"/>
+          </svg>
+          <span class="ring-letter" style="color:#c0c8d5">S</span>
+        </div>
+        <span class="wday-count">—</span>
+      </button>
+
+    </div>
+
+    <!-- Muscle balance (Option 3, compact) -->
+    <div class="balance">
+      <div class="bal-head">Muscle balance — this week</div>
+      <div class="bal-row">
+        <span class="bal-lbl">Push</span>
+        <div class="bal-track"><div class="bal-fill" style="width:85%"></div></div>
+        <span class="bal-val">4×</span>
+      </div>
+      <div class="bal-row">
+        <span class="bal-lbl">Pull</span>
+        <div class="bal-track"><div class="bal-fill" style="width:60%"></div></div>
+        <span class="bal-val">3×</span>
+      </div>
+      <div class="bal-row">
+        <span class="bal-lbl">Legs</span>
+        <div class="bal-track"><div class="bal-fill" style="width:40%"></div></div>
+        <span class="bal-val low">2×</span>
+      </div>
+      <div class="bal-row">
+        <span class="bal-lbl">Core</span>
+        <div class="bal-track"><div class="bal-fill" style="width:30%"></div></div>
+        <span class="bal-val low">1×</span>
+      </div>
+    </div>
+
+    <!-- Selected day header -->
+    <div class="dv-head">
+      <div>
+        <div class="dv-name">Wednesday <span class="dv-today-badge">TODAY</span></div>
+        <div class="dv-meta">
+          <span>4 movements</span>
+          <span class="dv-dot">·</span>
+          <span>~52 min</span>
+          <span class="dv-dot">·</span>
+          <span>Chest + Tri</span>
+        </div>
+      </div>
+      <button class="dv-add-btn">+ Add</button>
+    </div>
+
+    <!-- Movement list -->
+    <div class="mv-list">
+
+      <!-- PR movement -->
+      <button class="mv-row">
+        <span class="mv-stripe pr"></span>
+        <div class="mv-body">
+          <div class="mv-name">Bench Press</div>
+          <div class="mv-sub">4 sets · 6–8 reps · Barbell</div>
+        </div>
+        <div class="mv-right">
+          <span class="badge-pr">★ PR</span>
+          <span class="mv-chev">›</span>
+        </div>
+      </button>
+
+      <!-- Up movement -->
+      <button class="mv-row">
+        <span class="mv-stripe up"></span>
+        <div class="mv-body">
+          <div class="mv-name">Incline DB Press</div>
+          <div class="mv-sub">3 sets · 8–10 reps · Dumbbell</div>
+        </div>
+        <div class="mv-right">
+          <span class="badge-up">↑ +5 lbs</span>
+          <span class="mv-chev">›</span>
+        </div>
+      </button>
+
+      <!-- No change movement -->
+      <button class="mv-row">
+        <span class="mv-stripe none"></span>
+        <div class="mv-body">
+          <div class="mv-name">Cable Fly</div>
+          <div class="mv-sub">3 sets · 12–15 reps · Cable</div>
+        </div>
+        <div class="mv-right">
+          <span class="mv-chev">›</span>
+        </div>
+      </button>
+
+      <!-- Up movement -->
+      <button class="mv-row">
+        <span class="mv-stripe up"></span>
+        <div class="mv-body">
+          <div class="mv-name">Tricep Pushdown</div>
+          <div class="mv-sub">3 sets · 10–12 reps · Cable</div>
+        </div>
+        <div class="mv-right">
+          <span class="badge-up">↑ +2.5 lbs</span>
+          <span class="mv-chev">›</span>
+        </div>
+      </button>
+
+    </div>
+
+  </div><!-- /screen -->
+
+  <div class="bnav">
+    <div class="bnav-item"><div class="bnav-icon">🏠</div><div class="bnav-lbl">Today</div></div>
+    <div class="bnav-item"><div class="bnav-icon a">📋</div><div class="bnav-lbl a">Plan</div></div>
+    <div class="bnav-item"><div class="bnav-icon">📈</div><div class="bnav-lbl">Momentum</div></div>
+    <div class="bnav-item"><div class="bnav-icon">⋯</div><div class="bnav-lbl">More</div></div>
+  </div>
+</div><!-- /phone -->
+
+</body>
+</html>
