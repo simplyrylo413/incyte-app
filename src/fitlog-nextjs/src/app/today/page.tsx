@@ -276,6 +276,9 @@ export default function TodayPage() {
           excludeMids={activeMids}
           onAdd={(mv) => { handleAddMovement(mv); setAddSheetOpen(false); }}
           onClose={() => setAddSheetOpen(false)}
+          onFavoriteToggled={(id, next) =>
+            setMovements((prev) => prev.map((m) => m.id === id ? { ...m, favorite: next } : m))
+          }
         />
       )}
 

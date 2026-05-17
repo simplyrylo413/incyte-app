@@ -24,6 +24,8 @@ interface Props {
   excludeMids?: Set<string>;
   onAdd: (mv: Movement) => void;
   onClose: () => void;
+  /** Called after a favorite is toggled so the parent can update its movements state */
+  onFavoriteToggled?: (id: string, next: boolean) => void;
 }
 
 export default function MovementPickerSheet({
@@ -32,6 +34,7 @@ export default function MovementPickerSheet({
   excludeMids,
   onAdd,
   onClose,
+  onFavoriteToggled,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -40,7 +43,7 @@ export default function MovementPickerSheet({
   // Local copy so we can optimistically toggle favorites without refetching
   const [localMovements, setLocalMovements] = useState<Movement[]>(movements);
 
-  // Sync if parent's list changes (e.g. on re-mount)
+  // Sync when parent list changes (e.g. parent re-fetches after a toggle on another screen)
   useEffect(() => { setLocalMovements(movements); }, [movements]);
 
   // Auto-focus search
@@ -52,11 +55,14 @@ export default function MovementPickerSheet({
   async function handleToggleFavorite(e: React.MouseEvent, mv: Movement) {
     e.stopPropagation();
     const next = !mv.favorite;
-    // Optimistic update
+    // Optimistic update — immediate UI response
     setLocalMovements((prev) =>
       prev.map((m) => m.id === mv.id ? { ...m, favorite: next } : m)
     );
     await toggleMovementFavorite(mv.id, next);
+    // Notify parent so its movements state stays in sync — prevents stale
+    // favorites when the picker is closed and reopened without a page refresh
+    onFavoriteToggled?.(mv.id, next);
   }
 
   // Apply exclude + filter + search
@@ -84,7 +90,8 @@ export default function MovementPickerSheet({
     for (const [label, items] of map) grouped.push({ label, items });
   }
 
-  const favCount = localMovements.filter((m) => m.favorite && !excludeMids?.has(m.id)).length;
+  // Count all favorites regardless of excludeMids — the badge shows how many exist total
+  const favCount = localMovements.filter((m) => m.favorite).length;
 
   return (
     <>

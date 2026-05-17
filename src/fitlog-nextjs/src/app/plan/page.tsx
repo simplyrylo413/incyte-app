@@ -257,6 +257,9 @@ export default function PlanPage() {
           excludeMids={new Set(plans.filter((p) => p.dow === addSheet.dow).map((p) => p.mid))}
           onAdd={(mv) => handleAddMovement(mv, addSheet.dow)}
           onClose={() => setAddSheet(null)}
+          onFavoriteToggled={(id, next) =>
+            setMovements((prev) => prev.map((m) => m.id === id ? { ...m, favorite: next } : m))
+          }
         />
       )}
 

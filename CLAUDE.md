@@ -214,6 +214,14 @@ When a Figma URL or selection is provided, the implementation flow is:
 - When the user says "snapshot the file" they mean `cp src/fitlog-mobile.html src/mobile{N+1}.html` where N is the highest existing number. They're aware this conflicts with the 2026-05-12 retirement decision; if it becomes a pattern, surface the contradiction.
 - The repo is on `main` and `main` is the working branch. No branching workflow is in use.
 
+### Mockup workflow (whenever user asks for mockups / design options)
+
+1. Create a **single self-contained HTML file** at `src/fitlog-nextjs/public/<descriptive-name>-mockups.html`.
+2. The file must contain **exactly 3 distinct options** labelled Option A / B / C, each showing the design in a phone-frame context with real INCYTE tokens.
+3. After writing the file, provide a **clickable link**: `http://localhost:58848/<descriptive-name>-mockups.html` — the Next.js dev server serves the `public/` folder statically, so the user can open it immediately in their browser without any extra steps.
+4. Keep all mockup assets inline (no external image deps). Match the INCYTE token set exactly (§4). Never invent colors.
+5. Do **not** implement from the mockup until the user explicitly picks an option.
+
 ---
 
 ## 12. Next.js build (`src/fitlog-nextjs/`)
