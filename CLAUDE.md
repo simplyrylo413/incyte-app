@@ -21,7 +21,7 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 - **IMPORTANT:** Commit each meaningful change to git. The repo is at `~/fitness-app/` on branch `main`. Numbered-snapshot workflow was retired 2026-05-12 ([`pm/decisions.md`](pm/decisions.md)); user may still request snapshots for specific exports.
 - **IMPORTANT:** Never hardcode colors, font sizes, spacing, or shadows. Use the design tokens declared in `:root` at [src/fitlog-mobile.html:20](src/fitlog-mobile.html#L20). Hardcoded values that re-implement existing tokens are a regression.
 - **IMPORTANT:** Never invent new brand colors. INCYTE's palette is locked: steel-blue / lavender / soft-pink. Gaming, cyberpunk, neon, and warm-orange "fitness" palettes are explicitly rejected. See `~/.claude/projects/-Users-albertrylo/memory/feedback_visual_direction.md`.
-- **IMPORTANT:** The IA is **Today / Plan / Momentum / More**. When users describe the IA differently in a prompt, use the canonical names — don't re-litigate.
+- **IMPORTANT:** The IA is **Today / Plan / Insights / More**. When users describe the IA differently in a prompt, use the canonical names — don't re-litigate.
 
 ---
 
@@ -141,7 +141,7 @@ The canonical components and what each represents. Reuse — don't reinvent.
 | Back chip | `.back-chip` | Glass disc with accent-blue border + colorful drop shadow |
 | Rest pill | `.pill-rest` | Workout-mode rest timer with `--ink` border + text |
 | Picker overlay | `.pk-overlay` / `.pk-sheet` | Bottom-sheet number picker for weight/reps/RPE |
-| Bottom nav | `.bottom-nav` | Today / Plan / Momentum / More |
+| Bottom nav | `.bottom-nav` | Today / Plan / Insights / More |
 
 When adding new UI, **first** scan the patterns above for a fit. Extend; don't duplicate.
 
@@ -236,7 +236,7 @@ The parallel build under construction. Different conventions from the HTML build
 - **Shared Supabase project** with the HTML build (`drlmpltseepsxostsqdq`). Reads + writes the same `workouts` / `movements` / `plans` rows. The scaffold's `supabase/schema.sql` is stale — the canonical schema is what the HTML build at [src/fitlog-mobile.html:17042](src/fitlog-mobile.html#L17042) writes (`workouts` row with inline `entries` jsonb, `device_id` keying, columns: `id, device_id, name, date, finished, entries, saved_at`).
 - **Auth:** anonymous `device_id` during build/test phase. Full Supabase auth becomes a launch blocker (Phase 8 in `pm/nextjs-port-plan.md`).
 - **Engine logic is canonical in the HTML build** — Next.js implementations port the *behavior*, not the source. Each ported function header should cite the source line in `fitlog-mobile.html` so behavior contracts stay traceable.
-- **IA:** Today / Plan / Momentum / More (canonical, per `pm/decisions.md` 2026-05-12). Routes: `/today`, `/plan`, `/momentum`, `/more`. The scaffold's existing pages (history, movements, progress) get absorbed under More.
+- **IA:** Today / Plan / Insights / More (canonical, per `pm/decisions.md` 2026-05-12). Routes: `/today`, `/plan`, `/momentum`, `/more`. The scaffold's existing pages (history, movements, progress) get absorbed under More.
 
 **Component conventions:**
 - Tokens live in `tailwind.config.ts` (palette, type scale, weight ladder, tracking, leading). Same values as the HTML build's `:root` tokens — don't drift.
