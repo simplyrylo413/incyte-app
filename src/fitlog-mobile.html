@@ -14866,10 +14866,25 @@ function initWmPickers(entry, cur) {
   const s = entry.sets[cur];
   const hasRpe = ui.session.trackRpe;
 
-  // Determine initial positions
+  // Preload from the most-recently completed set when the current set is
+  // untouched. The next set is almost always a variation of the prior
+  // weight, so starting the picker there saves scrolling in the common case.
+  const hasV = (v) => v != null && v !== '';
+  if (!hasV(s.weight) || !hasV(s.reps)) {
+    const prevDone = entry.sets.slice(0, cur).reverse().find(set => set.done);
+    if (prevDone) {
+      if (!hasV(s.weight) && hasV(prevDone.weight)) s.weight = prevDone.weight;
+      if (!hasV(s.reps)   && hasV(prevDone.reps))   s.reps   = prevDone.reps;
+      if (hasRpe && !hasV(s.rpe) && hasV(prevDone.rpe)) s.rpe = prevDone.rpe;
+      // Persist the preloaded values so logSetV2 sees them immediately
+      if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
+    }
+  }
+
+  // Determine initial picker positions
   const wIdx = _wmPickerClosestIdx(WM_WEIGHT_VALS, s.weight);
   const rIdx = _wmPickerClosestIdx(WM_REPS_VALS,   s.reps);
-  const eIdx = hasRpe ? _wmPickerClosestIdx(WM_RPE_VALS, s.rpe != null ? s.rpe : '—') : 0;
+  const eIdx = hasRpe ? _wmPickerClosestIdx(WM_RPE_VALS, hasV(s.rpe) ? s.rpe : '—') : 0;
 
   const rpeRow = hasRpe ? `
     <div class="wm-picker-divider"></div>
