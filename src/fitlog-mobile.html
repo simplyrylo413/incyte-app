@@ -9836,7 +9836,21 @@
 function discardSession() {
   if (typeof data === 'undefined' || !data.active) { if (typeof renderToday === 'function') renderToday(); return; }
   if (!window.confirm('Discard this session? All logged sets will be lost.')) return;
+  // Tombstone + cloud-delete before clearing local state so the row can't
+  // reappear on the next Realtime fetch. Mirrors what today-discard-btn does.
+  const discardedId = data.active.id;
   data.active = null;
+  if (discardedId) {
+    data.workouts = (data.workouts || []).filter(w => w.id !== discardedId);
+    data.tombstones = data.tombstones || { movements: [], plans: [], workouts: [] };
+    data.tombstones.workouts = data.tombstones.workouts || [];
+    if (!data.tombstones.workouts.includes(discardedId)) {
+      data.tombstones.workouts.push(discardedId);
+    }
+    if (typeof deleteWorkoutFromSupabase === 'function') {
+      try { deleteWorkoutFromSupabase(discardedId); } catch (_) {}
+    }
+  }
   if (typeof saveData === 'function') saveData();
   if (typeof renderToday === 'function') renderToday();
 }
@@ -17304,15 +17318,16 @@ function openPlanEdit(p) {
 }
 async function syncActiveSession() {
   if (!data.active) return;
-  // Don't round-trip an empty session through the cloud. Without this gate,
-  // even brand-new "additional work" sessions with zero done sets get pushed
-  // on the first input keystroke, then come back as a SAVED row in History
-  // even after the user discards locally. Wait until at least one working
-  // set is checked done before publishing.
-  const hasAny = (data.active.entries || []).some(
-    e => !e.skipped && (e.sets || []).some(s => s.done)
+  // Gate: sync as soon as the session has at least one movement entry.
+  // Previously this required a done set, which meant a movement added before
+  // the first logged set was never pushed to Supabase. On app reload the cloud
+  // state (missing the movement) clobbered localStorage, silently dropping it.
+  // The discard button (today-discard-btn) already tombstones + deletes the
+  // cloud row, so early-sync orphans are cleaned up correctly on discard.
+  const hasEntries = (data.active.entries || []).some(
+    e => !e.skipped && e.movementId
   );
-  if (!hasAny) return;
+  if (!hasEntries) return;
   try {
     const { error } = await _supa.from('workouts').upsert({
       id: data.active.id,
