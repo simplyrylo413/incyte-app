@@ -21,6 +21,27 @@ import {
 import { filterFinishedToday } from "@/lib/engine/today";
 import s from "./WorkoutPage.module.css";
 
+// ── Inline picker value arrays ────────────────────────────────────────────
+const WM_WEIGHT_VALS: number[] = [
+  0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 30, 35, 40, 45,
+  50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125,
+  135, 145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255,
+  275, 295, 315, 335, 365, 405,
+];
+const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
+const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
+const WM_ITEM_W = 44; // px — 5 items visible in ~220px
+
+function wmClosestIdx(vals: (number | string)[], val: number | string | null | undefined): number {
+  if (val == null || val === '' || val === '—') return 0;
+  let best = 0, bestD = Infinity;
+  vals.forEach((v, i) => {
+    const d = Math.abs(Number(v) - Number(val));
+    if (!isNaN(d) && d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CHECK_SVG = (
@@ -180,6 +201,28 @@ function WorkoutPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => () => { stopRest(); }, []); // cleanup on unmount
 
+  // Preload current set from last completed set when weight/reps are unset
+  useEffect(() => {
+    if (!entry) return;
+    const cur = currentSetIdx(entry);
+    if (cur === -1) return;
+    const currentSet = entry.sets[cur];
+    if (hasValue(currentSet.weight) && hasValue(currentSet.reps)) return;
+    const prevDone = entry.sets.slice(0, cur).reverse().find((set) => set.done);
+    if (!prevDone) return;
+    let changed = false;
+    const newSet = { ...currentSet };
+    if (!hasValue(newSet.weight) && hasValue(prevDone.weight)) { newSet.weight = prevDone.weight; changed = true; }
+    if (!hasValue(newSet.reps)   && hasValue(prevDone.reps))   { newSet.reps   = prevDone.reps;   changed = true; }
+    if (trackRpe && !hasValue(newSet.rpe) && hasValue(prevDone.rpe)) { newSet.rpe = prevDone.rpe; changed = true; }
+    if (!changed) return;
+    const newSets = entry.sets.map((set, i) => i === cur ? newSet : set);
+    const newEntry = { ...entry, sets: newSets };
+    setEntry(newEntry);
+    persist(newEntry);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry?.sets?.length, trackRpe]);
+
   // ── Persistence ───────────────────────────────────────────────────────────
   const persist = useCallback(async (updatedEntry: WorkoutEntry, updatedWorkout?: Workout) => {
     const aw = updatedWorkout ?? activeWorkout;
@@ -228,9 +271,9 @@ function WorkoutPage() {
   async function handleLogSet(idx: number) {
     if (!entry) return;
     const s = entry.sets[idx];
-    if (!hasValue(s.weight)) { showToast("Add weight first."); openPicker("weight", idx); return; }
-    if (!hasValue(s.reps))   { showToast("Add reps first.");   openPicker("reps",   idx); return; }
-    if (trackRpe && !hasValue(s.rpe)) { showToast("Add RPE first."); openPicker("rpe", idx); return; }
+    if (!hasValue(s.weight)) { showToast("Scroll to set weight before logging."); return; }
+    if (!hasValue(s.reps))   { showToast("Scroll to set reps before logging.");   return; }
+    if (trackRpe && !hasValue(s.rpe)) { showToast("Scroll to set RPE, or turn off RPE tracking."); return; }
 
     const newSets = logSet(entry.sets, idx);
     const newEntry = { ...entry, sets: newSets };
@@ -327,6 +370,17 @@ function WorkoutPage() {
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     setPicker(null);
+    await persist(newEntry);
+  }
+
+  async function handlePatchSet(field: PickerField, value: number | string) {
+    if (!entry) return;
+    const cur = currentSetIdx(entry);
+    if (cur === -1) return;
+    const newVal = (value === '—' || value == null) ? null : Number(value);
+    const newSets = patchSet(entry.sets, cur, field, newVal as number);
+    const newEntry = { ...entry, sets: newSets };
+    setEntry(newEntry);
     await persist(newEntry);
   }
 
@@ -442,7 +496,7 @@ function WorkoutPage() {
         restSecs={restSecs}
         onLogSet={handleLogSet}
         onComplete={async () => { await handleComplete(); router.refresh(); router.push("/today"); }}
-        onOpenPicker={openPicker}
+        onPatchSet={handlePatchSet}
         onToggleRpe={() => setTrackRpe((v) => !v)}
         onToggleAi={() => setAiOn((v) => !v)}
         onToggleRest={() => restOn ? stopRest() : startRest()}
@@ -533,6 +587,184 @@ function WorkoutPage() {
   );
 }
 
+// ─── InlinePicker ─────────────────────────────────────────────────────────────
+// Horizontal drag-to-scroll strip with tinted pill selection window.
+// Items are rendered as plain divs; distance-from-center classes (wm-pk-*)
+// are applied imperatively via classList since CSS Modules hashes names.
+// The item state classes are declared :global() in the CSS module so they match.
+
+function InlinePicker({
+  label,
+  values,
+  value,
+  onChange,
+  styles,
+}: {
+  label: string;
+  values: (number | string)[];
+  value: number | string | null | undefined;
+  onChange: (val: number | string) => void;
+  styles: Record<string, string>;
+}) {
+  const s = styles;
+  const widgetRef  = useRef<HTMLDivElement>(null);
+  const trackRef   = useRef<HTMLDivElement>(null);
+  const fadeLRef   = useRef<HTMLDivElement>(null);
+  const fadeRRef   = useRef<HTMLDivElement>(null);
+
+  // Drag state in refs — never triggers re-render
+  const curXRef        = useRef(0);
+  const draggingRef    = useRef(false);
+  const dragStartXRef  = useRef(0);
+  const dragStartTXRef = useRef(0);
+  const velRef         = useRef(0);
+  const lastXRef       = useRef(0);
+  const lastTRef       = useRef(0);
+  const selIdxRef      = useRef(wmClosestIdx(values, value));
+
+  // Keep onChange in ref to avoid stale closure in drag handlers
+  const onChangeRef = useRef(onChange);
+  useEffect(() => { onChangeRef.current = onChange; });
+
+  function cw(): number {
+    return widgetRef.current?.getBoundingClientRect().width ?? 220;
+  }
+  function txForIdx(i: number): number {
+    return cw() / 2 - WM_ITEM_W / 2 - i * WM_ITEM_W;
+  }
+
+  function updateClasses(x: number) {
+    const track = trackRef.current;
+    if (!track) return;
+    const center = cw() / 2 - WM_ITEM_W / 2;
+    const fi = (center - x) / WM_ITEM_W;
+    track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
+      el.classList.remove('wm-pk-sel', 'wm-pk-n1', 'wm-pk-n2', 'wm-pk-n3');
+      const d = Math.abs(i - fi);
+      if      (d < 0.5) el.classList.add('wm-pk-sel');
+      else if (d < 1.5) el.classList.add('wm-pk-n1');
+      else if (d < 2.5) el.classList.add('wm-pk-n2');
+      else if (d < 3.5) el.classList.add('wm-pk-n3');
+    });
+  }
+
+  function applyX(x: number, animate: boolean) {
+    const track = trackRef.current;
+    if (!track) return;
+    if (animate) track.classList.add('wm-pk-snapping');
+    else         track.classList.remove('wm-pk-snapping');
+    track.style.transform = `translateX(${x}px)`;
+    curXRef.current = x;
+    updateClasses(x);
+  }
+
+  function doSnap() {
+    const center = cw() / 2 - WM_ITEM_W / 2;
+    const proj = curXRef.current + velRef.current * 80;
+    let idx = Math.round((center - proj) / WM_ITEM_W);
+    idx = Math.max(0, Math.min(values.length - 1, idx));
+    selIdxRef.current = idx;
+    applyX(txForIdx(idx), true);
+    onChangeRef.current(values[idx]);
+  }
+
+  // Position track and set up edge fades on mount / value change
+  useEffect(() => {
+    const newIdx = wmClosestIdx(values, value);
+    selIdxRef.current = newIdx;
+    requestAnimationFrame(() => { applyX(txForIdx(newIdx), false); });
+
+    // Edge fades: match actual surface background colour (light + dark)
+    const widget = widgetRef.current;
+    if (!widget) return;
+    const getBg = (el: Element | null): string => {
+      let e = el;
+      while (e && e !== document.documentElement) {
+        const bg = window.getComputedStyle(e).backgroundColor;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+        e = e.parentElement;
+      }
+      return '#f5f7fb';
+    };
+    const bg = getBg(widget.parentElement);
+    if (fadeLRef.current) fadeLRef.current.style.background = `linear-gradient(to right, ${bg} 0%, rgba(0,0,0,0) 100%)`;
+    if (fadeRRef.current) fadeRRef.current.style.background = `linear-gradient(to left, ${bg} 0%, rgba(0,0,0,0) 100%)`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, values]);
+
+  // Wire pointer/touch drag
+  useEffect(() => {
+    const widget = widgetRef.current;
+    if (!widget) return;
+
+    function start(cx: number) {
+      trackRef.current?.classList.remove('wm-pk-snapping');
+      draggingRef.current    = true;
+      dragStartXRef.current  = cx;
+      dragStartTXRef.current = curXRef.current;
+      lastXRef.current = cx;
+      lastTRef.current = Date.now();
+      velRef.current   = 0;
+    }
+    function move(cx: number) {
+      if (!draggingRef.current) return;
+      const now = Date.now(), dt = now - lastTRef.current;
+      if (dt > 0) velRef.current = (cx - lastXRef.current) / dt;
+      lastXRef.current = cx; lastTRef.current = now;
+      applyX(dragStartTXRef.current + (cx - dragStartXRef.current), false);
+    }
+    function end() {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      doSnap();
+    }
+
+    const onMD = (e: MouseEvent) => { e.preventDefault(); start(e.clientX); };
+    const onMM = (e: MouseEvent) => { if (draggingRef.current) move(e.clientX); };
+    const onMU = () => end();
+    const onTS = (e: TouchEvent) => start(e.touches[0].clientX);
+    const onTM = (e: TouchEvent) => { e.preventDefault(); move(e.touches[0].clientX); };
+    const onTE = () => end();
+
+    widget.addEventListener('mousedown', onMD);
+    window.addEventListener('mousemove', onMM);
+    window.addEventListener('mouseup', onMU);
+    widget.addEventListener('touchstart', onTS, { passive: true });
+    widget.addEventListener('touchmove', onTM, { passive: false });
+    widget.addEventListener('touchend', onTE);
+
+    return () => {
+      widget.removeEventListener('mousedown', onMD);
+      window.removeEventListener('mousemove', onMM);
+      window.removeEventListener('mouseup', onMU);
+      widget.removeEventListener('touchstart', onTS);
+      widget.removeEventListener('touchmove', onTM);
+      widget.removeEventListener('touchend', onTE);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount-only — drag handlers use refs, no stale closures
+
+  return (
+    <div className={s.inlinePickerRow}>
+      <div className={s.inlinePickerLabel}>{label}</div>
+      <div className={s.inlinePickerWrap}>
+        <div className={s.inlinePickerPill} />
+        <div ref={widgetRef} className={s.inlinePickerWidget}>
+          <div ref={trackRef} className={s.inlinePickerTrack}>
+            {values.map((v, i) => (
+              <div key={i} data-pk-item className={s.inlinePickerItem}>
+                {String(v)}
+              </div>
+            ))}
+          </div>
+          <div ref={fadeLRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeL}`} />
+          <div ref={fadeRRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeR}`} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── HeroCard ─────────────────────────────────────────────────────────────────
 
 function HeroCard(props: {
@@ -546,7 +778,7 @@ function HeroCard(props: {
   restSecs: number;
   onLogSet: (idx: number) => void;
   onComplete: () => void;
-  onOpenPicker: (field: PickerField, idx: number) => void;
+  onPatchSet: (field: PickerField, value: number | string) => void;
   onToggleRpe: () => void;
   onToggleAi: () => void;
   onToggleRest: () => void;
@@ -556,9 +788,6 @@ function HeroCard(props: {
   const { entry, cur, allDone, trackRpe, restOn, restRemaining, restSecs, s } = props;
   const set = !allDone ? entry.sets[cur] : null;
 
-  const hasW = set && hasValue(set.weight);
-  const hasR = set && hasValue(set.reps);
-  const hasRpe = set && hasValue(set.rpe);
   const total = entry.sets.length;
 
   const restDisplay = restOn ? props.formatRest(restRemaining) : props.formatRest(restSecs);
@@ -609,41 +838,37 @@ function HeroCard(props: {
         </>
       ) : (
         <>
-          <div style={{ textAlign: "center", padding: "6px 0 4px" }}>
-            <div className={s.heroPrimary}>
-              <button
-                className={`${s.heroNum} ${!hasW ? s.heroNumEmpty : ""}`}
-                onClick={() => props.onOpenPicker("weight", cur)}
-                type="button"
-              >
-                {hasW ? String(set!.weight) : "—"}
-              </button>
-              <span className={s.heroSep}>×</span>
-              <button
-                className={`${s.heroNum} ${!hasR ? s.heroNumEmpty : ""}`}
-                onClick={() => props.onOpenPicker("reps", cur)}
-                type="button"
-              >
-                {hasR ? String(set!.reps) : "—"}
-              </button>
-              {trackRpe && (
-                <>
-                  <span className={s.heroSep}>×</span>
-                  <button
-                    className={`${s.heroNum} ${!hasRpe ? s.heroNumEmpty : ""}`}
-                    onClick={() => props.onOpenPicker("rpe", cur)}
-                    type="button"
-                  >
-                    {hasRpe ? String(set!.rpe) : "—"}
-                  </button>
-                </>
-              )}
-            </div>
-            <div className={s.heroUnitsBar}>
-              <span>LB</span>
-              <span>REPS</span>
-              {trackRpe && <span>RPE</span>}
-            </div>
+          <div className={s.inlinePickerSection}>
+            <InlinePicker
+              key={`w-${cur}`}
+              label="Weight · lb"
+              values={WM_WEIGHT_VALS}
+              value={set?.weight}
+              onChange={(v) => props.onPatchSet("weight", v)}
+              styles={s}
+            />
+            <div className={s.inlinePickerDivider} />
+            <InlinePicker
+              key={`r-${cur}`}
+              label="Reps"
+              values={WM_REPS_VALS}
+              value={set?.reps}
+              onChange={(v) => props.onPatchSet("reps", v)}
+              styles={s}
+            />
+            {trackRpe && (
+              <>
+                <div className={s.inlinePickerDivider} />
+                <InlinePicker
+                  key={`e-${cur}`}
+                  label="RPE · Optional"
+                  values={WM_RPE_VALS}
+                  value={set?.rpe}
+                  onChange={(v) => props.onPatchSet("rpe", v)}
+                  styles={s}
+                />
+              </>
+            )}
           </div>
           <div className={s.heroActions}>
             <button
