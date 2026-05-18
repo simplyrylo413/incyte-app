@@ -22,12 +22,8 @@ import { filterFinishedToday } from "@/lib/engine/today";
 import s from "./WorkoutPage.module.css";
 
 // ── Inline picker value arrays ────────────────────────────────────────────
-const WM_WEIGHT_VALS: number[] = [
-  0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 30, 35, 40, 45,
-  50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125,
-  135, 145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255,
-  275, 295, 315, 335, 365, 405,
-];
+// 2.5 lb steps 0 → 500 — consistent increment throughout
+const WM_WEIGHT_VALS: number[] = Array.from({ length: 201 }, (_, i) => i * 2.5);
 const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
 const WM_ITEM_W = 44; // px — 5 items visible in ~220px
@@ -638,13 +634,18 @@ function InlinePicker({
     if (!track) return;
     const center = cw() / 2 - WM_ITEM_W / 2;
     const fi = (center - x) / WM_ITEM_W;
+    const isDark = document.body.classList.contains('theme-dark');
+    const [r, g, b] = isDark ? [255, 255, 255] : [15, 22, 34];
+    // Continuous exponential scale — smooth drum-roll, no discrete steps
     track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
-      el.classList.remove('wm-pk-sel', 'wm-pk-n1', 'wm-pk-n2', 'wm-pk-n3');
       const d = Math.abs(i - fi);
-      if      (d < 0.5) el.classList.add('wm-pk-sel');
-      else if (d < 1.5) el.classList.add('wm-pk-n1');
-      else if (d < 2.5) el.classList.add('wm-pk-n2');
-      else if (d < 3.5) el.classList.add('wm-pk-n3');
+      const t      = Math.exp(-d * 0.9);
+      const size   = (11 + 21 * t).toFixed(1); // 11px far → 32px center
+      const alpha  = (0.09 + 0.91 * t).toFixed(3);
+      const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
+      const ls     = d < 0.6 ? '-0.018em' : '0em';
+      (el as HTMLElement).style.cssText =
+        `font-size:${size}px;font-weight:${weight};color:rgba(${r},${g},${b},${alpha});letter-spacing:${ls};`;
     });
   }
 
