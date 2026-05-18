@@ -52,7 +52,7 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CAROUSEL_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
+const CAROUSEL_LABELS = ["Insights", "Readiness", "Stimulus", "PRs", "Muscles"];
 
 // ─── Timeline context helpers ─────────────────────────────────────────────────
 
@@ -251,28 +251,16 @@ export default function MomentumPage() {
             />
           )}
 
-          {/* ── Section 2: Trend Analysis ──────────────────────────────────── */}
-          <InsightCard
-            section={insightResult.trendInsights}
-            accent="trend"
-          />
-
-          {/* ── Section 3: Recovery Outlook ────────────────────────────────── */}
-          <InsightCard
-            section={insightResult.recoveryOutlook}
-            accent="recovery"
-          />
-
-          {/* ── Divider before carousel ────────────────────────────────────── */}
-          <div className={s.sectionDivider}>
-            <span className={s.sectionDividerLabel}>
-              Readiness &amp; Fatigue Detail
-            </span>
-          </div>
-
           {/* ── Carousel ──────────────────────────────────────────────────── */}
           <div className={s.carouselWrap}>
             <div className={s.carouselTrack} ref={carouselRef}>
+              {/* Slide 0 — Trends / Recovery toggle */}
+              <div className={s.carouselSlide}>
+                <InsightsToggleCard
+                  trendInsights={insightResult.trendInsights}
+                  recoveryOutlook={insightResult.recoveryOutlook}
+                />
+              </div>
               <div className={s.carouselSlide}>
                 <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
               </div>
@@ -373,6 +361,79 @@ function InsightCard({
           ))}
         </ul>
       )}
+    </section>
+  );
+}
+
+// ─── Insights toggle card (carousel slide 0) ─────────────────────────────────
+// Trend Analysis and Recovery Outlook share one carousel card, toggled via
+// the same pill-style switch used by the Muscle Readiness card.
+
+function InsightsToggleCard({
+  trendInsights,
+  recoveryOutlook,
+}: {
+  trendInsights: { eyebrow: string; headline: string; items: InsightItem[] };
+  recoveryOutlook: { eyebrow: string; headline: string; items: InsightItem[] };
+}) {
+  const [tab, setTab] = useState<"trend" | "recovery">("trend");
+  const section = tab === "trend" ? trendInsights : recoveryOutlook;
+
+  const toneClass = (tone: InsightItem["tone"]) => {
+    switch (tone) {
+      case "positive": return s.itemPositive;
+      case "caution":  return s.itemCaution;
+      case "alert":    return s.itemAlert;
+      default:         return s.itemNeutral;
+    }
+  };
+
+  return (
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
+        <div>
+          <div className={s.heroCardEyebrow}>{section.eyebrow}</div>
+          <div className={s.heroCardTitle}>{section.headline}</div>
+        </div>
+      </div>
+
+      <div className={s.heroInner}>
+        {/* Tab toggle — same pill style as Upper/Lower on Muscle Readiness */}
+        <div className={s.fatigueTogglePill}>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "trend" ? s.on : ""}`}
+            onClick={() => setTab("trend")}
+          >
+            Trends
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
+            onClick={() => setTab("recovery")}
+          >
+            Recovery
+          </button>
+        </div>
+
+        {/* Insight items */}
+        {section.items.length > 0 ? (
+          <ul className={s.insightList}>
+            {section.items.map((item, i) => (
+              <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
+                <span className={s.insightDot} aria-hidden="true" />
+                <span className={s.insightText}>{item.text}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className={s.stimulusEmpty}>
+            {tab === "trend"
+              ? "Log sessions to see trend analysis."
+              : "Log sessions to generate a recovery outlook."}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
