@@ -4,9 +4,9 @@
 //
 // Layout (top → bottom):
 //   Page header
-//   Timeline badge (Active Session / Completed Today / Training History)
-//   ── Current Session / Today's Work card (conditional) ──
-//   ── Carousel: Readiness · Stimulus (Trends + Recovery tabs) · PRs · Muscles ──
+//   Status banner (Option A "Signal" — dot + mono label + stats pill)
+//   Warnings strip
+//   Carousel: Insights · Readiness · Stimulus · PRs · Muscles
 //   AI status bar
 //
 // Data flow:
@@ -35,7 +35,9 @@ import {
   computeInsightResult,
   type InsightResult,
   type InsightItem,
+  type InsightSection,
   type TimelineContext,
+  type BodyPartLoad,
 } from "@/lib/engine/insightEngine";
 import {
   enhanceInsightsWithAi,
@@ -50,28 +52,25 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CAROUSEL_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
+const CAROUSEL_LABELS = ["Insights", "Readiness", "Stimulus", "PRs", "Muscles"];
 
 // ─── Timeline context helpers ─────────────────────────────────────────────────
 
-const TIMELINE_META: Record<
+const STATUS_META: Record<
   TimelineContext,
-  { badge: string; badgeClass: string; description: string }
+  { label: string; dotClass: string }
 > = {
   CURRENT_ACTIVE_SESSION: {
-    badge: "Active Session",
-    badgeClass: s.badgeActive,
-    description: "Observing current workout",
+    label: "Active Session",
+    dotClass: s.active,
   },
   TODAY_COMPLETED: {
-    badge: "Completed Today",
-    badgeClass: s.badgeCompleted,
-    description: "Today's session is done",
+    label: "Completed Today",
+    dotClass: s.done,
   },
   NO_TODAY_RECENT_HISTORY: {
-    badge: "Training History",
-    badgeClass: s.badgeHistory,
-    description: "No session today",
+    label: "Training History",
+    dotClass: s.history,
   },
 };
 
@@ -164,7 +163,6 @@ export default function MomentumPage() {
 
   function handleRefreshAi() {
     if (!insightResult) return;
-    // Re-run rules from fresh data, then force-refresh AI
     invalidateAiTimelineCache();
     invalidateAiCache();
     setAiEnhanced(false);
@@ -217,17 +215,8 @@ export default function MomentumPage() {
         <div className={s.errorState}>{err}</div>
       ) : insightResult ? (
         <>
-          {/* ── Timeline badge ────────────────────────────────────────────── */}
-          <div className={s.timelineRow}>
-            <span
-              className={`${s.timelineBadge} ${TIMELINE_META[insightResult.timelineContext].badgeClass}`}
-            >
-              {TIMELINE_META[insightResult.timelineContext].badge}
-            </span>
-            <span className={s.timelineDesc}>
-              {TIMELINE_META[insightResult.timelineContext].description}
-            </span>
-          </div>
+          {/* ── Option A Status banner ────────────────────────────────────── */}
+          <StatusBanner insightResult={insightResult} />
 
           {/* ── Warnings ──────────────────────────────────────────────────── */}
           {insightResult.warnings.length > 0 && (
@@ -241,35 +230,29 @@ export default function MomentumPage() {
             </div>
           )}
 
-          {/* ── Section 1: Current Session / Today's Work ─────────────────── */}
-          {insightResult.currentSessionInsights && (
-            <InsightCard
-              section={insightResult.currentSessionInsights}
-              accent="session"
-            />
-          )}
-
           {/* ── Carousel ──────────────────────────────────────────────────── */}
           <div className={s.carouselWrap}>
             <div className={s.carouselTrack} ref={carouselRef}>
-              {/* Slide 0 — Readiness */}
+              {/* Slide 0 — Insights (Today | Trends | Recovery) */}
+              <div className={s.carouselSlide}>
+                <InsightsCard insightResult={insightResult} />
+              </div>
+              {/* Slide 1 — Readiness */}
               <div className={s.carouselSlide}>
                 <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
               </div>
-              {/* Slide 1 — Stimulus (3-tab: Stimulus · Trends · Recovery) */}
+              {/* Slide 2 — Stimulus */}
               <div className={s.carouselSlide}>
                 <StimulusCard
                   stimulus={stimulus}
                   ai={carouselAi?.stimulus ?? null}
-                  trendInsights={insightResult.trendInsights}
-                  recoveryOutlook={insightResult.recoveryOutlook}
                 />
               </div>
-              {/* Slide 2 — PRs */}
+              {/* Slide 3 — PRs */}
               <div className={s.carouselSlide}>
                 <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
               </div>
-              {/* Slide 3 — Muscle Readiness */}
+              {/* Slide 4 — Muscle Readiness */}
               <div className={s.carouselSlide}>
                 <MuscleReadinessCard
                   upper={muscleReadiness.upper}
@@ -327,7 +310,367 @@ export default function MomentumPage() {
   );
 }
 
-// ─── InsightCard — shared section renderer ────────────────────────────────────
+// ─── Status banner (Option A "Signal") ───────────────────────────────────────
+
+function StatusBanner({ insightResult }: { insightResult: InsightResult }) {
+  const { timelineContext, metrics } = insightResult;
+  const meta = STATUS_META[timelineContext];
+
+  const showStatsPill =
+    timelineContext !== "NO_TODAY_RECENT_HISTORY" &&
+    metrics.currentSessionSets > 0;
+
+  const rpe =
+    metrics.currentSessionAvgRpe != null
+      ? metrics.currentSessionAvgRpe.toFixed(1)
+      : null;
+
+  return (
+    <div className={s.statusBanner}>
+      <span className={`${s.statusDot} ${meta.dotClass}`} aria-hidden="true" />
+      <span className={s.statusLabel}>{meta.label}</span>
+      {showStatsPill && (
+        <span className={s.statusStatsPill}>
+          {metrics.currentSessionSets} SETS
+          {rpe != null ? ` · RPE ${rpe}` : ""}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── InsightsCard — 3-tab: Today | Trends | Recovery ─────────────────────────
+
+function InsightsCard({ insightResult }: { insightResult: InsightResult }) {
+  const [tab, setTab] = useState<"today" | "trends" | "recovery">("today");
+  const { metrics, timelineContext } = insightResult;
+
+  return (
+    <section className={s.heroCard}>
+      <div className={s.heroCardHead}>
+        <div>
+          <div className={s.heroCardEyebrow}>
+            {tab === "today" ? "Session data" : tab === "trends" ? "Volume trend" : "Recovery status"}
+          </div>
+          <div className={s.heroCardTitle}>Insights</div>
+        </div>
+      </div>
+      <div className={s.heroInner} style={{ minHeight: 248, maxHeight: 248, overflowY: "auto", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+        {/* 3-tab toggle */}
+        <div className={s.fatigueTogglePill}>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "today" ? s.on : ""}`}
+            onClick={() => setTab("today")}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "trends" ? s.on : ""}`}
+            onClick={() => setTab("trends")}
+          >
+            Trends
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
+            onClick={() => setTab("recovery")}
+          >
+            Recovery
+          </button>
+        </div>
+
+        {tab === "today" && <InsightsTodayTab metrics={metrics} timelineContext={timelineContext} />}
+        {tab === "trends" && <InsightsTrendsTab metrics={metrics} />}
+        {tab === "recovery" && <InsightsRecoveryTab metrics={metrics} />}
+      </div>
+    </section>
+  );
+}
+
+// ── Today tab ─────────────────────────────────────────────────────────────────
+
+function InsightsTodayTab({
+  metrics,
+  timelineContext,
+}: {
+  metrics: InsightResult["metrics"];
+  timelineContext: TimelineContext;
+}) {
+  const noData =
+    timelineContext === "NO_TODAY_RECENT_HISTORY" ||
+    metrics.currentSessionSets === 0;
+
+  if (noData) {
+    return (
+      <div className={s.stimulusEmpty}>
+        No session today — log a workout to see session data.
+      </div>
+    );
+  }
+
+  const totalSets = metrics.currentSessionSets;
+  const avgRpe = metrics.currentSessionAvgRpe;
+  const hardSets = metrics.currentSessionHardSets;
+
+  // Top 5 body parts by sets
+  const sorted = [...metrics.currentSessionBodyParts]
+    .sort((a, b) => b.sets - a.sets)
+    .slice(0, 5);
+  const maxSets = sorted[0]?.sets ?? 1;
+
+  // Analysis note
+  let noteText: string | null = null;
+  let noteWarn = false;
+  if (avgRpe != null && avgRpe >= 8.5) {
+    noteText = `Avg RPE ${avgRpe.toFixed(1)} — high-intensity session. Allow adequate recovery before next.`;
+    noteWarn = true;
+  } else if (totalSets > 0 && hardSets / totalSets >= 0.7) {
+    const pct = Math.round((hardSets / totalSets) * 100);
+    noteText = `${pct}% of sets at RPE 7+ — high-intensity block.`;
+    noteWarn = true;
+  } else if (avgRpe != null && avgRpe >= 7) {
+    noteText = `Avg RPE ${avgRpe.toFixed(1)} — solid working intensity. Fatigue is accumulating.`;
+  } else {
+    noteText = `${totalSets} sets logged. Effort is controlled — recovery cost is moderate.`;
+  }
+
+  return (
+    <>
+      {/* 3 stat tiles */}
+      <div className={s.statTiles}>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>Sets</span>
+          <div className={s.statTileValue}>{totalSets}</div>
+        </div>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>RPE Avg</span>
+          <div className={s.statTileValue}>
+            {avgRpe != null ? avgRpe.toFixed(1) : <span className={s.statTileValueSuffix}>—</span>}
+          </div>
+        </div>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>Hard Sets</span>
+          <div className={s.statTileValue}>{hardSets}</div>
+        </div>
+      </div>
+
+      {/* Volume by muscle */}
+      {sorted.length > 0 && (
+        <>
+          <div className={s.muscleBarsEyebrow}>Volume by muscle</div>
+          <div className={s.muscleBars}>
+            {sorted.map((bp) => (
+              <div key={bp.key} className={s.muscleBarRow}>
+                <span className={s.muscleBarName}>{bp.label}</span>
+                <div className={s.muscleBarTrack}>
+                  <div
+                    className={s.muscleBarFill}
+                    style={{ width: `${(bp.sets / maxSets) * 100}%` }}
+                  />
+                </div>
+                <span className={s.muscleBarCount}>{bp.sets}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Analysis note */}
+      {noteText && (
+        <div className={`${s.insightNote} ${noteWarn ? s.insightNoteWarn : ""}`}>
+          {noteText}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Trends tab ────────────────────────────────────────────────────────────────
+
+function InsightsTrendsTab({ metrics }: { metrics: InsightResult["metrics"] }) {
+  const sorted7d = [...metrics.bodyPartLoads7d]
+    .sort((a, b) => b.sets - a.sets)
+    .slice(0, 5);
+  const maxSets7d = sorted7d[0]?.sets ?? 1;
+  const totalSets7d = metrics.bodyPartLoads7d.reduce((sum, bp) => sum + bp.sets, 0);
+
+  // Analysis note
+  let noteText: string | null = null;
+  if (metrics.rpeTrend === "rising") {
+    noteText = "Avg RPE trending upward across recent sessions — intensity is accumulating.";
+  } else if (metrics.rpeTrend === "falling") {
+    noteText = "Avg RPE trending lower — effort is easing across recent sessions.";
+  } else if (totalSets7d > 0) {
+    noteText = `${totalSets7d} sets this week. Volume distribution is stable.`;
+  }
+
+  if (sorted7d.length === 0) {
+    return (
+      <div className={s.stimulusEmpty}>No session data in the last 7 days.</div>
+    );
+  }
+
+  return (
+    <>
+      <div className={s.muscleBarsEyebrow}>Volume vs last week</div>
+      <div className={s.muscleBars}>
+        {sorted7d.map((bp) => {
+          const deltaRaw = metrics.volumeChangeVsBaseline[bp.key];
+          let deltaLabel: string;
+          let deltaClass: string;
+          if (deltaRaw === undefined || deltaRaw === null) {
+            deltaLabel = "New";
+            deltaClass = s.deltaNew;
+          } else if (deltaRaw > 0) {
+            deltaLabel = `+${Math.round(deltaRaw)}%`;
+            deltaClass = s.deltaUp;
+          } else {
+            deltaLabel = `${Math.round(deltaRaw)}%`;
+            deltaClass = s.deltaDown;
+          }
+
+          return (
+            <div key={bp.key} className={s.muscleBarRow}>
+              <span className={s.muscleBarName}>{bp.label}</span>
+              <div className={`${s.muscleBarTrack} ${s.hasDelta}`}>
+                <div
+                  className={s.muscleBarFill}
+                  style={{ width: `${(bp.sets / maxSets7d) * 100}%` }}
+                />
+              </div>
+              <span className={`${s.muscleBarDelta} ${deltaClass}`}>{deltaLabel}</span>
+            </div>
+          );
+        })}
+      </div>
+      {noteText && (
+        <div className={s.insightNote}>{noteText}</div>
+      )}
+    </>
+  );
+}
+
+// ── Recovery tab ──────────────────────────────────────────────────────────────
+
+function InsightsRecoveryTab({ metrics }: { metrics: InsightResult["metrics"] }) {
+  const { fatigueScore, recoveryScore, repeatedExposure72h } = metrics;
+
+  // Fatigue sub-label
+  let fatigueSub: string;
+  let fatigueSubClass: string;
+  if (fatigueScore >= 75) {
+    fatigueSub = "high";
+    fatigueSubClass = s.subAlert;
+  } else if (fatigueScore >= 50) {
+    fatigueSub = "moderate";
+    fatigueSubClass = s.subWarn;
+  } else {
+    fatigueSub = "low";
+    fatigueSubClass = s.subOk;
+  }
+
+  // Recovery sub-label
+  let recoverySub: string;
+  if (recoveryScore >= 70) {
+    recoverySub = "adequate";
+  } else if (recoveryScore >= 40) {
+    recoverySub = "building";
+  } else {
+    recoverySub = "limited";
+  }
+
+  // Repeated exposure chips
+  const exposureEntries = Object.entries(repeatedExposure72h).filter(
+    ([, count]) => count >= 1
+  );
+
+  // Analysis note
+  let noteText: string | null = null;
+  let noteWarn = false;
+
+  if (fatigueScore >= 75) {
+    noteText = "High accumulated fatigue — next session performance may be reduced.";
+    noteWarn = true;
+  } else {
+    // Check for any key with count >= 2
+    const highExposure = exposureEntries.find(([, count]) => count >= 2);
+    if (highExposure) {
+      // Find label from bodyPartLoads7d or currentSessionBodyParts
+      const [key, count] = highExposure;
+      const bpLabel =
+        metrics.bodyPartLoads7d.find((bp) => bp.key === key)?.label ??
+        metrics.currentSessionBodyParts.find((bp) => bp.key === key)?.label ??
+        key;
+      noteText = `${bpLabel} trained ${count}× in 72h — consider reducing volume next session.`;
+      noteWarn = true;
+    } else if (fatigueScore < 30) {
+      noteText = "Fatigue is low — readiness for the next session looks solid.";
+    } else {
+      noteText = "Monitor readiness going into the next session.";
+    }
+  }
+
+  return (
+    <>
+      {/* 2-tile row: Fatigue / Recovery */}
+      <div className={s.statTiles2}>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>Fatigue</span>
+          <div className={s.statTileValue}>
+            {fatigueScore}
+            <span className={s.statTileValueSuffix}>%</span>
+          </div>
+          <span className={`${s.statTileSub} ${fatigueSubClass}`}>{fatigueSub}</span>
+        </div>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>Recovery</span>
+          <div className={s.statTileValue}>
+            {recoveryScore}
+            <span className={s.statTileValueSuffix}>%</span>
+          </div>
+          <span className={s.statTileSub}>{recoverySub}</span>
+        </div>
+      </div>
+
+      {/* Muscle exposure 72h */}
+      <div className={s.muscleBarsEyebrow}>Muscle exposure 72h</div>
+      {exposureEntries.length === 0 ? (
+        <div className={s.stimulusEmpty}>
+          No repeated muscle exposure in the last 72 hours.
+        </div>
+      ) : (
+        <div className={s.exposureChips}>
+          {exposureEntries.map(([key, count]) => {
+            const label =
+              metrics.bodyPartLoads7d.find((bp) => bp.key === key)?.label ??
+              metrics.currentSessionBodyParts.find((bp) => bp.key === key)?.label ??
+              key;
+            const isHigh = count >= 2;
+            return (
+              <span
+                key={key}
+                className={`${s.exposureChip} ${isHigh ? s.exposureHigh : ""}`}
+              >
+                {label} ×{count}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Analysis note */}
+      {noteText && (
+        <div className={`${s.insightNote} ${noteWarn ? s.insightNoteWarn : ""}`}>
+          {noteText}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── InsightCard — kept for reference, no longer rendered ────────────────────
 
 function InsightCard({
   section,
@@ -448,150 +791,68 @@ function ReadinessCard({
   );
 }
 
-// ─── Stimulus card (carousel) — 3-tab: Stimulus · Trends · Recovery ──────────
+// ─── Stimulus card (carousel) — single view, no tabs ─────────────────────────
 
 function StimulusCard({
   stimulus,
   ai,
-  trendInsights,
-  recoveryOutlook,
 }: {
   stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
   ai: import("@/lib/engine/aiInsights").AiStimulus | null;
-  trendInsights: { eyebrow: string; headline: string; items: InsightItem[] };
-  recoveryOutlook: { eyebrow: string; headline: string; items: InsightItem[] };
 }) {
-  const [tab, setTab] = useState<"stimulus" | "trends" | "recovery">("stimulus");
-
   const tierClass =
     stimulus.tierTone === "pos"  ? s.tonePos
     : stimulus.tierTone === "med"  ? s.toneMed
     : stimulus.tierTone === "high" ? s.toneHigh
     : "";
 
-  const toneClass = (tone: InsightItem["tone"]) => {
-    switch (tone) {
-      case "positive": return s.itemPositive;
-      case "caution":  return s.itemCaution;
-      case "alert":    return s.itemAlert;
-      default:         return s.itemNeutral;
-    }
-  };
-
   return (
     <section className={s.heroCard}>
       <div className={s.heroCardHead}>
         <div>
-          <div className={s.heroCardEyebrow}>
-            {tab === "stimulus" ? "Hypertrophy share" : tab === "trends" ? trendInsights.eyebrow : recoveryOutlook.eyebrow}
-          </div>
-          <div className={s.heroCardTitle}>
-            {tab === "stimulus" ? "Muscle Stimulus" : tab === "trends" ? trendInsights.headline : recoveryOutlook.headline}
-          </div>
+          <div className={s.heroCardEyebrow}>Hypertrophy share</div>
+          <div className={s.heroCardTitle}>Muscle Stimulus</div>
         </div>
       </div>
       <div className={s.heroInner}>
-
-        {/* 3-tab toggle pill — reuses fatigueTogglePill/Btn which flex: 1 across N buttons */}
-        <div className={s.fatigueTogglePill}>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "stimulus" ? s.on : ""}`}
-            onClick={() => setTab("stimulus")}
-          >
-            Stimulus
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "trends" ? s.on : ""}`}
-            onClick={() => setTab("trends")}
-          >
-            Trends
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
-            onClick={() => setTab("recovery")}
-          >
-            Recovery
-          </button>
+        <div className={s.stimulusHero}>
+          <div>
+            <span className={s.stimulusNum}>{stimulus.totalSets}</span>
+            <span className={s.stimulusSuffix}>sets</span>
+          </div>
+          <div className={s.stimulusLabel}>Weekly sets</div>
+          <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
         </div>
 
-        {/* Stimulus tab */}
-        {tab === "stimulus" && (
-          <>
-            <div className={s.stimulusHero}>
-              <div>
-                <span className={s.stimulusNum}>{stimulus.totalSets}</span>
-                <span className={s.stimulusSuffix}>sets</span>
+        {stimulus.bars.length === 0 ? (
+          <div className={s.stimulusEmpty}>
+            Log working sets this week to see stimulus distribution.
+          </div>
+        ) : (
+          <div className={s.stimulusBars}>
+            {stimulus.bars.map((bar) => (
+              <div key={bar.key} className={s.stimulusBarRow}>
+                <span className={s.stimulusBarName}>{bar.label}</span>
+                <div className={s.stimulusBarTrack}>
+                  <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
+                </div>
+                <span className={s.stimulusSets}>{bar.sets}</span>
               </div>
-              <div className={s.stimulusLabel}>Weekly sets</div>
-              <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
-            </div>
+            ))}
+          </div>
+        )}
 
-            {stimulus.bars.length === 0 ? (
-              <div className={s.stimulusEmpty}>
-                Log working sets this week to see stimulus distribution.
-              </div>
-            ) : (
-              <div className={s.stimulusBars}>
-                {stimulus.bars.map((bar) => (
-                  <div key={bar.key} className={s.stimulusBarRow}>
-                    <span className={s.stimulusBarName}>{bar.label}</span>
-                    <div className={s.stimulusBarTrack}>
-                      <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
-                    </div>
-                    <span className={s.stimulusSets}>{bar.sets}</span>
-                  </div>
+        {ai && (
+          <div className={s.aiBlock}>
+            <p className={s.aiBlockText}>{ai.summary}</p>
+            {ai.adjustments.length > 0 && (
+              <ul className={s.aiBlockList}>
+                {ai.adjustments.map((adj, i) => (
+                  <li key={i}>{adj}</li>
                 ))}
-              </div>
+              </ul>
             )}
-
-            {ai && (
-              <div className={s.aiBlock}>
-                <p className={s.aiBlockText}>{ai.summary}</p>
-                {ai.adjustments.length > 0 && (
-                  <ul className={s.aiBlockList}>
-                    {ai.adjustments.map((adj, i) => (
-                      <li key={i}>{adj}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Trends tab */}
-        {tab === "trends" && (
-          trendInsights.items.length > 0 ? (
-            <ul className={s.insightList}>
-              {trendInsights.items.map((item, i) => (
-                <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
-                  <span className={s.insightDot} aria-hidden="true" />
-                  <span className={s.insightText}>{item.text}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className={s.stimulusEmpty}>Log sessions to see trend analysis.</div>
-          )
-        )}
-
-        {/* Recovery tab */}
-        {tab === "recovery" && (
-          recoveryOutlook.items.length > 0 ? (
-            <ul className={s.insightList}>
-              {recoveryOutlook.items.map((item, i) => (
-                <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
-                  <span className={s.insightDot} aria-hidden="true" />
-                  <span className={s.insightText}>{item.text}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className={s.stimulusEmpty}>Log sessions to generate a recovery outlook.</div>
-          )
+          </div>
         )}
       </div>
     </section>
