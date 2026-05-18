@@ -9862,8 +9862,8 @@ async function deleteWorkoutFromSupabase(id) {
     if (error) throw error;
     console.log('Supabase: deleted workout', id);
   } catch(err) {
-    console.warn('Supabase: failed to delete workout', id, err);
-    setSyncStatus('error');
+    console.warn('Supabase: failed to delete workout — queued:', id, err);
+    enqueueSync('delete_workout', id, { id });
   }
 }
 
@@ -17324,65 +17324,189 @@ function openPlanEdit(p) {
   $('#plan-edit-delete-btn').style.display = p ? '' : 'none';
   openModal('modal-plan-edit');
 }
+// ─── SYNC WRITE QUEUE ────────────────────────────────────────────────────────
+//
+// Every Supabase write that fails is stored here and replayed automatically
+// when the app regains focus or on a 30-second heartbeat.
+//
+// Design principles:
+//   - Persisted in localStorage (survives tab close / app kill / crash)
+//   - Upsert ops for the same entity are coalesced — latest state wins
+//   - Delete ops are always appended (each is independent and order matters)
+//   - Exponential backoff: 1 s × 2^attempts, capped at 5 minutes
+//   - Max 8 attempts; after that op is marked dead and surfaced in sync status
+//   - Drain runs on: visibilitychange→visible, 30 s interval, app init
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SYNC_QUEUE_KEY          = 'fitlog_sync_queue_v1';
+const SYNC_QUEUE_MAX_ATTEMPTS = 8;
+const SYNC_QUEUE_BACKOFF_CAP  = 5 * 60 * 1000; // 5 min
+
+function _getQueue() {
+  try { return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || '[]'); }
+  catch { return []; }
+}
+function _saveQueue(q) {
+  try { localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(q)); } catch (_) {}
+}
+
+/**
+ * Enqueue a Supabase write operation. Safe to call fire-and-forget.
+ *
+ * @param {'upsert_workout'|'upsert_movement'|'upsert_plan'|'delete_workout'|'delete_plan'} type
+ * @param {string} entityId  Primary key of the entity (used for upsert coalescing).
+ * @param {object} payload   Full row object for upserts; { id } for deletes.
+ */
+function enqueueSync(type, entityId, payload) {
+  const q = _getQueue();
+  const op = {
+    id: `${type}_${entityId}_${Date.now()}`,
+    type, entityId, payload,
+    enqueuedAt: Date.now(),
+    attempts: 0,
+    nextRetryAt: Date.now(), // ready immediately on next drain
+  };
+  if (type.startsWith('upsert_')) {
+    // Coalesce: replace existing pending op for same type + entity.
+    // The newer payload supersedes the older one — no point replaying stale state.
+    const idx = q.findIndex(o => o.type === type && o.entityId === entityId);
+    if (idx >= 0) q.splice(idx, 1, op); else q.push(op);
+  } else {
+    q.push(op); // deletes always append
+  }
+  _saveQueue(q);
+  _syncQueueUpdateStatus();
+}
+
+function _removeFromQueue(opId) {
+  _saveQueue(_getQueue().filter(o => o.id !== opId));
+}
+
+function _syncQueueUpdateStatus() {
+  const q = _getQueue();
+  const dead    = q.filter(o => o.attempts >= SYNC_QUEUE_MAX_ATTEMPTS).length;
+  const pending = q.filter(o => o.attempts <  SYNC_QUEUE_MAX_ATTEMPTS).length;
+  if (dead)    setSyncStatus('error');
+  else if (pending) setSyncStatus('syncing');
+  // On empty queue, don't reset to 'ok' here — leave whatever the last
+  // successful direct write set (avoids a flicker on drain completion).
+}
+
+async function _execQueueOp(op) {
+  try {
+    if      (op.type === 'upsert_workout')  { const {error} = await _supa.from('workouts').upsert(op.payload);              if (error) throw error; }
+    else if (op.type === 'upsert_movement') { const {error} = await _supa.from('movements').upsert(op.payload);             if (error) throw error; }
+    else if (op.type === 'upsert_plan')     { const {error} = await _supa.from('plans').upsert(op.payload);                 if (error) throw error; }
+    else if (op.type === 'delete_workout')  { const {error} = await _supa.from('workouts').delete().eq('id', op.payload.id); if (error) throw error; }
+    else if (op.type === 'delete_plan')     { const {error} = await _supa.from('plans').delete().eq('id', op.payload.id);   if (error) throw error; }
+    return true;
+  } catch (err) {
+    console.warn(`[SyncQueue] ${op.type}/${op.entityId} attempt ${op.attempts} failed:`, err);
+    return false;
+  }
+}
+
+let _draining = false;
+async function drainSyncQueue() {
+  if (_draining) return; // prevent concurrent drains
+  _draining = true;
+  try {
+    while (true) {
+      const q   = _getQueue();
+      const now = Date.now();
+      const op  = q.find(o => o.attempts < SYNC_QUEUE_MAX_ATTEMPTS && o.nextRetryAt <= now);
+      if (!op) break;
+
+      // Update retry metadata before the network call so a crash mid-flight
+      // still counts as an attempt and doesn't replay instantly on next open.
+      const fresh = _getQueue();
+      const t = fresh.find(o => o.id === op.id);
+      if (!t) break; // was coalesced away between iterations
+      t.attempts++;
+      t.nextRetryAt = now + Math.min(1000 * Math.pow(2, t.attempts), SYNC_QUEUE_BACKOFF_CAP);
+      _saveQueue(fresh);
+
+      const ok = await _execQueueOp(op);
+      if (ok) {
+        _removeFromQueue(op.id);
+        setSyncStatus('ok');
+        // Continue loop — process next op immediately
+      } else {
+        break; // back off; wait for next drain trigger
+      }
+    }
+  } finally {
+    _draining = false;
+    _syncQueueUpdateStatus();
+  }
+}
+
+// Drain on app focus — most important trigger; covers offline → online transition
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') drainSyncQueue();
+});
+// Belt-and-suspenders: drain every 30 s while visible
+setInterval(() => { if (document.visibilityState === 'visible') drainSyncQueue(); }, 30_000);
+
+// ─── END SYNC WRITE QUEUE ─────────────────────────────────────────────────────
+
 async function syncActiveSession() {
   if (!data.active) return;
   // Gate: sync as soon as the session has at least one movement entry.
-  // Previously this required a done set, which meant a movement added before
-  // the first logged set was never pushed to Supabase. On app reload the cloud
-  // state (missing the movement) clobbered localStorage, silently dropping it.
-  // The discard button (today-discard-btn) already tombstones + deletes the
-  // cloud row, so early-sync orphans are cleaned up correctly on discard.
-  const hasEntries = (data.active.entries || []).some(
-    e => !e.skipped && e.movementId
-  );
+  const hasEntries = (data.active.entries || []).some(e => !e.skipped && e.movementId);
   if (!hasEntries) return;
+  const payload = {
+    id: data.active.id, device_id: DEVICE_ID,
+    name: data.active.name || '', date: data.active.date,
+    finished: false, entries: data.active.entries || [], saved_at: null,
+  };
   try {
-    const { error } = await _supa.from('workouts').upsert({
-      id: data.active.id,
-      device_id: DEVICE_ID,
-      name: data.active.name || '',
-      date: data.active.date,
-      finished: false,
-      entries: data.active.entries || [],
-      saved_at: null,
-    });
+    const { error } = await _supa.from('workouts').upsert(payload);
     if (error) throw error;
     setSyncStatus('ok');
   } catch (err) {
-    console.warn('Active session sync failed:', err);
-    setSyncStatus('error');
+    console.warn('Active session sync failed — queued:', err);
+    enqueueSync('upsert_workout', data.active.id, payload);
   }
 }
 
 async function supabaseSyncMovement(mv) {
+  const payload = {
+    id: mv.id, device_id: DEVICE_ID, name: mv.name,
+    category: mv.category || '', muscle: mv.muscle || '',
+    kind: mv.kind || 'strength', unit: mv.unit || '',
+    notes: mv.notes || '', tags: mv.tags || [],
+  };
   try {
-    const { error } = await _supa.from('movements').upsert({
-      id: mv.id, device_id: DEVICE_ID, name: mv.name,
-      category: mv.category || '', muscle: mv.muscle || '',
-      kind: mv.kind || 'strength', unit: mv.unit || '',
-      notes: mv.notes || '', tags: mv.tags || [],
-    });
+    const { error } = await _supa.from('movements').upsert(payload);
     if (error) throw error;
     setSyncStatus('ok');
-  } catch (err) { console.warn('Movement sync failed:', err); setSyncStatus('error'); }
+  } catch (err) {
+    console.warn('Movement sync failed — queued:', err);
+    enqueueSync('upsert_movement', mv.id, payload);
+  }
 }
 
 async function supabaseSyncWorkout(w) {
+  const payload = {
+    id: w.id, device_id: DEVICE_ID, name: w.name || '',
+    date: w.date, finished: !!w.finished,
+    entries: w.entries || [], saved_at: w.savedAt || null,
+  };
   try {
-    const { error } = await _supa.from('workouts').upsert({
-      id: w.id, device_id: DEVICE_ID, name: w.name || '',
-      date: w.date, finished: !!w.finished,
-      entries: w.entries || [], saved_at: w.savedAt || null,
-    });
+    const { error } = await _supa.from('workouts').upsert(payload);
     if (error) throw error;
     setSyncStatus('ok');
     return true;
-  } catch (err) { console.warn('Workout sync failed:', err); setSyncStatus('error'); return false; }
+  } catch (err) {
+    console.warn('Workout sync failed — queued:', err);
+    enqueueSync('upsert_workout', w.id, payload);
+    return false;
+  }
 }
 
 // ============ ARCHIVE-TO-CLOUD ============
-// Tiny in-app toast so the user can SEE that the workout was pushed to Supabase
-// (separate from the small sync dot in the header).
+// Toast visible to the user that the workout reached Supabase.
 function showCloudToast(message, kind) {
   let el = document.getElementById('cloud-toast');
   if (!el) {
@@ -17397,10 +17521,8 @@ function showCloudToast(message, kind) {
     ].join(';');
     document.body.appendChild(el);
   }
-  // Kind: 'ok' (default) | 'warn'
   el.style.background = kind === 'warn' ? '#8a4a1f' : 'var(--ink)';
   el.textContent = message;
-  // Force reflow then animate in.
   void el.offsetWidth;
   el.style.opacity = '1';
   el.style.transform = 'translateX(-50%) translateY(0)';
@@ -17411,58 +17533,51 @@ function showCloudToast(message, kind) {
   }, 2200);
 }
 
-// Push a workout that's just been moved to history to Supabase.
-// Awaits the upsert, retries once on transient failure, and shows a toast.
-// Returns true on success, false otherwise.
+// Push a finished workout to Supabase. Tries directly, retries once, then
+// hands off to the queue so no data is lost if both attempts fail.
 async function archiveWorkoutToCloud(w) {
   setSyncStatus('syncing');
-  let ok = await supabaseSyncWorkout(w);
+  let ok = await supabaseSyncWorkout(w); // supabaseSyncWorkout queues on failure
   if (!ok) {
-    // Retry once after a short delay — covers transient network blips.
     await new Promise(r => setTimeout(r, 1200));
+    // Re-attempt directly (supabaseSyncWorkout will re-enqueue if this also fails,
+    // but that's harmless — enqueue coalesces duplicate upserts by entity id).
     ok = await supabaseSyncWorkout(w);
   }
   if (ok) {
     showCloudToast(w.finished ? '✓ Workout synced to cloud' : '✓ Saved to cloud');
   } else {
-    showCloudToast('⚠ Saved locally — cloud sync will retry', 'warn');
+    showCloudToast('⚠ Saved locally — will sync when connection returns', 'warn');
   }
   return ok;
 }
 
 async function supabaseSyncPlanItem(planItem) {
+  const row = {
+    id: planItem.id, device_id: DEVICE_ID, mid: planItem.mid, dow: planItem.dow,
+    sets: planItem.sets || 3, reps: planItem.reps || '', rpe: planItem.rpe || '',
+    tempo: planItem.tempo || '', notes: planItem.notes || '',
+    target_weight: planItem.targetWeight != null ? String(planItem.targetWeight) : '',
+    training_type: planItem.trainingType || 'hypertrophy',
+  };
   try {
-    const row = {
-      id: planItem.id,
-      device_id: DEVICE_ID,
-      mid: planItem.mid,
-      dow: planItem.dow,
-      sets: planItem.sets || 3,
-      reps: planItem.reps || '',
-      rpe: planItem.rpe || '',
-      tempo: planItem.tempo || '',
-      notes: planItem.notes || '',
-      target_weight: planItem.targetWeight != null ? String(planItem.targetWeight) : '',
-      training_type: planItem.trainingType || 'hypertrophy',
-    };
     const { error } = await _supa.from('plans').upsert(row);
     if (error) throw error;
     setSyncStatus('ok');
   } catch (err) {
-    console.warn('Plan sync failed:', err);
-    setSyncStatus('error');
+    console.warn('Plan sync failed — queued:', err);
+    enqueueSync('upsert_plan', planItem.id, row);
   }
 }
 
 async function supabaseDeletePlanItem(planId) {
   try {
-    // TEMP DEBUG: device_id filter removed; row is still uniquely keyed by id.
     const { error } = await _supa.from('plans').delete().eq('id', planId);
     if (error) throw error;
     setSyncStatus('ok');
   } catch (err) {
-    console.warn('Plan delete failed:', err);
-    setSyncStatus('error');
+    console.warn('Plan delete failed — queued:', err);
+    enqueueSync('delete_plan', planId, { id: planId });
   }
 }
 
@@ -21779,6 +21894,8 @@ loadDataFromSupabase().then(() => {
   if (active === 'view-plan') renderPlan();
   if (active === 'view-library') renderLibrary();
   if (active === 'view-history') renderHistory();
+  // Drain any ops that failed in a previous session (offline, crash, etc.)
+  drainSyncQueue();
 });
 // Start real-time listener for cross-device sync
 initRealtimeSync();
