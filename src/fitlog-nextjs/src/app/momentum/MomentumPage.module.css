@@ -1279,3 +1279,394 @@
 :global(body.theme-dark) .mrPill.ready { background: rgba(79,154,168,0.18); color: #5bbcc8; }
 :global(body.theme-dark) .mrPill.caution { background: rgba(138,159,192,0.18); color: #90aacc; }
 :global(body.theme-dark) .mrPill.hold { background: rgba(176,128,146,0.18); color: #c8909e; }
+
+/* ── Updated subline ─────────────────────────────────────────────────────────*/
+/* Override the existing subline's literal text - handled via page JSX update. */
+
+/* ── Loading / error states ──────────────────────────────────────────────────*/
+
+.loadingState {
+  padding: 24px;
+  color: var(--muted, #5e6a82);
+  font-size: var(--text-sm, 12px);
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+}
+
+.errorState {
+  padding: 24px;
+  color: var(--bad, #b08092);
+  font-size: var(--text-sm, 12px);
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+}
+
+/* ── Timeline badge row ───────────────────────────────────────────────────────
+   Shows context: Active Session / Completed Today / Training History.
+   Lives between the page header and the first insight section.            ── */
+
+.timelineRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 0;
+}
+
+.timelineBadge {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1.2px solid;
+  white-space: nowrap;
+}
+
+/* Active session — teal glow (something is happening right now) */
+.badgeActive {
+  background: rgba(79,154,168,0.12);
+  border-color: rgba(79,154,168,0.40);
+  color: var(--ok, #4f9aa8);
+}
+
+/* Completed today — soft blue (good work done) */
+.badgeCompleted {
+  background: rgba(93,155,184,0.12);
+  border-color: rgba(93,155,184,0.35);
+  color: var(--accent, #5d9bb8);
+}
+
+/* History / no session today — neutral slate */
+.badgeHistory {
+  background: rgba(94,106,130,0.08);
+  border-color: rgba(94,106,130,0.22);
+  color: var(--muted, #5e6a82);
+}
+
+.timelineDesc {
+  font-family: var(--font-text, system-ui, sans-serif);
+  font-size: var(--text-sm, 12px);
+  color: var(--label, #8893a8);
+}
+
+/* ── Warning strip ───────────────────────────────────────────────────────────
+   Renders above insight sections when fatigueScore is very high or a body
+   part has been trained 3+ times in 72h.                                   ── */
+
+.warningsWrap {
+  margin: 10px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.warningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(176,128,146,0.08);
+  border: 1.2px solid rgba(176,128,146,0.30);
+  border-radius: 10px;
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bad, #b08092);
+  line-height: 1.5;
+}
+
+.warningText {
+  font-family: var(--font-text, system-ui, sans-serif);
+  font-size: var(--text-sm, 12px);
+  line-height: var(--leading-snug, 1.25);
+  color: var(--ink-2, #2c3548);
+}
+
+/* ── Insight sections (Current Session / Trends / Recovery) ──────────────────
+   Three vertically-stacked glass cards, each clearly labelled.
+   Each has an accent left-border that varies by type.                      ── */
+
+.insightCard {
+  margin: 12px 16px 0;
+  padding: 16px 18px 14px;
+  background: var(--glass-bg, rgba(241, 244, 249, 0.55));
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1.2px solid var(--card-border, rgba(255, 255, 255, 0.55));
+  border-radius: 18px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.80) inset,
+    0 2px 8px rgba(15,22,34,0.06),
+    0 8px 20px rgba(15,22,34,0.08);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Glass sheen overlay */
+.insightCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0.08) 30%,
+    rgba(255,255,255,0) 60%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.50;
+}
+
+/* Left-edge accent bar — 3px, differs by section type */
+.insightCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Active session accent — teal */
+.insightCard_session::before {
+  background: linear-gradient(180deg, var(--ok, #4f9aa8) 0%, #6ec5c8 100%);
+  opacity: 0.85;
+}
+
+/* Trend accent — brand blue */
+.insightCard_trend::before {
+  background: linear-gradient(180deg, var(--accent, #5d9bb8) 0%, var(--accent-2, #7fa5c7) 100%);
+  opacity: 0.85;
+}
+
+/* Recovery accent — soft mauve/lavender */
+.insightCard_recovery::before {
+  background: linear-gradient(180deg, #9b82c8 0%, var(--bad, #b08092) 100%);
+  opacity: 0.75;
+}
+
+.insightCardHead {
+  padding-left: 10px; /* clear the left accent bar */
+  margin-bottom: 11px;
+}
+
+.insightCardEyebrow {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  line-height: var(--leading-tight, 1.1);
+  margin-bottom: 3px;
+}
+
+.insightCardTitle {
+  font-family: var(--font-display, 'Inter Tight', system-ui, sans-serif);
+  font-size: var(--text-lg, 15px);
+  font-weight: var(--weight-bold, 700);
+  letter-spacing: var(--track-tight, -0.018em);
+  color: var(--ink, #0f1622);
+  line-height: var(--leading-snug, 1.25);
+}
+
+/* ── Insight item list ────────────────────────────────────────────────────────*/
+
+.insightList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 10px; /* align with cardHead padding */
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.insightItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.insightDot {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-top: 5px;
+  /* color is set per-tone below */
+}
+
+.insightText {
+  flex: 1;
+  font-family: var(--font-text, system-ui, sans-serif);
+  font-size: var(--text-base, 13px);
+  line-height: var(--leading-normal, 1.45);
+  letter-spacing: var(--track-normal, -0.005em);
+}
+
+/* Tone variants */
+.insightItem.itemNeutral .insightDot {
+  background: var(--label, #8893a8);
+}
+.insightItem.itemNeutral .insightText {
+  color: var(--ink-2, #2c3548);
+}
+
+.insightItem.itemPositive .insightDot {
+  background: var(--ok, #4f9aa8);
+}
+.insightItem.itemPositive .insightText {
+  color: var(--ink-2, #2c3548);
+}
+
+.insightItem.itemCaution .insightDot {
+  background: #9b82c8;
+}
+.insightItem.itemCaution .insightText {
+  color: var(--ink, #0f1622);
+  font-weight: var(--weight-medium, 500);
+}
+
+.insightItem.itemAlert .insightDot {
+  background: var(--bad, #b08092);
+}
+.insightItem.itemAlert .insightText {
+  color: #9e4060;
+  font-weight: var(--weight-semibold, 600);
+}
+
+/* ── Section divider — separates insight sections from the carousel ──────────*/
+
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 0;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: '';
+  flex: 1;
+  height: 1.2px;
+  background: var(--hairline-soft, rgba(15,22,34,0.11));
+}
+
+.sectionDividerLabel {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--label, #8893a8);
+  white-space: nowrap;
+}
+
+/* ── Dark mode — new timeline/insight components ─────────────────────────────*/
+
+@media (prefers-color-scheme: dark) {
+  :global(body:not(.theme-light)) .loadingState { color: #6a7384; }
+  :global(body:not(.theme-light)) .errorState { color: #c8909e; }
+
+  :global(body:not(.theme-light)) .timelineDesc { color: #6a7384; }
+
+  :global(body:not(.theme-light)) .badgeActive {
+    background: rgba(79,154,168,0.16);
+    border-color: rgba(79,154,168,0.35);
+    color: #5bbcc8;
+  }
+  :global(body:not(.theme-light)) .badgeCompleted {
+    background: rgba(93,155,184,0.15);
+    border-color: rgba(93,155,184,0.30);
+    color: #7ab8d4;
+  }
+  :global(body:not(.theme-light)) .badgeHistory {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.14);
+    color: #8d96a5;
+  }
+
+  :global(body:not(.theme-light)) .warningItem {
+    background: rgba(176,128,146,0.12);
+    border-color: rgba(176,128,146,0.28);
+  }
+  :global(body:not(.theme-light)) .warningText { color: #d4dae3; }
+
+  :global(body:not(.theme-light)) .insightCard {
+    background: rgba(14,18,23,0.60);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.07) inset,
+      0 2px 8px rgba(0,0,0,0.40),
+      0 8px 20px rgba(0,0,0,0.28);
+  }
+  :global(body:not(.theme-light)) .insightCard::after { opacity: 0.20; }
+  :global(body:not(.theme-light)) .insightCardEyebrow { color: #6a7384; }
+  :global(body:not(.theme-light)) .insightCardTitle { color: #f7f9fc; }
+
+  :global(body:not(.theme-light)) .insightItem.itemNeutral .insightText { color: #d4dae3; }
+  :global(body:not(.theme-light)) .insightItem.itemPositive .insightText { color: #d4dae3; }
+  :global(body:not(.theme-light)) .insightItem.itemCaution .insightText { color: #f7f9fc; }
+  :global(body:not(.theme-light)) .insightItem.itemAlert .insightText { color: #e0a0b0; }
+
+  :global(body:not(.theme-light)) .sectionDividerLabel { color: #6a7384; }
+  :global(body:not(.theme-light)) .sectionDivider::before,
+  :global(body:not(.theme-light)) .sectionDivider::after {
+    background: rgba(255,255,255,0.09);
+  }
+}
+
+:global(body.theme-dark) .loadingState { color: #6a7384; }
+:global(body.theme-dark) .errorState { color: #c8909e; }
+
+:global(body.theme-dark) .timelineDesc { color: #6a7384; }
+:global(body.theme-dark) .badgeActive {
+  background: rgba(79,154,168,0.16);
+  border-color: rgba(79,154,168,0.35);
+  color: #5bbcc8;
+}
+:global(body.theme-dark) .badgeCompleted {
+  background: rgba(93,155,184,0.15);
+  border-color: rgba(93,155,184,0.30);
+  color: #7ab8d4;
+}
+:global(body.theme-dark) .badgeHistory {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.14);
+  color: #8d96a5;
+}
+
+:global(body.theme-dark) .warningItem {
+  background: rgba(176,128,146,0.12);
+  border-color: rgba(176,128,146,0.28);
+}
+:global(body.theme-dark) .warningText { color: #d4dae3; }
+
+:global(body.theme-dark) .insightCard {
+  background: rgba(14,18,23,0.60);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 2px 8px rgba(0,0,0,0.40),
+    0 8px 20px rgba(0,0,0,0.28);
+}
+:global(body.theme-dark) .insightCard::after { opacity: 0.20; }
+:global(body.theme-dark) .insightCardEyebrow { color: #6a7384; }
+:global(body.theme-dark) .insightCardTitle { color: #f7f9fc; }
+
+:global(body.theme-dark) .insightItem.itemNeutral .insightText { color: #d4dae3; }
+:global(body.theme-dark) .insightItem.itemPositive .insightText { color: #d4dae3; }
+:global(body.theme-dark) .insightItem.itemCaution .insightText { color: #f7f9fc; }
+:global(body.theme-dark) .insightItem.itemAlert .insightText { color: #e0a0b0; }
+
+:global(body.theme-dark) .sectionDividerLabel { color: #6a7384; }
+:global(body.theme-dark) .sectionDivider::before,
+:global(body.theme-dark) .sectionDivider::after {
+  background: rgba(255,255,255,0.09);
+}

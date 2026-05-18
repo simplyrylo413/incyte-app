@@ -1,10 +1,24 @@
 "use client";
 
-// Momentum / Insights — horizontal snap-scroll carousel.
-// Visual parity: src/mobile351.html .insights-carousel-wrap (lines 9041–9193).
-// 4 cards: Readiness · Recovery Map · Muscle Stimulus · PRs
-// Cards are always expanded in carousel mode (no collapse toggle).
-// AI insights powered by OpenAI via Supabase Edge Function (§13-Q AI-readiness).
+// Insights page — timeline-aware, rules-first, AI-enhanced.
+//
+// Layout (top → bottom):
+//   Page header
+//   Timeline badge (Active Session / Completed Today / Training History)
+//   ── Section 1: Current Session / Today's Work (conditional) ──
+//   ── Section 2: Trend Analysis ──
+//   ── Section 3: Recovery Outlook ──
+//   ── Carousel: Readiness · Stimulus · PRs · Muscles ──
+//   AI status bar
+//
+// Data flow:
+//   1. Load movements + finished workouts + active (unfinished) workout in parallel.
+//   2. Run computeInsightResult() synchronously → rules-based InsightResult.
+//   3. Render sections immediately with rules output.
+//   4. Fire enhanceInsightsWithAi() in background → overlay AI language if successful.
+//   5. Existing carousel (Readiness / Stimulus / PRs / Muscles) loads below.
+//
+// AI fallback: if AI fails for any reason, the page shows rules output unchanged.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listWorkouts, listMovements } from "@/lib/db";
@@ -20,6 +34,17 @@ import {
   type PRBadge,
 } from "@/lib/engine/momentum";
 import {
+  computeInsightResult,
+  type InsightResult,
+  type InsightItem,
+  type TimelineContext,
+} from "@/lib/engine/insightEngine";
+import {
+  enhanceInsightsWithAi,
+  invalidateAiTimelineCache,
+  aiTimelineAgeLabel,
+} from "@/lib/engine/aiTimelineInsights";
+import {
   fetchAiInsights,
   invalidateAiCache,
   ageLabel,
@@ -27,34 +52,78 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CARD_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
+const CAROUSEL_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
+
+// ─── Timeline context helpers ─────────────────────────────────────────────────
+
+const TIMELINE_META: Record<
+  TimelineContext,
+  { badge: string; badgeClass: string; description: string }
+> = {
+  CURRENT_ACTIVE_SESSION: {
+    badge: "Active Session",
+    badgeClass: s.badgeActive,
+    description: "Observing current workout",
+  },
+  TODAY_COMPLETED: {
+    badge: "Completed Today",
+    badgeClass: s.badgeCompleted,
+    description: "Today's session is done",
+  },
+  NO_TODAY_RECENT_HISTORY: {
+    badge: "Training History",
+    badgeClass: s.badgeHistory,
+    description: "No session today",
+  },
+};
 
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export default function MomentumPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+
+  const [finishedWorkouts, setFinishedWorkouts] = useState<Workout[]>([]);
+  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
-  const [activeIdx, setActiveIdx] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
 
-  // AI state — loaded after workout data, gracefully degrades on error
-  const [ai, setAi] = useState<AiInsights | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiErr, setAiErr] = useState<string | null>(null);
+  // Timeline-aware insight state
+  const [insightResult, setInsightResult] = useState<InsightResult | null>(null);
+  const [aiEnhanced, setAiEnhanced] = useState(false);
+  const [aiTimelineLoading, setAiTimelineLoading] = useState(false);
+  const [aiTimelineErr, setAiTimelineErr] = useState<string | null>(null);
+  const [aiTimelineAge, setAiTimelineAge] = useState<number | null>(null);
 
+  // Carousel AI (existing readiness/stimulus/PRs AI)
+  const [carouselAi, setCarouselAi] = useState<AiInsights | null>(null);
+  const [carouselAiLoading, setCarouselAiLoading] = useState(false);
+
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [carouselIdx, setCarouselIdx] = useState(0);
+
+  // ── Data load ───────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
     try {
-      const [mv, wk] = await Promise.all([
+      const [mv, finished, activeArr] = await Promise.all([
         listMovements(),
         listWorkouts({ finished: true }),
+        listWorkouts({ finished: false, limit: 1 }),
       ]);
+      const active = activeArr[0] ?? null;
+
       setMovements(mv);
-      setWorkouts(wk);
-      setErr(null);
-      // Kick off AI load in the background — don't block the page render
-      loadAi(wk, mv);
+      setFinishedWorkouts(finished);
+      setActiveWorkout(active);
+
+      // Compute rules-based insights synchronously
+      const result = computeInsightResult(finished, mv, active);
+      setInsightResult(result);
+
+      // Fire AI enhancement in background (non-blocking)
+      loadAiTimeline(result);
+      loadCarouselAi(finished, mv);
     } catch (e) {
       setErr(String(e));
     } finally {
@@ -62,112 +131,156 @@ export default function MomentumPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadAi = useCallback(async (
-    wk: Workout[],
-    mv: Movement[],
-    force = false
-  ) => {
-    setAiLoading(true);
-    setAiErr(null);
-    try {
-      const insights = await fetchAiInsights(wk, mv, { forceRefresh: force });
-      setAi(insights);
-    } catch (e) {
-      setAiErr(String(e));
-    } finally {
-      setAiLoading(false);
-    }
-  }, []);
+  const loadAiTimeline = useCallback(
+    async (result: InsightResult, force = false) => {
+      setAiTimelineLoading(true);
+      setAiTimelineErr(null);
+      try {
+        const enhanced = await enhanceInsightsWithAi(result, { forceRefresh: force });
+        setInsightResult(enhanced);
+        setAiEnhanced(true);
+        setAiTimelineAge(Date.now());
+      } catch {
+        setAiTimelineErr("AI enhancement unavailable");
+      } finally {
+        setAiTimelineLoading(false);
+      }
+    },
+    []
+  );
+
+  const loadCarouselAi = useCallback(
+    async (wk: Workout[], mv: Movement[], force = false) => {
+      setCarouselAiLoading(true);
+      try {
+        const insights = await fetchAiInsights(wk, mv, { forceRefresh: force });
+        setCarouselAi(insights);
+      } catch {
+        // Carousel AI is best-effort — silent failure
+      } finally {
+        setCarouselAiLoading(false);
+      }
+    },
+    []
+  );
 
   function handleRefreshAi() {
+    if (!insightResult) return;
+    // Re-run rules from fresh data, then force-refresh AI
+    invalidateAiTimelineCache();
     invalidateAiCache();
-    loadAi(workouts, movements, true);
+    setAiEnhanced(false);
+    loadAiTimeline(insightResult, true);
+    loadCarouselAi(finishedWorkouts, movements, true);
   }
 
-  useEffect(() => { load(); }, [load]);
-
-  // Track scroll position → active dot
   useEffect(() => {
-    const track = trackRef.current;
+    load();
+  }, [load]);
+
+  // Carousel dot tracking
+  useEffect(() => {
+    const track = carouselRef.current;
     if (!track) return;
     const onScroll = () => {
-      const idx = Math.round(track.scrollLeft / track.clientWidth);
-      setActiveIdx(idx);
+      setCarouselIdx(Math.round(track.scrollLeft / track.clientWidth));
     };
     track.addEventListener("scroll", onScroll, { passive: true });
     return () => track.removeEventListener("scroll", onScroll);
   }, []);
 
   function scrollToCard(idx: number) {
-    const track = trackRef.current;
+    const track = carouselRef.current;
     if (!track) return;
     track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
   }
 
-  const scores          = computeReadiness(workouts, movements);
-  const stimulus        = computeWeeklyStimulus(workouts, movements);
-  const prs             = computePRs(workouts, movements);
-  const muscleReadiness = computeMuscleReadiness(workouts, movements);
+  // Carousel scores (recomputed from finished workouts for carousel cards)
+  const scores = computeReadiness(finishedWorkouts, movements);
+  const stimulus = computeWeeklyStimulus(finishedWorkouts, movements);
+  const prs = computePRs(finishedWorkouts, movements);
+  const muscleReadiness = computeMuscleReadiness(finishedWorkouts, movements);
 
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className={s.page}>
+      {/* ── Page header ────────────────────────────────────────────────────── */}
       <div className={s.head}>
         <div className={s.headInner}>
           <h1 className={s.headline}>Insights</h1>
-          <div className={s.subline}>Readiness · Fatigue · Stimulus · PRs</div>
+          <div className={s.subline}>Training Intelligence</div>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: "24px", color: "#5e6a82", fontSize: 13 }}>
-          Loading…
-        </div>
+        <div className={s.loadingState}>Loading…</div>
       ) : err ? (
-        <div style={{ padding: "24px", color: "#b08092", fontSize: 13 }}>
-          {err}
-        </div>
-      ) : (
+        <div className={s.errorState}>{err}</div>
+      ) : insightResult ? (
         <>
-          {/* ── AI status bar ───────────────────────────────────────────── */}
-          <div className={s.aiBar}>
-            <span className={s.aiBarLabel}>
-              {aiLoading ? (
-                <span className={s.aiBarSpinner} aria-label="Generating AI insights" />
-              ) : (
-                <span className={s.aiBarDot} data-ok={!aiErr} aria-hidden="true" />
-              )}
-              {aiLoading
-                ? "AI analysis running…"
-                : aiErr
-                ? "AI unavailable · rule-based mode"
-                : ai
-                ? `AI insights · ${ageLabel(ai.generatedAt)}`
-                : "AI insights loading"}
+          {/* ── Timeline badge ────────────────────────────────────────────── */}
+          <div className={s.timelineRow}>
+            <span
+              className={`${s.timelineBadge} ${TIMELINE_META[insightResult.timelineContext].badgeClass}`}
+            >
+              {TIMELINE_META[insightResult.timelineContext].badge}
             </span>
-            {!aiLoading && (
-              <button
-                type="button"
-                className={s.aiBarRefresh}
-                onClick={handleRefreshAi}
-                aria-label="Refresh AI insights"
-              >
-                ↻
-              </button>
-            )}
+            <span className={s.timelineDesc}>
+              {TIMELINE_META[insightResult.timelineContext].description}
+            </span>
           </div>
 
-          {/* ── Carousel ────────────────────────────────────────────────── */}
+          {/* ── Warnings ──────────────────────────────────────────────────── */}
+          {insightResult.warnings.length > 0 && (
+            <div className={s.warningsWrap}>
+              {insightResult.warnings.map((w, i) => (
+                <div key={i} className={s.warningItem}>
+                  <span className={s.warningIcon} aria-hidden="true">!</span>
+                  <span className={s.warningText}>{w}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Section 1: Current Session / Today's Work ─────────────────── */}
+          {insightResult.currentSessionInsights && (
+            <InsightCard
+              section={insightResult.currentSessionInsights}
+              accent="session"
+            />
+          )}
+
+          {/* ── Section 2: Trend Analysis ──────────────────────────────────── */}
+          <InsightCard
+            section={insightResult.trendInsights}
+            accent="trend"
+          />
+
+          {/* ── Section 3: Recovery Outlook ────────────────────────────────── */}
+          <InsightCard
+            section={insightResult.recoveryOutlook}
+            accent="recovery"
+          />
+
+          {/* ── Divider before carousel ────────────────────────────────────── */}
+          <div className={s.sectionDivider}>
+            <span className={s.sectionDividerLabel}>
+              Readiness &amp; Fatigue Detail
+            </span>
+          </div>
+
+          {/* ── Carousel ──────────────────────────────────────────────────── */}
           <div className={s.carouselWrap}>
-            <div className={s.carouselTrack} ref={trackRef}>
+            <div className={s.carouselTrack} ref={carouselRef}>
               <div className={s.carouselSlide}>
-                <ReadinessCard scores={scores} ai={ai?.readiness ?? null} />
+                <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
               </div>
               <div className={s.carouselSlide}>
-                <StimulusCard stimulus={stimulus} ai={ai?.stimulus ?? null} />
+                <StimulusCard stimulus={stimulus} ai={carouselAi?.stimulus ?? null} />
               </div>
               <div className={s.carouselSlide}>
-                <PRsCard prs={prs} aiPrs={ai?.prs ?? null} />
+                <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
               </div>
               <div className={s.carouselSlide}>
                 <MuscleReadinessCard
@@ -176,27 +289,95 @@ export default function MomentumPage() {
                 />
               </div>
             </div>
-
-            {/* ── Dot pagination ──────────────────────────────────────── */}
             <div className={s.dots}>
-              {CARD_LABELS.map((label, i) => (
+              {CAROUSEL_LABELS.map((label, i) => (
                 <button
                   key={label}
                   type="button"
                   aria-label={label}
-                  className={`${s.dot} ${activeIdx === i ? s.dotActive : ""}`}
+                  className={`${s.dot} ${carouselIdx === i ? s.dotActive : ""}`}
                   onClick={() => scrollToCard(i)}
                 />
               ))}
             </div>
           </div>
+
+          {/* ── AI status bar ──────────────────────────────────────────────── */}
+          <div className={s.aiBar}>
+            <span className={s.aiBarLabel}>
+              {aiTimelineLoading ? (
+                <span className={s.aiBarSpinner} aria-label="Generating AI insights" />
+              ) : (
+                <span
+                  className={s.aiBarDot}
+                  data-ok={!aiTimelineErr}
+                  aria-hidden="true"
+                />
+              )}
+              {aiTimelineLoading
+                ? "AI analysis running…"
+                : aiTimelineErr
+                ? "AI unavailable · rule-based mode"
+                : aiEnhanced && aiTimelineAge
+                ? `AI enhanced · ${aiTimelineAgeLabel(aiTimelineAge)}`
+                : "Rules-based insights"}
+            </span>
+            {!aiTimelineLoading && (
+              <button
+                type="button"
+                className={s.aiBarRefresh}
+                onClick={handleRefreshAi}
+                aria-label="Refresh insights"
+              >
+                ↻
+              </button>
+            )}
+          </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
 
-// ─── Readiness card ───────────────────────────────────────────────────────────
+// ─── InsightCard — shared section renderer ────────────────────────────────────
+
+function InsightCard({
+  section,
+  accent,
+}: {
+  section: { eyebrow: string; headline: string; items: InsightItem[] };
+  accent: "session" | "trend" | "recovery";
+}) {
+  const toneClass = (tone: InsightItem["tone"]) => {
+    switch (tone) {
+      case "positive": return s.itemPositive;
+      case "caution":  return s.itemCaution;
+      case "alert":    return s.itemAlert;
+      default:         return s.itemNeutral;
+    }
+  };
+
+  return (
+    <section className={`${s.insightCard} ${s[`insightCard_${accent}`]}`}>
+      <div className={s.insightCardHead}>
+        <div className={s.insightCardEyebrow}>{section.eyebrow}</div>
+        <div className={s.insightCardTitle}>{section.headline}</div>
+      </div>
+      {section.items.length > 0 && (
+        <ul className={s.insightList}>
+          {section.items.map((item, i) => (
+            <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
+              <span className={s.insightDot} aria-hidden="true" />
+              <span className={s.insightText}>{item.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+// ─── Readiness card (carousel) ────────────────────────────────────────────────
 
 function ReadinessCard({
   scores,
@@ -205,17 +386,16 @@ function ReadinessCard({
   scores: ReadinessScores;
   ai: import("@/lib/engine/aiInsights").AiReadiness | null;
 }) {
-  // Use AI values if available, fall back to rule-based
-  const recAction      = ai?.recommendation  ?? scores.recAction;
-  const recBullets     = ai?.bullets         ?? scores.recBullets;
-  const readinessCap   = ai?.readinessCap    ?? scores.readinessCap;
-  const recoveryCap    = ai?.recoveryCap     ?? scores.recoveryCap;
-  const fatigueCap     = ai?.fatigueCap      ?? scores.fatigueCap;
+  const recAction    = ai?.recommendation ?? scores.recAction;
+  const recBullets   = ai?.bullets        ?? scores.recBullets;
+  const readinessCap = ai?.readinessCap   ?? scores.readinessCap;
+  const recoveryCap  = ai?.recoveryCap    ?? scores.recoveryCap;
+  const fatigueCap   = ai?.fatigueCap     ?? scores.fatigueCap;
 
   const toneClass =
     scores.recTone === "high" ? s.toneHigh
-    : scores.recTone === "med" ? s.toneMed
-    : scores.recTone === "pos" ? s.tonePos
+    : scores.recTone === "med"  ? s.toneMed
+    : scores.recTone === "pos"  ? s.tonePos
     : "";
 
   return (
@@ -225,9 +405,7 @@ function ReadinessCard({
           <div className={s.heroCardTitle}>{scores.title}</div>
         </div>
       </div>
-
       <div className={s.heroInner}>
-        {/* 3-stat grid */}
         <div className={s.readinessGrid}>
           <div className={s.readinessStat}>
             <div className={s.readinessStatLabel}>Readiness</div>
@@ -240,10 +418,7 @@ function ReadinessCard({
               )}
             </div>
             <div className={s.readinessBar}>
-              <div
-                className={s.readinessBarFill}
-                style={{ width: `${scores.readiness ?? 0}%` }}
-              />
+              <div className={s.readinessBarFill} style={{ width: `${scores.readiness ?? 0}%` }} />
             </div>
             <div className={s.readinessStatCaption}>{readinessCap}</div>
           </div>
@@ -255,10 +430,7 @@ function ReadinessCard({
               <span className={s.readinessStatSuffix}>%</span>
             </div>
             <div className={s.readinessBar}>
-              <div
-                className={s.readinessBarFill}
-                style={{ width: `${scores.recovery}%` }}
-              />
+              <div className={s.readinessBarFill} style={{ width: `${scores.recovery}%` }} />
             </div>
             <div className={s.readinessStatCaption}>{recoveryCap}</div>
           </div>
@@ -270,16 +442,12 @@ function ReadinessCard({
               <span className={s.readinessStatSuffix}>%</span>
             </div>
             <div className={s.readinessBar}>
-              <div
-                className={s.readinessBarFill}
-                style={{ width: `${scores.fatigue}%` }}
-              />
+              <div className={s.readinessBarFill} style={{ width: `${scores.fatigue}%` }} />
             </div>
             <div className={s.readinessStatCaption}>{fatigueCap}</div>
           </div>
         </div>
 
-        {/* Recommendation — always visible, single paragraph */}
         <div className={s.rdRecommendation}>
           <div className={s.rdRecHead}>
             <span className={s.rdRecLabel}>{ai ? "AI:" : "Recommendation:"}</span>
@@ -292,7 +460,7 @@ function ReadinessCard({
   );
 }
 
-// ─── Muscle Stimulus card ─────────────────────────────────────────────────────
+// ─── Stimulus card (carousel) ─────────────────────────────────────────────────
 
 function StimulusCard({
   stimulus,
@@ -302,8 +470,8 @@ function StimulusCard({
   ai: import("@/lib/engine/aiInsights").AiStimulus | null;
 }) {
   const tierClass =
-    stimulus.tierTone === "pos" ? s.tonePos
-    : stimulus.tierTone === "med" ? s.toneMed
+    stimulus.tierTone === "pos"  ? s.tonePos
+    : stimulus.tierTone === "med"  ? s.toneMed
     : stimulus.tierTone === "high" ? s.toneHigh
     : "";
 
@@ -315,7 +483,6 @@ function StimulusCard({
           <div className={s.heroCardTitle}>Muscle Stimulus</div>
         </div>
       </div>
-
       <div className={s.heroInner}>
         <div className={s.stimulusHero}>
           <div>
@@ -328,7 +495,7 @@ function StimulusCard({
 
         {stimulus.bars.length === 0 ? (
           <div className={s.stimulusEmpty}>
-            Log working sets this week to see your stimulus distribution.
+            Log working sets this week to see stimulus distribution.
           </div>
         ) : (
           <div className={s.stimulusBars}>
@@ -336,10 +503,7 @@ function StimulusCard({
               <div key={bar.key} className={s.stimulusBarRow}>
                 <span className={s.stimulusBarName}>{bar.label}</span>
                 <div className={s.stimulusBarTrack}>
-                  <div
-                    className={s.stimulusBarFill}
-                    style={{ width: `${bar.pct}%` }}
-                  />
+                  <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
                 </div>
                 <span className={s.stimulusSets}>{bar.sets}</span>
               </div>
@@ -347,7 +511,6 @@ function StimulusCard({
           </div>
         )}
 
-        {/* AI analysis block */}
         {ai && (
           <div className={s.aiBlock}>
             <p className={s.aiBlockText}>{ai.summary}</p>
@@ -365,7 +528,7 @@ function StimulusCard({
   );
 }
 
-// ─── PRs card ─────────────────────────────────────────────────────────────────
+// ─── PRs card (carousel) ──────────────────────────────────────────────────────
 
 function PRsCard({
   prs,
@@ -382,7 +545,6 @@ function PRsCard({
           <div className={s.heroCardTitle}>Recent PRs</div>
         </div>
       </div>
-
       <div className={s.heroInner}>
         {prs.length === 0 ? (
           <div className={s.prList}>
@@ -398,9 +560,11 @@ function PRsCard({
         ) : (
           <div className={s.prList}>
             {prs.map((badge, i) => {
-              const aiPr = aiPrs?.find(
-                (p) => p.movement.toLowerCase() === badge.label.toLowerCase()
-              ) ?? null;
+              const aiPr =
+                aiPrs?.find(
+                  (p) =>
+                    p.movement.toLowerCase() === badge.label.toLowerCase()
+                ) ?? null;
               return (
                 <div key={i} className={s.prBadge}>
                   <span className={s.prGlyph}>{badge.glyph}</span>
@@ -423,7 +587,7 @@ function PRsCard({
   );
 }
 
-// ─── Muscle Readiness card ────────────────────────────────────────────────────
+// ─── Muscle Readiness card (carousel) ────────────────────────────────────────
 
 function MuscleReadinessCard({
   upper,
@@ -443,9 +607,7 @@ function MuscleReadinessCard({
           <div className={s.heroCardTitle}>Muscle Readiness</div>
         </div>
       </div>
-
       <div className={s.heroInner}>
-        {/* Tab toggle — mirrors Recovery Map pill */}
         <div className={s.fatigueTogglePill}>
           <button
             type="button"
@@ -462,8 +624,6 @@ function MuscleReadinessCard({
             Lower body
           </button>
         </div>
-
-        {/* Active section grid */}
         <div className={s.mrGrid}>
           {rows.map((row) => (
             <MrTile key={row.key} row={row} />
@@ -485,9 +645,7 @@ function MrTile({ row }: { row: MuscleReadinessRow }) {
         />
       </div>
       <div className={s.mrTileBottom}>
-        <span className={`${s.mrPill} ${s[row.status]}`}>
-          {row.statusLabel}
-        </span>
+        <span className={`${s.mrPill} ${s[row.status]}`}>{row.statusLabel}</span>
         <span className={s.mrTileStat}>{row.daysStat}</span>
       </div>
     </div>
