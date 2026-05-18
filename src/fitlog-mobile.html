@@ -9973,6 +9973,15 @@ window.openSupabaseTestPanel = openSupabaseTestPanel;
 // re-rendering the active view. Guarded so we never create duplicate
 // subscriptions if init runs more than once.
 let _realtimeChannel = null;
+// Map a raw Supabase workouts row to the local Workout shape.
+// Kept in sync with the mapping in loadDataFromSupabase / reloadFromSupabase.
+function _rowToWorkout(r) {
+  return {
+    id: r.id, name: r.name, date: r.date, finished: r.finished,
+    entries: r.entries || [], savedAt: r.saved_at,
+  };
+}
+
 function initRealtimeSync() {
   if (_realtimeChannel) return _realtimeChannel;
 
@@ -9980,20 +9989,55 @@ function initRealtimeSync() {
     .channel('workouts-live')
     .on(
       'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'workouts',
-      },
+      // Filter to this device's rows so foreign-device noise doesn't arrive.
+      // The passphrase-sync use case shares DEVICE_ID across devices, so
+      // cross-device updates still arrive here correctly.
+      { event: '*', schema: 'public', table: 'workouts', filter: `device_id=eq.${DEVICE_ID}` },
       (payload) => {
-        console.log('Realtime update:', payload);
+        const { eventType, new: newRow, old: oldRow } = payload;
+        const changedId = newRow?.id || oldRow?.id;
+        if (!changedId) return;
 
-        // Re-fetch workouts so UI updates across devices
-        reloadFromSupabase();
+        // Never mutate the active session row via Realtime — it's managed
+        // exclusively by data.active and restored from localStorage on merge.
+        if (changedId === data.active?.id) return;
+
+        // Ignore tombstoned rows — discard already cleaned them up.
+        if ((data.tombstones?.workouts || []).includes(changedId)) return;
+
+        // Apply the change directly from the payload — no round-trip refetch.
+        // This eliminates the self-echo full-refetch that was causing the
+        // "input resets after a second" bug on every keystroke.
+        if (eventType === 'DELETE') {
+          data.workouts = data.workouts.filter(w => w.id !== changedId);
+        } else {
+          // INSERT or UPDATE — prefer local if it has more entries (in-flight upsert guard).
+          const local = data.workouts.find(w => w.id === changedId);
+          const cloudEntries = newRow.entries || [];
+          const localEntries = local?.entries || [];
+          if (!local) {
+            data.workouts.push(_rowToWorkout(newRow));
+          } else if (localEntries.length <= cloudEntries.length) {
+            // Cloud is equal or ahead — accept cloud version
+            data.workouts = data.workouts.map(w => w.id === changedId ? _rowToWorkout(newRow) : w);
+          }
+          // else: local has more entries — in-flight upsert, keep local
+        }
+
+        saveLocal();
+
+        // Re-render the active view (skip if user is typing to avoid focus loss)
+        const focused = document.activeElement;
+        const isTyping = focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA' || focused.isContentEditable);
+        if (!isTyping) {
+          const activeView = document.querySelector('.view.active')?.id?.replace('view-', '');
+          if (activeView === 'today')   renderToday();
+          if (activeView === 'history') renderHistory();
+          if (activeView === 'week')    { try { renderWeekParts?.(); renderMomentum?.(); } catch(_){} }
+        }
       }
     )
     .subscribe((status) => {
-      console.log('[Realtime] status:', status);
       setSyncStatus(status === 'SUBSCRIBED' ? 'ok' : 'syncing');
     });
 
@@ -17471,11 +17515,19 @@ async function syncActiveSession() {
 }
 
 async function supabaseSyncMovement(mv) {
+  // Write both legacy columns (muscle, category, kind:'strength') AND the
+  // Next.js-canonical columns (body_part, equipment_type, kind:'weight'|'cardio')
+  // so both builds read the same row correctly without a schema migration.
+  const bodyPart = mv.muscle || mv.bodyPart || '';
+  const equipType = mv.equipmentType || mv.category || '';
+  const kind = mv.kind === 'cardio' ? 'cardio' : 'weight'; // normalise 'strength' → 'weight'
   const payload = {
     id: mv.id, device_id: DEVICE_ID, name: mv.name,
-    category: mv.category || '', muscle: mv.muscle || '',
-    kind: mv.kind || 'strength', unit: mv.unit || '',
-    notes: mv.notes || '', tags: mv.tags || [],
+    // Legacy columns (HTML build reads these)
+    category: mv.category || '', muscle: bodyPart,
+    kind, unit: mv.unit || '', notes: mv.notes || '', tags: mv.tags || [],
+    // Canonical columns (Next.js build reads these via rowToMovement)
+    body_part: bodyPart, equipment_type: equipType,
   };
   try {
     const { error } = await _supa.from('movements').upsert(payload);

@@ -193,17 +193,24 @@ export async function upsertMovement(m: Movement): Promise<boolean> {
   // Validate kind — DB check constraint only allows 'weight' | 'cardio'
   const kind: "weight" | "cardio" = m.kind === "cardio" ? "cardio" : "weight";
 
+  // Write both canonical (Next.js) and legacy (HTML build) column sets so both
+  // builds can read rows written by either build (schema unification, Fix 6).
+  const bodyPart = m.muscle ?? m.bodyPart ?? null;
+  const equipType = m.equipmentType ?? null;
+  const sharedFields = {
+    name: m.name, kind, notes: m.notes ?? null,
+    // Canonical columns
+    body_part: bodyPart, equipment_type: equipType,
+    // Legacy HTML-build columns — kept populated so the HTML build's reader
+    // (which maps r.muscle → movement.muscle) still works.
+    muscle: bodyPart, category: equipType,
+  };
+
   if (m.id && isUUID(m.id)) {
     // Update existing movement by primary key
     const { error } = await supabase
       .from("movements")
-      .update({
-        name: m.name,
-        kind,
-        body_part: m.muscle ?? m.bodyPart ?? null,
-        equipment_type: m.equipmentType ?? null,
-        notes: m.notes ?? null,
-      })
+      .update(sharedFields)
       .eq("id", m.id);
     if (error) {
       console.error("[db] upsertMovement (update) failed:", JSON.stringify(error));
@@ -213,11 +220,7 @@ export async function upsertMovement(m: Movement): Promise<boolean> {
     // Insert new movement — user_id defaults to auth.uid() via DB column default
     const { error } = await supabase.from("movements").insert({
       id: m.id && isUUID(m.id) ? m.id : crypto.randomUUID(),
-      name: m.name,
-      kind,
-      body_part: m.muscle ?? m.bodyPart ?? null,
-      equipment_type: m.equipmentType ?? null,
-      notes: m.notes ?? null,
+      ...sharedFields,
     });
     if (error) {
       console.error("[db] upsertMovement (insert) failed:", JSON.stringify(error));
@@ -381,18 +384,25 @@ export async function deletePlan(id: string): Promise<boolean> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToMovement(r: any): Movement {
-  // Schema columns: id, user_id, name, kind, unit, notes, created_at
-  // Extended columns (added via migration): body_part, equipment_type, gif_url,
-  //   secondary_muscles, instructions, favorite
+  // Schema columns: id, user_id/device_id, name, kind, unit, notes
+  // Extended columns: body_part, equipment_type, gif_url, secondary_muscles,
+  //   instructions, favorite
+  // Legacy HTML-build columns: muscle (≡ body_part), category (≡ equipment_type)
+  //   The HTML build writes both sets since Fix 6, but older rows only have
+  //   the legacy columns — fall back to them so no data is silently lost.
+  const bodyPart = r.body_part ?? r.muscle ?? undefined;
+  const equipType = r.equipment_type ?? r.category ?? undefined;
   return {
     id: r.id,
     name: r.name,
+    // 'strength' is the HTML build's legacy kind value — normalise to undefined
+    // (treated as weight training, the default) so it doesn't pollute the type.
     kind: r.kind === "cardio" ? "cardio" : undefined,
-    muscle: r.body_part ?? undefined,
-    bodyPart: r.body_part ?? undefined,
+    muscle: bodyPart,
+    bodyPart,
     unit: r.unit ?? undefined,
     notes: r.notes ?? null,
-    equipmentType: r.equipment_type ?? undefined,
+    equipmentType: equipType,
     canonicalMovement: r.name,
     gifUrl: r.gif_url ?? undefined,
     secondaryMuscles: r.secondary_muscles ?? undefined,
