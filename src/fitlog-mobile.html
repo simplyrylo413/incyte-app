@@ -10008,11 +10008,10 @@ async function reloadFromSupabase() {
   _realtimeDebounce = setTimeout(async () => {
     setSyncStatus('syncing');
     try {
-      // TEMP DEBUG: device_id filter removed so all devices see the same rows.
       const [mvRes, planRes, wkRes] = await Promise.all([
-        _supa.from('movements').select('*'),
-        _supa.from('plans').select('*'),
-        _supa.from('workouts').select('*').order('date', { ascending: false }),
+        _supa.from('movements').select('*').eq('device_id', DEVICE_ID),
+        _supa.from('plans').select('*').eq('device_id', DEVICE_ID),
+        _supa.from('workouts').select('*').eq('device_id', DEVICE_ID).order('date', { ascending: false }),
       ]);
       if (mvRes.error || planRes.error || wkRes.error) throw new Error('Realtime fetch error');
 
@@ -10256,11 +10255,10 @@ async function pushAllToSupabase() {
 async function loadDataFromSupabase() {
   setSyncStatus('syncing');
   try {
-    // TEMP DEBUG: device_id filter removed so all devices see the same rows.
     const [mvRes, planRes, wkRes] = await Promise.all([
-      _supa.from('movements').select('*'),
-      _supa.from('plans').select('*'),
-      _supa.from('workouts').select('*').order('date', { ascending: false }),
+      _supa.from('movements').select('*').eq('device_id', DEVICE_ID),
+      _supa.from('plans').select('*').eq('device_id', DEVICE_ID),
+      _supa.from('workouts').select('*').eq('device_id', DEVICE_ID).order('date', { ascending: false }),
     ]);
     if (mvRes.error || planRes.error || wkRes.error) throw new Error('Supabase fetch error');
 
