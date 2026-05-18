@@ -7737,6 +7737,70 @@
 
   /* (.current, .pickers, .picker, .log-btn removed — replaced by .wm-hero block above) */
 
+  /* ── Inline scroll pickers (Revised A) ──────────────────────────────────
+     Replaces the tap-to-open bottom sheet for weight / reps / RPE on the
+     current set. Each field is a drag-to-scroll horizontal strip with a
+     tinted pill selection window, 4-step opacity decay, and momentum snap. */
+  .wm-picker-section { padding: 4px 0 10px; }
+  .wm-picker-row { display: flex; flex-direction: column; position: relative; }
+  .wm-picker-label {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: var(--track-eyebrow);
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 6px 20px 0;
+    position: relative; z-index: 5; pointer-events: none;
+  }
+  .wm-picker-wrap { position: relative; margin-top: -4px; }
+  /* Tinted pill — unmissable selection zone */
+  .wm-picker-pill {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 52px;
+    border-radius: 12px;
+    background: rgba(93,155,184,0.11);
+    border: 1.2px solid rgba(93,155,184,0.30);
+    pointer-events: none; z-index: 3;
+  }
+  .wm-picker-divider { height: 1.2px; background: var(--hairline-soft); margin: 0 20px; }
+  /* Scroll zone */
+  .wm-picker-widget {
+    position: relative; height: 76px; overflow: hidden;
+    cursor: grab; user-select: none; -webkit-user-select: none;
+    touch-action: pan-x;
+  }
+  .wm-picker-widget:active { cursor: grabbing; }
+  .wm-picker-track {
+    display: flex; align-items: center; height: 76px;
+    position: absolute; top: 0; left: 0;
+    will-change: transform;
+  }
+  .wm-picker-track.wm-snapping {
+    transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  /* Items — 4-step opacity / size decay */
+  .wm-picker-item {
+    width: 44px; flex-shrink: 0; text-align: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
+  }
+  .wm-picker-item.wpi-n3 { color: rgba(15,22,34,0.14); font-size: 11.5px; }
+  .wm-picker-item.wpi-n2 { color: rgba(15,22,34,0.25); font-size: 13px; font-weight: 600; }
+  .wm-picker-item.wpi-n1 { color: rgba(15,22,34,0.48); font-size: 16px; font-weight: 600; }
+  .wm-picker-item.wpi-sel {
+    font-size: 26px; font-weight: var(--weight-heavy);
+    color: var(--ink); letter-spacing: var(--track-tight);
+  }
+  /* Edge fades — JS sets background via getComputedBg() */
+  .wm-picker-fade {
+    position: absolute; top: 0; bottom: 0; width: 44px;
+    pointer-events: none; z-index: 4;
+  }
+  .wm-picker-fade-l { left: 0; }
+  .wm-picker-fade-r { right: 0; }
+
   /* Inline AI recommendation — Spatial Glass treatment (Option B):
      prismatic gradient matching the hero family (smaller version), backdrop-blur,
      specular top-edge highlight, accent-tinted ambient shadow. */
@@ -8766,6 +8830,18 @@
   }
   body.theme-dark .wm-hero-eyebrow .active-set { color: var(--accent); }
   body.theme-dark .wm-hero-eyebrow .set-of { color: rgba(255,255,255, 0.45); }
+  /* Inline pickers — dark mode */
+  body.theme-dark .wm-picker-label { color: rgba(255,255,255,0.35); }
+  body.theme-dark .wm-picker-pill {
+    background: rgba(93,155,184,0.16);
+    border-color: rgba(93,155,184,0.35);
+  }
+  body.theme-dark .wm-picker-divider { background: rgba(255,255,255,0.07); }
+  body.theme-dark .wm-picker-item       { color: rgba(255,255,255,0.08); }
+  body.theme-dark .wm-picker-item.wpi-n3 { color: rgba(255,255,255,0.12); }
+  body.theme-dark .wm-picker-item.wpi-n2 { color: rgba(255,255,255,0.22); }
+  body.theme-dark .wm-picker-item.wpi-n1 { color: rgba(255,255,255,0.45); }
+  body.theme-dark .wm-picker-item.wpi-sel { color: rgba(255,255,255,0.96); }
 
   /* --- Set rows (dark mode) --- */
   body.theme-dark .set-row {
@@ -14328,25 +14404,15 @@ function renderWorkoutV2() {
             </span>
           </span>
         </div>
-        <div class="wm-hero-statement">
-          <div class="wm-hero-primary">
-            <button class="wm-hero-num${wCls}" data-pk="weight">${weight}</button>
-            <span class="wm-hero-sep">×</span>
-            <button class="wm-hero-num${rCls}" data-pk="reps">${reps}</button>
-            ${rpeInline}
-          </div>
-          <div class="wm-hero-units-bar">${unitsBar}</div>
-        </div>
+        <div class="wm-picker-section" id="wm-pickers"></div>
         <div class="wm-hero-actions">
           <button class="wm-hero-cta" id="wm-btn-log">Log set ${cur + 1}</button>
         </div>
       </div>`;
-    heroSlot.querySelectorAll('[data-pk]').forEach(el => {
-      el.addEventListener('click', () => openPickerV2(el.dataset.pk, cur));
-    });
     heroSlot.querySelector('#wm-btn-log').addEventListener('click', () => logSetV2(cur));
     heroSlot.querySelector('#wm-toggle-rpe').addEventListener('click', () => { ui.session.trackRpe = !ui.session.trackRpe; renderWorkoutV2(); });
     heroSlot.querySelector('#wm-toggle-ai').addEventListener('click', () => { ui.session.aiRecOn = !ui.session.aiRecOn; renderWorkoutV2(); });
+    initWmPickers(entry, cur);
     wireRestPillV2();
   }
 
@@ -14497,9 +14563,11 @@ function logSetV2(idx) {
   const entry = getActiveWorkoutEntry();
   if (!entry || !entry.sets || !entry.sets[idx]) return;
   const s = entry.sets[idx];
-  if (s.weight == null) { showToastV2('Add weight before logging.'); openPickerV2('weight', idx); return; }
-  if (s.reps == null) { showToastV2('Add reps before logging.'); openPickerV2('reps', idx); return; }
-  if (ui.session.trackRpe && s.rpe == null) { showToastV2('Add RPE before logging.'); openPickerV2('rpe', idx); return; }
+  // With inline pickers the user scrolls to select — weight 0 is valid (bodyweight).
+  // Only block log if weight is truly unset (null/undefined, not 0).
+  if (s.weight == null) { showToastV2('Scroll to set weight before logging.'); return; }
+  if (s.reps   == null) { showToastV2('Scroll to set reps before logging.');   return; }
+  if (ui.session.trackRpe && s.rpe == null) { showToastV2('Scroll to set RPE, or turn off RPE tracking.'); return; }
   s.done = true;
   persistWorkoutEditV2();
   if (typeof renderToday === 'function') renderToday();
@@ -14664,7 +14732,218 @@ function applyRecommendationV2(r) {
   showToastV2(`Set ${entry.sets.length} added · ${r.weight}×${r.reps}.`);
 }
 
-// --- Picker overlay (minimal — uses simple steppers/presets) ---
+// ── Inline scroll pickers — weight / reps / RPE ────────────────────────
+// Value arrays. Weight increments match common plate/dumbbell jumps.
+const WM_WEIGHT_VALS = [
+  0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 30, 35, 40, 45,
+  50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125,
+  135, 145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245, 255,
+  275, 295, 315, 335, 365, 405,
+];
+const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
+const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+
+const WM_PICKER_ITEM_W = 44;   // px — keeps 5 items visible in ~220px width
+const WM_PICKER_ROW_H  = 76;   // px — comfortable thumb target
+
+function _wmPickerClosestIdx(vals, val) {
+  if (val == null || val === '' || val === '—') return 0;
+  let best = 0, bestD = Infinity;
+  vals.forEach((v, i) => {
+    const d = Math.abs(Number(v) - Number(val));
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+function _wmPickerBg(el) {
+  let e = el;
+  while (e && e !== document.documentElement) {
+    const bg = window.getComputedStyle(e).backgroundColor;
+    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+    e = e.parentElement;
+  }
+  return getComputedStyle(document.body).backgroundColor || '#f5f7fb';
+}
+
+function _wmPickerInit(widget, vals, selIdx, onSnap) {
+  const track  = widget.querySelector('.wm-picker-track');
+  const fadeL  = widget.querySelector('.wm-picker-fade-l');
+  const fadeR  = widget.querySelector('.wm-picker-fade-r');
+  const itemW  = WM_PICKER_ITEM_W;
+
+  // Build items
+  track.innerHTML = '';
+  vals.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'wm-picker-item';
+    el.textContent = String(v);
+    track.appendChild(el);
+  });
+
+  // Wire edge fades to actual surface colour so they blend correctly in
+  // both light and dark mode (JS reads the computed colour at call time).
+  const bg = _wmPickerBg(widget.parentElement || widget);
+  const gradL = `linear-gradient(to right, ${bg} 0%, rgba(0,0,0,0) 100%)`;
+  const gradR = `linear-gradient(to left,  ${bg} 0%, rgba(0,0,0,0) 100%)`;
+  if (fadeL) fadeL.style.background = gradL;
+  if (fadeR) fadeR.style.background = gradR;
+
+  let curX = 0, dragging = false;
+  let dragStartX = 0, dragStartTX = 0;
+  let vel = 0, lastX = 0, lastT = 0;
+  let _selIdx = selIdx;
+
+  function cw() { return widget.getBoundingClientRect().width; }
+  function txForIdx(i) { return cw() / 2 - itemW / 2 - i * itemW; }
+
+  function updateItemClasses(x) {
+    const center = cw() / 2 - itemW / 2;
+    const fi = (center - x) / itemW;
+    track.querySelectorAll('.wm-picker-item').forEach((el, i) => {
+      el.classList.remove('wpi-sel', 'wpi-n1', 'wpi-n2', 'wpi-n3');
+      const d = Math.abs(i - fi);
+      if      (d < 0.5) el.classList.add('wpi-sel');
+      else if (d < 1.5) el.classList.add('wpi-n1');
+      else if (d < 2.5) el.classList.add('wpi-n2');
+      else if (d < 3.5) el.classList.add('wpi-n3');
+    });
+  }
+
+  function applyX(x, animate) {
+    if (animate) track.classList.add('wm-snapping');
+    else         track.classList.remove('wm-snapping');
+    track.style.transform = `translateX(${x}px)`;
+    curX = x;
+    updateItemClasses(x);
+  }
+
+  function snap() {
+    const center = cw() / 2 - itemW / 2;
+    let proj = curX + vel * 80;
+    let idx  = Math.round((center - proj) / itemW);
+    idx = Math.max(0, Math.min(vals.length - 1, idx));
+    _selIdx = idx;
+    applyX(txForIdx(idx), true);
+    onSnap(vals[idx], idx);
+  }
+
+  applyX(txForIdx(_selIdx), false);
+
+  // Drag handlers
+  function start(cx) {
+    track.classList.remove('wm-snapping');
+    dragging = true;
+    dragStartX = cx; dragStartTX = curX;
+    lastX = cx; lastT = Date.now(); vel = 0;
+  }
+  function move(cx) {
+    if (!dragging) return;
+    const now = Date.now(), dt = now - lastT;
+    if (dt > 0) vel = (cx - lastX) / dt;
+    lastX = cx; lastT = now;
+    applyX(dragStartTX + (cx - dragStartX), false);
+  }
+  function end() { if (!dragging) return; dragging = false; snap(); }
+
+  widget.addEventListener('mousedown',  e => { e.preventDefault(); start(e.clientX); });
+  window.addEventListener('mousemove',  e => { if (dragging) move(e.clientX); });
+  window.addEventListener('mouseup',    () => end());
+  widget.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive: true });
+  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+  widget.addEventListener('touchend',   () => end());
+
+  return { setValue: (v) => {
+    const i = _wmPickerClosestIdx(vals, v);
+    _selIdx = i;
+    applyX(txForIdx(i), true);
+  }};
+}
+
+function initWmPickers(entry, cur) {
+  const slot = document.getElementById('wm-pickers');
+  if (!slot) return;
+  const s = entry.sets[cur];
+  const hasRpe = ui.session.trackRpe;
+
+  // Determine initial positions
+  const wIdx = _wmPickerClosestIdx(WM_WEIGHT_VALS, s.weight);
+  const rIdx = _wmPickerClosestIdx(WM_REPS_VALS,   s.reps);
+  const eIdx = hasRpe ? _wmPickerClosestIdx(WM_RPE_VALS, s.rpe != null ? s.rpe : '—') : 0;
+
+  const rpeRow = hasRpe ? `
+    <div class="wm-picker-divider"></div>
+    <div class="wm-picker-row">
+      <div class="wm-picker-label">RPE · Optional</div>
+      <div class="wm-picker-wrap">
+        <div class="wm-picker-pill"></div>
+        <div class="wm-picker-widget" id="wm-pk-rpe">
+          <div class="wm-picker-track"></div>
+          <div class="wm-picker-fade wm-picker-fade-l"></div>
+          <div class="wm-picker-fade wm-picker-fade-r"></div>
+        </div>
+      </div>
+    </div>` : '';
+
+  slot.innerHTML = `
+    <div class="wm-picker-row">
+      <div class="wm-picker-label">Weight · lb</div>
+      <div class="wm-picker-wrap">
+        <div class="wm-picker-pill"></div>
+        <div class="wm-picker-widget" id="wm-pk-weight">
+          <div class="wm-picker-track"></div>
+          <div class="wm-picker-fade wm-picker-fade-l"></div>
+          <div class="wm-picker-fade wm-picker-fade-r"></div>
+        </div>
+      </div>
+    </div>
+    <div class="wm-picker-divider"></div>
+    <div class="wm-picker-row">
+      <div class="wm-picker-label">Reps</div>
+      <div class="wm-picker-wrap">
+        <div class="wm-picker-pill"></div>
+        <div class="wm-picker-widget" id="wm-pk-reps">
+          <div class="wm-picker-track"></div>
+          <div class="wm-picker-fade wm-picker-fade-l"></div>
+          <div class="wm-picker-fade wm-picker-fade-r"></div>
+        </div>
+      </div>
+    </div>
+    ${rpeRow}`;
+
+  function persist() {
+    if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
+    else if (typeof saveData === 'function') saveData();
+  }
+  function refreshLogBtn() {
+    const btn = document.getElementById('wm-btn-log');
+    if (!btn) return;
+    const w = (s.weight != null && s.weight !== '') ? s.weight : '—';
+    const r = (s.reps   != null && s.reps   !== '') ? s.reps   : '—';
+    btn.textContent = `Log set ${cur + 1}`;
+    // No value summary in button — INCYTE voice: direct, no filler
+  }
+
+  _wmPickerInit(
+    document.getElementById('wm-pk-weight'),
+    WM_WEIGHT_VALS, wIdx,
+    (val) => { s.weight = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); }
+  );
+  _wmPickerInit(
+    document.getElementById('wm-pk-reps'),
+    WM_REPS_VALS, rIdx,
+    (val) => { s.reps = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); }
+  );
+  if (hasRpe) {
+    _wmPickerInit(
+      document.getElementById('wm-pk-rpe'),
+      WM_RPE_VALS, eIdx,
+      (val) => { s.rpe = (val === '—') ? null : Number(val); persist(); }
+    );
+  }
+}
+
+// --- Picker overlay (used only for editing completed set rows) ---
 function openPickerV2(field, setIdx) {
   const overlay = document.getElementById('picker-overlay');
   if (!overlay) return;
