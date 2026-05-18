@@ -5,10 +5,8 @@
 // Layout (top → bottom):
 //   Page header
 //   Timeline badge (Active Session / Completed Today / Training History)
-//   ── Section 1: Current Session / Today's Work (conditional) ──
-//   ── Section 2: Trend Analysis ──
-//   ── Section 3: Recovery Outlook ──
-//   ── Carousel: Readiness · Stimulus · PRs · Muscles ──
+//   ── Current Session / Today's Work card (conditional) ──
+//   ── Carousel: Readiness · Stimulus (Trends + Recovery tabs) · PRs · Muscles ──
 //   AI status bar
 //
 // Data flow:
@@ -52,7 +50,7 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CAROUSEL_LABELS = ["Insights", "Readiness", "Stimulus", "PRs", "Muscles"];
+const CAROUSEL_LABELS = ["Readiness", "Stimulus", "PRs", "Muscles"];
 
 // ─── Timeline context helpers ─────────────────────────────────────────────────
 
@@ -254,22 +252,24 @@ export default function MomentumPage() {
           {/* ── Carousel ──────────────────────────────────────────────────── */}
           <div className={s.carouselWrap}>
             <div className={s.carouselTrack} ref={carouselRef}>
-              {/* Slide 0 — Trends / Recovery toggle */}
+              {/* Slide 0 — Readiness */}
               <div className={s.carouselSlide}>
-                <InsightsToggleCard
+                <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
+              </div>
+              {/* Slide 1 — Stimulus (3-tab: Stimulus · Trends · Recovery) */}
+              <div className={s.carouselSlide}>
+                <StimulusCard
+                  stimulus={stimulus}
+                  ai={carouselAi?.stimulus ?? null}
                   trendInsights={insightResult.trendInsights}
                   recoveryOutlook={insightResult.recoveryOutlook}
                 />
               </div>
-              <div className={s.carouselSlide}>
-                <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
-              </div>
-              <div className={s.carouselSlide}>
-                <StimulusCard stimulus={stimulus} ai={carouselAi?.stimulus ?? null} />
-              </div>
+              {/* Slide 2 — PRs */}
               <div className={s.carouselSlide}>
                 <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
               </div>
+              {/* Slide 3 — Muscle Readiness */}
               <div className={s.carouselSlide}>
                 <MuscleReadinessCard
                   upper={muscleReadiness.upper}
@@ -365,79 +365,6 @@ function InsightCard({
   );
 }
 
-// ─── Insights toggle card (carousel slide 0) ─────────────────────────────────
-// Trend Analysis and Recovery Outlook share one carousel card, toggled via
-// the same pill-style switch used by the Muscle Readiness card.
-
-function InsightsToggleCard({
-  trendInsights,
-  recoveryOutlook,
-}: {
-  trendInsights: { eyebrow: string; headline: string; items: InsightItem[] };
-  recoveryOutlook: { eyebrow: string; headline: string; items: InsightItem[] };
-}) {
-  const [tab, setTab] = useState<"trend" | "recovery">("trend");
-  const section = tab === "trend" ? trendInsights : recoveryOutlook;
-
-  const toneClass = (tone: InsightItem["tone"]) => {
-    switch (tone) {
-      case "positive": return s.itemPositive;
-      case "caution":  return s.itemCaution;
-      case "alert":    return s.itemAlert;
-      default:         return s.itemNeutral;
-    }
-  };
-
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>{section.eyebrow}</div>
-          <div className={s.heroCardTitle}>{section.headline}</div>
-        </div>
-      </div>
-
-      <div className={s.heroInner}>
-        {/* Tab toggle — same pill style as Upper/Lower on Muscle Readiness */}
-        <div className={s.fatigueTogglePill}>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "trend" ? s.on : ""}`}
-            onClick={() => setTab("trend")}
-          >
-            Trends
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
-            onClick={() => setTab("recovery")}
-          >
-            Recovery
-          </button>
-        </div>
-
-        {/* Insight items */}
-        {section.items.length > 0 ? (
-          <ul className={s.insightList}>
-            {section.items.map((item, i) => (
-              <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
-                <span className={s.insightDot} aria-hidden="true" />
-                <span className={s.insightText}>{item.text}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className={s.stimulusEmpty}>
-            {tab === "trend"
-              ? "Log sessions to see trend analysis."
-              : "Log sessions to generate a recovery outlook."}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 // ─── Readiness card (carousel) ────────────────────────────────────────────────
 
 function ReadinessCard({
@@ -521,68 +448,150 @@ function ReadinessCard({
   );
 }
 
-// ─── Stimulus card (carousel) ─────────────────────────────────────────────────
+// ─── Stimulus card (carousel) — 3-tab: Stimulus · Trends · Recovery ──────────
 
 function StimulusCard({
   stimulus,
   ai,
+  trendInsights,
+  recoveryOutlook,
 }: {
   stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
   ai: import("@/lib/engine/aiInsights").AiStimulus | null;
+  trendInsights: { eyebrow: string; headline: string; items: InsightItem[] };
+  recoveryOutlook: { eyebrow: string; headline: string; items: InsightItem[] };
 }) {
+  const [tab, setTab] = useState<"stimulus" | "trends" | "recovery">("stimulus");
+
   const tierClass =
     stimulus.tierTone === "pos"  ? s.tonePos
     : stimulus.tierTone === "med"  ? s.toneMed
     : stimulus.tierTone === "high" ? s.toneHigh
     : "";
 
+  const toneClass = (tone: InsightItem["tone"]) => {
+    switch (tone) {
+      case "positive": return s.itemPositive;
+      case "caution":  return s.itemCaution;
+      case "alert":    return s.itemAlert;
+      default:         return s.itemNeutral;
+    }
+  };
+
   return (
     <section className={s.heroCard}>
       <div className={s.heroCardHead}>
         <div>
-          <div className={s.heroCardEyebrow}>Hypertrophy share</div>
-          <div className={s.heroCardTitle}>Muscle Stimulus</div>
+          <div className={s.heroCardEyebrow}>
+            {tab === "stimulus" ? "Hypertrophy share" : tab === "trends" ? trendInsights.eyebrow : recoveryOutlook.eyebrow}
+          </div>
+          <div className={s.heroCardTitle}>
+            {tab === "stimulus" ? "Muscle Stimulus" : tab === "trends" ? trendInsights.headline : recoveryOutlook.headline}
+          </div>
         </div>
       </div>
       <div className={s.heroInner}>
-        <div className={s.stimulusHero}>
-          <div>
-            <span className={s.stimulusNum}>{stimulus.totalSets}</span>
-            <span className={s.stimulusSuffix}>sets</span>
-          </div>
-          <div className={s.stimulusLabel}>Weekly sets</div>
-          <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
+
+        {/* 3-tab toggle pill — reuses fatigueTogglePill/Btn which flex: 1 across N buttons */}
+        <div className={s.fatigueTogglePill}>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "stimulus" ? s.on : ""}`}
+            onClick={() => setTab("stimulus")}
+          >
+            Stimulus
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "trends" ? s.on : ""}`}
+            onClick={() => setTab("trends")}
+          >
+            Trends
+          </button>
+          <button
+            type="button"
+            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
+            onClick={() => setTab("recovery")}
+          >
+            Recovery
+          </button>
         </div>
 
-        {stimulus.bars.length === 0 ? (
-          <div className={s.stimulusEmpty}>
-            Log working sets this week to see stimulus distribution.
-          </div>
-        ) : (
-          <div className={s.stimulusBars}>
-            {stimulus.bars.map((bar) => (
-              <div key={bar.key} className={s.stimulusBarRow}>
-                <span className={s.stimulusBarName}>{bar.label}</span>
-                <div className={s.stimulusBarTrack}>
-                  <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
-                </div>
-                <span className={s.stimulusSets}>{bar.sets}</span>
+        {/* Stimulus tab */}
+        {tab === "stimulus" && (
+          <>
+            <div className={s.stimulusHero}>
+              <div>
+                <span className={s.stimulusNum}>{stimulus.totalSets}</span>
+                <span className={s.stimulusSuffix}>sets</span>
               </div>
-            ))}
-          </div>
+              <div className={s.stimulusLabel}>Weekly sets</div>
+              <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
+            </div>
+
+            {stimulus.bars.length === 0 ? (
+              <div className={s.stimulusEmpty}>
+                Log working sets this week to see stimulus distribution.
+              </div>
+            ) : (
+              <div className={s.stimulusBars}>
+                {stimulus.bars.map((bar) => (
+                  <div key={bar.key} className={s.stimulusBarRow}>
+                    <span className={s.stimulusBarName}>{bar.label}</span>
+                    <div className={s.stimulusBarTrack}>
+                      <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
+                    </div>
+                    <span className={s.stimulusSets}>{bar.sets}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {ai && (
+              <div className={s.aiBlock}>
+                <p className={s.aiBlockText}>{ai.summary}</p>
+                {ai.adjustments.length > 0 && (
+                  <ul className={s.aiBlockList}>
+                    {ai.adjustments.map((adj, i) => (
+                      <li key={i}>{adj}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </>
         )}
 
-        {ai && (
-          <div className={s.aiBlock}>
-            <p className={s.aiBlockText}>{ai.summary}</p>
-            {ai.adjustments.length > 0 && (
-              <ul className={s.aiBlockList}>
-                {ai.adjustments.map((adj, i) => (
-                  <li key={i}>{adj}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+        {/* Trends tab */}
+        {tab === "trends" && (
+          trendInsights.items.length > 0 ? (
+            <ul className={s.insightList}>
+              {trendInsights.items.map((item, i) => (
+                <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
+                  <span className={s.insightDot} aria-hidden="true" />
+                  <span className={s.insightText}>{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={s.stimulusEmpty}>Log sessions to see trend analysis.</div>
+          )
+        )}
+
+        {/* Recovery tab */}
+        {tab === "recovery" && (
+          recoveryOutlook.items.length > 0 ? (
+            <ul className={s.insightList}>
+              {recoveryOutlook.items.map((item, i) => (
+                <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
+                  <span className={s.insightDot} aria-hidden="true" />
+                  <span className={s.insightText}>{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className={s.stimulusEmpty}>Log sessions to generate a recovery outlook.</div>
+          )
         )}
       </div>
     </section>

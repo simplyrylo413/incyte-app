@@ -84,13 +84,6 @@ export type InsightResult = {
 
 // ─── Internal utilities ───────────────────────────────────────────────────────
 
-/** Midnight of today in local time, as ms. */
-function todayMidnightMs(): number {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
 /**
  * Canonical timestamp for a workout row.
  * Prefers savedAt / completed_at over plain `date` string because
@@ -102,10 +95,18 @@ function workoutTs(w: Workout): number {
   return raw ? new Date(raw).getTime() : 0;
 }
 
+/**
+ * Year-month-day string key in local time.
+ * Mirrors the string-key comparison used by listFinishedTodayWorkouts in db.ts
+ * to avoid UTC-midnight timezone shifts with bare date strings.
+ */
+function dateKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+/** True if the given timestamp falls on today in local time. */
 function isToday(ts: number): boolean {
-  const d = new Date(ts);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime() === todayMidnightMs();
+  return dateKey(new Date(ts)) === dateKey(new Date());
 }
 
 /**
@@ -120,7 +121,18 @@ function muscleLabel(key: string): string {
   );
 }
 
-/** Working sets: done and not warmup. */
+/**
+ * All completed sets — includes warmup (WU) and working (WS).
+ * Use for session set counts and presence detection.
+ */
+function loggedSets(sets: SetEntry[]): SetEntry[] {
+  return sets.filter((s) => s.done);
+}
+
+/**
+ * Strict working sets: done and NOT warmup.
+ * Use for volume analysis, hard-set counts, and RPE quality metrics only.
+ */
 function workingSets(sets: SetEntry[]): SetEntry[] {
   return sets.filter((s) => s.done && !s.warmup);
 }
@@ -156,12 +168,19 @@ function aggregateSetsByBP(
 
 /**
  * Build BodyPartLoad[] from an array of workouts.
+ *
+ * `sets` counts ALL completed sets (warmup + working) so entries where the
+ * user logged only warmup sets are not silently dropped.
+ * `hardSets` and `avgRpe` use working sets only (warmup effort ≠ hypertrophic load).
  */
 function bodyPartLoadsFrom(
   workouts: Workout[],
   mvMap: Map<string, Movement>
 ): BodyPartLoad[] {
-  const byKey: Map<string, { ws: SetEntry[]; label: string }> = new Map();
+  const byKey: Map<
+    string,
+    { ls: SetEntry[]; ws: SetEntry[]; label: string }
+  > = new Map();
 
   for (const w of workouts) {
     for (const e of w.entries) {
@@ -169,17 +188,19 @@ function bodyPartLoadsFrom(
       const mv = mvMap.get(e.movementId);
       const key = mv ? mvMuscleKey(mv) : "other";
       const label = muscleLabel(key);
+      const ls = loggedSets(e.sets);
+      if (!ls.length) continue; // nothing completed in this entry
       const ws = workingSets(e.sets);
-      if (!ws.length) continue;
-      if (!byKey.has(key)) byKey.set(key, { ws: [], label });
+      if (!byKey.has(key)) byKey.set(key, { ls: [], ws: [], label });
+      byKey.get(key)!.ls.push(...ls);
       byKey.get(key)!.ws.push(...ws);
     }
   }
 
-  return [...byKey.entries()].map(([key, { ws, label }]) => ({
+  return [...byKey.entries()].map(([key, { ls, ws, label }]) => ({
     key,
     label,
-    sets: ws.length,
+    sets: ls.length,
     hardSets: ws.filter((s) => Number(s.rpe) >= 7).length,
     avgRpe: avgRpeOf(ws),
   }));
@@ -191,7 +212,10 @@ function bodyPartLoadsFrom(
  * Classify what is happening in time so insight language is accurate.
  *
  * Priority:
- *   1. activeWorkout has at least one logged done set → CURRENT_ACTIVE_SESSION
+ *   1. activeWorkout exists (unfinished) → CURRENT_ACTIVE_SESSION
+ *      Uses loggedSets (any done set) — does not require working sets,
+ *      so warmup-only sets still count as an active session.
+ *      A bare active workout with zero sets logs as "session started."
  *   2. A finished workout exists dated today → TODAY_COMPLETED
  *   3. Everything else → NO_TODAY_RECENT_HISTORY
  */
@@ -200,10 +224,7 @@ export function classifyTimeline(
   activeWorkout: Workout | null
 ): TimelineContext {
   if (activeWorkout) {
-    const hasLogged = activeWorkout.entries.some((e) =>
-      e.sets.some((s) => s.done)
-    );
-    if (hasLogged) return "CURRENT_ACTIVE_SESSION";
+    return "CURRENT_ACTIVE_SESSION";
   }
 
   const hasCompletedToday = finishedWorkouts.some((w) =>
@@ -314,7 +335,8 @@ function computeRepeatedExposure72h(
       const mv = mvMap.get(e.movementId);
       if (!mv) continue;
       const key = mvMuscleKey(mv);
-      const hasDone = e.sets.some((s) => s.done && !s.warmup);
+      // Use loggedSets — warmup sets still represent real tissue stress
+      const hasDone = e.sets.some((s) => s.done);
       if (hasDone) bpsInSession.add(key);
     }
     for (const key of bpsInSession) {
@@ -354,9 +376,9 @@ function generateCurrentSessionInsights(
     };
   }
 
-  // Total working sets
+  // Total logged sets (warmup + working)
   items.push({
-    text: `${prefix}: ${totalSets} working set${totalSets !== 1 ? "s" : ""} logged.`,
+    text: `${prefix}: ${totalSets} set${totalSets !== 1 ? "s" : ""} logged.`,
     tone: "neutral",
   });
 
@@ -733,16 +755,20 @@ export function computeInsightResult(
     ? bodyPartLoadsFrom([currentWorkout], mvMap)
     : [];
 
-  // Flatten all working sets from current workout for aggregate stats
+  // All completed sets (warmup + working) → session display count
+  const currentLS: SetEntry[] = currentWorkout
+    ? currentWorkout.entries.flatMap((e) => loggedSets(e.sets))
+    : [];
+  // Working sets only → quality metrics (hard sets, RPE)
   const currentWS: SetEntry[] = currentWorkout
     ? currentWorkout.entries.flatMap((e) => workingSets(e.sets))
     : [];
 
-  const currentSessionSets = currentWS.length;
-  const currentSessionHardSets = currentWS.filter(
+  const currentSessionSets = currentLS.length;          // all done sets shown to user
+  const currentSessionHardSets = currentWS.filter(      // working-set RPE ≥ 7 only
     (s) => Number(s.rpe) >= 7
   ).length;
-  const currentSessionAvgRpe = avgRpeOf(currentWS);
+  const currentSessionAvgRpe = avgRpeOf(currentWS);     // working-set quality signal
 
   // ── 5. 7-day rolling window ──────────────────────────────────────────────────
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
