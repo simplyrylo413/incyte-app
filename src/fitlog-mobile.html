@@ -9973,6 +9973,9 @@ window.openSupabaseTestPanel = openSupabaseTestPanel;
 // re-rendering the active view. Guarded so we never create duplicate
 // subscriptions if init runs more than once.
 let _realtimeChannel = null;
+// Tracks whether Realtime was previously in SUBSCRIBED state so the
+// subscribe callback can detect a reconnect and trigger a catch-up fetch.
+let _realtimeConnected = false;
 // Map a raw Supabase workouts row to the local Workout shape.
 // Kept in sync with the mapping in loadDataFromSupabase / reloadFromSupabase.
 function _rowToWorkout(r) {
@@ -10038,7 +10041,16 @@ function initRealtimeSync() {
       }
     )
     .subscribe((status) => {
-      setSyncStatus(status === 'SUBSCRIBED' ? 'ok' : 'syncing');
+      const nowConnected = (status === 'SUBSCRIBED');
+      // Reconnect detected: Realtime came back after a previous disconnect.
+      // Any INSERT/UPDATE/DELETE that happened while we were offline will not
+      // arrive as a payload, so we do a targeted workouts-only catch-up fetch.
+      if (nowConnected && _realtimeConnected === false) {
+        console.log('[Realtime] reconnected — catching up on missed changes');
+        reloadFromSupabase();
+      }
+      _realtimeConnected = nowConnected;
+      setSyncStatus(nowConnected ? 'ok' : 'syncing');
     });
 
   _realtimeChannel = channel;
@@ -10254,16 +10266,32 @@ function normalizeProgressIdentities() {
   if (data.active) stampWorkout(data.active);
 }
 
+// pushAllToSupabase — emergency recovery utility only.
+// Not called during normal user flows (individual writes go through the queue
+// via enqueueSync). Useful from the developer console or a manual "force sync"
+// action when the queue is known to be clean. Writes both legacy column sets
+// (muscle/category) and canonical column sets (body_part/equipment_type) so
+// either build can read the rows correctly. Does not retry on failure — use
+// drainSyncQueue() for reliable retry semantics.
 async function pushAllToSupabase() {
   try {
-    // Upsert all movements
+    // Upsert all movements — dual-column schema so both builds can read
     if (data.movements.length) {
-      await _supa.from('movements').upsert(data.movements.map(m => ({
-        id: m.id, device_id: DEVICE_ID, name: m.name,
-        category: m.category || '', muscle: m.muscle || '',
-        kind: m.kind || 'strength', unit: m.unit || '',
-        notes: m.notes || '', tags: m.tags || [],
-      })));
+      await _supa.from('movements').upsert(data.movements.map(m => {
+        // Normalise kind: 'strength' was the old value; canonical is 'weight'
+        const kind = (m.kind === 'strength' ? 'weight' : m.kind) || 'weight';
+        const bodyPart = m.muscle || m.body_part || '';
+        const equipType = m.category || m.equipment_type || '';
+        return {
+          id: m.id, device_id: DEVICE_ID, name: m.name,
+          // Legacy columns (HTML build readers)
+          muscle: bodyPart, category: equipType,
+          // Canonical columns (Next.js build readers)
+          body_part: bodyPart, equipment_type: equipType,
+          kind, unit: m.unit || '',
+          notes: m.notes || '', tags: m.tags || [],
+        };
+      }));
     }
     // Upsert all plan items
     if (data.plan.length) {
@@ -10274,10 +10302,7 @@ async function pushAllToSupabase() {
         target_weight: p.targetWeight || '', training_type: p.trainingType || 'hypertrophy',
       })));
     }
-    // Upsert all workouts. New fields (workout_status, completed_at, edited_at)
-    // are sent alongside the legacy ones so cross-device readers can see status
-    // and edit timestamps. The Supabase columns are tolerated as nullable —
-    // older rows will simply have nulls until the next save touches them.
+    // Upsert all workouts
     if (data.workouts.length) {
       await _supa.from('workouts').upsert(data.workouts.map(w => ({
         id: w.id, device_id: DEVICE_ID, name: w.name || '',
@@ -10289,7 +10314,8 @@ async function pushAllToSupabase() {
       })));
     }
     setSyncStatus('ok');
-  } catch(err) { console.warn('Supabase push failed', err); setSyncStatus('error'); }
+    console.log('[pushAllToSupabase] complete');
+  } catch(err) { console.warn('[pushAllToSupabase] failed', err); setSyncStatus('error'); }
 }
 
 async function loadDataFromSupabase() {
