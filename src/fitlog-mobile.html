@@ -10033,27 +10033,23 @@ async function reloadFromSupabase() {
           targetWeight: r.target_weight, trainingType: r.training_type,
         }));
       if (typeof applyStoredPlanOrder === 'function') applyStoredPlanOrder();
-      // Skip any cloud row whose id is in the workout tombstones — protects
-      // discarded sessions from re-appearing on the next realtime fetch.
+      // Skip tombstoned rows and the active session's own cloud row.
+      // The active session is managed via activeBackup (localStorage) and must
+      // not appear in data.workouts — doing so would create a duplicate entry
+      // in History since Fix 1 now syncs the session to cloud before any sets
+      // are done (finished:false row exists as soon as a movement is added).
       const tombWk = new Set((data.tombstones.workouts || []));
-      // MERGE (2026-05-13): preserve local-only workouts whose ids the cloud
-      // hasn't received yet. Auto-archive fires its upsert fire-and-forget;
-      // if a realtime fetch lands before the upsert resolves, a clobber here
-      // would wipe the just-archived session from local memory and the
-      // completed movement would re-surface in Today's Remaining tab.
-      // Also prefer the local copy when it has MORE entries than the cloud
-      // — covers the same-day-merge case where a local merge has folded
-      // multiple sessions into one but the cloud upsert hasn't landed yet.
+      const activeIdRT = activeBackup?.id;
+      // MERGE: prefer local copy when it has more entries than cloud — covers
+      // in-flight upserts (archive/same-day-merge) not yet confirmed by cloud.
       const localById = new Map();
       (data.workouts || []).forEach(w => { if (w && w.id) localById.set(w.id, w); });
       const cloudRows = wkRes.data
-        .filter(r => !tombWk.has(r.id))
+        .filter(r => !tombWk.has(r.id) && r.id !== activeIdRT)
         .map(r => {
           const local = localById.get(r.id);
           const cloudEntries = r.entries || [];
-          const localEntries = local && local.entries ? local.entries : [];
-          // Prefer local if it has strictly more entries — signals an
-          // in-flight merge or archive sync that hasn't reached the cloud.
+          const localEntries = local?.entries || [];
           if (local && localEntries.length > cloudEntries.length) return local;
           return {
             id: r.id, name: r.name, date: r.date, finished: r.finished,
@@ -10062,11 +10058,11 @@ async function reloadFromSupabase() {
         });
       const cloudIds = new Set(cloudRows.map(r => r.id));
       const localOnly = (data.workouts || []).filter(w =>
-        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id)
+        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id) && w.id !== activeIdRT
       );
       data.workouts = [...cloudRows, ...localOnly];
 
-      // Restore active session
+      // Restore active session from the backup taken before the fetch
       data.active = activeBackup;
 
       saveLocal();
@@ -10287,20 +10283,34 @@ async function loadDataFromSupabase() {
           targetWeight: r.target_weight, trainingType: r.training_type,
         }));
       if (typeof applyStoredPlanOrder === 'function') applyStoredPlanOrder();
-      // Skip any cloud row whose id is in the workout tombstones — protects
-      // discarded sessions from re-appearing on the next realtime fetch.
+      // Skip tombstoned rows — protects discarded sessions from reappearing.
       const tombWk = new Set((data.tombstones.workouts || []));
-      // MERGE (2026-05-13): preserve local-only workouts whose ids the cloud
-      // hasn't received yet. Mirrors the merge in the realtime reload path.
+      // Skip the active session's own cloud row — it has finished:false and
+      // is managed entirely via data.active (restored from localStorage below).
+      // Without this, Fix 1's early sync creates a duplicate: the active session
+      // appears both in data.active and in data.workouts (as a history entry).
+      const activeId = data.active?.id;
+      // Build a local index for merge decisions.
+      const localById = new Map();
+      (data.workouts || []).forEach(w => { if (w && w.id) localById.set(w.id, w); });
       const cloudRows = wkRes.data
-        .filter(r => !tombWk.has(r.id))
-        .map(r => ({
-          id: r.id, name: r.name, date: r.date, finished: r.finished,
-          entries: r.entries || [], savedAt: r.saved_at,
-        }));
+        .filter(r => !tombWk.has(r.id) && r.id !== activeId)
+        .map(r => {
+          const local = localById.get(r.id);
+          const cloudEntries = r.entries || [];
+          const localEntries = local?.entries || [];
+          // Prefer local if it has strictly more entries — signals an in-flight
+          // upsert (archive/merge) that hasn't reached the cloud yet. Mirrors
+          // the same protection in the Realtime reload path.
+          if (local && localEntries.length > cloudEntries.length) return local;
+          return {
+            id: r.id, name: r.name, date: r.date, finished: r.finished,
+            entries: cloudEntries, savedAt: r.saved_at,
+          };
+        });
       const cloudIds = new Set(cloudRows.map(r => r.id));
       const localOnly = (data.workouts || []).filter(w =>
-        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id)
+        w && w.id && !cloudIds.has(w.id) && !tombWk.has(w.id) && w.id !== activeId
       );
       data.workouts = [...cloudRows, ...localOnly];
     } else {
