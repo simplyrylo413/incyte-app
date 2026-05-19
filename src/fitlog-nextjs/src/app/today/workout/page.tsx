@@ -645,15 +645,16 @@ function InlinePicker({
     track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
       const d = Math.abs(i - fi);
       const t      = Math.exp(-d * 0.9);
-      const size   = (10 + 25 * t).toFixed(1); // 10px far → 35px center
+      const size   = (10 + 30 * t).toFixed(1); // 10px far → 40px center
       const alpha  = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — clearly visible
       const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
       const ls     = d < 0.6 ? '-0.018em' : '0em';
       const cr = Math.round(ar * t + mr * (1-t));
       const cg = Math.round(ag * t + mg * (1-t));
       const cb = Math.round(ab * t + mb * (1-t));
+      const glow = d < 0.6 ? 'text-shadow:0 0 14px rgba(93,155,184,0.70),0 0 28px rgba(93,155,184,0.35);' : '';
       (el as HTMLElement).style.cssText =
-        `font-size:${size}px;font-weight:${weight};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};`;
+        `font-size:${size}px;font-weight:${weight};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};${glow}`;
     });
   }
 
