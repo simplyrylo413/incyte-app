@@ -23,7 +23,7 @@ import s from "./WorkoutPage.module.css";
 
 // ── Inline picker value arrays ────────────────────────────────────────────
 // 2.5 lb steps 0 → 500 — consistent increment throughout
-const WM_WEIGHT_VALS: number[] = Array.from({ length: 201 }, (_, i) => i * 2.5);
+const WM_WEIGHT_VALS: number[] = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 in 5lb steps; tap center for 2.5lb precision
 const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
 const WM_ITEM_W = 44; // px — 5 items visible in ~220px
@@ -595,12 +595,14 @@ function InlinePicker({
   value,
   onChange,
   styles,
+  onCenterTap,
 }: {
   label: string;
   values: (number | string)[];
   value: number | string | null | undefined;
   onChange: (val: number | string) => void;
   styles: Record<string, string>;
+  onCenterTap?: (currentVal: number | string) => void;
 }) {
   const s = styles;
   const widgetRef  = useRef<HTMLDivElement>(null);
@@ -617,6 +619,8 @@ function InlinePicker({
   const lastXRef       = useRef(0);
   const lastTRef       = useRef(0);
   const selIdxRef      = useRef(wmClosestIdx(values, value));
+  const onCenterTapRef = useRef(onCenterTap);
+  useEffect(() => { onCenterTapRef.current = onCenterTap; });
 
   // Keep onChange in ref to avoid stale closure in drag handlers
   const onChangeRef = useRef(onChange);
@@ -714,18 +718,29 @@ function InlinePicker({
       lastXRef.current = cx; lastTRef.current = now;
       applyX(dragStartTXRef.current + (cx - dragStartXRef.current), false);
     }
-    function end() {
+    function end(endCX: number) {
       if (!draggingRef.current) return;
       draggingRef.current = false;
+      // Tap detection: short movement + center zone → open manual input
+      if (onCenterTapRef.current && Math.abs(endCX - dragStartXRef.current) < 8) {
+        const rect = widgetRef.current?.getBoundingClientRect();
+        if (rect) {
+          const tapX = endCX - rect.left;
+          if (Math.abs(tapX - cw() / 2) < WM_ITEM_W / 2) {
+            onCenterTapRef.current(values[selIdxRef.current]);
+            return;
+          }
+        }
+      }
       doSnap();
     }
 
     const onMD = (e: MouseEvent) => { e.preventDefault(); start(e.clientX); };
     const onMM = (e: MouseEvent) => { if (draggingRef.current) move(e.clientX); };
-    const onMU = () => end();
+    const onMU = (e: MouseEvent) => end(e.clientX);
     const onTS = (e: TouchEvent) => start(e.touches[0].clientX);
     const onTM = (e: TouchEvent) => { e.preventDefault(); move(e.touches[0].clientX); };
-    const onTE = () => end();
+    const onTE = (e: TouchEvent) => end(e.changedTouches[0].clientX);
 
     widget.addEventListener('mousedown', onMD);
     window.addEventListener('mousemove', onMM);
@@ -791,6 +806,28 @@ function HeroCard(props: {
 
   const total = entry.sets.length;
 
+  // Manual weight entry state — shown when user taps the center weight number
+  const [manualWeightOpen, setManualWeightOpen] = useState(false);
+  const [manualWeightVal, setManualWeightVal] = useState<string>('');
+  const manualInputRef = useRef<HTMLInputElement>(null);
+
+  function openManualWeight(currentVal: number | string) {
+    setManualWeightVal(currentVal != null ? String(currentVal) : '');
+    setManualWeightOpen(true);
+    requestAnimationFrame(() => {
+      manualInputRef.current?.focus();
+      manualInputRef.current?.select();
+    });
+  }
+  function confirmManualWeight() {
+    const raw = parseFloat(manualWeightVal);
+    if (!isNaN(raw) && raw >= 0) {
+      const rounded = Math.round(raw * 4) / 4; // nearest 0.25 to avoid float dust
+      props.onPatchSet('weight', rounded);
+    }
+    setManualWeightOpen(false);
+  }
+
   const restDisplay = restOn ? props.formatRest(restRemaining) : props.formatRest(restSecs);
 
   return (
@@ -847,6 +884,7 @@ function HeroCard(props: {
               value={set?.weight}
               onChange={(v) => props.onPatchSet("weight", v)}
               styles={s}
+              onCenterTap={(cv) => openManualWeight(cv)}
             />
             <div className={s.inlinePickerDivider} />
             <InlinePicker
@@ -879,6 +917,61 @@ function HeroCard(props: {
             </button>
           </div>
         </>
+      )}
+
+      {/* Manual weight entry overlay — tap center number to enter exact value (e.g. 137.5 lb) */}
+      {manualWeightOpen && (
+        <div
+          style={{
+            position:'fixed',inset:0,zIndex:900,
+            background:'rgba(15,22,34,0.38)',
+            backdropFilter:'blur(6px)',WebkitBackdropFilter:'blur(6px)',
+            display:'flex',alignItems:'flex-end',justifyContent:'center',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setManualWeightOpen(false); }}
+        >
+          <div style={{
+            background:'var(--paper,#f5f7fb)',borderRadius:'20px 20px 0 0',
+            padding:'20px 24px 36px',width:'100%',maxWidth:480,
+            borderTop:'1.2px solid rgba(15,22,34,0.11)',
+          }}>
+            <div style={{width:36,height:4,borderRadius:2,background:'#d8dee8',margin:'0 auto 18px'}}/>
+            <div style={{font:'600 10px/1 var(--font-mono,monospace)',color:'var(--muted,#5e6a82)',letterSpacing:'1.2px',textTransform:'uppercase',marginBottom:12}}>
+              Weight · lb
+            </div>
+            <input
+              ref={manualInputRef}
+              type="number"
+              step="any"
+              inputMode="decimal"
+              placeholder="e.g. 137.5"
+              value={manualWeightVal}
+              onChange={e => setManualWeightVal(e.target.value)}
+              onKeyDown={e => { if (e.key==='Enter') confirmManualWeight(); if (e.key==='Escape') setManualWeightOpen(false); }}
+              style={{
+                display:'block',width:'100%',
+                font:'700 28px/1 var(--font-display,sans-serif)',color:'var(--ink,#0f1622)',
+                letterSpacing:'-0.018em',
+                border:'none',borderBottom:'1.8px solid var(--accent,#5d9bb8)',
+                background:'transparent',outline:'none',padding:'6px 0 10px',
+                MozAppearance:'textfield',
+              }}
+            />
+            <div style={{font:'500 11px/1.4 system-ui',color:'var(--label,#8893a8)',marginTop:8}}>
+              Scroll for 5 lb steps · type for any increment
+            </div>
+            <div style={{display:'flex',gap:10,marginTop:20}}>
+              <button
+                onClick={() => setManualWeightOpen(false)}
+                style={{flex:1,height:44,borderRadius:10,border:'1.2px solid rgba(15,22,34,0.25)',background:'transparent',font:'600 13px/1 sans-serif',color:'var(--muted,#5e6a82)',cursor:'pointer'}}
+              >Cancel</button>
+              <button
+                onClick={confirmManualWeight}
+                style={{flex:2,height:44,borderRadius:10,border:'none',background:'var(--ink,#0f1622)',font:'700 13px/1 sans-serif',color:'#fff',cursor:'pointer'}}
+              >Set weight</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

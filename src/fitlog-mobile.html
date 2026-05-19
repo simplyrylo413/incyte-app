@@ -7801,6 +7801,54 @@
   .wm-picker-fade-l { left: 0; }
   .wm-picker-fade-r { right: 0; }
 
+  /* Manual weight entry overlay — shown when user taps the center weight item */
+  .wm-manual-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(15,22,34,0.38);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .wm-manual-sheet {
+    background: var(--paper); border-radius: 20px 20px 0 0;
+    padding: 20px 24px 32px; width: 100%; max-width: 480px;
+    border-top: 1.2px solid var(--hairline-soft);
+  }
+  .wm-manual-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--paper-3); margin: 0 auto 18px;
+  }
+  .wm-manual-title {
+    font: 600 10px/1 var(--font-mono); color: var(--muted);
+    letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .wm-manual-input {
+    display: block; width: 100%;
+    font: 700 28px/1 var(--font-display); color: var(--ink);
+    letter-spacing: var(--track-tight);
+    border: none; border-bottom: 1.8px solid var(--accent);
+    background: transparent; outline: none; padding: 6px 0 10px;
+    -moz-appearance: textfield;
+  }
+  .wm-manual-input::-webkit-inner-spin-button,
+  .wm-manual-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .wm-manual-hint {
+    font: 500 11px/1.4 var(--font-text); color: var(--label); margin-top: 8px;
+  }
+  .wm-manual-actions {
+    display: flex; gap: 10px; margin-top: 20px;
+  }
+  .wm-manual-cancel {
+    flex: 1; height: 44px; border-radius: 10px;
+    border: 1.2px solid var(--hairline); background: transparent;
+    font: 600 13px/1 var(--font-display); color: var(--muted); cursor: pointer;
+  }
+  .wm-manual-set {
+    flex: 2; height: 44px; border-radius: 10px;
+    border: none; background: var(--ink);
+    font: 700 13px/1 var(--font-display); color: #fff; cursor: pointer;
+  }
+
   /* Inline AI recommendation — Spatial Glass treatment (Option B):
      prismatic gradient matching the hero family (smaller version), backdrop-blur,
      specular top-edge highlight, accent-tinted ambient shadow. */
@@ -14735,7 +14783,7 @@ function applyRecommendationV2(r) {
 // ── Inline scroll pickers — weight / reps / RPE ────────────────────────
 // Value arrays. Weight increments match common plate/dumbbell jumps.
 // 2.5 lb steps from 0 → 500 — consistent increment throughout
-const WM_WEIGHT_VALS = Array.from({ length: 201 }, (_, i) => i * 2.5);
+const WM_WEIGHT_VALS = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 in 5lb steps; tap center for 2.5lb precision
 const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
@@ -14762,7 +14810,7 @@ function _wmPickerBg(el) {
   return getComputedStyle(document.body).backgroundColor || '#f5f7fb';
 }
 
-function _wmPickerInit(widget, vals, selIdx, onSnap) {
+function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
   const track  = widget.querySelector('.wm-picker-track');
   const fadeL  = widget.querySelector('.wm-picker-fade-l');
   const fadeR  = widget.querySelector('.wm-picker-fade-r');
@@ -14788,6 +14836,7 @@ function _wmPickerInit(widget, vals, selIdx, onSnap) {
   let curX = 0, dragging = false;
   let dragStartX = 0, dragStartTX = 0;
   let vel = 0, lastX = 0, lastT = 0;
+  let lastClientX = 0; // used for tap detection
   let _selIdx = selIdx;
 
   function cw() { return widget.getBoundingClientRect().width; }
@@ -14845,14 +14894,28 @@ function _wmPickerInit(widget, vals, selIdx, onSnap) {
     lastX = cx; lastT = now;
     applyX(dragStartTX + (cx - dragStartX), false);
   }
-  function end() { if (!dragging) return; dragging = false; snap(); }
+  function end(endCX) {
+    if (!dragging) return;
+    dragging = false;
+    // Tap detection: tiny movement + optional center-tap callback
+    if (onCenterTap && Math.abs(endCX - dragStartX) < 8) {
+      const rect = widget.getBoundingClientRect();
+      const tapX = endCX - rect.left;
+      const halfItem = itemW / 2;
+      if (Math.abs(tapX - cw() / 2) < halfItem) {
+        onCenterTap(vals[_selIdx]);
+        return;
+      }
+    }
+    snap();
+  }
 
   widget.addEventListener('mousedown',  e => { e.preventDefault(); start(e.clientX); });
-  window.addEventListener('mousemove',  e => { if (dragging) move(e.clientX); });
-  window.addEventListener('mouseup',    () => end());
-  widget.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive: true });
-  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
-  widget.addEventListener('touchend',   () => end());
+  window.addEventListener('mousemove',  e => { if (dragging) { move(e.clientX); lastClientX = e.clientX; } });
+  window.addEventListener('mouseup',    e => end(e.clientX));
+  widget.addEventListener('touchstart', e => { start(e.touches[0].clientX); lastClientX = e.touches[0].clientX; }, { passive: true });
+  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); lastClientX = e.touches[0].clientX; e.preventDefault(); }, { passive: false });
+  widget.addEventListener('touchend',   e => end(e.changedTouches[0].clientX));
 
   return { setValue: (v) => {
     const i = _wmPickerClosestIdx(vals, v);
@@ -14930,10 +14993,59 @@ function initWmPickers(entry, cur) {
     btn.textContent = `Log set ${cur + 1}`;
   }
 
-  _wmPickerInit(
+  // Manual weight entry — tap the center number to type exact weight (allows 2.5lb precision).
+  function openManualWeightInput(currentVal) {
+    // Remove any existing overlay first
+    const old = document.getElementById('wm-manual-overlay');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'wm-manual-overlay';
+    overlay.id = 'wm-manual-overlay';
+    overlay.innerHTML = `
+      <div class="wm-manual-sheet">
+        <div class="wm-manual-handle"></div>
+        <div class="wm-manual-title">Weight · lb</div>
+        <input class="wm-manual-input" id="wm-manual-input" type="number" step="any"
+               inputmode="decimal" placeholder="e.g. 137.5"
+               value="${currentVal != null ? currentVal : ''}">
+        <div class="wm-manual-hint">Scroll for 5 lb steps · type for any increment</div>
+        <div class="wm-manual-actions">
+          <button class="wm-manual-cancel" id="wm-manual-cancel">Cancel</button>
+          <button class="wm-manual-set" id="wm-manual-set">Set weight</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector('#wm-manual-input');
+    // Select all text so user can immediately type a new value
+    requestAnimationFrame(() => { input.focus(); input.select(); });
+
+    function closeOverlay() { overlay.remove(); }
+
+    overlay.querySelector('#wm-manual-cancel').addEventListener('click', closeOverlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+
+    function confirm() {
+      const raw = parseFloat(input.value);
+      if (!isNaN(raw) && raw >= 0) {
+        const rounded = Math.round(raw * 4) / 4; // round to nearest 0.25 to avoid float dust
+        s.weight = rounded;
+        // Snap the picker to nearest 5lb step visually; stored value is exact
+        weightPicker.setValue(rounded);
+        persist(); refreshLogBtn();
+      }
+      closeOverlay();
+    }
+    overlay.querySelector('#wm-manual-set').addEventListener('click', confirm);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') closeOverlay(); });
+  }
+
+  const weightPicker = _wmPickerInit(
     document.getElementById('wm-pk-weight'),
     WM_WEIGHT_VALS, wIdx,
-    (val) => { s.weight = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); }
+    (val) => { s.weight = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); },
+    (currentVal) => openManualWeightInput(currentVal)
   );
   _wmPickerInit(
     document.getElementById('wm-pk-reps'),
