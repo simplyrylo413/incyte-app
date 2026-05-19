@@ -7801,7 +7801,7 @@
   }
   /* Items */
   .wm-picker-item {
-    width: 250px; flex-shrink: 0; text-align: center;
+    width: 100px; flex-shrink: 0; text-align: center;
     font-family: var(--font-mono); font-size: 11px; font-weight: 500;
     color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
   }
@@ -14811,7 +14811,7 @@ const WM_WEIGHT_VALS = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 
 const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
-const WM_PICKER_ITEM_W = 250;  // px — 100px clear air each side of selected number
+const WM_PICKER_ITEM_W = 100;  // px — 100px item slot
 const WM_PICKER_ROW_H  = 76;   // px — comfortable thumb target
 
 function _wmPickerClosestIdx(vals, val) {
