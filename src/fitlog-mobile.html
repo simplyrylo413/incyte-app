@@ -7741,39 +7741,57 @@
      Replaces the tap-to-open bottom sheet for weight / reps / RPE on the
      current set. Each field is a drag-to-scroll horizontal strip with a
      tinted pill selection window, 4-step opacity decay, and momentum snap. */
-  .wm-picker-section { padding: 4px 0 10px; }
+  /* ── Option C card layout ──────────────────────────────────────────── */
+  .wm-picker-section { padding: 0; }
+  /* Card wraps all three pickers */
+  .wm-pk-card {
+    margin: 4px 16px 12px;
+    background: rgba(15,22,34,.05);
+    border: 1.2px solid var(--hairline-soft);
+    border-radius: 16px; overflow: hidden;
+  }
+  /* One section per field */
+  .wm-pk-group { padding: 9px 14px 7px; }
+  .wm-pk-group-divider { height: 1.2px; background: var(--hairline-soft); }
+  /* Label + live value row */
+  .wm-pk-group-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .wm-pk-group-lbl {
+    font: 700 9px/1 var(--font-mono);
+    color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .wm-pk-group-badge {
+    font: 800 11px/1 var(--font-display);
+    color: var(--accent); letter-spacing: -0.01em;
+  }
+  .wm-pk-group-body { position: relative; }
+  /* Blue glow underline — selection indicator */
+  .wm-pk-indicator {
+    position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 2.5px; border-radius: 99px;
+    background: var(--accent);
+    box-shadow: 0 0 9px rgba(93,155,184,.60);
+    pointer-events: none; z-index: 5;
+  }
+  /* Legacy row/label/wrap/pill — kept for any residual references */
   .wm-picker-row { display: flex; flex-direction: column; position: relative; }
-  .wm-picker-label {
-    font-family: var(--font-mono);
-    font-size: 8px;
-    letter-spacing: var(--track-eyebrow);
-    text-transform: uppercase;
-    color: var(--label);
-    padding: 6px 20px 0;
-    position: relative; z-index: 5; pointer-events: none;
-  }
+  .wm-picker-label { font-family: var(--font-mono); font-size: 8px;
+    letter-spacing: var(--track-eyebrow); text-transform: uppercase; color: var(--label);
+    padding: 6px 20px 0; position: relative; z-index: 5; pointer-events: none; }
   .wm-picker-wrap { position: relative; margin-top: -4px; }
-  /* Tinted pill — unmissable selection zone */
-  .wm-picker-pill {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 44px; height: 52px;
-    border-radius: 12px;
-    background: rgba(93,155,184,0.11);
-    border: 1.2px solid rgba(93,155,184,0.30);
-    pointer-events: none; z-index: 3;
-  }
+  .wm-picker-pill { display: none; } /* superseded by .wm-pk-indicator */
   .wm-picker-divider { height: 1.2px; background: var(--hairline-soft); margin: 0 20px; }
   /* Scroll zone */
   .wm-picker-widget {
-    position: relative; height: 76px; overflow: hidden;
+    position: relative; height: 52px; overflow: hidden;
     cursor: grab; user-select: none; -webkit-user-select: none;
     touch-action: pan-x;
   }
   .wm-picker-widget:active { cursor: grabbing; }
   .wm-picker-track {
-    display: flex; align-items: center; height: 76px;
+    display: flex; align-items: center; height: 52px;
     position: absolute; top: 0; left: 0;
     will-change: transform;
   }
@@ -8879,11 +8897,16 @@
   body.theme-dark .wm-hero-eyebrow .active-set { color: var(--accent); }
   body.theme-dark .wm-hero-eyebrow .set-of { color: rgba(255,255,255, 0.45); }
   /* Inline pickers — dark mode */
-  body.theme-dark .wm-picker-label { color: rgba(255,255,255,0.35); }
-  body.theme-dark .wm-picker-pill {
-    background: rgba(93,155,184,0.16);
-    border-color: rgba(93,155,184,0.35);
+  /* Dark mode — card pickers */
+  body.theme-dark .wm-pk-card {
+    background: rgba(255,255,255,.05);
+    border-color: rgba(255,255,255,.10);
   }
+  body.theme-dark .wm-pk-group-divider { background: rgba(255,255,255,.07); }
+  body.theme-dark .wm-pk-group-lbl { color: rgba(255,255,255,.40); }
+  body.theme-dark .wm-pk-group-badge { color: var(--accent-2); }
+  /* Legacy */
+  body.theme-dark .wm-picker-label { color: rgba(255,255,255,0.35); }
   body.theme-dark .wm-picker-divider { background: rgba(255,255,255,0.07); }
   body.theme-dark .wm-picker-item       { color: rgba(255,255,255,0.08); }
   body.theme-dark .wm-picker-item.wpi-n3 { color: rgba(255,255,255,0.12); }
@@ -14846,17 +14869,20 @@ function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
     const center = cw() / 2 - itemW / 2;
     const fi = (center - x) / itemW;
     const isDark = document.body.classList.contains('theme-dark');
-    const [r, g, b] = isDark ? [255, 255, 255] : [15, 22, 34];
-    // Continuous exponential scale — no discrete steps, values grow
-    // smoothly as they approach center, giving a true drum-roll feel.
+    // Blue (accent) at center, muted at edges — continuous exponential blend
+    const [ar,ag,ab] = [93,155,184]; // --accent
+    const [mr,mg,mb] = isDark ? [155,165,188] : [94,106,130]; // muted light/dark
     track.querySelectorAll('.wm-picker-item').forEach((el, i) => {
       const d = Math.abs(i - fi);
-      const t = Math.exp(-d * 0.9);            // 1 at center, ~0 at distance 4
-      const size   = (11 + 21 * t).toFixed(1); // 11px far → 32px center (+20% vs prior 26px)
-      const alpha  = (0.09 + 0.91 * t).toFixed(3);
-      const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
-      const ls     = d < 0.6 ? '-0.018em' : '0em';
-      el.style.cssText = `font-size:${size}px;font-weight:${weight};color:rgba(${r},${g},${b},${alpha});letter-spacing:${ls};`;
+      const t     = Math.exp(-d * 0.9);
+      const size  = (11 + 21 * t).toFixed(1); // 11px far → 32px center
+      const alpha = (0.12 + 0.88 * t).toFixed(3);
+      const fw    = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
+      const ls    = d < 0.6 ? '-0.018em' : '0em';
+      const cr    = Math.round(ar * t + mr * (1-t));
+      const cg    = Math.round(ag * t + mg * (1-t));
+      const cb    = Math.round(ab * t + mb * (1-t));
+      el.style.cssText = `font-size:${size}px;font-weight:${fw};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};`;
     });
   }
 
@@ -14946,39 +14972,55 @@ function initWmPickers(entry, cur) {
   const rIdx = _wmPickerClosestIdx(WM_REPS_VALS,   s.reps);
   const eIdx = _wmPickerClosestIdx(WM_RPE_VALS, hasV(s.rpe) ? s.rpe : '—');
 
+  const hasV2 = (v) => v != null && v !== '';
+  const wBadge = hasV2(s.weight) ? String(s.weight) : '—';
+  const rBadge = hasV2(s.reps)   ? String(s.reps)   : '—';
+  const eBadge = hasV2(s.rpe)    ? String(s.rpe)     : '—';
+
   slot.innerHTML = `
-    <div class="wm-picker-row">
-      <div class="wm-picker-label">Weight · lb</div>
-      <div class="wm-picker-wrap">
-        <div class="wm-picker-pill"></div>
-        <div class="wm-picker-widget" id="wm-pk-weight">
-          <div class="wm-picker-track"></div>
-          <div class="wm-picker-fade wm-picker-fade-l"></div>
-          <div class="wm-picker-fade wm-picker-fade-r"></div>
+    <div class="wm-pk-card">
+      <div class="wm-pk-group">
+        <div class="wm-pk-group-hdr">
+          <span class="wm-pk-group-lbl">WEIGHT · LB</span>
+          <span class="wm-pk-group-badge" id="wm-pk-badge-w">${wBadge}</span>
+        </div>
+        <div class="wm-pk-group-body">
+          <div class="wm-picker-widget" id="wm-pk-weight">
+            <div class="wm-picker-track"></div>
+            <div class="wm-picker-fade wm-picker-fade-l"></div>
+            <div class="wm-picker-fade wm-picker-fade-r"></div>
+          </div>
+          <div class="wm-pk-indicator"></div>
         </div>
       </div>
-    </div>
-    <div class="wm-picker-divider"></div>
-    <div class="wm-picker-row">
-      <div class="wm-picker-label">Reps</div>
-      <div class="wm-picker-wrap">
-        <div class="wm-picker-pill"></div>
-        <div class="wm-picker-widget" id="wm-pk-reps">
-          <div class="wm-picker-track"></div>
-          <div class="wm-picker-fade wm-picker-fade-l"></div>
-          <div class="wm-picker-fade wm-picker-fade-r"></div>
+      <div class="wm-pk-group-divider"></div>
+      <div class="wm-pk-group">
+        <div class="wm-pk-group-hdr">
+          <span class="wm-pk-group-lbl">REPS</span>
+          <span class="wm-pk-group-badge" id="wm-pk-badge-r">${rBadge}</span>
+        </div>
+        <div class="wm-pk-group-body">
+          <div class="wm-picker-widget" id="wm-pk-reps">
+            <div class="wm-picker-track"></div>
+            <div class="wm-picker-fade wm-picker-fade-l"></div>
+            <div class="wm-picker-fade wm-picker-fade-r"></div>
+          </div>
+          <div class="wm-pk-indicator"></div>
         </div>
       </div>
-    </div>
-    <div class="wm-picker-divider"></div>
-    <div class="wm-picker-row">
-      <div class="wm-picker-label">RPE</div>
-      <div class="wm-picker-wrap">
-        <div class="wm-picker-pill"></div>
-        <div class="wm-picker-widget" id="wm-pk-rpe">
-          <div class="wm-picker-track"></div>
-          <div class="wm-picker-fade wm-picker-fade-l"></div>
-          <div class="wm-picker-fade wm-picker-fade-r"></div>
+      <div class="wm-pk-group-divider"></div>
+      <div class="wm-pk-group">
+        <div class="wm-pk-group-hdr">
+          <span class="wm-pk-group-lbl">RPE</span>
+          <span class="wm-pk-group-badge" id="wm-pk-badge-e">${eBadge}</span>
+        </div>
+        <div class="wm-pk-group-body">
+          <div class="wm-picker-widget" id="wm-pk-rpe">
+            <div class="wm-picker-track"></div>
+            <div class="wm-picker-fade wm-picker-fade-l"></div>
+            <div class="wm-picker-fade wm-picker-fade-r"></div>
+          </div>
+          <div class="wm-pk-indicator"></div>
         </div>
       </div>
     </div>`;
@@ -15033,6 +15075,7 @@ function initWmPickers(entry, cur) {
         s.weight = rounded;
         // Snap the picker to nearest 5lb step visually; stored value is exact
         weightPicker.setValue(rounded);
+        setBadge('wm-pk-badge-w', rounded);
         persist(); refreshLogBtn();
       }
       closeOverlay();
@@ -15041,21 +15084,38 @@ function initWmPickers(entry, cur) {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') closeOverlay(); });
   }
 
+  function setBadge(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (val != null && val !== '') ? String(val) : '—';
+  }
+
   const weightPicker = _wmPickerInit(
     document.getElementById('wm-pk-weight'),
     WM_WEIGHT_VALS, wIdx,
-    (val) => { s.weight = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); },
+    (val) => {
+      s.weight = (val === '—' || val == null) ? null : Number(val);
+      setBadge('wm-pk-badge-w', s.weight);
+      persist(); refreshLogBtn();
+    },
     (currentVal) => openManualWeightInput(currentVal)
   );
   _wmPickerInit(
     document.getElementById('wm-pk-reps'),
     WM_REPS_VALS, rIdx,
-    (val) => { s.reps = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); }
+    (val) => {
+      s.reps = (val === '—' || val == null) ? null : Number(val);
+      setBadge('wm-pk-badge-r', s.reps);
+      persist(); refreshLogBtn();
+    }
   );
   _wmPickerInit(
     document.getElementById('wm-pk-rpe'),
     WM_RPE_VALS, eIdx,
-    (val) => { s.rpe = (val === '—') ? null : Number(val); persist(); }
+    (val) => {
+      s.rpe = (val === '—') ? null : Number(val);
+      setBadge('wm-pk-badge-e', val === '—' ? '—' : s.rpe);
+      persist();
+    }
   );
 }
 

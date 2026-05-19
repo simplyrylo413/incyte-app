@@ -314,39 +314,59 @@
 }
 
 /* ── Inline scroll pickers (Revised A) ────────────────────────────────────── */
-.inlinePickerSection { padding: 4px 0 10px; }
-.inlinePickerRow { display: flex; flex-direction: column; }
-.inlinePickerLabel {
+/* ── Option C card layout ─────────────────────────────────────────────────── */
+.inlinePickerSection { padding: 0; }
+
+/* Card wraps all three picker groups */
+.pkCard {
+  margin: 4px 16px 12px;
+  background: rgba(15,22,34,.05);
+  border: 1.2px solid rgba(15,22,34,0.11);
+  border-radius: 16px;
+  overflow: hidden;
+}
+/* One group per field */
+.pkGroup { padding: 9px 14px 7px; }
+.pkGroupDivider { height: 1.2px; background: rgba(15,22,34,0.11); }
+/* Header: label left, live value right */
+.pkGroupHdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.pkGroupLbl {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 8px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #8893a8;
-  padding: 6px 20px 0;
-  position: relative;
-  z-index: 5;
-  pointer-events: none;
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #5e6a82;
 }
+.pkGroupBadge {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: -0.01em;
+  color: #5d9bb8;
+}
+.pkGroupBody { position: relative; }
+/* Blue glow underline — selection indicator */
+.pkIndicator {
+  position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
+  width: 22px; height: 2.5px; border-radius: 99px;
+  background: #5d9bb8;
+  box-shadow: 0 0 9px rgba(93,155,184,.60);
+  pointer-events: none; z-index: 5;
+}
+
+/* Legacy row/label/wrap/pill kept for code compat — visually hidden/overridden */
+.inlinePickerRow { display: flex; flex-direction: column; }
+.inlinePickerLabel { font-family: "Geist Mono", ui-monospace, monospace; font-size: 8px;
+  letter-spacing: 1.5px; text-transform: uppercase; color: #8893a8;
+  padding: 6px 20px 0; position: relative; z-index: 5; pointer-events: none; }
 .inlinePickerWrap { position: relative; margin-top: -4px; }
-.inlinePickerPill {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 44px; height: 52px;
-  border-radius: 12px;
-  background: rgba(93,155,184,0.11);
-  border: 1.2px solid rgba(93,155,184,0.30);
-  pointer-events: none;
-  z-index: 3;
-}
-.inlinePickerDivider { height: 1.2px; background: rgba(15,22,34,0.11); margin: 0 20px; }
+.inlinePickerPill { display: none; } /* superseded by pkIndicator */
+.inlinePickerDivider { height: 1.2px; background: rgba(15,22,34,0.11); }
+
+/* Picker scroll zone */
 .inlinePickerWidget {
-  position: relative; height: 76px; overflow: hidden;
+  position: relative; height: 52px; overflow: hidden;
   cursor: grab; touch-action: pan-x; user-select: none; -webkit-user-select: none;
 }
 .inlinePickerWidget:active { cursor: grabbing; }
 .inlinePickerTrack {
-  display: flex; align-items: center; height: 76px;
+  display: flex; align-items: center; height: 52px;
   position: absolute; top: 0; left: 0;
   will-change: transform;
 }
@@ -363,14 +383,7 @@
 .inlinePickerFadeL { left: 0; }
 .inlinePickerFadeR { right: 0; }
 
-/* Item distance classes — chained onto the local class so the selector is
-   "pure" (CSS Modules requires at least one local class/id).
-   classList.add() adds the global half; the element already carries
-   the hashed local class from className={s.inlinePickerItem}. */
-.inlinePickerItem:global(.wm-pk-n3) { color: rgba(15,22,34,0.14) !important; font-size: 11.5px !important; }
-.inlinePickerItem:global(.wm-pk-n2) { color: rgba(15,22,34,0.25) !important; font-size: 13px !important; font-weight: 600 !important; }
-.inlinePickerItem:global(.wm-pk-n1) { color: rgba(15,22,34,0.48) !important; font-size: 16px !important; font-weight: 600 !important; }
-.inlinePickerItem:global(.wm-pk-sel) { font-size: 26px !important; font-weight: 800 !important; color: #0f1622 !important; letter-spacing: -0.018em !important; }
+/* Snap transition — global class applied imperatively */
 .inlinePickerTrack:global(.wm-pk-snapping) { transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important; }
 
 /* Hero CTA button — solid black pill */
@@ -1321,13 +1334,14 @@
 }
 :global(body.theme-dark) .aiRecText { color: #e8edf5; }
 
-:global(body.theme-dark) .inlinePickerLabel { color: rgba(255,255,255,0.35); }
-:global(body.theme-dark) .inlinePickerPill {
-  background: rgba(93,155,184,0.16);
-  border-color: rgba(93,155,184,0.35);
+/* Dark mode — card picker */
+:global(body.theme-dark) .pkCard {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.10);
 }
+:global(body.theme-dark) .pkGroupDivider { background: rgba(255,255,255,.07); }
+:global(body.theme-dark) .pkGroupLbl { color: rgba(255,255,255,.40); }
+:global(body.theme-dark) .pkGroupBadge { color: #7fa5c7; }
+/* Legacy */
+:global(body.theme-dark) .inlinePickerLabel { color: rgba(255,255,255,0.35); }
 :global(body.theme-dark) .inlinePickerDivider { background: rgba(255,255,255,0.07); }
-:global(body.theme-dark) .inlinePickerItem:global(.wm-pk-n3) { color: rgba(255,255,255,0.12) !important; }
-:global(body.theme-dark) .inlinePickerItem:global(.wm-pk-n2) { color: rgba(255,255,255,0.22) !important; }
-:global(body.theme-dark) .inlinePickerItem:global(.wm-pk-n1) { color: rgba(255,255,255,0.45) !important; }
-:global(body.theme-dark) .inlinePickerItem:global(.wm-pk-sel) { color: rgba(255,255,255,0.96) !important; }
