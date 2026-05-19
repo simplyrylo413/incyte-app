@@ -26,7 +26,7 @@ import s from "./WorkoutPage.module.css";
 const WM_WEIGHT_VALS: number[] = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 in 5lb steps; tap center for 2.5lb precision
 const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
-const WM_ITEM_W = 72; // px — wider items prevent overlap during scroll
+const WM_ITEM_W = 96; // px — wider items prevent overlap during scroll
 
 function wmClosestIdx(vals: (number | string)[], val: number | string | null | undefined): number {
   if (val == null || val === '' || val === '—') return 0;
