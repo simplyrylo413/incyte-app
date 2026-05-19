@@ -36,6 +36,7 @@
     --ok:   #4f9aa8;                /* cool teal */
     --warn: #8e9bb0;                /* slate */
     --bad:  #b08092;                /* desaturated mauve */
+    --warm: #c49a6c;               /* warmup amber */
     /* Metallic glass — cooler tint, brighter top edge, deeper drop shadow.
        The bg slightly leans blue so it reads as polished chrome rather than
        warm pearl. */
@@ -7289,24 +7290,22 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 10.5px;
-    font-weight: 800;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--ink);
   }
   .wm-hero-eyebrow .now-marker .dot {
-    width: 5px; height: 5px;
+    width: 7px; height: 7px;
     border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(93, 155, 184, 0.20);
+    background: var(--ok);
+    box-shadow: 0 0 0 3px rgba(79,154,168,0.20);
+    flex-shrink: 0;
   }
-  /* Active-set token — accent steel blue + bold. (Was --bad red; moved to
-     --accent so red is reserved for warmup/destructive cues. Matches the
-     Today screen's NEXT chip color so "this is current" reads consistently
-     across screens.) */
   .wm-hero-eyebrow .now-marker .active-set {
     color: var(--accent);
     font-weight: 800;
-    letter-spacing: 0.16em;
+    font-size: 13px;
+    letter-spacing: 0.02em;
   }
   .wm-hero-eyebrow .now-marker .active-set + .sep,
   .wm-hero-eyebrow .now-marker .now-tail {
@@ -7692,6 +7691,65 @@
   .set-row .wu-btn.warmup {
     color: var(--bad);
     border-color: var(--bad);
+  }
+
+  /* ── Option A: control chips (RPE / AI / Rest) ────────────── */
+  .wm-ctrl-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 8px;
+    background: rgba(15,22,34,0.07); border: 1.2px solid rgba(15,22,34,0.10);
+    font: 600 11px/1 var(--font-mono);
+    color: var(--ink); cursor: pointer;
+    transition: background 140ms, color 140ms, transform 100ms var(--ease-out-cubic);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wm-ctrl-chip:active { transform: scale(0.96); }
+  .wm-ctrl-chip.on {
+    background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.28);
+    color: var(--accent);
+  }
+  .wm-ctrl-chip.rest-chip {
+    background: rgba(93,155,184,0.12); border-color: rgba(93,155,184,0.25);
+    color: var(--accent);
+  }
+  .wm-ctrl-chip.rest-chip.urgent { background: rgba(176,128,146,0.15); border-color: rgba(176,128,146,0.30); color: var(--bad); }
+  .wm-ctrl-chip svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+  /* ── Option A: set row type pill (replaces .wu-btn) ───────── */
+  .set-row .type-pill {
+    font: 700 9px/1 var(--font-mono);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 5px;
+    border: none; cursor: pointer;
+    flex-shrink: 0; white-space: nowrap;
+    transition: opacity 150ms, transform 100ms var(--ease-out-cubic);
+    justify-self: center;
+  }
+  .set-row .type-pill:active { opacity: 0.75; transform: scale(0.96); }
+  .set-row .type-pill.pill-wu { color: var(--warm); background: rgba(196,154,108,0.16); }
+  .set-row .type-pill.pill-ws { color: var(--ok);   background: rgba(79,154,168,0.14); }
+
+  /* ── Option A: set row WU / WS left rail + tint ───────────── */
+  .set-row { position: relative; }
+  .set-row.wu-row { background: rgba(196,154,108,0.07); }
+  .set-row.ws-row { background: rgba(79,154,168,0.05); }
+  .set-row.wu-row::before, .set-row.ws-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3.5px; border-radius: 0 2px 2px 0;
+  }
+  .set-row.wu-row::before { background: var(--warm); }
+  .set-row.ws-row::before { background: var(--ok); }
+
+  /* ── Option A: active set NOW highlight ───────────────────── */
+  .set-row.cur-row {
+    outline: 1.5px solid rgba(93,155,184,0.38);
+    outline-offset: -1px;
+    border-radius: 4px;
+  }
+  .set-row .now-tag {
+    font: 800 9px/1 var(--font-mono);
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--accent); flex-shrink: 0; white-space: nowrap;
   }
 
   .set-row .bw-btn {
@@ -14463,15 +14521,17 @@ function renderWorkoutV2() {
       ? '<span>LB</span><span>REPS</span><span>RPE</span>'
       : '<span>LB</span><span>REPS</span>';
 
+    const rpeChipSvg = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5"/></svg>';
+    const aiChipSvg  = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 9l2-4 2 2 2-5 2 7"/></svg>';
     heroSlot.innerHTML = `
       <div class="wm-hero">
         <div class="wm-hero-eyebrow">
-          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur + 1}/${total}</span></span>
+          <span class="now-marker"><span class="dot"></span><span class="active-set">SET ${cur + 1} / ${total}</span></span>
           <span class="eyebrow-pills">
-            <button class="foot-btn toggle ${trackOn ? 'on' : ''}" id="wm-toggle-rpe"><span>RPE</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
-            <button class="foot-btn toggle ${aiOn ? 'on' : ''}" id="wm-toggle-ai"><span>AI</span><span class="toggle-track"><span class="toggle-thumb"></span></span></button>
+            <button class="wm-ctrl-chip ${trackOn ? 'on' : ''}" id="wm-toggle-rpe">${rpeChipSvg}RPE</button>
+            <button class="wm-ctrl-chip ${aiOn ? 'on' : ''}" id="wm-toggle-ai">${aiChipSvg}AI</button>
             <span class="pill-rest-wrap">
-              <button class="pill-rest${restOnCls}${restUrgent}" id="rest-pill" aria-label="Rest timer">${clockSvg}<span class="lbl">Rest</span><span class="time" id="rest-pill-time">${restDisplay}</span></button>
+              <button class="wm-ctrl-chip rest-chip${restUrgent}" id="rest-pill" aria-label="Rest timer">${clockSvg}<span id="rest-pill-time">${restDisplay}</span></button>
               <div class="dur-picker" id="rest-dur-picker"><span class="dur-label">Rest duration</span><div class="dur-chips" id="rest-dur-chips"></div></div>
             </span>
           </span>
@@ -14507,10 +14567,11 @@ function renderWorkoutV2() {
       const typeCls = s.warmup ? ' warmup' : '';
       const bwCls = s.bw ? ' on' : '';
       const rpeBit = (ui.session.trackRpe && s.rpe != null) ? `<span class="rpe-bit">@${s.rpe}</span>` : '';
+      const rowTypeCls = s.warmup ? ' wu-row' : ' ws-row';
       html += `
-        <div class="set-row done" data-set-idx="${i}">
+        <div class="set-row done${rowTypeCls}" data-set-idx="${i}">
           <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
-          <button class="wu-btn${typeCls}" data-toggle-type="${i}" type="button" title="Set type">${s.warmup ? 'WU' : 'WS'}</button>
+          <button class="type-pill ${s.warmup ? 'pill-wu' : 'pill-ws'}" data-toggle-type="${i}" type="button">${s.warmup ? 'Warm-up' : 'Working'}</button>
           <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
           <span class="r-prev">${hasAnyPrev ? prevForSetV2(entry, i) : ''}</span>
           <span class="r-vals">${s.weight} × ${s.reps}${rpeBit}</span>
@@ -14565,10 +14626,13 @@ function renderWorkoutV2() {
       const isBlank = s.weight == null && s.reps == null;
       const wDisp = s.weight != null ? s.weight : '—';
       const rDisp = s.reps != null ? s.reps : '—';
+      const isCur = (i === cur);
+      const rowTypeCls2 = s.warmup ? ' wu-row' : ' ws-row';
+      const curCls = isCur ? ' cur-row' : '';
       html += `
-        <div class="set-row target" data-set-idx="${i}">
+        <div class="set-row target${rowTypeCls2}${curCls}" data-set-idx="${i}">
           <button class="r-set-btn${typeCls}" data-toggle-type="${i}" type="button">${String(i + 1).padStart(2, '0')}</button>
-          <button class="wu-btn${typeCls}" data-toggle-type="${i}" type="button" title="Set type">${s.warmup ? 'WU' : 'WS'}</button>
+          <button class="type-pill ${s.warmup ? 'pill-wu' : 'pill-ws'}" data-toggle-type="${i}" type="button">${s.warmup ? 'Warm-up' : 'Working'}</button>
           <button class="bw-btn${bwCls}" data-toggle-bw="${i}" type="button" title="Bodyweight">BW</button>
           <span class="r-prev">${hasAnyPrev ? prevForSetV2(entry, i) : ''}</span>
           <span class="r-vals editable">
@@ -14576,7 +14640,7 @@ function renderWorkoutV2() {
             <span class="x">×</span>
             <button class="edit-num" data-edit-r="${i}" type="button">${rDisp}</button>
           </span>
-          <span class="chk">${checkSvg}</span>
+          ${isCur ? '<span class="now-tag">NOW</span>' : '<span class="chk">' + checkSvg + '</span>'}
           <button class="row-remove" data-remove-set="${i}" type="button" aria-label="Remove">
             <svg viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           </button>
