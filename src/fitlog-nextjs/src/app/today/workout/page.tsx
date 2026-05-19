@@ -807,8 +807,8 @@ function InlinePicker({
           </div>
           <div ref={fadeLRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeL}`} />
           <div ref={fadeRRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeR}`} />
+          <div className={s.pkIndicator} />
         </div>
-        <div className={s.pkIndicator} />
       </div>
     </div>
   );
