@@ -7763,8 +7763,8 @@
     color: var(--ink); letter-spacing: 1px; text-transform: uppercase;
   }
   .wm-pk-group-badge {
-    font: 800 11px/1 var(--font-display);
-    color: var(--accent); letter-spacing: -0.01em;
+    font: 800 38px/1 var(--font-display);
+    color: rgba(93,155,184,1.0); letter-spacing: -0.018em;
   }
   .wm-pk-group-body { position: relative; }
   /* Blue glow underline — selection indicator */
@@ -7800,7 +7800,7 @@
   }
   /* Items */
   .wm-picker-item {
-    width: 56px; flex-shrink: 0; text-align: center;
+    width: 72px; flex-shrink: 0; text-align: center;
     font-family: var(--font-mono); font-size: 11px; font-weight: 500;
     color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
   }
@@ -14810,7 +14810,7 @@ const WM_WEIGHT_VALS = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 
 const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
-const WM_PICKER_ITEM_W = 56;   // px — wider items prevent overlap during scroll
+const WM_PICKER_ITEM_W = 72;   // px — wider items prevent overlap during scroll
 const WM_PICKER_ROW_H  = 76;   // px — comfortable thumb target
 
 function _wmPickerClosestIdx(vals, val) {
