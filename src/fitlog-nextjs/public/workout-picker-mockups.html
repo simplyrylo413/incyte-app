@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INCYTE — Picker Selection Line Options</title>
+<title>INCYTE — Workout Picker Style</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -15,6 +15,7 @@
   --muted:   #5e6a82;
   --label:   #8893a8;
   --hairline-soft: rgba(15,22,34,0.11);
+  --hairline: rgba(15,22,34,0.25);
   --accent:  #5d9bb8;
   --accent-2:#7fa5c7;
   --ok:      #4f9aa8;
@@ -37,330 +38,456 @@ h1 { text-align:center; font-size:11px; font-weight:600; letter-spacing:1.5px; t
 .sub { text-align:center; font-size:11px; color:var(--label); margin-bottom:44px; }
 .grid { display:flex; gap:28px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
 .col { display:flex; flex-direction:column; align-items:center; gap:12px; }
-.lbl { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-family:var(--font-mono); color:var(--accent); }
+.option-lbl { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; font-family:var(--font-mono); color:var(--accent); }
 .desc { font-size:11px; color:var(--muted); text-align:center; max-width:190px; line-height:1.6; }
 
-/* Phone */
+/* Phone frame */
 .phone {
-  width:212px; background:var(--paper); border-radius:38px;
+  width:220px; background:var(--paper); border-radius:38px;
   border:1.2px solid var(--hairline-soft); overflow:hidden;
   box-shadow: 0 0 0 6px rgba(15,22,34,.04), 0 24px 64px rgba(15,22,34,.16), 0 4px 12px rgba(15,22,34,.07);
 }
+.chrome-bar {
+  background:var(--paper); height:22px;
+  display:flex; align-items:center; justify-content:center; padding-top:4px;
+}
+.notch { width:56px; height:10px; background:#d0d5de; border-radius:0 0 10px 10px; }
+.screen { padding:0; background:var(--paper); }
 
-/* Chrome */
-.wm-top { display:flex; align-items:center; justify-content:space-between; padding:18px 15px 0; }
-.wm-close { width:26px;height:26px;border-radius:50%;background:var(--paper-2);border:1.2px solid var(--hairline-soft);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted); }
-.wm-meta { font-family:var(--font-mono);font-size:8px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);text-align:center;flex:1; }
-.wm-timer { font-family:var(--font-mono);font-size:9px;color:var(--accent);font-weight:600; }
-.wm-hero { padding:9px 15px 0; text-align:center; }
-.wm-ey { font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:2px; }
-.wm-name { font-size:21px;font-weight:800;letter-spacing:-0.018em;line-height:1.05;color:var(--ink); }
-.wm-prev { font-family:var(--font-mono);font-size:8px;color:var(--label);margin-top:4px; }
-.wm-tabs { display:flex;gap:5px;padding:9px 13px 0;overflow-x:auto;scrollbar-width:none; }
-.wm-tabs::-webkit-scrollbar { display:none; }
-.tab { flex-shrink:0;padding:4px 9px;border-radius:20px;font-family:var(--font-mono);font-size:8px;font-weight:600;color:var(--label);background:var(--paper-2);border:1.2px solid var(--hairline-soft); }
-.tab.act { background:rgba(93,155,184,.12);border-color:rgba(93,155,184,.35);color:var(--accent); }
-.tab.done { color:var(--ok);background:rgba(79,154,168,.08);border-color:rgba(79,154,168,.22); }
-.log-btn { margin:0 13px;padding:12px 0;border-radius:14px;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);font-size:13px;font-weight:700;color:#fff;text-align:center;box-shadow:0 6px 18px rgba(93,155,184,.38); }
-.rest { margin:7px 13px 15px;padding:7px 11px;border-radius:12px;background:rgba(79,154,168,.08);border:1.2px solid rgba(79,154,168,.20);display:flex;align-items:center;gap:8px; }
-.rest-badge { font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--ok);background:rgba(79,154,168,.14);border-radius:8px;padding:3px 6px;flex-shrink:0; }
-.rest-l { font-size:9px;color:var(--muted); }
-.rest-t { font-size:9px;color:var(--ok);font-weight:600; }
-.rest-h { font-size:7.5px;color:var(--label);font-family:var(--font-mono);margin-top:1px; }
+/* ── Shared workout card chrome ── */
+.wm-card {
+  background:var(--paper);
+  padding:0 0 16px;
+}
+/* Top nav area */
+.wm-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px 6px;
+}
+.back-chip {
+  width:32px; height:32px; border-radius:50%;
+  border:1.2px solid var(--accent); background:rgba(93,155,184,.08);
+  display:flex; align-items:center; justify-content:center;
+}
+.back-chip svg { width:14px; height:14px; stroke:var(--accent); }
+.wm-breadcrumb { font:600 9px/1 var(--font-mono); color:var(--label); letter-spacing:1px; text-transform:uppercase; }
+.wm-name { font:700 15px/1.2 var(--font-display); color:var(--ink); letter-spacing:-0.018em; padding:0 16px 2px; }
+.wm-meta { font:600 9px/1 var(--font-mono); color:var(--muted); letter-spacing:1px; text-transform:uppercase; padding:0 16px 10px; }
 
-/* ── Picker strip ── */
-.pk-section { padding:6px 0 10px; }
-.pk-row { display:flex;flex-direction:column;position:relative; }
-.pk-label { font-family:var(--font-mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--label);padding:6px 15px 0;position:relative;z-index:5;pointer-events:none; }
-.pk-wrap { position:relative;margin-top:-4px; }
-.pk-divider { height:1.2px;background:var(--hairline-soft);margin:0 15px; }
+/* set header badge */
+.set-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  margin:0 16px 12px;
+}
+.set-dot { width:5px; height:5px; border-radius:50%; background:var(--ok); flex-shrink:0; }
+.set-num { font:700 10px/1 var(--font-mono); color:var(--ok); letter-spacing:1.2px; text-transform:uppercase; }
 
-/* Shared widget */
-.pk-widget { position:relative;height:76px;overflow:hidden;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-x; }
+/* Log button */
+.log-btn {
+  margin:14px 16px 0;
+  height:44px; width:calc(100% - 32px);
+  background:var(--ink); color:#fff;
+  border:none; border-radius:11px; cursor:pointer;
+  font:700 12.5px/1 var(--font-display); letter-spacing:0.01em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Shared picker engine (all options use the same JS logic — only CSS differs)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Common widget shell */
+.pk-widget {
+  position:relative; overflow:hidden; cursor:grab;
+  user-select:none; -webkit-user-select:none;
+}
 .pk-widget:active { cursor:grabbing; }
-.pk-track { display:flex;align-items:center;height:76px;position:absolute;top:0;left:0;will-change:transform; }
-.pk-track.snapping { transition:transform .22s cubic-bezier(.25,.46,.45,.94); }
-.pk-item { width:44px;flex-shrink:0;text-align:center;font-family:var(--font-mono);font-size:11px;font-weight:500;color:rgba(15,22,34,.09);line-height:1;pointer-events:none; }
-.pk-fade { position:absolute;top:0;bottom:0;width:44px;pointer-events:none;z-index:4; }
-.pk-fade-l { left:0; }
-.pk-fade-r { right:0; }
-
-/* ══════════════════════════
-   OPTION A — Hairline bracket
-   Two 1.2px lines. No fill.
-   No shadow. Most clinical.
-══════════════════════════ */
-.ind-hairline {
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:44px;height:52px;
-  border-top:1.2px solid rgba(93,155,184,.55);
-  border-bottom:1.2px solid rgba(93,155,184,.55);
-  pointer-events:none;z-index:3;
+.pk-track {
+  display:flex; align-items:center;
+  white-space:nowrap;
+  will-change:transform;
+  transition:none;
+}
+.pk-track.pk-snap { transition:transform 220ms cubic-bezier(0.25,1,0.5,1); }
+.pk-item {
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  font-family:var(--font-display);
+  font-weight:500;
+  /* Color + size set by JS continuously */
+  transition:none;
 }
 
-/* ══════════════════════════
-   OPTION B — Full-width stripe
-   A single thin horizontal band
-   that runs edge-to-edge.
-   No vertical bracket, no fill box.
-══════════════════════════ */
-.ind-stripe {
-  position:absolute;
-  top:50%;
-  left:0;right:0;
-  transform:translateY(-50%);
-  height:44px;
-  background:rgba(93,155,184,.09);
-  border-top:1.2px solid rgba(93,155,184,.28);
-  border-bottom:1.2px solid rgba(93,155,184,.28);
-  pointer-events:none;z-index:1;
+/* ─────────────────────────────
+   OPTION A — Left label, pill bg, blue underline center
+   ───────────────────────────── */
+.oa-section { padding:0 0 4px; }
+.oa-row {
+  display:flex; align-items:center;
+  padding:0 16px; gap:10px;
+  min-height:66px;
 }
+.oa-row + .oa-row { border-top:1.2px solid var(--hairline-soft); }
+.oa-label {
+  font:700 9.5px/1 var(--font-mono); color:var(--muted);
+  letter-spacing:1px; text-transform:uppercase;
+  width:38px; flex-shrink:0;
+}
+.oa-picker-wrap {
+  flex:1; position:relative;
+  background:rgba(15,22,34,.045); border-radius:9px;
+  height:52px; overflow:hidden;
+}
+.oa-widget { width:100%; height:52px; }
+/* underline indicator */
+.oa-indicator {
+  position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
+  width:24px; height:2.5px; border-radius:2px;
+  background:var(--accent); pointer-events:none;
+}
+/* edge fades */
+.oa-fade {
+  position:absolute; top:0; bottom:0; width:36px; pointer-events:none;
+}
+.oa-fade-l { left:0; background:linear-gradient(to right, rgba(237,240,243,1) 0%, rgba(237,240,243,0) 100%); }
+.oa-fade-r { right:0; background:linear-gradient(to left,  rgba(237,240,243,1) 0%, rgba(237,240,243,0) 100%); }
 
-/* ══════════════════════════
-   OPTION C — Tick underline
-   A small 20px accent line
-   centered below the value.
-   Zero visual weight —
-   just a position marker.
-══════════════════════════ */
-.ind-tick {
-  position:absolute;
-  bottom:10px;left:50%;
-  transform:translateX(-50%);
-  width:20px;height:2px;
-  border-radius:2px;
+/* ─────────────────────────────
+   OPTION B — Above labels, open rail, hairline indicator
+   ───────────────────────────── */
+.ob-section { padding:0 16px; }
+.ob-group { padding:10px 0 6px; }
+.ob-group + .ob-group { border-top:1.2px solid var(--hairline-soft); }
+.ob-header {
+  display:flex; align-items:baseline; gap:6px;
+  margin-bottom:6px;
+}
+.ob-label {
+  font:700 9.5px/1 var(--font-mono); color:var(--muted);
+  letter-spacing:1px; text-transform:uppercase;
+}
+.ob-value-badge {
+  font:800 11px/1 var(--font-display); color:var(--accent);
+  letter-spacing:-0.01em;
+  background:rgba(93,155,184,.12); border-radius:5px;
+  padding:2px 6px;
+}
+.ob-picker-wrap { position:relative; height:48px; }
+.ob-widget { width:100%; height:48px; }
+/* hairline center line */
+.ob-indicator {
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:6px; width:28px; height:2px;
+  border-radius:1px; background:var(--accent);
+  pointer-events:none;
+}
+.ob-fade {
+  position:absolute; top:0; bottom:0; width:40px; pointer-events:none;
+}
+.ob-fade-l { left:0; background:linear-gradient(to right, rgba(245,247,251,1) 0%, rgba(245,247,251,0) 100%); }
+.ob-fade-r { right:0; background:linear-gradient(to left,  rgba(245,247,251,1) 0%, rgba(245,247,251,0) 100%); }
+
+/* ─────────────────────────────
+   OPTION C — Full-bleed dark card, glow underline
+   ───────────────────────────── */
+.oc-card {
+  margin:0 12px;
+  background:rgba(15,22,34,.06);
+  border:1.2px solid var(--hairline-soft);
+  border-radius:16px; overflow:hidden;
+}
+.oc-group { padding:10px 14px 8px; }
+.oc-group + .oc-group { border-top:1.2px solid var(--hairline-soft); }
+.oc-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:4px;
+}
+.oc-label {
+  font:700 9px/1 var(--font-mono); color:var(--muted);
+  letter-spacing:1px; text-transform:uppercase;
+}
+.oc-sel {
+  font:800 10px/1 var(--font-display); color:var(--accent);
+  letter-spacing:-0.01em;
+}
+.oc-picker-wrap { position:relative; height:46px; }
+.oc-widget { width:100%; height:46px; }
+.oc-indicator {
+  position:absolute; bottom:5px; left:50%; transform:translateX(-50%);
+  width:20px; height:2.5px; border-radius:99px;
   background:var(--accent);
-  opacity:.7;
-  pointer-events:none;z-index:3;
+  box-shadow:0 0 8px rgba(93,155,184,.6);
+  pointer-events:none;
 }
+.oc-fade {
+  position:absolute; top:0; bottom:0; width:34px; pointer-events:none;
+}
+.oc-fade-l { left:0; background:linear-gradient(to right, rgba(235,238,244,.9) 0%, rgba(235,238,244,0) 100%); }
+.oc-fade-r { right:0; background:linear-gradient(to left,  rgba(235,238,244,.9) 0%, rgba(235,238,244,0) 100%); }
+
 </style>
 </head>
 <body>
-
-<h1>INCYTE · Picker — Selection Indicator</h1>
-<p class="sub">Drag any strip · 2.5 lb steps · continuous scale effect</p>
+<h1>INCYTE — Workout Picker</h1>
+<p class="sub">Blue underline · Scale effect · 2.5 lb steps · RPE always on</p>
 
 <div class="grid">
 
-  <!-- ── Option A: Hairline ── -->
+  <!-- ───── OPTION A ───── -->
   <div class="col">
-    <div class="lbl">Option A — Hairline</div>
-    <div class="phone" id="ph-a">
-      <div class="wm-top"><div class="wm-close">×</div><div class="wm-meta">Exercise 2 of 4</div><div class="wm-timer">14:32</div></div>
-      <div class="wm-hero"><div class="wm-ey">Set 2 of 4</div><div class="wm-name">Bench Press</div><div class="wm-prev">Last · 185 lb × 8 · RPE 7</div></div>
-      <div class="wm-tabs"><div class="tab done">185×8</div><div class="tab act">SET 2</div><div class="tab">—</div><div class="tab">—</div></div>
-      <div class="pk-section">
-        <div class="pk-row">
-          <div class="pk-label">Weight · lb</div>
-          <div class="pk-wrap">
-            <div class="ind-hairline"></div>
-            <div class="pk-widget" data-id="a-w" data-vals="weight" data-sel="76">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
+    <div class="option-lbl">A — Pill + underline</div>
+    <div class="phone" id="phone-a">
+      <div class="chrome-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="wm-card">
+          <div class="wm-nav">
+            <div class="back-chip">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
+            </div>
+            <div class="wm-breadcrumb">CHEST · BARBELL</div>
+            <div style="width:32px"></div>
+          </div>
+          <div class="wm-name">Bench Press</div>
+          <div class="wm-meta">STRAIGHT BAR · FLAT BENCH</div>
+          <div class="set-badge">
+            <div class="set-dot"></div>
+            <div class="set-num">SET 2 / 4</div>
+          </div>
+          <div class="oa-section" id="oa-pickers">
+            <div class="oa-row">
+              <div class="oa-label">WEIGHT<br>LB</div>
+              <div class="oa-picker-wrap">
+                <div class="oa-widget pk-widget" data-opt="a" data-pk="weight"></div>
+                <div class="oa-indicator"></div>
+                <div class="oa-fade oa-fade-l"></div>
+                <div class="oa-fade oa-fade-r"></div>
+              </div>
+            </div>
+            <div class="oa-row">
+              <div class="oa-label">REPS</div>
+              <div class="oa-picker-wrap">
+                <div class="oa-widget pk-widget" data-opt="a" data-pk="reps"></div>
+                <div class="oa-indicator"></div>
+                <div class="oa-fade oa-fade-l"></div>
+                <div class="oa-fade oa-fade-r"></div>
+              </div>
+            </div>
+            <div class="oa-row">
+              <div class="oa-label">RPE</div>
+              <div class="oa-picker-wrap">
+                <div class="oa-widget pk-widget" data-opt="a" data-pk="rpe"></div>
+                <div class="oa-indicator"></div>
+                <div class="oa-fade oa-fade-l"></div>
+                <div class="oa-fade oa-fade-r"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">Reps</div>
-          <div class="pk-wrap">
-            <div class="ind-hairline"></div>
-            <div class="pk-widget" data-id="a-r" data-vals="reps" data-sel="7">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">RPE · Optional</div>
-          <div class="pk-wrap">
-            <div class="ind-hairline"></div>
-            <div class="pk-widget" data-id="a-e" data-vals="rpe" data-sel="5">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
+          <button class="log-btn" id="log-a">Log set 2</button>
         </div>
       </div>
-      <div class="log-btn" id="log-a">Log set · 190 × 8</div>
-      <div style="height:7px"></div>
-      <div class="rest"><div class="rest-badge">1:32</div><div><div><span class="rest-l">Resting · </span><span class="rest-t">target 2:30</span></div><div class="rest-h">Swipe to skip · tap to extend</div></div></div>
     </div>
-    <div class="desc">Two 1.2px hairlines — no fill, no box. Reads as a crosshair rather than a container. Matches INCYTE's hairline language throughout.</div>
+    <div class="desc">Row labels left. Pill background. Blue underline beneath selected.</div>
   </div>
 
-  <!-- ── Option B: Full-width stripe ── -->
+  <!-- ───── OPTION B ───── -->
   <div class="col">
-    <div class="lbl">Option B — Stripe</div>
-    <div class="phone" id="ph-b">
-      <div class="wm-top"><div class="wm-close">×</div><div class="wm-meta">Exercise 2 of 4</div><div class="wm-timer">14:32</div></div>
-      <div class="wm-hero"><div class="wm-ey">Set 2 of 4</div><div class="wm-name">Bench Press</div><div class="wm-prev">Last · 185 lb × 8 · RPE 7</div></div>
-      <div class="wm-tabs"><div class="tab done">185×8</div><div class="tab act">SET 2</div><div class="tab">—</div><div class="tab">—</div></div>
-      <div class="pk-section">
-        <div class="pk-row">
-          <div class="pk-label">Weight · lb</div>
-          <div class="pk-wrap" style="position:relative">
-            <div class="ind-stripe"></div>
-            <div class="pk-widget" data-id="b-w" data-vals="weight" data-sel="76">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
+    <div class="option-lbl">B — Header labels + live value</div>
+    <div class="phone" id="phone-b">
+      <div class="chrome-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="wm-card">
+          <div class="wm-nav">
+            <div class="back-chip">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
+            </div>
+            <div class="wm-breadcrumb">CHEST · BARBELL</div>
+            <div style="width:32px"></div>
+          </div>
+          <div class="wm-name">Bench Press</div>
+          <div class="wm-meta">STRAIGHT BAR · FLAT BENCH</div>
+          <div class="set-badge">
+            <div class="set-dot"></div>
+            <div class="set-num">SET 2 / 4</div>
+          </div>
+          <div class="ob-section" id="ob-pickers">
+            <div class="ob-group">
+              <div class="ob-header">
+                <span class="ob-label">WEIGHT · LB</span>
+                <span class="ob-value-badge" id="ob-weight-val">190</span>
+              </div>
+              <div class="ob-picker-wrap">
+                <div class="ob-widget pk-widget" data-opt="b" data-pk="weight"></div>
+                <div class="ob-indicator"></div>
+                <div class="ob-fade ob-fade-l"></div>
+                <div class="ob-fade ob-fade-r"></div>
+              </div>
+            </div>
+            <div class="ob-group">
+              <div class="ob-header">
+                <span class="ob-label">REPS</span>
+                <span class="ob-value-badge" id="ob-reps-val">8</span>
+              </div>
+              <div class="ob-picker-wrap">
+                <div class="ob-widget pk-widget" data-opt="b" data-pk="reps"></div>
+                <div class="ob-indicator"></div>
+                <div class="ob-fade ob-fade-l"></div>
+                <div class="ob-fade ob-fade-r"></div>
+              </div>
+            </div>
+            <div class="ob-group">
+              <div class="ob-header">
+                <span class="ob-label">RPE</span>
+                <span class="ob-value-badge" id="ob-rpe-val">—</span>
+              </div>
+              <div class="ob-picker-wrap">
+                <div class="ob-widget pk-widget" data-opt="b" data-pk="rpe"></div>
+                <div class="ob-indicator"></div>
+                <div class="ob-fade ob-fade-l"></div>
+                <div class="ob-fade ob-fade-r"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">Reps</div>
-          <div class="pk-wrap" style="position:relative">
-            <div class="ind-stripe"></div>
-            <div class="pk-widget" data-id="b-r" data-vals="reps" data-sel="7">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">RPE · Optional</div>
-          <div class="pk-wrap" style="position:relative">
-            <div class="ind-stripe"></div>
-            <div class="pk-widget" data-id="b-e" data-vals="rpe" data-sel="5">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
+          <button class="log-btn" id="log-b">Log set 2 · 190 × 8</button>
         </div>
       </div>
-      <div class="log-btn" id="log-b">Log set · 190 × 8</div>
-      <div style="height:7px"></div>
-      <div class="rest"><div class="rest-badge">1:32</div><div><div><span class="rest-l">Resting · </span><span class="rest-t">target 2:30</span></div><div class="rest-h">Swipe to skip · tap to extend</div></div></div>
     </div>
-    <div class="desc">Edge-to-edge tinted band — no box border, no radius. The selection zone is a full-width horizontal slice, not a pill. More like a ruler mark.</div>
+    <div class="desc">Label above with live selected value shown as a blue chip. Underline indicator.</div>
   </div>
 
-  <!-- ── Option C: Tick only ── -->
+  <!-- ───── OPTION C ───── -->
   <div class="col">
-    <div class="lbl">Option C — Tick</div>
-    <div class="phone" id="ph-c">
-      <div class="wm-top"><div class="wm-close">×</div><div class="wm-meta">Exercise 2 of 4</div><div class="wm-timer">14:32</div></div>
-      <div class="wm-hero"><div class="wm-ey">Set 2 of 4</div><div class="wm-name">Bench Press</div><div class="wm-prev">Last · 185 lb × 8 · RPE 7</div></div>
-      <div class="wm-tabs"><div class="tab done">185×8</div><div class="tab act">SET 2</div><div class="tab">—</div><div class="tab">—</div></div>
-      <div class="pk-section">
-        <div class="pk-row">
-          <div class="pk-label">Weight · lb</div>
-          <div class="pk-wrap">
-            <div class="ind-tick"></div>
-            <div class="pk-widget" data-id="c-w" data-vals="weight" data-sel="76">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
+    <div class="option-lbl">C — Card + glow underline</div>
+    <div class="phone" id="phone-c">
+      <div class="chrome-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="wm-card">
+          <div class="wm-nav">
+            <div class="back-chip">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
+            </div>
+            <div class="wm-breadcrumb">CHEST · BARBELL</div>
+            <div style="width:32px"></div>
+          </div>
+          <div class="wm-name">Bench Press</div>
+          <div class="wm-meta">STRAIGHT BAR · FLAT BENCH</div>
+          <div class="set-badge">
+            <div class="set-dot"></div>
+            <div class="set-num">SET 2 / 4</div>
+          </div>
+          <div class="oc-card" id="oc-pickers">
+            <div class="oc-group">
+              <div class="oc-header">
+                <span class="oc-label">WEIGHT · LB</span>
+                <span class="oc-sel" id="oc-weight-val">190</span>
+              </div>
+              <div class="oc-picker-wrap">
+                <div class="oc-widget pk-widget" data-opt="c" data-pk="weight"></div>
+                <div class="oc-indicator"></div>
+                <div class="oc-fade oc-fade-l"></div>
+                <div class="oc-fade oc-fade-r"></div>
+              </div>
+            </div>
+            <div class="oc-group">
+              <div class="oc-header">
+                <span class="oc-label">REPS</span>
+                <span class="oc-sel" id="oc-reps-val">8</span>
+              </div>
+              <div class="oc-picker-wrap">
+                <div class="oc-widget pk-widget" data-opt="c" data-pk="reps"></div>
+                <div class="oc-indicator"></div>
+                <div class="oc-fade oc-fade-l"></div>
+                <div class="oc-fade oc-fade-r"></div>
+              </div>
+            </div>
+            <div class="oc-group">
+              <div class="oc-header">
+                <span class="oc-label">RPE</span>
+                <span class="oc-sel" id="oc-rpe-val">—</span>
+              </div>
+              <div class="oc-picker-wrap">
+                <div class="oc-widget pk-widget" data-opt="c" data-pk="rpe"></div>
+                <div class="oc-indicator"></div>
+                <div class="oc-fade oc-fade-l"></div>
+                <div class="oc-fade oc-fade-r"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">Reps</div>
-          <div class="pk-wrap">
-            <div class="ind-tick"></div>
-            <div class="pk-widget" data-id="c-r" data-vals="reps" data-sel="7">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
-        </div>
-        <div class="pk-divider"></div>
-        <div class="pk-row">
-          <div class="pk-label">RPE · Optional</div>
-          <div class="pk-wrap">
-            <div class="ind-tick"></div>
-            <div class="pk-widget" data-id="c-e" data-vals="rpe" data-sel="5">
-              <div class="pk-track"></div>
-              <div class="pk-fade pk-fade-l"></div><div class="pk-fade pk-fade-r"></div>
-            </div>
-          </div>
+          <button class="log-btn" id="log-c">Log set 2 · 190 × 8</button>
         </div>
       </div>
-      <div class="log-btn" id="log-c">Log set · 190 × 8</div>
-      <div style="height:7px"></div>
-      <div class="rest"><div class="rest-badge">1:32</div><div><div><span class="rest-l">Resting · </span><span class="rest-t">target 2:30</span></div><div class="rest-h">Swipe to skip · tap to extend</div></div></div>
     </div>
-    <div class="desc">Single 20px accent tick below center — zero visual weight. The scale gradient alone communicates position. The tick is just a landing mark.</div>
+    <div class="desc">Tinted card groups each field. Glowing blue underline indicator.</div>
   </div>
 
-</div>
-
-<p style="text-align:center;font-size:10px;color:var(--label);margin-top:48px;font-family:var(--font-mono);letter-spacing:.4px;">
-  All three use 2.5 lb steps · continuous exponential scale · no white pill shadow
-</p>
+</div><!-- /grid -->
 
 <script>
-const WEIGHT_VALS = Array.from({ length: 201 }, (_, i) => i * 2.5);
+// ── Value arrays ──
+const WEIGHT_VALS = Array.from({ length: 201 }, (_, i) => i * 2.5); // 0–500 in 2.5lb steps
 const REPS_VALS   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const RPE_VALS    = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
 const ITEM_W      = 44;
 
-function getVals(key) {
-  if (key === 'weight') return WEIGHT_VALS;
-  if (key === 'reps')   return REPS_VALS;
-  return RPE_VALS;
+function closestIdx(vals, val) {
+  if (val == null || val === '' || val === '—') return 0;
+  let best = 0, bestD = Infinity;
+  vals.forEach((v, i) => {
+    const d = Math.abs(Number(v) - Number(val));
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
 }
 
-function getBg(el) {
-  let e = el?.parentElement;
-  while (e && e !== document.documentElement) {
-    const bg = window.getComputedStyle(e).backgroundColor;
-    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
-    e = e.parentElement;
-  }
-  return '#f5f7fb';
+// Continuous exponential scale — same curve as the HTML build
+function applyScale(track, x, itemW, accentColor, mutedColor) {
+  const cw  = track.parentElement.getBoundingClientRect().width;
+  const center = cw / 2 - itemW / 2;
+  const fi   = (center - x) / itemW;
+  track.querySelectorAll('.pk-item').forEach((el, i) => {
+    const d = Math.abs(i - fi);
+    const t = Math.exp(-d * 0.9);
+    const size  = (11 + 21 * t).toFixed(1);          // 11px → 32px at center
+    const alpha = (0.15 + 0.85 * t).toFixed(3);
+    const fw    = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
+    const ls    = d < 0.6 ? '-0.018em' : '0em';
+    // Near-center items get the accent color, far ones get muted
+    const blendT = Math.max(0, Math.min(1, 1 - d));
+    // Parse accent: rgba(93,155,184, alpha)  muted: rgba(94,106,130, alpha)
+    const [ar,ag,ab] = [93,155,184];
+    const [mr,mg,mb] = [94,106,130];
+    const r = Math.round(ar * blendT + mr * (1-blendT));
+    const g = Math.round(ag * blendT + mg * (1-blendT));
+    const b = Math.round(ab * blendT + mb * (1-blendT));
+    el.style.cssText = `font-size:${size}px;font-weight:${fw};color:rgba(${r},${g},${b},${alpha});letter-spacing:${ls};`;
+  });
 }
 
-function initPicker(widget) {
-  const vals   = getVals(widget.dataset.vals);
-  const track  = widget.querySelector('.pk-track');
-  const fadeL  = widget.querySelector('.pk-fade-l');
-  const fadeR  = widget.querySelector('.pk-fade-r');
-  let selIdx   = parseInt(widget.dataset.sel, 10) || 0;
-  let curX = 0, dragging = false;
-  let dragStartX = 0, dragStartTX = 0;
-  let vel = 0, lastX = 0, lastT = 0;
-
-  track.innerHTML = '';
+function initPicker(widget, vals, selIdx, onSnap) {
+  // Build track
+  const track = document.createElement('div');
+  track.className = 'pk-track';
   vals.forEach(v => {
     const el = document.createElement('div');
     el.className = 'pk-item';
+    el.style.width = ITEM_W + 'px';
     el.textContent = String(v);
     track.appendChild(el);
   });
+  widget.appendChild(track);
 
-  const bg = getBg(widget);
-  if (fadeL) fadeL.style.background = `linear-gradient(to right, ${bg} 0%, rgba(0,0,0,0) 100%)`;
-  if (fadeR) fadeR.style.background = `linear-gradient(to left,  ${bg} 0%, rgba(0,0,0,0) 100%)`;
+  let curX = 0, dragging = false;
+  let dragStartX = 0, dragStartTX = 0;
+  let vel = 0, lastX = 0, lastT = 0;
+  let _selIdx = selIdx;
 
-  function cw() { return widget.getBoundingClientRect().width || 212; }
+  function cw() { return widget.getBoundingClientRect().width; }
   function txForIdx(i) { return cw() / 2 - ITEM_W / 2 - i * ITEM_W; }
 
-  function updateScale(x) {
-    const center = cw() / 2 - ITEM_W / 2;
-    const fi = (center - x) / ITEM_W;
-    track.querySelectorAll('.pk-item').forEach((el, i) => {
-      const d = Math.abs(i - fi);
-      const t     = Math.exp(-d * 0.9);
-      const size  = (11 + 21 * t).toFixed(1);   // 11 → 32px
-      const alpha = (0.09 + 0.91 * t).toFixed(3);
-      const wt    = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
-      const ls    = d < 0.6 ? '-0.018em' : '0em';
-      el.style.cssText = `font-size:${size}px;font-weight:${wt};color:rgba(15,22,34,${alpha});letter-spacing:${ls};`;
-    });
-  }
-
   function applyX(x, animate) {
-    if (animate) track.classList.add('snapping');
-    else         track.classList.remove('snapping');
+    if (animate) track.classList.add('pk-snap');
+    else         track.classList.remove('pk-snap');
     track.style.transform = `translateX(${x}px)`;
     curX = x;
-    updateScale(x);
+    applyScale(track, x, ITEM_W, '#5d9bb8', '#8893a8');
   }
 
   function snap() {
@@ -368,14 +495,20 @@ function initPicker(widget) {
     let proj = curX + vel * 80;
     let idx  = Math.round((center - proj) / ITEM_W);
     idx = Math.max(0, Math.min(vals.length - 1, idx));
-    selIdx = idx;
+    _selIdx = idx;
     applyX(txForIdx(idx), true);
-    widget.dispatchEvent(new CustomEvent('pk-snap', { detail: { id: widget.dataset.id, val: vals[idx] }, bubbles: true }));
+    onSnap(vals[idx]);
   }
 
-  applyX(txForIdx(selIdx), false);
+  // Defer initial position so layout is ready
+  requestAnimationFrame(() => applyX(txForIdx(_selIdx), false));
 
-  function start(cx) { track.classList.remove('snapping'); dragging = true; dragStartX = cx; dragStartTX = curX; lastX = cx; lastT = Date.now(); vel = 0; }
+  function start(cx) {
+    track.classList.remove('pk-snap');
+    dragging = true;
+    dragStartX = cx; dragStartTX = curX;
+    lastX = cx; lastT = Date.now(); vel = 0;
+  }
   function move(cx) {
     if (!dragging) return;
     const now = Date.now(), dt = now - lastT;
@@ -388,22 +521,65 @@ function initPicker(widget) {
   widget.addEventListener('mousedown',  e => { e.preventDefault(); start(e.clientX); });
   window.addEventListener('mousemove',  e => { if (dragging) move(e.clientX); });
   window.addEventListener('mouseup',    () => end());
-  widget.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive: true });
-  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+  widget.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive:true });
+  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); e.preventDefault(); }, { passive:false });
   widget.addEventListener('touchend',   () => end());
 }
 
-// Init all pickers
-document.querySelectorAll('.pk-widget').forEach(w => initPicker(w));
+// ── Init all pickers ──
+// Shared initial values: 190 lbs, 8 reps, RPE = — (index 0)
+const DEFAULTS = { weight: 190, reps: 8, rpe: '—' };
 
-// Live log button update
-const vals = { 'a-w': '190','a-r': '8','b-w': '190','b-r': '8','c-w': '190','c-r': '8' };
-document.addEventListener('pk-snap', e => {
-  const { id, val } = e.detail;
-  vals[id] = String(val);
-  const prefix = id.split('-')[0];
-  const btn = document.getElementById(`log-${prefix}`);
-  if (btn) btn.textContent = `Log set · ${vals[`${prefix}-w`]} × ${vals[`${prefix}-r`]}`;
+// Option A
+document.querySelectorAll('[data-opt="a"].pk-widget').forEach(w => {
+  const pk = w.dataset.pk;
+  const vals = pk === 'weight' ? WEIGHT_VALS : pk === 'reps' ? REPS_VALS : RPE_VALS;
+  const defVal = DEFAULTS[pk];
+  initPicker(w, vals, closestIdx(vals, defVal), (v) => {});
+});
+
+// Option B — live badge update
+const obWeightBadge = document.getElementById('ob-weight-val');
+const obRepsBadge   = document.getElementById('ob-reps-val');
+const obRpeBadge    = document.getElementById('ob-rpe-val');
+const obLog         = document.getElementById('log-b');
+let obW = 190, obR = 8, obRpe = '—';
+function updateObLog() {
+  const rpeStr = obRpe === '—' ? '' : ` @ ${obRpe}`;
+  obLog.textContent = `Log set 2 · ${obW} × ${obR}${rpeStr}`;
+}
+document.querySelectorAll('[data-opt="b"].pk-widget').forEach(w => {
+  const pk = w.dataset.pk;
+  const vals = pk === 'weight' ? WEIGHT_VALS : pk === 'reps' ? REPS_VALS : RPE_VALS;
+  const defVal = DEFAULTS[pk];
+  initPicker(w, vals, closestIdx(vals, defVal), (v) => {
+    if (pk === 'weight') { obW = v; obWeightBadge.textContent = String(v); }
+    if (pk === 'reps')   { obR = v; obRepsBadge.textContent   = String(v); }
+    if (pk === 'rpe')    { obRpe = v; obRpeBadge.textContent  = String(v); }
+    updateObLog();
+  });
+});
+
+// Option C — live value update
+const ocWeightVal = document.getElementById('oc-weight-val');
+const ocRepsVal   = document.getElementById('oc-reps-val');
+const ocRpeVal    = document.getElementById('oc-rpe-val');
+const ocLog       = document.getElementById('log-c');
+let ocW = 190, ocR = 8, ocRpe = '—';
+function updateOcLog() {
+  const rpeStr = ocRpe === '—' ? '' : ` @ ${ocRpe}`;
+  ocLog.textContent = `Log set 2 · ${ocW} × ${ocR}${rpeStr}`;
+}
+document.querySelectorAll('[data-opt="c"].pk-widget').forEach(w => {
+  const pk = w.dataset.pk;
+  const vals = pk === 'weight' ? WEIGHT_VALS : pk === 'reps' ? REPS_VALS : RPE_VALS;
+  const defVal = DEFAULTS[pk];
+  initPicker(w, vals, closestIdx(vals, defVal), (v) => {
+    if (pk === 'weight') { ocW = v; ocWeightVal.textContent = String(v); }
+    if (pk === 'reps')   { ocR = v; ocRepsVal.textContent   = String(v); }
+    if (pk === 'rpe')    { ocRpe = v; ocRpeVal.textContent  = String(v); }
+    updateOcLog();
+  });
 });
 </script>
 </body>

@@ -14567,7 +14567,7 @@ function logSetV2(idx) {
   // Only block log if weight is truly unset (null/undefined, not 0).
   if (s.weight == null) { showToastV2('Scroll to set weight before logging.'); return; }
   if (s.reps   == null) { showToastV2('Scroll to set reps before logging.');   return; }
-  if (ui.session.trackRpe && s.rpe == null) { showToastV2('Scroll to set RPE, or turn off RPE tracking.'); return; }
+  // RPE is always shown and defaults to '—' (null). Logging with null RPE is allowed.
   s.done = true;
   persistWorkoutEditV2();
   if (typeof renderToday === 'function') renderToday();
@@ -14865,41 +14865,23 @@ function initWmPickers(entry, cur) {
   const slot = document.getElementById('wm-pickers');
   if (!slot) return;
   const s = entry.sets[cur];
-  const hasRpe = ui.session.trackRpe;
 
-  // Preload from the most-recently completed set when the current set is
-  // untouched. The next set is almost always a variation of the prior
-  // weight, so starting the picker there saves scrolling in the common case.
+  // Preload from the most-recently completed set. Always overwrites — within-session
+  // adjustments take priority over any cross-session defaults seeded by defaultSetsFor().
   const hasV = (v) => v != null && v !== '';
-  if (!hasV(s.weight) || !hasV(s.reps)) {
-    const prevDone = entry.sets.slice(0, cur).reverse().find(set => set.done);
-    if (prevDone) {
-      if (!hasV(s.weight) && hasV(prevDone.weight)) s.weight = prevDone.weight;
-      if (!hasV(s.reps)   && hasV(prevDone.reps))   s.reps   = prevDone.reps;
-      if (hasRpe && !hasV(s.rpe) && hasV(prevDone.rpe)) s.rpe = prevDone.rpe;
-      // Persist the preloaded values so logSetV2 sees them immediately
-      if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
-    }
+  const prevDone = entry.sets.slice(0, cur).reverse().find(set => set.done);
+  if (prevDone) {
+    if (hasV(prevDone.weight)) s.weight = prevDone.weight;
+    if (hasV(prevDone.reps))   s.reps   = prevDone.reps;
+    if (hasV(prevDone.rpe))    s.rpe    = prevDone.rpe;
+    // Persist the preloaded values so logSetV2 sees them immediately
+    if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
   }
 
-  // Determine initial picker positions
+  // Determine initial picker positions. RPE is always shown; defaults to '—' (index 0).
   const wIdx = _wmPickerClosestIdx(WM_WEIGHT_VALS, s.weight);
   const rIdx = _wmPickerClosestIdx(WM_REPS_VALS,   s.reps);
-  const eIdx = hasRpe ? _wmPickerClosestIdx(WM_RPE_VALS, hasV(s.rpe) ? s.rpe : '—') : 0;
-
-  const rpeRow = hasRpe ? `
-    <div class="wm-picker-divider"></div>
-    <div class="wm-picker-row">
-      <div class="wm-picker-label">RPE · Optional</div>
-      <div class="wm-picker-wrap">
-        <div class="wm-picker-pill"></div>
-        <div class="wm-picker-widget" id="wm-pk-rpe">
-          <div class="wm-picker-track"></div>
-          <div class="wm-picker-fade wm-picker-fade-l"></div>
-          <div class="wm-picker-fade wm-picker-fade-r"></div>
-        </div>
-      </div>
-    </div>` : '';
+  const eIdx = _wmPickerClosestIdx(WM_RPE_VALS, hasV(s.rpe) ? s.rpe : '—');
 
   slot.innerHTML = `
     <div class="wm-picker-row">
@@ -14925,7 +14907,18 @@ function initWmPickers(entry, cur) {
         </div>
       </div>
     </div>
-    ${rpeRow}`;
+    <div class="wm-picker-divider"></div>
+    <div class="wm-picker-row">
+      <div class="wm-picker-label">RPE</div>
+      <div class="wm-picker-wrap">
+        <div class="wm-picker-pill"></div>
+        <div class="wm-picker-widget" id="wm-pk-rpe">
+          <div class="wm-picker-track"></div>
+          <div class="wm-picker-fade wm-picker-fade-l"></div>
+          <div class="wm-picker-fade wm-picker-fade-r"></div>
+        </div>
+      </div>
+    </div>`;
 
   function persist() {
     if (typeof persistWorkoutEditV2 === 'function') persistWorkoutEditV2();
@@ -14934,10 +14927,7 @@ function initWmPickers(entry, cur) {
   function refreshLogBtn() {
     const btn = document.getElementById('wm-btn-log');
     if (!btn) return;
-    const w = (s.weight != null && s.weight !== '') ? s.weight : '—';
-    const r = (s.reps   != null && s.reps   !== '') ? s.reps   : '—';
     btn.textContent = `Log set ${cur + 1}`;
-    // No value summary in button — INCYTE voice: direct, no filler
   }
 
   _wmPickerInit(
@@ -14950,13 +14940,11 @@ function initWmPickers(entry, cur) {
     WM_REPS_VALS, rIdx,
     (val) => { s.reps = (val === '—' || val == null) ? null : Number(val); persist(); refreshLogBtn(); }
   );
-  if (hasRpe) {
-    _wmPickerInit(
-      document.getElementById('wm-pk-rpe'),
-      WM_RPE_VALS, eIdx,
-      (val) => { s.rpe = (val === '—') ? null : Number(val); persist(); }
-    );
-  }
+  _wmPickerInit(
+    document.getElementById('wm-pk-rpe'),
+    WM_RPE_VALS, eIdx,
+    (val) => { s.rpe = (val === '—') ? null : Number(val); persist(); }
+  );
 }
 
 // --- Picker overlay (used only for editing completed set rows) ---

@@ -197,27 +197,27 @@ function WorkoutPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => () => { stopRest(); }, []); // cleanup on unmount
 
-  // Preload current set from last completed set when weight/reps are unset
+  // Preload current set from most-recently completed set — always overwrites so
+  // within-session adjustments take priority over cross-session defaults.
   useEffect(() => {
     if (!entry) return;
     const cur = currentSetIdx(entry);
     if (cur === -1) return;
     const currentSet = entry.sets[cur];
-    if (hasValue(currentSet.weight) && hasValue(currentSet.reps)) return;
     const prevDone = entry.sets.slice(0, cur).reverse().find((set) => set.done);
     if (!prevDone) return;
     let changed = false;
     const newSet = { ...currentSet };
-    if (!hasValue(newSet.weight) && hasValue(prevDone.weight)) { newSet.weight = prevDone.weight; changed = true; }
-    if (!hasValue(newSet.reps)   && hasValue(prevDone.reps))   { newSet.reps   = prevDone.reps;   changed = true; }
-    if (trackRpe && !hasValue(newSet.rpe) && hasValue(prevDone.rpe)) { newSet.rpe = prevDone.rpe; changed = true; }
+    if (hasValue(prevDone.weight)) { newSet.weight = prevDone.weight; changed = true; }
+    if (hasValue(prevDone.reps))   { newSet.reps   = prevDone.reps;   changed = true; }
+    if (hasValue(prevDone.rpe))    { newSet.rpe    = prevDone.rpe;    changed = true; }
     if (!changed) return;
     const newSets = entry.sets.map((set, i) => i === cur ? newSet : set);
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     persist(newEntry);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry?.sets?.length, trackRpe]);
+  }, [entry?.sets?.length]);
 
   // ── Persistence ───────────────────────────────────────────────────────────
   const persist = useCallback(async (updatedEntry: WorkoutEntry, updatedWorkout?: Workout) => {
@@ -269,7 +269,7 @@ function WorkoutPage() {
     const s = entry.sets[idx];
     if (!hasValue(s.weight)) { showToast("Scroll to set weight before logging."); return; }
     if (!hasValue(s.reps))   { showToast("Scroll to set reps before logging.");   return; }
-    if (trackRpe && !hasValue(s.rpe)) { showToast("Scroll to set RPE, or turn off RPE tracking."); return; }
+    // RPE is always shown and defaults to null ('—'). Logging with null RPE is allowed.
 
     const newSets = logSet(entry.sets, idx);
     const newEntry = { ...entry, sets: newSets };
@@ -857,19 +857,17 @@ function HeroCard(props: {
               onChange={(v) => props.onPatchSet("reps", v)}
               styles={s}
             />
-            {trackRpe && (
-              <>
-                <div className={s.inlinePickerDivider} />
-                <InlinePicker
-                  key={`e-${cur}`}
-                  label="RPE · Optional"
-                  values={WM_RPE_VALS}
-                  value={set?.rpe}
-                  onChange={(v) => props.onPatchSet("rpe", v)}
-                  styles={s}
-                />
-              </>
-            )}
+            <>
+              <div className={s.inlinePickerDivider} />
+              <InlinePicker
+                key={`e-${cur}`}
+                label="RPE"
+                values={WM_RPE_VALS}
+                value={set?.rpe}
+                onChange={(v) => props.onPatchSet("rpe", v)}
+                styles={s}
+              />
+            </>
           </div>
           <div className={s.heroActions}>
             <button
