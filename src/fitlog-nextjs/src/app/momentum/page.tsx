@@ -215,9 +215,6 @@ export default function MomentumPage() {
         <div className={s.errorState}>{err}</div>
       ) : insightResult ? (
         <>
-          {/* ── Option A Status banner ────────────────────────────────────── */}
-          <StatusBanner insightResult={insightResult} />
-
           {/* ── Warnings ──────────────────────────────────────────────────── */}
           {insightResult.warnings.length > 0 && (
             <div className={s.warningsWrap}>
