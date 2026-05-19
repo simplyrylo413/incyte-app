@@ -81,7 +81,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1.2px solid var(--hairline, rgba(15,22,34,0.25));
+  border: 1.5px solid #0f1622;
   background: transparent;
   display: flex;
   align-items: center;
@@ -89,11 +89,11 @@
   font-family: var(--font-mono, 'Geist Mono', monospace);
   font-size: 11px;
   font-weight: 700;
-  color: var(--muted, #5e6a82);
+  color: #0f1622;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
-.wday:active .wdayDot { border-color: var(--accent, #5d9bb8); color: var(--accent, #5d9bb8); }
+.wday:active .wdayDot { background: #0f1622; color: #fff; }
 
 /* Today — gradient glass circle */
 .wday.today .wdayDot {
@@ -291,7 +291,7 @@
 /* Muscle group eyebrow inside day */
 .muscleEyebrow {
   font-family: var(--font-mono, 'Geist Mono', monospace);
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--label, #8893a8);
@@ -677,8 +677,8 @@
   :global(body:not(.theme-light)) .wday.today .wdayLetter { color: #4dd0e1; }
 
   :global(body:not(.theme-light)) .wdayDot {
-    border-color: rgba(255,255,255,0.18);
-    color: #8d96a5;
+    border-color: #f7f9fc;
+    color: #f7f9fc;
   }
 
   :global(body:not(.theme-light)) .wday.today .wdayDot {
@@ -781,8 +781,8 @@
 :global(body.theme-dark) .wday.today .wdayLetter { color: #4dd0e1; }
 
 :global(body.theme-dark) .wdayDot {
-  border-color: rgba(255,255,255,0.18);
-  color: #8d96a5;
+  border-color: #f7f9fc;
+  color: #f7f9fc;
 }
 
 :global(body.theme-dark) .wday.today .wdayDot {

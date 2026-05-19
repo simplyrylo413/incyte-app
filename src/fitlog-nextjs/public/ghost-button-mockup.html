@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Ghost Button Style Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1622;
+    --ink-2: #2c3548;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --paper: #f4f6fa;
+    --accent: #5d9bb8;
+    --ok: #4f9aa8;
+    --bad: #b08092;
+    --font-display: "Inter Tight", system-ui, sans-serif;
+    --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+    /* Ghost button tokens */
+    --ghost-border: 1.5px solid rgba(15,22,34,0.55);
+    --ghost-bg: rgba(255,255,255,0.55);
+    --ghost-bg-hover: rgba(255,255,255,0.80);
+    --ghost-text: #0f1622;
+  }
+
+  body {
+    font-family: var(--font-display);
+    background: #e4e8f0;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .page-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 6px;
+  }
+  .page-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  /* ── Screen grid ── */
+  .screens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+
+  /* ── Phone frame ── */
+  .phone {
+    background: #fff;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(15,22,34,0.13), 0 1px 4px rgba(15,22,34,0.06);
+    position: relative;
+  }
+  .phone-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--label);
+    text-align: center;
+    padding: 16px 0 4px;
+  }
+  .phone-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    padding-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Screen chrome ── */
+  .screen {
+    background: var(--paper);
+    padding: 0;
+  }
+
+  /* ── Nav bar ── */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 10px;
+  }
+  .nav-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+  .nav-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 2px;
+  }
+
+  /* ── Section eyebrow ── */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 10px 18px 6px;
+  }
+
+  /* ── Movement row ── */
+  .mv-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 18px;
+    gap: 10px;
+    border-bottom: 1.2px solid rgba(15,22,34,0.06);
+  }
+  .mv-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .mv-name { font-size: 14px; font-weight: 600; flex: 1; letter-spacing: -0.01em; }
+  .mv-equip {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--label); background: rgba(15,22,34,0.07); padding: 2px 7px; border-radius: 5px;
+  }
+  .mv-chip {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    border: 1.2px solid rgba(93,155,184,0.45);
+    color: var(--accent); padding: 2px 8px; border-radius: 999px;
+  }
+
+  /* ────────────────────────────────────────────
+     GHOST BUTTON — the unified style
+  ──────────────────────────────────────────── */
+  .ghost-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 15px;
+    border: var(--ghost-border);
+    border-radius: 999px;
+    background: var(--ghost-bg);
+    color: var(--ghost-text);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background 140ms, transform 120ms;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+  }
+  .ghost-btn:active { transform: scale(0.95); background: var(--ghost-bg-hover); }
+
+  /* CTA variant — centered below list */
+  .ghost-btn-cta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 22px;
+    border: var(--ghost-border);
+    border-radius: 999px;
+    background: var(--ghost-bg);
+    color: var(--ghost-text);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    margin: 14px auto;
+    width: fit-content;
+  }
+  .ghost-btn-plus {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  /* ── Plan card ── */
+  .plan-card {
+    margin: 0 14px 10px;
+    background: rgba(255,255,255,0.70);
+    border: 1.2px solid rgba(15,22,34,0.09);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .plan-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-bottom: 1.2px solid rgba(15,22,34,0.07);
+  }
+  .plan-day-name { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .plan-day-meta { font-family: var(--font-mono); font-size: 9.5px; color: var(--label); margin-top: 1px; }
+  .plan-mv { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1.2px solid rgba(15,22,34,0.05); }
+  .plan-mv:last-child { border-bottom: 0; }
+  .plan-mv-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(15,22,34,0.18); flex-shrink: 0; }
+  .plan-mv-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .plan-mv-equip { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--label); }
+
+  /* plan add row */
+  .plan-add-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+  }
+
+  /* ── Bottom sheet (picker) ── */
+  .picker-sheet {
+    background: rgba(245,248,252,0.98);
+    border-top: 1.2px solid rgba(15,22,34,0.09);
+    border-radius: 20px 20px 0 0;
+    padding: 10px 0 16px;
+  }
+  .picker-handle {
+    width: 36px; height: 4px;
+    background: rgba(15,22,34,0.14); border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+  .picker-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 18px 10px;
+  }
+  .picker-title { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; }
+  .picker-close {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(15,22,34,0.07); border: 0;
+    font-size: 11px; color: var(--muted);
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .picker-row {
+    display: flex; align-items: center;
+    padding: 9px 18px 9px 14px;
+    border-bottom: 1.2px solid rgba(15,22,34,0.05);
+    gap: 10px;
+  }
+  .picker-row:last-child { border-bottom: 0; }
+  .picker-mv-name { font-size: 13px; font-weight: 500; flex: 1; letter-spacing: -0.005em; }
+  .picker-fav { font-size: 14px; color: #c0c8d4; margin-right: 4px; }
+  .picker-fav.on { color: #b08092; }
+
+  /* ── Token callout ── */
+  .token-box {
+    background: rgba(15,22,34,0.05);
+    border: 1.2px solid rgba(15,22,34,0.10);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin: 28px auto 0;
+    max-width: 680px;
+  }
+  .token-title {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--label); margin-bottom: 12px;
+  }
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .token-row { display: flex; align-items: center; gap: 10px; }
+  .token-swatch {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    border: 1.5px solid rgba(15,22,34,0.55);
+    background: rgba(255,255,255,0.55);
+  }
+  .token-key { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+  .token-val { font-size: 11px; font-weight: 600; color: var(--ink); margin-top: 1px; }
+
+  .spacer { height: 12px; }
+  .divider { height: 1.2px; background: rgba(15,22,34,0.07); margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-eyebrow">INCYTE · Button Unification</div>
+  <div class="page-title">Ghost Style — Black outline · Light fill</div>
+  <div class="page-sub">Consistent across Today · Plan · Movement Picker</div>
+</div>
+
+<div class="screens">
+
+  <!-- TODAY -->
+  <div class="phone">
+    <div class="phone-label">Screen A</div>
+    <div class="phone-title">Today</div>
+    <div class="screen">
+      <div class="nav">
+        <div>
+          <div class="nav-title">Today</div>
+          <div class="nav-date">Sun · May 17</div>
+        </div>
+      </div>
+
+      <div class="eyebrow">Chest</div>
+      <div class="mv-row">
+        <div class="mv-dot"></div>
+        <div class="mv-name">Bench Press</div>
+        <div class="mv-equip">Barbell</div>
+        <div class="mv-chip">2/3</div>
+      </div>
+      <div class="mv-row">
+        <div class="mv-dot"></div>
+        <div class="mv-name">Cable Fly</div>
+        <div class="mv-equip">Cable</div>
+        <div class="mv-chip">0/3</div>
+      </div>
+
+      <div class="eyebrow">Back</div>
+      <div class="mv-row">
+        <div class="mv-dot"></div>
+        <div class="mv-name">Cable Row</div>
+        <div class="mv-equip">Cable</div>
+        <div class="mv-chip">0/3</div>
+      </div>
+
+      <!-- Ghost CTA -->
+      <button class="ghost-btn-cta">
+        <span class="ghost-btn-plus">+</span> Add movement
+      </button>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="phone">
+    <div class="phone-label">Screen B</div>
+    <div class="phone-title">Plan</div>
+    <div class="screen">
+      <div class="nav">
+        <div>
+          <div class="nav-title">Plan</div>
+          <div class="nav-date">Weekly · 4 days</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-day-head">
+          <div>
+            <div class="plan-day-name">Monday</div>
+            <div class="plan-day-meta">3 movements · ~42 min</div>
+          </div>
+          <!-- Ghost button inline -->
+          <button class="ghost-btn">+ Add</button>
+        </div>
+        <div class="plan-mv">
+          <div class="plan-mv-dot"></div>
+          <div class="plan-mv-name">Squat</div>
+          <div class="plan-mv-equip">Barbell</div>
+        </div>
+        <div class="plan-mv">
+          <div class="plan-mv-dot"></div>
+          <div class="plan-mv-name">Romanian Deadlift</div>
+          <div class="plan-mv-equip">Barbell</div>
+        </div>
+        <div class="plan-mv">
+          <div class="plan-mv-dot"></div>
+          <div class="plan-mv-name">Leg Press</div>
+          <div class="plan-mv-equip">Machine</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-day-head">
+          <div>
+            <div class="plan-day-name">Wednesday</div>
+            <div class="plan-day-meta">No movements yet</div>
+          </div>
+          <button class="ghost-btn">+ Add</button>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-day-head">
+          <div>
+            <div class="plan-day-name">Friday</div>
+            <div class="plan-day-meta">2 movements · ~28 min</div>
+          </div>
+          <button class="ghost-btn">+ Add</button>
+        </div>
+        <div class="plan-mv">
+          <div class="plan-mv-dot"></div>
+          <div class="plan-mv-name">Bench Press</div>
+          <div class="plan-mv-equip">Barbell</div>
+        </div>
+        <div class="plan-mv">
+          <div class="plan-mv-dot"></div>
+          <div class="plan-mv-name">Incline DB Press</div>
+          <div class="plan-mv-equip">Dumbbell</div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- MOVEMENT PICKER SHEET -->
+  <div class="phone">
+    <div class="phone-label">Screen C</div>
+    <div class="phone-title">Movement Picker</div>
+    <div class="screen" style="background:#dde2ec; padding-bottom: 0;">
+      <!-- dimmed background hint -->
+      <div style="padding: 16px 18px; opacity: 0.3;">
+        <div class="mv-row" style="background:rgba(255,255,255,0.4); border-radius:10px; margin-bottom:6px; padding:10px 14px; border:0;">
+          <div class="mv-dot"></div>
+          <div class="mv-name" style="font-size:13px;">Bench Press</div>
+          <div class="mv-chip">2/3</div>
+        </div>
+      </div>
+      <!-- Sheet -->
+      <div class="picker-sheet">
+        <div class="picker-handle"></div>
+        <div class="picker-head">
+          <div class="picker-title">Add to today</div>
+          <div class="picker-close">✕</div>
+        </div>
+
+        <div style="padding: 0 18px 10px; display:flex; gap:6px;">
+          <div style="padding:5px 12px; border-radius:999px; border:1.2px solid rgba(15,22,34,0.55); background:rgba(255,255,255,0.55); font-size:12px; font-weight:700; color:#0f1622; font-family:var(--font-display);">All</div>
+          <div style="padding:5px 12px; border-radius:999px; border:1.2px solid rgba(15,22,34,0.14); background:none; font-size:12px; font-weight:600; color:var(--label); font-family:var(--font-display);">♥ Favorites <span style="font-size:10px;font-weight:700;background:rgba(176,128,146,0.15);border-radius:999px;padding:0 5px;color:#b08092;">3</span></div>
+        </div>
+
+        <div style="padding: 0 18px 10px;">
+          <input style="width:100%;padding:8px 12px;border:1.2px solid rgba(15,22,34,0.10);border-radius:10px;background:rgba(15,22,34,0.05);font-family:var(--font-display);font-size:13px;color:#0f1622;outline:none;" placeholder="Search movements…" />
+        </div>
+
+        <div style="font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--label);padding:4px 18px 6px;">Chest</div>
+
+        <div class="picker-row">
+          <div class="picker-mv-name">Incline DB Press</div>
+          <div class="mv-equip">Dumbbell</div>
+          <span class="picker-fav" style="margin-left:8px;">♡</span>
+          <!-- Ghost add button -->
+          <button class="ghost-btn" style="padding:5px 13px; font-size:12px;">+ Add</button>
+        </div>
+        <div class="picker-row">
+          <div class="picker-mv-name">Lat Pulldown</div>
+          <div class="mv-equip">Cable</div>
+          <span class="picker-fav on" style="margin-left:8px;">♥</span>
+          <button class="ghost-btn" style="padding:5px 13px; font-size:12px;">+ Add</button>
+        </div>
+        <div class="picker-row">
+          <div class="picker-mv-name">Face Pull</div>
+          <div class="mv-equip">Cable</div>
+          <span class="picker-fav" style="margin-left:8px;">♡</span>
+          <button class="ghost-btn" style="padding:5px 13px; font-size:12px;">+ Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Token spec -->
+<div class="token-box">
+  <div class="token-title">Ghost button — design tokens</div>
+  <div class="token-grid">
+    <div class="token-row">
+      <div class="token-swatch"></div>
+      <div>
+        <div class="token-key">Border</div>
+        <div class="token-val">1.5px solid rgba(15,22,34,0.55)</div>
+      </div>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="border-color:rgba(15,22,34,0.55); background:rgba(255,255,255,0.80);"></div>
+      <div>
+        <div class="token-key">Background (default)</div>
+        <div class="token-val">rgba(255,255,255,0.55)</div>
+      </div>
+    </div>
+    <div class="token-row">
+      <div class="token-swatch" style="background:rgba(255,255,255,0.80);"></div>
+      <div>
+        <div class="token-key">Background (pressed)</div>
+        <div class="token-val">rgba(255,255,255,0.80)</div>
+      </div>
+    </div>
+    <div class="token-row">
+      <div style="width:28px;height:28px;display:grid;place-items:center;font-size:13px;font-weight:700;flex-shrink:0;">#0f1622</div>
+      <div>
+        <div class="token-key">Text + icon</div>
+        <div class="token-val">var(--ink) #0f1622</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

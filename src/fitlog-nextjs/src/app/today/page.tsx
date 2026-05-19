@@ -486,44 +486,9 @@ function MovementRow({
     >
       <span ref={rippleRef} className={s.rippleLayer} aria-hidden="true" />
 
-      {!item.fromHistory && (
-        <span className={s.dragHandle} aria-hidden="true">
-          <svg viewBox="0 0 10 14" fill="none">
-            <circle cx="2" cy="2"  r="1.2" fill="currentColor" />
-            <circle cx="8" cy="2"  r="1.2" fill="currentColor" />
-            <circle cx="2" cy="7"  r="1.2" fill="currentColor" />
-            <circle cx="8" cy="7"  r="1.2" fill="currentColor" />
-            <circle cx="2" cy="12" r="1.2" fill="currentColor" />
-            <circle cx="8" cy="12" r="1.2" fill="currentColor" />
-          </svg>
-        </span>
-      )}
-
       <div className={s.mvBody} onClick={handleBodyClick}>
         <div className={s.row1}>
           <span className={s.mvName}>{name}</span>
-          <span className={s.equipWrap}>
-            <button
-              className={s.equip}
-              onClick={(e) => { e.stopPropagation(); setOpenPop((v) => !v); }}
-              aria-label={`Equipment: ${equip}`}
-              type="button"
-            >
-              {equip.toUpperCase()}
-            </button>
-            <div className={`${s.equipPop} ${openPop ? s.equipPopOpen : ""}`}>
-              {EQUIPMENT_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  className={`${s.equipChip} ${opt === equip ? s.equipChipActive : ""}`}
-                  type="button"
-                  onClick={(e) => handleEquipTap(e, opt)}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </span>
         </div>
       </div>
 

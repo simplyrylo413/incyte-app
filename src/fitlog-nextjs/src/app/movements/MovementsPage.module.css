@@ -88,7 +88,7 @@
 /* ─── Group label ────────────────────────────────────────────────────────── */
 .groupLabel {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -105,18 +105,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px 8px 8px;
-  background: rgba(255,255,255,0.65);
-  border: 1.2px solid rgba(255,255,255,0.78);
-  border-radius: 14px;
-  margin-bottom: 5px;
+  padding: 10px 12px;
+  border-bottom: 1.2px solid rgba(15,22,34,0.06);
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
-  box-shadow: 0 1px 4px rgba(15,22,34,0.06);
+  transition: background 150ms ease-out;
   position: relative;
-  overflow: hidden;
 }
 
 /* ─── Thumbnail ──────────────────────────────────────────────────────────── */
@@ -146,20 +141,8 @@
   line-height: 1;
 }
 
-.mvRow::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(155deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%);
-  mix-blend-mode: screen;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.mvRow:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 2px rgba(15,22,34,0.06);
-}
+.mvRow:hover { background: rgba(15,22,34,0.025); }
+.mvRow:active { background: rgba(15,22,34,0.05); }
 
 .mvRowBody {
   flex: 1;
@@ -191,8 +174,9 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8893a8;
-  background: rgba(15,22,34,0.06);
+  color: #5e6a82;
+  background: transparent;
+  border: 1.5px solid #0f1622;
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -525,11 +509,7 @@
 
   :global(body:not(.theme-light)) .groupLabel { color: #6a7384; }
 
-  :global(body:not(.theme-light)) .mvRow {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.10);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
-  }
+  :global(body:not(.theme-light)) .mvRow { border-bottom-color: rgba(255,255,255,0.08); }
 
   :global(body:not(.theme-light)) .mvThumb { background: rgba(255,255,255,0.06); }
   :global(body:not(.theme-light)) .mvThumbPlaceholder { color: #3a4255; }
@@ -537,8 +517,9 @@
   :global(body:not(.theme-light)) .mvName { color: #f7f9fc; }
 
   :global(body:not(.theme-light)) .mvChip {
-    color: #6a7384;
-    background: rgba(255,255,255,0.08);
+    color: #8d96a5;
+    background: transparent;
+    border-color: #f7f9fc;
   }
 
   :global(body:not(.theme-light)) .mvChevron { color: #6a7384; }
@@ -614,11 +595,7 @@
 
 :global(body.theme-dark) .groupLabel { color: #6a7384; }
 
-:global(body.theme-dark) .mvRow {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.10);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
-}
+:global(body.theme-dark) .mvRow { border-bottom-color: rgba(255,255,255,0.08); }
 
 :global(body.theme-dark) .mvThumb { background: rgba(255,255,255,0.06); }
 :global(body.theme-dark) .mvThumbPlaceholder { color: #3a4255; }
@@ -626,8 +603,9 @@
 :global(body.theme-dark) .mvName { color: #f7f9fc; }
 
 :global(body.theme-dark) .mvChip {
-  color: #6a7384;
-  background: rgba(255,255,255,0.08);
+  color: #8d96a5;
+  background: transparent;
+  border-color: #f7f9fc;
 }
 
 :global(body.theme-dark) .mvChevron { color: #6a7384; }
@@ -1015,7 +993,7 @@
   font-weight: 600;
   color: #5e6a82;
   background: rgba(255,255,255,0.65);
-  border: 1.2px solid rgba(15,22,34,0.12);
+  border: 1.5px solid #0f1622;
   border-radius: 999px;
   padding: 5px 14px;
   cursor: pointer;

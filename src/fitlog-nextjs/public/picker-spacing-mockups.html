@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picker Spacing Mockups</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Inter Tight", system-ui, sans-serif;
+    background: #e8ecf2;
+    min-height: 100vh;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+  h1 { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #5e6a82; }
+  .option-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: #8893a8; margin-bottom: 10px; text-align: center;
+  }
+  .option-desc {
+    font-size: 12px; color: #5e6a82; text-align: center; margin-bottom: 14px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+  }
+
+  /* Card that wraps the picker group */
+  .pk-card {
+    width: 380px;
+    background: rgba(15,22,34,.03);
+    border: 1.2px solid rgba(15,22,34,0.11);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .pk-group { padding: 9px 14px 7px; }
+  .pk-group-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .pk-group-lbl {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #0f1622;
+  }
+  .pk-group-badge {
+    font-family: "Inter Tight", system-ui, sans-serif;
+    font-size: 38px; font-weight: 800; letter-spacing: -0.018em;
+    color: rgba(93,155,184,1.0); line-height: 1;
+  }
+
+  /* Widget — the scroll strip */
+  .pk-widget {
+    position: relative;
+    height: 52px;
+    overflow: hidden;
+    background: transparent;
+  }
+  .pk-track {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    position: absolute;
+    top: 0; left: 0;
+    white-space: nowrap;
+  }
+  .pk-item {
+    flex-shrink: 0;
+    text-align: center;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* Indicator underline */
+  .pk-indicator {
+    position: absolute;
+    bottom: 6px; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 2.5px; border-radius: 99px;
+    background: #5d9bb8;
+    box-shadow: 0 0 9px rgba(93,155,184,.60);
+    pointer-events: none; z-index: 5;
+  }
+
+  /* Left / right fade */
+  .pk-fade {
+    position: absolute; top: 0; bottom: 0; width: 56px;
+    pointer-events: none; z-index: 4;
+  }
+  .pk-fade-l {
+    left: 0;
+    background: linear-gradient(to right, rgba(220,226,234,1) 0%, rgba(220,226,234,0) 100%);
+  }
+  .pk-fade-r {
+    right: 0;
+    background: linear-gradient(to left, rgba(220,226,234,1) 0%, rgba(220,226,234,0) 100%);
+  }
+</style>
+</head>
+<body>
+
+<h1>Picker Spacing Options</h1>
+
+<!-- ─── Option A ──────────────────────────────────────────────── -->
+<div>
+  <div class="option-label">Option A</div>
+  <div class="option-desc">Item slot 160px · center 34px · more air, same weight feel</div>
+  <div class="pk-card">
+    <div class="pk-group">
+      <div class="pk-group-hdr">
+        <span class="pk-group-lbl">WEIGHT · LB</span>
+        <span class="pk-group-badge">200</span>
+      </div>
+      <div class="pk-widget" id="widgetA"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Option B ──────────────────────────────────────────────── -->
+<div>
+  <div class="option-label">Option B</div>
+  <div class="option-desc">Item slot 192px · center 30px · generous gaps, lighter number</div>
+  <div class="pk-card">
+    <div class="pk-group">
+      <div class="pk-group-hdr">
+        <span class="pk-group-lbl">WEIGHT · LB</span>
+        <span class="pk-group-badge">200</span>
+      </div>
+      <div class="pk-widget" id="widgetB"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Option C ──────────────────────────────────────────────── -->
+<div>
+  <div class="option-label">Option C</div>
+  <div class="option-desc">Item slot 224px · center 28px · maximum breathing room</div>
+  <div class="pk-card">
+    <div class="pk-group">
+      <div class="pk-group-hdr">
+        <span class="pk-group-lbl">WEIGHT · LB</span>
+        <span class="pk-group-badge">200</span>
+      </div>
+      <div class="pk-widget" id="widgetC"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Shared values — 5lb increments 0–500
+const VALS = Array.from({ length: 101 }, (_, i) => i * 5);
+const SELECTED = 200; // mid-range selection to show neighbours
+const SEL_IDX = VALS.indexOf(SELECTED);
+
+const ACCENT   = [93, 155, 184];
+const DARK_CLR = [15, 22, 34];
+
+function buildPicker(widgetEl, itemW, centerSize) {
+  const track = document.createElement('div');
+  track.className = 'pk-track';
+
+  VALS.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'pk-item';
+    el.style.width = itemW + 'px';
+    el.textContent = String(v);
+    track.appendChild(el);
+  });
+
+  // Fades
+  const fl = document.createElement('div');
+  fl.className = 'pk-fade pk-fade-l';
+  const fr = document.createElement('div');
+  fr.className = 'pk-fade pk-fade-r';
+
+  // Indicator
+  const ind = document.createElement('div');
+  ind.className = 'pk-indicator';
+
+  widgetEl.appendChild(track);
+  widgetEl.appendChild(fl);
+  widgetEl.appendChild(fr);
+  widgetEl.appendChild(ind);
+
+  // Position track so SEL_IDX is centered
+  const cw = widgetEl.getBoundingClientRect().width;
+  const tx = cw / 2 - itemW / 2 - SEL_IDX * itemW;
+  track.style.transform = `translateX(${tx}px)`;
+
+  // Colour + size each item
+  track.querySelectorAll('.pk-item').forEach((el, i) => {
+    const d = Math.abs(i - SEL_IDX);
+    const t = Math.exp(-d * 0.9);
+    const size   = (10 + (centerSize - 10) * t).toFixed(1);
+    const alpha  = (0.30 + 0.70 * t).toFixed(3);
+    const fw     = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
+    const ls     = d < 0.6 ? '-0.018em' : '0em';
+    const [ar,ag,ab] = ACCENT;
+    const [mr,mg,mb] = DARK_CLR;
+    const cr = Math.round(ar * t + mr * (1-t));
+    const cg = Math.round(ag * t + mg * (1-t));
+    const cb = Math.round(ab * t + mb * (1-t));
+    el.style.cssText = `width:${itemW}px; font-size:${size}px; font-weight:${fw};` +
+      `color:rgba(${cr},${cg},${cb},${alpha}); letter-spacing:${ls};`;
+  });
+}
+
+// Defer until layout is ready so getBoundingClientRect() returns real widths
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    buildPicker(document.getElementById('widgetA'), 160, 34);
+    buildPicker(document.getElementById('widgetB'), 192, 30);
+    buildPicker(document.getElementById('widgetC'), 224, 28);
+  });
+});
+</script>
+</body>
+</html>

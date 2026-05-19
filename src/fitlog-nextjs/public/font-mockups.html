@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Font Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Outfit:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:       #0f1622;
+  --ink-2:     #2c3548;
+  --muted:     #5e6a82;
+  --label:     #8893a8;
+  --accent:    #5d9bb8;
+  --accent-2:  #7fa5c7;
+  --ok:        #4f9aa8;
+  --bad:       #b08092;
+  --paper:     #f4f6f9;
+  --hairline:  rgba(15,22,34,0.25);
+  --hairline-soft: rgba(15,22,34,0.11);
+}
+
+body {
+  background: #e8ecf2;
+  padding: 32px 0 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+/* Page header */
+.page-header {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  color: #8893a8; text-align: center; margin-bottom: 32px;
+}
+
+/* Option section */
+.option-wrap {
+  width: 100%; max-width: 420px;
+  padding: 0 20px 48px;
+}
+.option-tag {
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+  color: #8893a8; margin-bottom: 4px;
+}
+.option-name {
+  font-size: 22px; font-weight: 700; color: var(--ink);
+  margin-bottom: 2px; line-height: 1.1;
+}
+.option-desc {
+  font-family: "Geist Mono", monospace;
+  font-size: 10.5px; color: var(--muted); margin-bottom: 20px;
+}
+
+/* Phone frame */
+.phone {
+  background: #f4f6f9;
+  border-radius: 28px;
+  border: 1.2px solid rgba(15,22,34,0.12);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(15,22,34,0.12), 0 2px 8px rgba(15,22,34,0.06);
+  padding: 0;
+}
+
+/* ── Shared token overrides per font option ─────────────── */
+.font-a { --f-display: "Space Grotesk", system-ui, sans-serif; --f-text: "Space Grotesk", system-ui, sans-serif; }
+.font-b { --f-display: "DM Sans", system-ui, sans-serif;       --f-text: "DM Sans", system-ui, sans-serif; }
+.font-c { --f-display: "Outfit", system-ui, sans-serif;        --f-text: "Outfit", system-ui, sans-serif; }
+.font-mono { --f-mono: "Geist Mono", ui-monospace, monospace; }
+
+/* ── Status bar ─────────────────────────────────────────── */
+.status-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px 0;
+  font-family: var(--f-display);
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+}
+
+/* ── TODAY SCREEN ─────────────────────────────────────────── */
+.screen { padding: 0 0 16px; }
+
+.today-header {
+  padding: 16px 20px 12px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.today-headline {
+  font-family: var(--f-display);
+  font-size: 26px; font-weight: 700; letter-spacing: -0.022em; color: var(--ink);
+  line-height: 1.1;
+}
+.today-sub {
+  font-family: var(--f-text);
+  font-size: 12.5px; font-weight: 500; color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Progress panel */
+.progress-panel {
+  margin: 0 14px 14px;
+  background: linear-gradient(155deg, rgba(93,155,184,0.14) 0%, rgba(155,130,200,0.10) 55%, rgba(201,160,190,0.07) 100%);
+  border: 1.2px solid rgba(93,155,184,0.22);
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex; gap: 0;
+}
+.stat { flex: 1; text-align: center; }
+.stat + .stat { border-left: 1.2px solid var(--hairline-soft); }
+.stat-val {
+  font-family: var(--f-display);
+  font-size: 22px; font-weight: 800; letter-spacing: -0.022em; color: var(--ink);
+  line-height: 1;
+}
+.stat-lbl {
+  font-family: "Geist Mono", monospace;
+  font-size: 9px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted); margin-top: 3px;
+}
+
+/* Movement list */
+.section-eyebrow {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--label); padding: 0 20px 6px;
+}
+.mv-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px;
+  border-top: 1.2px solid var(--hairline-soft);
+}
+.mv-name {
+  font-family: var(--f-display);
+  font-size: 14px; font-weight: 600; color: var(--ink); flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mv-pill {
+  font-family: "Geist Mono", monospace;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(15,22,34,0.06); border-radius: 6px;
+  padding: 3px 7px;
+}
+.mv-chip {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px; font-weight: 600; color: var(--ok);
+  background: rgba(79,154,168,0.12); border-radius: 20px;
+  padding: 3px 9px; white-space: nowrap;
+}
+
+/* ── WORKOUT SCREEN ───────────────────────────────────────── */
+.wm-screen { padding: 0 0 20px; }
+
+.wm-topbar {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px 0;
+}
+.wm-back {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  border: 1.5px solid rgba(15,22,34,0.30);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink); flex-shrink: 0;
+}
+.wm-mvname {
+  font-family: var(--f-display);
+  font-size: 18px; font-weight: 700; letter-spacing: -0.018em; color: var(--ink);
+  line-height: 1.1;
+}
+.wm-mvsub {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); margin-top: 2px;
+}
+
+/* Hero numbers */
+.wm-hero {
+  margin: 18px 14px 0;
+  background: linear-gradient(155deg, rgba(93,155,184,0.18) 0%, rgba(155,130,200,0.13) 55%, rgba(201,160,190,0.10) 100%);
+  border: 1.2px solid rgba(93,155,184,0.20);
+  border-radius: 22px; padding: 20px 18px 18px;
+  text-align: center;
+}
+.wm-hero-number {
+  font-family: var(--f-display);
+  font-size: 58px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink);
+  line-height: 1;
+}
+.wm-hero-unit {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted); margin-top: 4px;
+}
+.wm-hero-sub {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 14px;
+}
+.wm-hero-sub-val {
+  font-family: var(--f-display);
+  font-size: 22px; font-weight: 700; letter-spacing: -0.018em; color: var(--ink);
+}
+.wm-hero-sub-lbl {
+  font-family: "Geist Mono", monospace;
+  font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted);
+}
+.wm-hero-sep {
+  width: 1.2px; height: 28px; background: var(--hairline-soft);
+}
+
+/* Set rows */
+.set-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  border-top: 1.2px solid var(--hairline-soft);
+}
+.set-num {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px; font-weight: 600; color: var(--label); width: 16px; text-align: center;
+}
+.set-prev {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px; font-weight: 500; color: var(--label); flex: 1; text-align: center;
+}
+.set-today {
+  font-family: "Geist Mono", monospace;
+  font-size: 12px; font-weight: 700; color: var(--ink); flex: 1; text-align: center;
+}
+.set-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ok); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Nav */
+.bottom-nav {
+  display: flex; border-top: 1.2px solid var(--hairline-soft);
+  margin-top: 16px;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0;
+  font-family: "Geist Mono", monospace;
+  font-size: 8.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--label); gap: 5px;
+}
+.nav-item.active { color: var(--accent); }
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+/* divider between screens */
+.screen-divider {
+  height: 1.2px; background: var(--hairline-soft); margin: 0 14px;
+}
+</style>
+</head>
+<body>
+
+<p class="page-header">INCYTE · Font Direction Mockups</p>
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPTION A — Space Grotesk
+     Technical, geometric, strong at numerics. Clinical feel.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="option-wrap font-a font-mono">
+  <p class="option-tag">Option A</p>
+  <p class="option-name" style="font-family:'Space Grotesk',sans-serif">Space Grotesk</p>
+  <p class="option-desc">Geometric · technical · precise numerics</p>
+
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="4" width="2" height="6" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="0" width="2" height="10" rx="1"/><rect x="9" y="1" width="2" height="9" rx="1"/></svg>
+        ●●●
+      </span>
+    </div>
+
+    <!-- TODAY -->
+    <div class="screen">
+      <div class="today-header">
+        <div>
+          <div class="today-headline">Today</div>
+          <div class="today-sub">Monday · Push A · 3 movements</div>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="stat">
+          <div class="stat-val">12,400</div>
+          <div class="stat-lbl">Volume</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">7.8</div>
+          <div class="stat-lbl">Avg RPE</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">67%</div>
+          <div class="stat-lbl">Complete</div>
+        </div>
+      </div>
+      <div class="section-eyebrow">Chest</div>
+      <div class="mv-row">
+        <div class="mv-name">Bench Press</div>
+        <div class="mv-pill">Barbell</div>
+        <div class="mv-chip">3 / 5</div>
+      </div>
+      <div class="mv-row">
+        <div class="mv-name">Incline DB Press</div>
+        <div class="mv-pill">Dumbbell</div>
+        <div class="mv-chip">0 / 4</div>
+      </div>
+      <div class="section-eyebrow" style="margin-top:10px">Shoulders</div>
+      <div class="mv-row">
+        <div class="mv-name">Overhead Press</div>
+        <div class="mv-pill">Barbell</div>
+        <div class="mv-chip">0 / 4</div>
+      </div>
+    </div>
+
+    <div class="screen-divider"></div>
+
+    <!-- WORKOUT MODE -->
+    <div class="wm-screen">
+      <div class="wm-topbar">
+        <div class="wm-back">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L4 6l4 4"/></svg>
+        </div>
+        <div>
+          <div class="wm-mvname">Bench Press</div>
+          <div class="wm-mvsub">Barbell · Set 4 of 5</div>
+        </div>
+      </div>
+      <div class="wm-hero">
+        <div class="wm-hero-number">225</div>
+        <div class="wm-hero-unit">lbs</div>
+        <div class="wm-hero-sub">
+          <div style="text-align:center">
+            <div class="wm-hero-sub-val">8</div>
+            <div class="wm-hero-sub-lbl">Reps</div>
+          </div>
+          <div class="wm-hero-sep"></div>
+          <div style="text-align:center">
+            <div class="wm-hero-sub-val">8.5</div>
+            <div class="wm-hero-sub-lbl">RPE</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="set-row">
+          <div class="set-num">1</div>
+          <div class="set-prev">205 × 8</div>
+          <div class="set-today">205 × 8</div>
+          <div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div>
+        </div>
+        <div class="set-row">
+          <div class="set-num">2</div>
+          <div class="set-prev">215 × 8</div>
+          <div class="set-today">215 × 8</div>
+          <div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div>
+        </div>
+        <div class="set-row">
+          <div class="set-num">3</div>
+          <div class="set-prev">225 × 8</div>
+          <div class="set-today">225 × 8</div>
+          <div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="5" height="5" rx="1.5"/><rect x="9" y="2" width="5" height="5" rx="1.5"/><rect x="2" y="9" width="5" height="5" rx="1.5"/><rect x="9" y="9" width="5" height="5" rx="1.5"/></svg>
+        Today
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+        Plan
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L6 7l3 3 2-3 3 2"/></svg>
+        Insights
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>
+        More
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPTION B — DM Sans
+     Ultra-clean, geometric, Apple-adjacent. Premium mobile feel.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="option-wrap font-b font-mono">
+  <p class="option-tag">Option B</p>
+  <p class="option-name" style="font-family:'DM Sans',sans-serif">DM Sans</p>
+  <p class="option-desc">Ultra-clean · optical sizing · premium mobile</p>
+
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="4" width="2" height="6" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="0" width="2" height="10" rx="1"/><rect x="9" y="1" width="2" height="9" rx="1"/></svg>
+        ●●●
+      </span>
+    </div>
+    <div class="screen">
+      <div class="today-header">
+        <div>
+          <div class="today-headline">Today</div>
+          <div class="today-sub">Monday · Push A · 3 movements</div>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="stat"><div class="stat-val">12,400</div><div class="stat-lbl">Volume</div></div>
+        <div class="stat"><div class="stat-val">7.8</div><div class="stat-lbl">Avg RPE</div></div>
+        <div class="stat"><div class="stat-val">67%</div><div class="stat-lbl">Complete</div></div>
+      </div>
+      <div class="section-eyebrow">Chest</div>
+      <div class="mv-row"><div class="mv-name">Bench Press</div><div class="mv-pill">Barbell</div><div class="mv-chip">3 / 5</div></div>
+      <div class="mv-row"><div class="mv-name">Incline DB Press</div><div class="mv-pill">Dumbbell</div><div class="mv-chip">0 / 4</div></div>
+      <div class="section-eyebrow" style="margin-top:10px">Shoulders</div>
+      <div class="mv-row"><div class="mv-name">Overhead Press</div><div class="mv-pill">Barbell</div><div class="mv-chip">0 / 4</div></div>
+    </div>
+    <div class="screen-divider"></div>
+    <div class="wm-screen">
+      <div class="wm-topbar">
+        <div class="wm-back"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L4 6l4 4"/></svg></div>
+        <div><div class="wm-mvname">Bench Press</div><div class="wm-mvsub">Barbell · Set 4 of 5</div></div>
+      </div>
+      <div class="wm-hero">
+        <div class="wm-hero-number">225</div>
+        <div class="wm-hero-unit">lbs</div>
+        <div class="wm-hero-sub">
+          <div style="text-align:center"><div class="wm-hero-sub-val">8</div><div class="wm-hero-sub-lbl">Reps</div></div>
+          <div class="wm-hero-sep"></div>
+          <div style="text-align:center"><div class="wm-hero-sub-val">8.5</div><div class="wm-hero-sub-lbl">RPE</div></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="set-row"><div class="set-num">1</div><div class="set-prev">205 × 8</div><div class="set-today">205 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+        <div class="set-row"><div class="set-num">2</div><div class="set-prev">215 × 8</div><div class="set-today">215 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+        <div class="set-row"><div class="set-num">3</div><div class="set-prev">225 × 8</div><div class="set-today">225 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="5" height="5" rx="1.5"/><rect x="9" y="2" width="5" height="5" rx="1.5"/><rect x="2" y="9" width="5" height="5" rx="1.5"/><rect x="9" y="9" width="5" height="5" rx="1.5"/></svg>Today</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>Plan</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L6 7l3 3 2-3 3 2"/></svg>Insights</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>More</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     OPTION C — Outfit
+     Very geometric, high x-height, confident on mobile.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="option-wrap font-c font-mono">
+  <p class="option-tag">Option C</p>
+  <p class="option-name" style="font-family:'Outfit',sans-serif">Outfit</p>
+  <p class="option-desc">Geometric · high x-height · confident on mobile</p>
+
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="4" width="2" height="6" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="0" width="2" height="10" rx="1"/><rect x="9" y="1" width="2" height="9" rx="1"/></svg>
+        ●●●
+      </span>
+    </div>
+    <div class="screen">
+      <div class="today-header">
+        <div>
+          <div class="today-headline">Today</div>
+          <div class="today-sub">Monday · Push A · 3 movements</div>
+        </div>
+      </div>
+      <div class="progress-panel">
+        <div class="stat"><div class="stat-val">12,400</div><div class="stat-lbl">Volume</div></div>
+        <div class="stat"><div class="stat-val">7.8</div><div class="stat-lbl">Avg RPE</div></div>
+        <div class="stat"><div class="stat-val">67%</div><div class="stat-lbl">Complete</div></div>
+      </div>
+      <div class="section-eyebrow">Chest</div>
+      <div class="mv-row"><div class="mv-name">Bench Press</div><div class="mv-pill">Barbell</div><div class="mv-chip">3 / 5</div></div>
+      <div class="mv-row"><div class="mv-name">Incline DB Press</div><div class="mv-pill">Dumbbell</div><div class="mv-chip">0 / 4</div></div>
+      <div class="section-eyebrow" style="margin-top:10px">Shoulders</div>
+      <div class="mv-row"><div class="mv-name">Overhead Press</div><div class="mv-pill">Barbell</div><div class="mv-chip">0 / 4</div></div>
+    </div>
+    <div class="screen-divider"></div>
+    <div class="wm-screen">
+      <div class="wm-topbar">
+        <div class="wm-back"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L4 6l4 4"/></svg></div>
+        <div><div class="wm-mvname">Bench Press</div><div class="wm-mvsub">Barbell · Set 4 of 5</div></div>
+      </div>
+      <div class="wm-hero">
+        <div class="wm-hero-number">225</div>
+        <div class="wm-hero-unit">lbs</div>
+        <div class="wm-hero-sub">
+          <div style="text-align:center"><div class="wm-hero-sub-val">8</div><div class="wm-hero-sub-lbl">Reps</div></div>
+          <div class="wm-hero-sep"></div>
+          <div style="text-align:center"><div class="wm-hero-sub-val">8.5</div><div class="wm-hero-sub-lbl">RPE</div></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="set-row"><div class="set-num">1</div><div class="set-prev">205 × 8</div><div class="set-today">205 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+        <div class="set-row"><div class="set-num">2</div><div class="set-prev">215 × 8</div><div class="set-today">215 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+        <div class="set-row"><div class="set-num">3</div><div class="set-prev">225 × 8</div><div class="set-today">225 × 8</div><div class="set-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg></div></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="5" height="5" rx="1.5"/><rect x="9" y="2" width="5" height="5" rx="1.5"/><rect x="2" y="9" width="5" height="5" rx="1.5"/><rect x="9" y="9" width="5" height="5" rx="1.5"/></svg>Today</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>Plan</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L6 7l3 3 2-3 3 2"/></svg>Insights</div>
+      <div class="nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>More</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

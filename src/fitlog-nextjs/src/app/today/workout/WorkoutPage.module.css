@@ -279,12 +279,14 @@
   border: none; cursor: pointer; flex-shrink: 0;
   transition: opacity 150ms ease-out;
 }
-.typePillWu { color: #c49a6c; background: rgba(196,154,108,0.16); }
+.typePillWu { color: #c44040; background: rgba(196,64,64,0.12); }
 .typePillWs { color: #4f9aa8; background: rgba(79,154,168,0.14); }
 
 /* ── WU / WS row tints + left rails ─────────────────────────────────────── */
-.setRowWu { background: rgba(196,154,108,0.07); position: relative; box-shadow: -3.5px 0 0 0 #c49a6c, 0 1px 0 rgba(255,255,255,1) inset, 0 4px 10px rgba(15,22,34,0.04); }
-.setRowWs { background: rgba(79,154,168,0.05); position: relative; box-shadow: -3.5px 0 0 0 #4f9aa8, 0 1px 0 rgba(255,255,255,1) inset, 0 4px 10px rgba(15,22,34,0.04); }
+.setRowWu { background: rgba(196,64,64,0.06); }
+.setRowWu::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3.5px; border-radius: 0 2px 2px 0; background: #c44040; }
+.setRowWs { background: rgba(79,154,168,0.05); }
+.setRowWs::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3.5px; border-radius: 0 2px 2px 0; background: #4f9aa8; }
 
 /* ── Current set highlight ───────────────────────────────────────────────── */
 .setRowCurrent { outline: 1.5px solid rgba(93,155,184,0.38); outline-offset: -1px; }
@@ -497,12 +499,12 @@
 /* ─── Column header ──────────────────────────────────────────────────────── */
 .colHead {
   display: grid;
-  grid-template-columns: 36px auto 28px 0.85fr 1fr auto 16px;
+  grid-template-columns: 36px 62px 28px 0.85fr 1fr 26px 16px;
   align-items: center;
   gap: 10px;
   padding: 0 35px 6px;
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 9.5px;
+  font-size: 13.5px;
   font-weight: 800;
   letter-spacing: 0.20em;
   text-transform: uppercase;
@@ -516,33 +518,24 @@
 /* Source: fitlog-mobile.html lines 7532–7736 */
 .setRow {
   display: grid;
-  grid-template-columns: 36px auto 28px 0.85fr 1fr auto 16px;
+  grid-template-columns: 36px 62px 28px 0.85fr 1fr 26px 16px;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1.2px solid rgba(255,255,255,0.85);
-  border-radius: 14px;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,1) inset,
-    0 4px 10px rgba(15,22,34,0.04);
-  transition: box-shadow 180ms ease-out, border-color 180ms ease-out;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1.2px solid rgba(15,22,34,0.06);
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 11px;
   font-weight: 600;
+  position: relative;
 }
 
 .setRowDone {
-  background: rgba(15,22,34,0.04);
-  border-color: rgba(15,22,34,0.08);
+  background: rgba(15,22,34,0.025);
   cursor: pointer;
 }
 
 .setRowDone:hover {
-  box-shadow: 0 2px 6px rgba(15,22,34,0.06);
-  border-color: rgba(15,22,34,0.18);
+  background: rgba(15,22,34,0.05);
 }
 
 /* Set number button */
@@ -565,7 +558,7 @@
 }
 
 .rSetBtn:hover { background: rgba(15,22,34,0.04); }
-.rSetBtnWarmup { color: #b08092; }
+.rSetBtnWarmup { color: #c44040; }
 .setRowDone .rSetBtn { opacity: 0.75; }
 
 /* WS/WU toggle */
@@ -595,7 +588,7 @@
   width: 26px;
   height: 22px;
   padding: 0;
-  border: 1.2px solid #0f1622;
+  border: 1.5px solid #0f1622;
   border-radius: 6px;
   background: transparent;
   color: #0f1622;
@@ -818,26 +811,23 @@
 /* ─── Add set button ─────────────────────────────────────────────────────── */
 .addSetBtn {
   display: block;
-  margin: 10px 22px;
-  padding: 10px 0;
+  margin: 14px 22px;
+  padding: 11px 0;
   width: calc(100% - 44px);
   background: transparent;
-  border: 1.2px dashed rgba(15,22,34,0.20);
-  border-radius: 14px;
+  border: 1.5px dashed #0f1622;
+  border-radius: 999px;
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 600;
-  color: #5e6a82;
+  font-weight: 700;
+  color: #0f1622;
   cursor: pointer;
-  transition: background 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+  transition: background 150ms ease-out, transform 100ms ease-out;
   flex-shrink: 0;
 }
 
-.addSetBtn:hover {
-  background: rgba(93,155,184,0.06);
-  border-color: rgba(93,155,184,0.30);
-  color: #5d9bb8;
-}
+.addSetBtn:hover { background: rgba(15,22,34,0.05); }
+.addSetBtn:active { transform: scale(0.98); }
 
 /* ─── Toast ──────────────────────────────────────────────────────────────── */
 .toast {
@@ -1069,19 +1059,15 @@
   :global(body:not(.theme-light)) .colHead { color: #f7f9fc; }
 
   :global(body:not(.theme-light)) .setRow {
-    background: rgba(14,18,23,0.55);
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+    border-bottom-color: rgba(255,255,255,0.08);
   }
 
   :global(body:not(.theme-light)) .setRowDone {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
   }
 
   :global(body:not(.theme-light)) .setRowDone:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
-    border-color: rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.08);
   }
 
   :global(body:not(.theme-light)) .rSetBtn { color: #7ec0a8; }
@@ -1171,10 +1157,12 @@
   :global(body:not(.theme-light)) .ctrlChip { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #f7f9fc; }
   :global(body:not(.theme-light)) .ctrlChipOn { background: rgba(93,155,184,0.18); border-color: rgba(93,155,184,0.30); color: #7fa5c7; }
   :global(body:not(.theme-light)) .restChip { background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.25); color: #7fa5c7; }
-  :global(body:not(.theme-light)) .typePillWu { color: #d4a96a; background: rgba(196,154,108,0.18); }
+  :global(body:not(.theme-light)) .typePillWu { color: #e06060; background: rgba(196,64,64,0.18); }
   :global(body:not(.theme-light)) .typePillWs { color: #7ec0a8; background: rgba(79,154,168,0.16); }
-  :global(body:not(.theme-light)) .setRowWu { background: rgba(196,154,108,0.09); box-shadow: -3.5px 0 0 0 #c49a6c, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
-  :global(body:not(.theme-light)) .setRowWs { background: rgba(79,154,168,0.06); box-shadow: -3.5px 0 0 0 #4f9aa8, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+  :global(body:not(.theme-light)) .setRowWu { background: rgba(196,64,64,0.09); }
+  :global(body:not(.theme-light)) .setRowWu::before { background: #c44040; }
+  :global(body:not(.theme-light)) .setRowWs { background: rgba(79,154,168,0.06); }
+  :global(body:not(.theme-light)) .setRowWs::before { background: #4f9aa8; }
   :global(body:not(.theme-light)) .nowTag { color: #7fa5c7; }
 }
 
@@ -1241,19 +1229,15 @@
 :global(body.theme-dark) .colHead { color: #f7f9fc; }
 
 :global(body.theme-dark) .setRow {
-  background: rgba(14,18,23,0.55);
-  border-color: rgba(255,255,255,0.12);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35);
+  border-bottom-color: rgba(255,255,255,0.08);
 }
 
 :global(body.theme-dark) .setRowDone {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
 }
 
 :global(body.theme-dark) .setRowDone:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
-  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
 }
 
 :global(body.theme-dark) .rSetBtn { color: #7ec0a8; }
@@ -1343,10 +1327,12 @@
 :global(body.theme-dark) .ctrlChip { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #f7f9fc; }
 :global(body.theme-dark) .ctrlChipOn { background: rgba(93,155,184,0.18); border-color: rgba(93,155,184,0.30); color: #7fa5c7; }
 :global(body.theme-dark) .restChip { background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.25); color: #7fa5c7; }
-:global(body.theme-dark) .typePillWu { color: #d4a96a; background: rgba(196,154,108,0.18); }
+:global(body.theme-dark) .typePillWu { color: #e06060; background: rgba(196,64,64,0.18); }
 :global(body.theme-dark) .typePillWs { color: #7ec0a8; background: rgba(79,154,168,0.16); }
-:global(body.theme-dark) .setRowWu { background: rgba(196,154,108,0.09); box-shadow: -3.5px 0 0 0 #c49a6c, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
-:global(body.theme-dark) .setRowWs { background: rgba(79,154,168,0.06); box-shadow: -3.5px 0 0 0 #4f9aa8, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+:global(body.theme-dark) .setRowWu { background: rgba(196,64,64,0.09); }
+:global(body.theme-dark) .setRowWu::before { background: #c44040; }
+:global(body.theme-dark) .setRowWs { background: rgba(79,154,168,0.06); }
+:global(body.theme-dark) .setRowWs::before { background: #4f9aa8; }
 :global(body.theme-dark) .nowTag { color: #7fa5c7; }
 
 /* ─── AI next-set recommendation pill ──────────────────────────────────────── */

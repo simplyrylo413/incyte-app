@@ -16,3 +16,15 @@
   from   = "/*"
   to     = "/index.html"
   status = 200
+
+# Force browsers to revalidate HTML on every visit — prevents stale mobile cache
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Long-cache hashed JS/CSS chunks (Next.js filenames include content hash)
+[[headers]]
+  for = "/_next/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

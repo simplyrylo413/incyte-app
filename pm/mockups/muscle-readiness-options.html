@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muscle Readiness Card — 3 Options</title>
+<style>
+  :root {
+    --ink: #0f1622;
+    --ink-2: #2c3548;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --paper: #f4f6f9;
+    --paper-2: #ebeef3;
+    --paper-3: #e2e6ec;
+    --accent: #5d9bb8;
+    --accent-2: #7fa5c7;
+    --accent-3: #9eb5cb;
+    --ok: #4f9aa8;
+    --warn: #8e9bb0;
+    --bad: #b08092;
+    --hairline: rgba(15,22,34,0.25);
+    --hairline-soft: rgba(15,22,34,0.11);
+    --font-display: 'Inter Tight', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+    --font-text: system-ui, sans-serif;
+
+    /* status colors */
+    --ready-color: #4f9aa8;
+    --ready-bg: rgba(79,154,168,0.12);
+    --caution-color: #8a9fc0;
+    --caution-bg: rgba(138,159,192,0.13);
+    --hold-color: #b08092;
+    --hold-bg: rgba(176,128,146,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #e8ecf1;
+    font-family: var(--font-text);
+    color: var(--ink);
+    padding: 24px 16px 60px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 32px;
+  }
+
+  .option-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* ── Shared card shell ─────────────────────────────── */
+  .card {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border-radius: 22px;
+    border: 1.2px solid rgba(15,22,34,0.08);
+    box-shadow:
+      0 2px 20px rgba(15,22,34,0.08),
+      0 1px 3px rgba(15,22,34,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    padding: 20px 18px 22px;
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+    max-width: 420px;
+  }
+  /* glass sheen */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(175deg, rgba(255,255,255,0.28) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .card-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  /* ─────────────────────────────────────────────────────
+     OPTION 1: Traffic Light Grid
+     Quick-scan grid. Each muscle = small tile with a
+     colored status pill + recovery bar + key stat.
+     Grid: 2 cols upper, 2 cols lower.
+  ───────────────────────────────────────────────────── */
+
+  .tl-section-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--label);
+    font-weight: 700;
+    margin-bottom: 8px;
+    margin-top: 12px;
+  }
+  .tl-section-label:first-of-type { margin-top: 0; }
+
+  .tl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+
+  .tl-tile {
+    background: var(--paper);
+    border-radius: 12px;
+    border: 1.2px solid var(--hairline-soft);
+    padding: 10px 11px 9px;
+    position: relative;
+  }
+
+  .tl-tile-name {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 5px;
+  }
+
+  /* micro progress bar */
+  .tl-bar-track {
+    height: 3px;
+    border-radius: 99px;
+    background: var(--paper-3);
+    margin-bottom: 5px;
+  }
+  .tl-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s;
+  }
+  .tl-bar-fill.ready   { background: var(--ready-color); }
+  .tl-bar-fill.caution { background: var(--caution-color); }
+  .tl-bar-fill.hold    { background: var(--hold-color); }
+
+  .tl-tile-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tl-status-pill {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 5px;
+    padding: 2px 6px;
+  }
+  .tl-status-pill.ready   { background: var(--ready-bg);   color: var(--ready-color); }
+  .tl-status-pill.caution { background: var(--caution-bg); color: var(--caution-color); }
+  .tl-status-pill.hold    { background: var(--hold-bg);    color: var(--hold-color); }
+
+  .tl-tile-stat {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--label);
+  }
+
+  /* divider between upper/lower */
+  .tl-divider {
+    height: 1.2px;
+    background: var(--hairline-soft);
+    margin: 14px 0 2px;
+  }
+
+  /* ─────────────────────────────────────────────────────
+     OPTION 2: Recovery Timeline
+     Single vertical list sorted by readiness (most ready
+     first). Horizontal recovery bar spans full width.
+     Shows: name · days-ago chip · sets chip · RPE avg ·
+     fill bar color-coded with "Train now" / "Wait Xd" tag.
+  ───────────────────────────────────────────────────── */
+
+  .rt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .rt-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 9px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 1.2px solid var(--hairline-soft);
+  }
+
+  .rt-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .rt-name {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .rt-chips {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .rt-chip {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    background: var(--paper-3);
+    border-radius: 5px;
+    padding: 2px 6px;
+  }
+
+  .rt-bar-wrap {
+    position: relative;
+    height: 5px;
+    border-radius: 99px;
+    background: var(--paper-3);
+    overflow: hidden;
+  }
+  .rt-bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    border-radius: 99px;
+  }
+  .rt-bar-fill.ready   { background: linear-gradient(90deg, #4f9aa8, #6bb5c4); }
+  .rt-bar-fill.caution { background: linear-gradient(90deg, #8a9fc0, #a0b4d0); }
+  .rt-bar-fill.hold    { background: linear-gradient(90deg, #b08092, #c09aaa); }
+
+  .rt-row-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .rt-pct {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--label);
+  }
+
+  .rt-action {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+  .rt-action.ready   { background: var(--ready-bg);   color: var(--ready-color); }
+  .rt-action.caution { background: var(--caution-bg); color: var(--caution-color); }
+  .rt-action.hold    { background: var(--hold-bg);    color: var(--hold-color); }
+
+  /* ─────────────────────────────────────────────────────
+     OPTION 3: Muscle Dial Grid
+     2-column grid of mini-cards. Each has:
+       - Arc SVG gauge (recovery %)
+       - Big recovery % number
+       - Muscle name + status line
+       - Small stats strip: sets · last trained · rpe
+  ───────────────────────────────────────────────────── */
+
+  .dial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .dial-tile {
+    background: var(--paper);
+    border-radius: 14px;
+    border: 1.2px solid var(--hairline-soft);
+    padding: 12px 10px 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* SVG arc gauge */
+  .dial-svg {
+    width: 64px;
+    height: 40px; /* half-circle crop */
+    overflow: visible;
+    margin-bottom: 2px;
+  }
+
+  /* The track ring */
+  .dial-track {
+    fill: none;
+    stroke: var(--paper-3);
+    stroke-width: 6;
+  }
+  .dial-fill {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    /* circumference of r=28 semicircle = π×28 ≈ 87.96 */
+    stroke-dasharray: 87.96;
+    transform-origin: 32px 32px;
+    transform: rotate(-180deg);
+    transition: stroke-dashoffset 0.4s ease;
+  }
+  .dial-fill.ready   { stroke: var(--ready-color); }
+  .dial-fill.caution { stroke: var(--caution-color); }
+  .dial-fill.hold    { stroke: var(--hold-color); }
+
+  .dial-pct {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .dial-pct.ready   { color: var(--ready-color); }
+  .dial-pct.caution { color: var(--caution-color); }
+  .dial-pct.hold    { color: var(--hold-color); }
+
+  .dial-name {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+
+  .dial-verdict {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    border-radius: 5px;
+    padding: 2px 7px;
+    margin-bottom: 8px;
+  }
+  .dial-verdict.ready   { background: var(--ready-bg);   color: var(--ready-color); }
+  .dial-verdict.caution { background: var(--caution-bg); color: var(--caution-color); }
+  .dial-verdict.hold    { background: var(--hold-bg);    color: var(--hold-color); }
+
+  .dial-stats {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--label);
+    text-align: center;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>Muscle Readiness</h1>
+<p class="page-sub">3 card options · Insights carousel slot 5</p>
+
+<!-- ──────────────────────────────────────────────────
+     OPTION 1 — TRAFFIC LIGHT GRID
+     Fast 2-col scan grid. Color-coded status per muscle.
+     Best for: quick reference while planning a session.
+─────────────────────────────────────────────────────── -->
+
+<p class="option-label">Option 1 — Traffic Light Grid</p>
+<div class="card">
+  <div class="card-eyebrow">Recovery status</div>
+  <div class="card-title">Muscle Readiness</div>
+
+  <p class="tl-section-label">Upper</p>
+  <div class="tl-grid">
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Chest</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill ready" style="width:88%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill ready">Ready</span>
+        <span class="tl-tile-stat">3d ago</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Back</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill caution" style="width:52%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill caution">Go light</span>
+        <span class="tl-tile-stat">1d ago</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Shoulders</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill ready" style="width:95%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill ready">Ready</span>
+        <span class="tl-tile-stat">4d ago</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Biceps</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill hold" style="width:18%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill hold">Rest</span>
+        <span class="tl-tile-stat">today</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Triceps</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill hold" style="width:24%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill hold">Rest</span>
+        <span class="tl-tile-stat">today</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Core</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill caution" style="width:55%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill caution">Go light</span>
+        <span class="tl-tile-stat">1d ago</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tl-divider"></div>
+  <p class="tl-section-label">Lower</p>
+  <div class="tl-grid">
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Quads</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill hold" style="width:12%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill hold">Rest</span>
+        <span class="tl-tile-stat">today · RPE 9</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Hamstrings</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill hold" style="width:20%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill hold">Rest</span>
+        <span class="tl-tile-stat">today</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Glutes</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill caution" style="width:45%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill caution">Go light</span>
+        <span class="tl-tile-stat">1d ago</span>
+      </div>
+    </div>
+
+    <div class="tl-tile">
+      <div class="tl-tile-name">Calves</div>
+      <div class="tl-bar-track"><div class="tl-bar-fill ready" style="width:80%"></div></div>
+      <div class="tl-tile-bottom">
+        <span class="tl-status-pill ready">Ready</span>
+        <span class="tl-tile-stat">2d ago</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ──────────────────────────────────────────────────
+     OPTION 2 — RECOVERY TIMELINE
+     Sorted list, most-ready first. Full-width recovery
+     bar per muscle with data chips + Train/Wait verdict.
+     Best for: seeing exactly who needs rest vs who's fresh.
+─────────────────────────────────────────────────────── -->
+
+<p class="option-label">Option 2 — Recovery Timeline</p>
+<div class="card">
+  <div class="card-eyebrow">Sorted by readiness</div>
+  <div class="card-title">Muscle Readiness</div>
+
+  <div class="rt-list">
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Shoulders</span>
+        <div class="rt-chips">
+          <span class="rt-chip">4d ago</span>
+          <span class="rt-chip">5 sets</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill ready" style="width:95%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">95% recovered</span>
+        <span class="rt-action ready">Train now</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Chest</span>
+        <div class="rt-chips">
+          <span class="rt-chip">3d ago</span>
+          <span class="rt-chip">6 sets · RPE 7</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill ready" style="width:88%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">88% recovered</span>
+        <span class="rt-action ready">Train now</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Calves</span>
+        <div class="rt-chips">
+          <span class="rt-chip">2d ago</span>
+          <span class="rt-chip">3 sets</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill ready" style="width:80%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">80% recovered</span>
+        <span class="rt-action ready">Train now</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Glutes</span>
+        <div class="rt-chips">
+          <span class="rt-chip">1d ago</span>
+          <span class="rt-chip">4 sets · RPE 7</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill caution" style="width:45%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">45% recovered</span>
+        <span class="rt-action caution">Light OK</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Back</span>
+        <div class="rt-chips">
+          <span class="rt-chip">1d ago</span>
+          <span class="rt-chip">8 sets · RPE 8</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill caution" style="width:35%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">35% recovered</span>
+        <span class="rt-action caution">Light OK</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Core</span>
+        <div class="rt-chips">
+          <span class="rt-chip">1d ago</span>
+          <span class="rt-chip">4 sets</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill caution" style="width:55%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">55% recovered</span>
+        <span class="rt-action caution">Light OK</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Biceps</span>
+        <div class="rt-chips">
+          <span class="rt-chip">today</span>
+          <span class="rt-chip">5 sets · RPE 8</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill hold" style="width:18%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">18% recovered</span>
+        <span class="rt-action hold">Rest 1–2d</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Triceps</span>
+        <div class="rt-chips">
+          <span class="rt-chip">today</span>
+          <span class="rt-chip">6 sets · RPE 8</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill hold" style="width:24%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">24% recovered</span>
+        <span class="rt-action hold">Rest 1–2d</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Hamstrings</span>
+        <div class="rt-chips">
+          <span class="rt-chip">today</span>
+          <span class="rt-chip">5 sets · RPE 8</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill hold" style="width:20%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">20% recovered</span>
+        <span class="rt-action hold">Rest 2d</span>
+      </div>
+    </div>
+
+    <div class="rt-row">
+      <div class="rt-row-top">
+        <span class="rt-name">Quads</span>
+        <div class="rt-chips">
+          <span class="rt-chip">today</span>
+          <span class="rt-chip">8 sets · RPE 9</span>
+        </div>
+      </div>
+      <div class="rt-bar-wrap"><div class="rt-bar-fill hold" style="width:12%"></div></div>
+      <div class="rt-row-bottom">
+        <span class="rt-pct">12% recovered</span>
+        <span class="rt-action hold">Rest 2–3d</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ──────────────────────────────────────────────────
+     OPTION 3 — MUSCLE DIAL GRID
+     2-col grid of mini-cards each with a semicircle arc
+     gauge (recovery %), a verdict pill, and a data strip.
+     Best for: high information density in compact space.
+─────────────────────────────────────────────────────── -->
+
+<p class="option-label">Option 3 — Dial Grid</p>
+<div class="card">
+  <div class="card-eyebrow">Recovery gauges</div>
+  <div class="card-title">Muscle Readiness</div>
+
+  <div class="dial-grid">
+
+    <!-- Shoulders — 95% ready -->
+    <div class="dial-tile">
+      <!-- r=28, cx=32, cy=32, semicircle top arc. dashoffset = 87.96*(1-0.95) = 4.40 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill ready" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:4.40;" />
+      </svg>
+      <div class="dial-pct ready">95%</div>
+      <div class="dial-name">Shoulders</div>
+      <div class="dial-verdict ready">Train now</div>
+      <div class="dial-stats">5 sets · 4d ago · —</div>
+    </div>
+
+    <!-- Chest — 88% ready -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.88) = 10.56 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill ready" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:10.56;" />
+      </svg>
+      <div class="dial-pct ready">88%</div>
+      <div class="dial-name">Chest</div>
+      <div class="dial-verdict ready">Train now</div>
+      <div class="dial-stats">6 sets · 3d ago · RPE 7</div>
+    </div>
+
+    <!-- Back — 35% caution -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.35) = 57.17 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill caution" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:57.17;" />
+      </svg>
+      <div class="dial-pct caution">35%</div>
+      <div class="dial-name">Back</div>
+      <div class="dial-verdict caution">Light only</div>
+      <div class="dial-stats">8 sets · 1d ago · RPE 8</div>
+    </div>
+
+    <!-- Glutes — 45% caution -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.45) = 48.38 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill caution" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:48.38;" />
+      </svg>
+      <div class="dial-pct caution">45%</div>
+      <div class="dial-name">Glutes</div>
+      <div class="dial-verdict caution">Light only</div>
+      <div class="dial-stats">4 sets · 1d ago · RPE 7</div>
+    </div>
+
+    <!-- Quads — 12% hold -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.12) = 77.40 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill hold" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:77.40;" />
+      </svg>
+      <div class="dial-pct hold">12%</div>
+      <div class="dial-name">Quads</div>
+      <div class="dial-verdict hold">Rest 2–3d</div>
+      <div class="dial-stats">8 sets · today · RPE 9</div>
+    </div>
+
+    <!-- Hamstrings — 20% hold -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.20) = 70.37 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill hold" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:70.37;" />
+      </svg>
+      <div class="dial-pct hold">20%</div>
+      <div class="dial-name">Hamstrings</div>
+      <div class="dial-verdict hold">Rest 2d</div>
+      <div class="dial-stats">5 sets · today · RPE 8</div>
+    </div>
+
+    <!-- Biceps — 18% hold -->
+    <div class="dial-tile">
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill hold" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:72.13;" />
+      </svg>
+      <div class="dial-pct hold">18%</div>
+      <div class="dial-name">Biceps</div>
+      <div class="dial-verdict hold">Rest 1–2d</div>
+      <div class="dial-stats">5 sets · today · RPE 8</div>
+    </div>
+
+    <!-- Calves — 80% ready -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.80) = 17.59 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill ready" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:17.59;" />
+      </svg>
+      <div class="dial-pct ready">80%</div>
+      <div class="dial-name">Calves</div>
+      <div class="dial-verdict ready">Train now</div>
+      <div class="dial-stats">3 sets · 2d ago · —</div>
+    </div>
+
+    <!-- Triceps — 24% hold -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.24) = 66.85 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill hold" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:66.85;" />
+      </svg>
+      <div class="dial-pct hold">24%</div>
+      <div class="dial-name">Triceps</div>
+      <div class="dial-verdict hold">Rest 1–2d</div>
+      <div class="dial-stats">6 sets · today · RPE 8</div>
+    </div>
+
+    <!-- Core — 55% caution -->
+    <div class="dial-tile">
+      <!-- dashoffset = 87.96*(1-0.55) = 39.58 -->
+      <svg class="dial-svg" viewBox="0 0 64 34">
+        <path class="dial-track" d="M 4 32 A 28 28 0 0 1 60 32" />
+        <path class="dial-fill caution" d="M 4 32 A 28 28 0 0 1 60 32"
+          style="stroke-dasharray:87.96; stroke-dashoffset:39.58;" />
+      </svg>
+      <div class="dial-pct caution">55%</div>
+      <div class="dial-name">Core</div>
+      <div class="dial-verdict caution">Light only</div>
+      <div class="dial-stats">4 sets · 1d ago · —</div>
+    </div>
+
+  </div>
+</div>
+
+<p style="font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--label);text-align:center;margin-top:-20px;text-transform:uppercase;">
+  Status key:
+  <span style="color:var(--ready-color);font-weight:700;">Ready</span> ≥ 70% ·
+  <span style="color:var(--caution-color);font-weight:700;">Light only</span> 35–69% ·
+  <span style="color:var(--hold-color);font-weight:700;">Rest</span> &lt; 35%
+</p>
+
+</body>
+</html>

@@ -82,7 +82,7 @@ function WorkoutPage() {
   const lastEntryRef = useRef<WorkoutEntry | null>(null); // prev session entry for prev values
 
   // ── Session UI state ──────────────────────────────────────────────────────
-  const [trackRpe, setTrackRpe] = useState(false);
+  const [trackRpe, setTrackRpe] = useState(true);
   const [aiOn, setAiOn] = useState(false);
   const [restSecs, setRestSecs] = useState(90);
   const [restRemaining, setRestRemaining] = useState(0);
@@ -207,10 +207,10 @@ function WorkoutPage() {
     const prevDone = entry.sets.slice(0, cur).reverse().find((set) => set.done);
     if (!prevDone) return;
     let changed = false;
-    const newSet = { ...currentSet };
+    const newSet = { ...currentSet, reps: null, rpe: null };
     if (hasValue(prevDone.weight)) { newSet.weight = prevDone.weight; changed = true; }
-    if (hasValue(prevDone.reps))   { newSet.reps   = prevDone.reps;   changed = true; }
-    if (hasValue(prevDone.rpe))    { newSet.rpe    = prevDone.rpe;    changed = true; }
+    // Reps and RPE always reset to blank for each new set
+    if (hasValue(currentSet.reps) || hasValue(currentSet.rpe)) changed = true;
     if (!changed) return;
     const newSets = entry.sets.map((set, i) => i === cur ? newSet : set);
     const newEntry = { ...entry, sets: newSets };
@@ -380,6 +380,22 @@ function WorkoutPage() {
     await persist(newEntry);
   }
 
+  // ── RPE toggle ────────────────────────────────────────────────────────────
+  async function handleToggleRpe() {
+    const turningOff = trackRpe;
+    setTrackRpe(!turningOff);
+    // Turning off → clear RPE on the current (undone) set so the scroller snaps to '—'
+    if (turningOff && entry) {
+      const curIdx = currentSetIdx(entry);
+      if (curIdx !== -1) {
+        const newSets = patchSet(entry.sets, curIdx, "rpe", null as unknown as number);
+        const newEntry = { ...entry, sets: newSets };
+        setEntry(newEntry);
+        await persist(newEntry);
+      }
+    }
+  }
+
   // ── Back ──────────────────────────────────────────────────────────────────
   function handleBack() {
     stopRest();
@@ -493,7 +509,7 @@ function WorkoutPage() {
         onLogSet={handleLogSet}
         onComplete={async () => { await handleComplete(); router.refresh(); router.push("/today"); }}
         onPatchSet={handlePatchSet}
-        onToggleRpe={() => setTrackRpe((v) => !v)}
+        onToggleRpe={handleToggleRpe}
         onToggleAi={() => setAiOn((v) => !v)}
         onToggleRest={() => restOn ? stopRest() : startRest()}
         formatRest={formatRest}
@@ -654,9 +670,8 @@ function InlinePicker({
       const cr = Math.round(ar * t + mr * (1-t));
       const cg = Math.round(ag * t + mg * (1-t));
       const cb = Math.round(ab * t + mb * (1-t));
-      const glow = d < 0.6 ? 'text-shadow:0 0 14px rgba(93,155,184,0.70),0 0 28px rgba(93,155,184,0.35);' : '';
       (el as HTMLElement).style.cssText =
-        `font-size:${size}px;font-weight:${weight};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};${glow}`;
+        `font-size:${size}px;font-weight:${weight};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};`;
     });
   }
 

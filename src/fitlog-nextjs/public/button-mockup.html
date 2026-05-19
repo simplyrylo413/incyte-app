@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #cdd4de;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 40px 24px;
+  }
+
+  .phone {
+    width: 390px;
+    background: #cdd4de;
+    border-radius: 24px;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #5e6a82;
+    padding: 0 22px;
+  }
+
+  /* Option A — dashed, tight radius */
+  .btn-a {
+    display: block;
+    margin: 0 22px;
+    padding: 11px 0;
+    width: calc(100% - 44px);
+    background: transparent;
+    border: 1.5px dashed #0f1622;
+    border-radius: 14px;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f1622;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  /* Option B — dashed, pill radius */
+  .btn-b {
+    display: block;
+    margin: 0 22px;
+    padding: 11px 0;
+    width: calc(100% - 44px);
+    background: transparent;
+    border: 1.5px dashed #0f1622;
+    border-radius: 999px;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f1622;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  /* Option C — dashed, slightly thicker + wider dash gap */
+  .btn-c {
+    display: block;
+    margin: 0 22px;
+    padding: 11px 0;
+    width: calc(100% - 44px);
+    background: transparent;
+    border: 2px dashed rgba(15,22,34,0.45);
+    border-radius: 14px;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5e6a82;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  .divider {
+    height: 1px;
+    background: rgba(15,22,34,0.08);
+    margin: 8px 22px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="label">Option A — dashed · 14px radius · ink black</div>
+  <button class="btn-a">+ Add movement</button>
+
+  <div class="divider"></div>
+
+  <div class="label">Option B — dashed · pill radius · ink black</div>
+  <button class="btn-b">+ Add movement</button>
+
+  <div class="divider"></div>
+
+  <div class="label">Option C — dashed · 14px radius · muted grey</div>
+  <button class="btn-c">+ Add movement</button>
+</div>
+
+</body>
+</html>

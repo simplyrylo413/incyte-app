@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Movement Detail Sheet Mockups</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #0f1622; --ink-2: #2c3548; --muted: #5e6a82; --label: #8893a8;
+  --paper: #f4f6fa; --accent: #5d9bb8; --ok: #4f9aa8; --bad: #b08092;
+  --font-display: "Inter Tight", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  --ghost-border: 1.5px solid rgba(15,22,34,0.55);
+  --ghost-bg: rgba(255,255,255,0.55);
+}
+body { font-family: var(--font-display); background: #dde2ec; color: var(--ink); padding: 28px 12px 80px; }
+
+/* Page header */
+.pg-eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--label); text-align: center; margin-bottom: 4px; }
+.pg-title { font-size: 20px; font-weight: 800; letter-spacing: -0.022em; text-align: center; margin-bottom: 4px; }
+.pg-sub { font-size: 12px; font-family: var(--font-mono); color: var(--muted); text-align: center; margin-bottom: 32px; }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; max-width: 1020px; margin: 0 auto; }
+
+/* Phone */
+.phone { background: #fff; border-radius: 32px; overflow: hidden; box-shadow: 0 6px 36px rgba(15,22,34,0.14), 0 1px 4px rgba(15,22,34,0.07); }
+.phone-label { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--label); text-align: center; padding: 14px 0 2px; }
+.phone-title { font-size: 13px; font-weight: 700; text-align: center; padding-bottom: 10px; letter-spacing: -0.01em; }
+
+/* Sheet base */
+.sheet { background: #f4f6fa; border-radius: 20px 20px 0 0; border-top: 1.2px solid rgba(15,22,34,0.09); overflow: hidden; }
+.handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(15,22,34,0.16); margin: 10px auto 0; }
+
+/* Shared atoms */
+.eyebrow { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--label); }
+.chip { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--label); background: rgba(15,22,34,0.07); padding: 3px 8px; border-radius: 6px; }
+.ghost-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border: var(--ghost-border); border-radius: 999px; background: var(--ghost-bg); color: var(--ink); font-family: var(--font-display); font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-edit { flex: 1; padding: 11px 0; background: var(--ink); color: #fff; border: 0; border-radius: 10px; font-family: var(--font-display); font-size: 13px; font-weight: 700; text-align: center; }
+.btn-del { flex: 1; padding: 11px 0; background: rgba(176,128,146,0.12); color: var(--bad); border: 1.5px solid rgba(176,128,146,0.35); border-radius: 10px; font-family: var(--font-display); font-size: 13px; font-weight: 700; text-align: center; }
+.how-to-label { font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--label); margin-bottom: 8px; }
+.step { font-size: 12px; color: var(--ink-2); line-height: 1.5; padding-left: 16px; position: relative; margin-bottom: 6px; }
+.step::before { content: attr(data-n); position: absolute; left: 0; font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--accent); top: 2px; }
+
+/* ── OPTION A: Inline header + tiny day strip ─────────────────────────── */
+.a-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 8px; }
+.a-title { font-size: 16px; font-weight: 800; letter-spacing: -0.015em; flex: 1; }
+.a-heart { font-size: 18px; color: var(--bad); margin-right: 10px; }
+.a-close { width: 26px; height: 26px; border-radius: 50%; background: rgba(15,22,34,0.07); border: 0; font-size: 11px; color: var(--muted); display: grid; place-items: center; }
+.a-stat { display: flex; align-items: center; gap: 8px; padding: 6px 18px 10px; border-bottom: 1.2px solid rgba(15,22,34,0.07); }
+.a-stat-icon { font-size: 14px; }
+.a-stat-val { font-size: 12px; font-weight: 700; color: var(--ink); }
+.a-stat-sub { font-family: var(--font-mono); font-size: 9px; color: var(--label); }
+.a-body { padding: 12px 18px; overflow: hidden; }
+.a-chips { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.a-how { margin-bottom: 12px; }
+.a-day-strip { display: flex; gap: 5px; margin-top: 12px; padding-top: 10px; border-top: 1.2px solid rgba(15,22,34,0.07); }
+.a-day-strip .strip-label { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+.day-mini { flex: 1; aspect-ratio: 1; border-radius: 8px; border: 1.2px solid rgba(15,22,34,0.14); background: rgba(255,255,255,0.70); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: var(--muted); }
+.day-mini.on { background: rgba(79,154,168,0.14); border-color: rgba(79,154,168,0.45); color: var(--ok); }
+.a-actions { display: flex; gap: 8px; padding: 8px 18px 16px; border-top: 1.2px solid rgba(15,22,34,0.07); }
+
+/* ── OPTION B: Tab layout Info | Schedule ─────────────────────────────── */
+.b-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 0; }
+.b-title { font-size: 16px; font-weight: 800; letter-spacing: -0.015em; }
+.b-meta { display: flex; align-items: center; gap: 8px; padding: 4px 18px 10px; }
+.b-last { font-family: var(--font-mono); font-size: 9.5px; color: var(--label); }
+.b-last-val { font-weight: 700; color: var(--ink); }
+.b-tabs { display: flex; border-bottom: 1.2px solid rgba(15,22,34,0.09); padding: 0 18px; gap: 0; }
+.b-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: 700; color: var(--label); border-bottom: 2.5px solid transparent; margin-bottom: -1.2px; cursor: pointer; letter-spacing: -0.005em; }
+.b-tab.on { color: var(--ink); border-bottom-color: var(--ink); }
+.b-body { padding: 12px 18px; }
+.b-actions { display: flex; gap: 8px; padding: 8px 18px 16px; border-top: 1.2px solid rgba(15,22,34,0.07); }
+.b-day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 8px 0 12px; }
+.b-day { aspect-ratio: 1; border-radius: 10px; border: 1.2px solid rgba(15,22,34,0.14); background: rgba(255,255,255,0.70); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--muted); }
+.b-day.on { background: rgba(79,154,168,0.14); border-color: rgba(79,154,168,0.45); color: var(--ok); }
+.b-fav-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 10px; background: rgba(176,128,146,0.09); border: 1.5px solid rgba(176,128,146,0.30); margin-top: 4px; }
+.b-fav-text { font-size: 13px; font-weight: 600; color: #9e4060; }
+
+/* ── OPTION C: Prioritised flow — instructions first ─────────────────── */
+.c-head { display: flex; align-items: center; gap: 8px; padding: 10px 18px 8px; border-bottom: 1.2px solid rgba(15,22,34,0.07); }
+.c-title { font-size: 15px; font-weight: 800; letter-spacing: -0.015em; flex: 1; }
+.c-heart { font-size: 16px; color: var(--bad); }
+.c-close { width: 24px; height: 24px; border-radius: 50%; background: rgba(15,22,34,0.07); border: 0; font-size: 10px; color: var(--muted); display: grid; place-items: center; }
+.c-body { padding: 10px 18px; }
+.c-chips { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+.c-how { margin-bottom: 10px; }
+.c-fav-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(176,128,146,0.08); border: 1.5px solid rgba(176,128,146,0.28); margin-bottom: 10px; }
+.c-fav-t { font-size: 12px; font-weight: 600; color: #9e4060; }
+.c-stat-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1.2px solid rgba(15,22,34,0.06); margin-bottom: 10px; }
+.c-stat-icon { font-size: 13px; }
+.c-stat-text { font-family: var(--font-mono); font-size: 9px; color: var(--label); }
+.c-stat-val { font-size: 12px; font-weight: 700; }
+.c-day-bar { padding: 8px 18px; border-top: 1.2px solid rgba(15,22,34,0.07); }
+.c-day-bar-label { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+.c-day-row { display: flex; gap: 4px; }
+.c-day-pill { flex: 1; padding: 5px 0; text-align: center; border-radius: 6px; border: 1.2px solid rgba(15,22,34,0.14); background: rgba(255,255,255,0.70); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: var(--muted); }
+.c-day-pill.on { background: rgba(79,154,168,0.14); border-color: rgba(79,154,168,0.45); color: var(--ok); }
+.c-actions { display: flex; gap: 8px; padding: 8px 18px 16px; border-top: 1.2px solid rgba(15,22,34,0.07); }
+
+/* Dimmed bg hint */
+.bg-hint { background: rgba(220,226,236,0.6); padding: 14px 18px 0; }
+.bg-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255,255,255,0.40); border-radius: 10px; }
+.bg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.bg-name { font-size: 13px; font-weight: 600; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<div class="pg-eyebrow">INCYTE · Design Options</div>
+<div class="pg-title">Movement Detail Sheet — 3 Layouts</div>
+<div class="pg-sub">Smaller day chips · Instructions visible · Intuitive hierarchy</div>
+
+<div class="grid">
+
+  <!-- ── OPTION A ── -->
+  <div class="phone">
+    <div class="phone-label">Option A</div>
+    <div class="phone-title">Compact header + tiny day strip</div>
+    <div class="bg-hint">
+      <div class="bg-row"><div class="bg-dot"></div><div class="bg-name">Barbell squat</div></div>
+    </div>
+    <div class="sheet">
+      <div class="handle"></div>
+      <!-- Title + heart + close in one row -->
+      <div class="a-head">
+        <div class="a-title">Barbell squat</div>
+        <span class="a-heart">♥</span>
+        <button class="a-close">✕</button>
+      </div>
+      <!-- One-liner last done -->
+      <div class="a-stat">
+        <span class="a-stat-icon">🕐</span>
+        <div>
+          <div class="a-stat-val">3 days ago</div>
+          <div class="a-stat-sub">4 sets · 185 lbs · RPE 8</div>
+        </div>
+      </div>
+      <!-- Scrollable body starts immediately with instructions -->
+      <div class="a-body">
+        <div class="a-chips">
+          <span class="chip">Quads</span>
+          <span class="chip">Barbell</span>
+        </div>
+        <div class="a-how">
+          <div class="how-to-label">How to</div>
+          <div class="step" data-n="1">Position the barbell across your upper traps at chest height on the rack.</div>
+          <div class="step" data-n="2">Step back with feet shoulder-width apart, toes turned out slightly.</div>
+          <div class="step" data-n="3">Brace your core, sit your hips back and down until thighs are parallel.</div>
+          <div class="step" data-n="4">Drive through your heels to return to standing. Lock out at the top.</div>
+        </div>
+        <!-- Tiny 7-day strip at bottom of body -->
+        <div>
+          <div class="strip-label eyebrow" style="margin-bottom:6px;">Add to plan</div>
+          <div class="a-day-strip">
+            <div class="day-mini on">S</div>
+            <div class="day-mini">M</div>
+            <div class="day-mini on">T</div>
+            <div class="day-mini">W</div>
+            <div class="day-mini">T</div>
+            <div class="day-mini">F</div>
+            <div class="day-mini">S</div>
+          </div>
+        </div>
+      </div>
+      <div class="a-actions">
+        <div class="btn-edit">Edit</div>
+        <div class="btn-del">Delete</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION B ── -->
+  <div class="phone">
+    <div class="phone-label">Option B</div>
+    <div class="phone-title">Info / Schedule tabs</div>
+    <div class="bg-hint">
+      <div class="bg-row"><div class="bg-dot"></div><div class="bg-name">Barbell squat</div></div>
+    </div>
+    <div class="sheet">
+      <div class="handle"></div>
+      <div class="b-head">
+        <div class="b-title">Barbell squat</div>
+        <span style="font-size:18px;color:var(--bad);margin-right:10px;">♥</span>
+        <button class="a-close">✕</button>
+      </div>
+      <!-- Compact one-liner meta -->
+      <div class="b-meta">
+        <span class="chip">Quads</span>
+        <span class="chip">Barbell</span>
+        <span class="b-last" style="margin-left:auto;">Last: <span class="b-last-val">3 days ago</span></span>
+      </div>
+      <!-- Tabs -->
+      <div class="b-tabs">
+        <div class="b-tab on">Info</div>
+        <div class="b-tab">Schedule</div>
+      </div>
+      <!-- Info tab body (instructions prominent) -->
+      <div class="b-body">
+        <div class="how-to-label">How to</div>
+        <div class="step" data-n="1">Position the barbell across your upper traps at chest height on the rack.</div>
+        <div class="step" data-n="2">Step back with feet shoulder-width apart, toes turned out slightly.</div>
+        <div class="step" data-n="3">Brace your core, sit your hips back and down until thighs are parallel.</div>
+        <div class="step" data-n="4">Drive through your heels to return to standing. Lock out at the top.</div>
+        <div style="margin-top:8px;">
+          <div class="how-to-label" style="margin-bottom:4px;">Also works</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;"><span class="chip">Glutes</span><span class="chip">Hamstrings</span><span class="chip">Calves</span></div>
+        </div>
+      </div>
+      <div class="b-actions">
+        <div class="btn-edit">Edit</div>
+        <div class="btn-del">Delete</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPTION C ── -->
+  <div class="phone">
+    <div class="phone-label">Option C</div>
+    <div class="phone-title">Instructions first + slim day bar</div>
+    <div class="bg-hint">
+      <div class="bg-row"><div class="bg-dot"></div><div class="bg-name">Barbell squat</div></div>
+    </div>
+    <div class="sheet">
+      <div class="handle"></div>
+      <!-- Compact header row -->
+      <div class="c-head">
+        <div class="c-title">Barbell squat</div>
+        <span class="c-heart">♥</span>
+        <button class="c-close">✕</button>
+      </div>
+      <div class="c-body">
+        <!-- Stat row — thin, not a card -->
+        <div class="c-stat-row">
+          <span class="c-stat-icon">🕐</span>
+          <span class="c-stat-text">LAST DONE</span>
+          <span class="c-stat-val">3 days ago</span>
+          <span class="c-stat-text" style="margin-left:auto;">4 sets · 185 lbs</span>
+        </div>
+        <!-- Chips inline -->
+        <div class="c-chips">
+          <span class="chip">Quads</span><span class="chip">Barbell</span><span class="chip">Weight</span>
+        </div>
+        <!-- Instructions FIRST — prominent -->
+        <div class="c-how">
+          <div class="how-to-label">How to</div>
+          <div class="step" data-n="1">Position the barbell across your upper traps at chest height on the rack.</div>
+          <div class="step" data-n="2">Step back with feet shoulder-width apart, toes turned out slightly.</div>
+          <div class="step" data-n="3">Brace your core, sit your hips back and down until thighs are parallel.</div>
+          <div class="step" data-n="4">Drive through your heels to return to standing. Lock out at the top.</div>
+        </div>
+      </div>
+      <!-- Slim pinned day bar -->
+      <div class="c-day-bar">
+        <div class="c-day-bar-label">Add to plan</div>
+        <div class="c-day-row">
+          <div class="c-day-pill on">S</div>
+          <div class="c-day-pill">M</div>
+          <div class="c-day-pill on">T</div>
+          <div class="c-day-pill">W</div>
+          <div class="c-day-pill">T</div>
+          <div class="c-day-pill">F</div>
+          <div class="c-day-pill">S</div>
+        </div>
+      </div>
+      <div class="c-actions">
+        <div class="btn-edit">Edit</div>
+        <div class="btn-del">Delete</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Note on picker detail access -->
+<div style="max-width:680px;margin:32px auto 0;background:rgba(15,22,34,0.05);border:1.2px solid rgba(15,22,34,0.10);border-radius:14px;padding:18px 22px;">
+  <div style="font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--label);margin-bottom:10px;">Movement Picker — Detail Access</div>
+  <p style="font-size:12px;color:var(--ink-2);line-height:1.6;margin-bottom:8px;">All 3 options work with a <strong>ⓘ info button</strong> added to each picker row. Tapping ⓘ opens the full detail sheet in read-only mode so users can see the instructions before adding the movement. The <strong>+ Add</strong> button stays separate so the two actions are never confused.</p>
+  <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.65);border:1.2px solid rgba(15,22,34,0.10);border-radius:10px;padding:9px 14px;margin-top:8px;">
+    <span style="font-size:13px;font-weight:500;flex:1;">Barbell squat</span>
+    <span style="font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--label);background:rgba(15,22,34,0.07);padding:2px 7px;border-radius:5px;">Barbell</span>
+    <span style="font-size:14px;color:rgba(15,22,34,0.30);cursor:pointer;">♡</span>
+    <span style="font-size:14px;color:rgba(15,22,34,0.35);cursor:pointer;font-weight:700;background:rgba(15,22,34,0.06);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">ⓘ</span>
+    <div style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:1.5px solid rgba(15,22,34,0.55);border-radius:999px;background:rgba(255,255,255,0.55);font-size:12px;font-weight:700;">+ Add</div>
+  </div>
+</div>
+
+</body>
+</html>

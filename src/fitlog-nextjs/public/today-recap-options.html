@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCYTE — Today's Progress Recap Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #e8ecf2;
+    --steel: #5d9bb8;
+    --steel-light: #7ab2ca;
+    --steel-dim: rgba(93,155,184,0.15);
+    --ink: #0f1622;
+    --muted: #5e6a82;
+    --label: #8893a8;
+    --glass-bg: rgba(255,255,255,0.72);
+    --glass-border: 1.2px solid rgba(15,22,34,0.11);
+    --radius-card: 18px;
+    --radius-chip: 999px;
+    --shadow-card: 0 2px 16px rgba(15,22,34,0.07), 0 1px 4px rgba(15,22,34,0.05);
+    --shadow-lifted: 0 6px 28px rgba(15,22,34,0.11), 0 2px 8px rgba(15,22,34,0.07);
+
+    /* RPE color coding */
+    --rpe-ok: rgba(93,155,184,0.18);
+    --rpe-ok-text: #3a7fa3;
+    --rpe-caution: rgba(200,140,80,0.18);
+    --rpe-caution-text: #9a6020;
+    --rpe-high: rgba(190,80,70,0.15);
+    --rpe-high-text: #8a2020;
+  }
+
+  body {
+    background: #d4d9e2;
+    font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .page-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8893a8;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  /* Mobile frame */
+  .frame {
+    width: 390px;
+    background: var(--bg);
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08);
+    margin-bottom: 40px;
+  }
+
+  .frame-label {
+    background: var(--ink);
+    color: rgba(255,255,255,0.55);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    text-align: center;
+  }
+
+  .frame-label strong {
+    color: rgba(255,255,255,0.9);
+  }
+
+  .frame-content {
+    padding: 16px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--bg);
+  }
+
+  /* Shared summary header */
+  .summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px;
+    margin-bottom: 2px;
+  }
+
+  .summary-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .summary-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .summary-meta {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .summary-meta span {
+    color: var(--steel);
+    font-weight: 600;
+  }
+
+  .see-all-btn {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--steel);
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.9;
+  }
+
+  .see-all-btn::after {
+    content: '›';
+    font-size: 16px;
+    line-height: 1;
+    margin-top: -1px;
+  }
+
+  /* Glass card base */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: var(--glass-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* ============================================
+     OPTION A — Set Chip Rail
+  ============================================ */
+
+  .opt-a-card {
+    padding: 14px 14px 12px;
+  }
+
+  .opt-a-card.open {
+    box-shadow: var(--shadow-lifted);
+    border-color: rgba(93,155,184,0.25);
+  }
+
+  .opt-a-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .movement-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .equipment-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15,22,34,0.06);
+    border: 1px solid rgba(15,22,34,0.08);
+    border-radius: var(--radius-chip);
+    padding: 2px 8px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .tap-hint {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--label);
+    font-weight: 500;
+  }
+
+  .tap-hint svg {
+    opacity: 0.7;
+  }
+
+  .chip-rail {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .chip-rail::-webkit-scrollbar { display: none; }
+
+  .set-chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 5px 9px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rpe-ok-text);
+    background: var(--rpe-ok);
+    border-color: rgba(93,155,184,0.2);
+    position: relative;
+  }
+
+  .set-chip .chip-main {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .set-chip .chip-rpe {
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.75;
+    letter-spacing: 0.02em;
+  }
+
+  .set-chip.caution {
+    color: var(--rpe-caution-text);
+    background: var(--rpe-caution);
+    border-color: rgba(200,140,80,0.2);
+  }
+
+  .set-chip.high {
+    color: var(--rpe-high-text);
+    background: var(--rpe-high);
+    border-color: rgba(190,80,70,0.2);
+  }
+
+  .set-chip .set-label {
+    font-size: 8.5px;
+    font-weight: 500;
+    color: var(--label);
+    margin-bottom: 1px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Open state for Option A */
+  .opt-a-open-panel {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(15,22,34,0.08);
+  }
+
+  .open-panel-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 8px;
+  }
+
+  .opt-a-set-row {
+    display: grid;
+    grid-template-columns: 22px 1fr 1fr 1fr 32px;
+    gap: 6px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(15,22,34,0.05);
+  }
+
+  .opt-a-set-row:last-child { border-bottom: none; }
+
+  .set-num {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--label);
+    text-align: center;
+    background: rgba(15,22,34,0.05);
+    border-radius: 4px;
+    padding: 2px 0;
+  }
+
+  .set-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    text-align: center;
+  }
+
+  .set-unit {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--label);
+    display: block;
+    letter-spacing: 0.03em;
+    text-align: center;
+    margin-top: -1px;
+  }
+
+  .edit-icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(93,155,184,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+  }
+
+  .opt-a-col-header {
+    display: grid;
+    grid-template-columns: 22px 1fr 1fr 1fr 32px;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .col-h {
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--label);
+    text-align: center;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ============================================
+     OPTION B — Expandable Log Rows
+  ============================================ */
+
+  .opt-b-panel {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .opt-b-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(15,22,34,0.07);
+    gap: 10px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .opt-b-row:last-child { border-bottom: none; }
+
+  .opt-b-row.expanded {
+    background: rgba(93,155,184,0.04);
+    border-bottom-color: rgba(93,155,184,0.15);
+  }
+
+  .opt-b-row-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .opt-b-movement-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .opt-b-summary {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 2px;
+    letter-spacing: 0.01em;
+  }
+
+  .opt-b-summary strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .opt-b-chevron {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(15,22,34,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .opt-b-chevron.open {
+    background: rgba(93,155,184,0.14);
+    transform: rotate(180deg);
+  }
+
+  .opt-b-expand-panel {
+    padding: 0 14px 14px;
+    background: rgba(93,155,184,0.03);
+  }
+
+  .opt-b-table-header {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 1fr 36px;
+    gap: 4px;
+    padding: 0 0 6px;
+    border-bottom: 1px solid rgba(15,22,34,0.08);
+    margin-bottom: 4px;
+  }
+
+  .opt-b-th {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--label);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .opt-b-th:first-child { text-align: left; }
+
+  .opt-b-table-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 1fr 36px;
+    gap: 4px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(15,22,34,0.045);
+  }
+
+  .opt-b-table-row:last-child { border-bottom: none; }
+
+  .opt-b-td {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    letter-spacing: -0.01em;
+  }
+
+  .opt-b-td:first-child {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--label);
+    text-align: left;
+    background: rgba(15,22,34,0.05);
+    border-radius: 5px;
+    padding: 2px 4px;
+  }
+
+  .opt-b-td .rpe-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--radius-chip);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .rpe-badge.ok {
+    background: var(--rpe-ok);
+    color: var(--rpe-ok-text);
+  }
+
+  .rpe-badge.caution {
+    background: var(--rpe-caution);
+    color: var(--rpe-caution-text);
+  }
+
+  .rpe-badge.high {
+    background: var(--rpe-high);
+    color: var(--rpe-high-text);
+  }
+
+  .opt-b-edit-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(93,155,184,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    flex-shrink: 0;
+  }
+
+  /* ============================================
+     OPTION C — Summary + Movement Pills
+  ============================================ */
+
+  .opt-c-hero {
+    padding: 18px 18px 16px;
+    background: linear-gradient(135deg, rgba(93,155,184,0.18) 0%, rgba(255,255,255,0.55) 100%);
+    position: relative;
+  }
+
+  .opt-c-hero-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-bottom: 6px;
+    opacity: 0.9;
+  }
+
+  .opt-c-hero-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    margin-bottom: 14px;
+  }
+
+  .opt-c-stats-row {
+    display: flex;
+    gap: 0;
+  }
+
+  .opt-c-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 12px;
+    border-right: 1px solid rgba(15,22,34,0.09);
+    margin-right: 12px;
+  }
+
+  .opt-c-stat:last-child {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .opt-c-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .opt-c-stat-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .opt-c-movement-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .opt-c-pill {
+    display: flex;
+    align-items: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: var(--glass-border);
+    border-radius: 13px;
+    box-shadow: var(--shadow-card);
+    padding: 11px 14px;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .opt-c-pill::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--steel);
+    opacity: 0.6;
+  }
+
+  .opt-c-pill-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .opt-c-pill-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .opt-c-pill-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-top: 2px;
+    letter-spacing: 0.01em;
+  }
+
+  .opt-c-pill-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .opt-c-top-set {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .opt-c-top-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--label);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .opt-c-arrow {
+    color: var(--label);
+    opacity: 0.6;
+    font-size: 16px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ============================================
+     Footer note
+  ============================================ */
+
+  .footer-note {
+    width: 390px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #8893a8;
+    letter-spacing: 0.01em;
+    padding: 20px 16px 0;
+    line-height: 1.5;
+  }
+
+  /* Dividers between section cards in opt-b header row */
+  .opt-b-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid rgba(15,22,34,0.07);
+  }
+
+  .opt-b-header-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .opt-b-header-meta {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* Small status dot */
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--steel);
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  /* Today date chip */
+  .today-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(93,155,184,0.12);
+    border: 1px solid rgba(93,155,184,0.2);
+    border-radius: var(--radius-chip);
+    padding: 3px 10px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--steel);
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+
+<p class="page-title">INCYTE · Today's Progress Recap — Design Options</p>
+
+<!-- ================================================
+     OPTION A — Set Chip Rail
+================================================ -->
+<div class="frame">
+  <div class="frame-label">OPTION A &nbsp;·&nbsp; <strong>Set Chip Rail</strong></div>
+  <div class="frame-content">
+
+    <!-- Summary header -->
+    <div class="summary-header">
+      <div class="summary-header-left">
+        <div class="summary-title">Today</div>
+        <div class="summary-meta"><span>8 sets</span> &nbsp;·&nbsp; 4,820 lb &nbsp;·&nbsp; avg RPE 7.8</div>
+      </div>
+      <div class="today-chip">
+        <div class="status-dot"></div>
+        Active
+      </div>
+    </div>
+
+    <!-- Bench Press — OPEN STATE to illustrate edit sheet -->
+    <div class="glass-card opt-a-card open">
+      <div class="opt-a-card-header">
+        <div>
+          <div class="movement-name">Bench Press</div>
+          <div class="equipment-pill">Barbell</div>
+        </div>
+        <div class="tap-hint">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1.5C6.5 1.5 9 4 9 6.5C9 9 6.5 11.5 6.5 11.5" stroke="#8893a8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Edit
+        </div>
+      </div>
+      <div class="chip-rail">
+        <div class="set-chip">
+          <div class="set-label">S1</div>
+          <div class="chip-main">185×5</div>
+          <div class="chip-rpe">@RPE 7</div>
+        </div>
+        <div class="set-chip caution">
+          <div class="set-label">S2</div>
+          <div class="chip-main">195×5</div>
+          <div class="chip-rpe">@RPE 8</div>
+        </div>
+        <div class="set-chip high">
+          <div class="set-label">S3</div>
+          <div class="chip-main">205×4</div>
+          <div class="chip-rpe">@RPE 9</div>
+        </div>
+      </div>
+
+      <!-- Open / edit state -->
+      <div class="opt-a-open-panel">
+        <div class="open-panel-label">Edit Sets</div>
+        <div class="opt-a-col-header">
+          <div class="col-h"></div>
+          <div class="col-h">Weight</div>
+          <div class="col-h">Reps</div>
+          <div class="col-h">RPE</div>
+          <div class="col-h"></div>
+        </div>
+        <div class="opt-a-set-row">
+          <div class="set-num">S1</div>
+          <div style="text-align:center">
+            <div class="set-val">185</div>
+            <div class="set-unit">lb</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">5</div>
+            <div class="set-unit">reps</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">7</div>
+            <div class="set-unit">rpe</div>
+          </div>
+          <div class="edit-icon-btn">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="opt-a-set-row">
+          <div class="set-num">S2</div>
+          <div style="text-align:center">
+            <div class="set-val">195</div>
+            <div class="set-unit">lb</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">5</div>
+            <div class="set-unit">reps</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">8</div>
+            <div class="set-unit">rpe</div>
+          </div>
+          <div class="edit-icon-btn">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="opt-a-set-row">
+          <div class="set-num">S3</div>
+          <div style="text-align:center">
+            <div class="set-val">205</div>
+            <div class="set-unit">lb</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">4</div>
+            <div class="set-unit">reps</div>
+          </div>
+          <div style="text-align:center">
+            <div class="set-val">9</div>
+            <div class="set-unit">rpe</div>
+          </div>
+          <div class="edit-icon-btn">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barbell Row -->
+    <div class="glass-card opt-a-card">
+      <div class="opt-a-card-header">
+        <div>
+          <div class="movement-name">Barbell Row</div>
+          <div class="equipment-pill">Barbell</div>
+        </div>
+        <div class="tap-hint">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1.5C6.5 1.5 9 4 9 6.5C9 9 6.5 11.5 6.5 11.5" stroke="#8893a8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Edit
+        </div>
+      </div>
+      <div class="chip-rail">
+        <div class="set-chip">
+          <div class="set-label">S1</div>
+          <div class="chip-main">155×6</div>
+          <div class="chip-rpe">@RPE 7</div>
+        </div>
+        <div class="set-chip caution">
+          <div class="set-label">S2</div>
+          <div class="chip-main">165×6</div>
+          <div class="chip-rpe">@RPE 8</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Squat -->
+    <div class="glass-card opt-a-card">
+      <div class="opt-a-card-header">
+        <div>
+          <div class="movement-name">Squat</div>
+          <div class="equipment-pill">Barbell</div>
+        </div>
+        <div class="tap-hint">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1.5C6.5 1.5 9 4 9 6.5C9 9 6.5 11.5 6.5 11.5" stroke="#8893a8" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Edit
+        </div>
+      </div>
+      <div class="chip-rail">
+        <div class="set-chip">
+          <div class="set-label">S1</div>
+          <div class="chip-main">225×5</div>
+          <div class="chip-rpe">@RPE 7</div>
+        </div>
+        <div class="set-chip caution">
+          <div class="set-label">S2</div>
+          <div class="chip-main">235×5</div>
+          <div class="chip-rpe">@RPE 8</div>
+        </div>
+        <div class="set-chip high">
+          <div class="set-label">S3</div>
+          <div class="chip-main">245×4</div>
+          <div class="chip-rpe">@RPE 9</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:10px;color:var(--label);text-align:center;padding:4px 0 0;letter-spacing:0.01em;">Tap any movement to drill in and edit individual sets</p>
+  </div>
+</div>
+
+
+<!-- ================================================
+     OPTION B — Expandable Log Rows
+================================================ -->
+<div class="frame">
+  <div class="frame-label">OPTION B &nbsp;·&nbsp; <strong>Expandable Log Rows</strong></div>
+  <div class="frame-content">
+
+    <!-- Summary header -->
+    <div class="summary-header">
+      <div class="summary-header-left">
+        <div class="summary-title">Today</div>
+        <div class="summary-meta"><span>8 sets</span> &nbsp;·&nbsp; 4,820 lb &nbsp;·&nbsp; avg RPE 7.8</div>
+      </div>
+      <div class="today-chip">
+        <div class="status-dot"></div>
+        Active
+      </div>
+    </div>
+
+    <div class="glass-card opt-b-panel">
+
+      <!-- Panel header -->
+      <div class="opt-b-header-row">
+        <div>
+          <div class="opt-b-header-title">Session Log</div>
+          <div class="opt-b-header-meta">3 movements · in progress</div>
+        </div>
+        <div class="see-all-btn">All</div>
+      </div>
+
+      <!-- Bench Press — EXPANDED -->
+      <div class="opt-b-row expanded">
+        <div class="opt-b-row-left">
+          <div class="opt-b-movement-name">Bench Press</div>
+          <div class="opt-b-summary">3 sets &nbsp;·&nbsp; top: <strong>205×4 @9</strong></div>
+        </div>
+        <div class="opt-b-chevron open">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4L6 8L10 4" stroke="#5d9bb8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <!-- Expanded set table -->
+      <div class="opt-b-expand-panel">
+        <div class="opt-b-table-header">
+          <div class="opt-b-th">Set</div>
+          <div class="opt-b-th">Weight</div>
+          <div class="opt-b-th">Reps</div>
+          <div class="opt-b-th">RPE</div>
+          <div class="opt-b-th"></div>
+        </div>
+        <div class="opt-b-table-row">
+          <div class="opt-b-td">S1</div>
+          <div class="opt-b-td">185 lb</div>
+          <div class="opt-b-td">5</div>
+          <div class="opt-b-td"><span class="rpe-badge ok">7</span></div>
+          <div class="opt-b-edit-btn">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="opt-b-table-row">
+          <div class="opt-b-td">S2</div>
+          <div class="opt-b-td">195 lb</div>
+          <div class="opt-b-td">5</div>
+          <div class="opt-b-td"><span class="rpe-badge caution">8</span></div>
+          <div class="opt-b-edit-btn">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="opt-b-table-row">
+          <div class="opt-b-td">S3</div>
+          <div class="opt-b-td">205 lb</div>
+          <div class="opt-b-td">4</div>
+          <div class="opt-b-td"><span class="rpe-badge high">9</span></div>
+          <div class="opt-b-edit-btn">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="#5d9bb8" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barbell Row — collapsed -->
+      <div class="opt-b-row">
+        <div class="opt-b-row-left">
+          <div class="opt-b-movement-name">Barbell Row</div>
+          <div class="opt-b-summary">2 sets &nbsp;·&nbsp; top: <strong>165×6 @8</strong></div>
+        </div>
+        <div class="opt-b-chevron">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4L6 8L10 4" stroke="#8893a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Squat — collapsed -->
+      <div class="opt-b-row" style="border-bottom:none;">
+        <div class="opt-b-row-left">
+          <div class="opt-b-movement-name">Squat</div>
+          <div class="opt-b-summary">3 sets &nbsp;·&nbsp; top: <strong>245×4 @9</strong></div>
+        </div>
+        <div class="opt-b-chevron">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4L6 8L10 4" stroke="#8893a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="font-size:10px;color:var(--label);text-align:center;padding:4px 0 0;letter-spacing:0.01em;">Tap any movement to drill in and edit individual sets</p>
+  </div>
+</div>
+
+
+<!-- ================================================
+     OPTION C — Summary + Movement Pills
+================================================ -->
+<div class="frame">
+  <div class="frame-label">OPTION C &nbsp;·&nbsp; <strong>Summary + Movement Pills</strong></div>
+  <div class="frame-content">
+
+    <!-- Summary header -->
+    <div class="summary-header">
+      <div class="summary-header-left">
+        <div class="summary-title">Today</div>
+        <div class="summary-meta">May 17, 2026</div>
+      </div>
+      <div class="today-chip">
+        <div class="status-dot"></div>
+        Active
+      </div>
+    </div>
+
+    <!-- Hero stats card -->
+    <div class="glass-card opt-c-hero">
+      <div class="opt-c-hero-label">Session Summary</div>
+      <div class="opt-c-stats-row">
+        <div class="opt-c-stat">
+          <div class="opt-c-stat-value">8</div>
+          <div class="opt-c-stat-label">Sets Done</div>
+        </div>
+        <div class="opt-c-stat">
+          <div class="opt-c-stat-value">4,820</div>
+          <div class="opt-c-stat-label">Volume · lb</div>
+        </div>
+        <div class="opt-c-stat">
+          <div class="opt-c-stat-value">7.8</div>
+          <div class="opt-c-stat-label">Avg RPE</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movement pills -->
+    <div class="opt-c-movement-pills">
+
+      <!-- Bench Press -->
+      <div class="opt-c-pill">
+        <div class="opt-c-pill-left">
+          <div class="opt-c-pill-name">Bench Press</div>
+          <div class="opt-c-pill-meta">3 sets &nbsp;·&nbsp; Barbell</div>
+          <div style="display:flex;gap:5px;margin-top:6px;">
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-ok);color:var(--rpe-ok-text);">185×5 @7</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-caution);color:var(--rpe-caution-text);">195×5 @8</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-high);color:var(--rpe-high-text);">205×4 @9</span>
+          </div>
+        </div>
+        <div class="opt-c-pill-right">
+          <div class="opt-c-top-set">205×4</div>
+          <div class="opt-c-top-label">Top Set</div>
+        </div>
+        <div class="opt-c-arrow">›</div>
+      </div>
+
+      <!-- Barbell Row -->
+      <div class="opt-c-pill">
+        <div class="opt-c-pill-left">
+          <div class="opt-c-pill-name">Barbell Row</div>
+          <div class="opt-c-pill-meta">2 sets &nbsp;·&nbsp; Barbell</div>
+          <div style="display:flex;gap:5px;margin-top:6px;">
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-ok);color:var(--rpe-ok-text);">155×6 @7</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-caution);color:var(--rpe-caution-text);">165×6 @8</span>
+          </div>
+        </div>
+        <div class="opt-c-pill-right">
+          <div class="opt-c-top-set">165×6</div>
+          <div class="opt-c-top-label">Top Set</div>
+        </div>
+        <div class="opt-c-arrow">›</div>
+      </div>
+
+      <!-- Squat -->
+      <div class="opt-c-pill">
+        <div class="opt-c-pill-left">
+          <div class="opt-c-pill-name">Squat</div>
+          <div class="opt-c-pill-meta">3 sets &nbsp;·&nbsp; Barbell</div>
+          <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-ok);color:var(--rpe-ok-text);">225×5 @7</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-caution);color:var(--rpe-caution-text);">235×5 @8</span>
+            <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--rpe-high);color:var(--rpe-high-text);">245×4 @9</span>
+          </div>
+        </div>
+        <div class="opt-c-pill-right">
+          <div class="opt-c-top-set">245×4</div>
+          <div class="opt-c-top-label">Top Set</div>
+        </div>
+        <div class="opt-c-arrow">›</div>
+      </div>
+
+    </div>
+
+    <p style="font-size:10px;color:var(--label);text-align:center;padding:4px 0 0;letter-spacing:0.01em;">Tap any movement to drill in and edit individual sets</p>
+  </div>
+</div>
+
+<p class="footer-note">
+  All three options use the same sample data: Bench Press (3 sets), Barbell Row (2 sets), Squat (3 sets).<br>
+  RPE color coding: blue ≤7 · amber 8 · red 9+. Static mockups — interactive states shown via open/expanded state illusion.
+</p>
+
+</body>
+</html>

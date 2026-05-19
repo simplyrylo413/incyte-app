@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Button click animations — INCYTE prototype</title>
+<style>
+  :root {
+    --paper:   #f5f7fb;
+    --paper-2: #e9edf3;
+    --ink:     #0f1622;
+    --muted:   #5e6a82;
+    --label:   #8893a8;
+    --hairline:      rgba(15, 22, 34, 0.25);
+    --hairline-soft: rgba(15, 22, 34, 0.11);
+    --accent:   #5d9bb8;
+    --accent-2: #7fa5c7;
+    --ok:       #4f9aa8;
+    --bad:      #b08092;
+    --font-display: 'Inter Tight', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-text:    -apple-system, BlinkMacSystemFont, 'Inter Tight', 'Inter', system-ui, sans-serif;
+    --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+    --ease-out-cubic: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-text);
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(93,155,184, 0.10), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 10%, rgba(155,130,200, 0.10), transparent 60%),
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .frame {
+    max-width: 420px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .head {
+    padding: 4px 8px 12px;
+  }
+  .head h1 {
+    font: 700 22px/1.15 'Inter Tight', sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .head .sub {
+    margin-top: 4px;
+    font: 700 12px/1 var(--font-mono);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card {
+    background: rgba(255,255,255, 0.55);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1.2px solid rgba(255,255,255, 0.85);
+    border-radius: 16px;
+    padding: 14px 16px 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 0.95) inset,
+      0 4px 12px rgba(15,22,34, 0.06);
+  }
+  .card .eyebrow {
+    font: 800 12px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .card .desc {
+    font: 500 12.5px/1.4 var(--font-text);
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .card .pair {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* === Button base — shared by all examples === */
+  .btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Primary CTA shape (used across many examples) */
+  .btn-cta {
+    padding: 12px 22px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 0.10) inset,
+      0 6px 14px rgba(15,22,34, 0.18);
+  }
+  /* Outline / chip variant */
+  .btn-chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    font: 700 11px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  /* Square chip (BW/WU-WS-like) */
+  .btn-square {
+    width: 36px; height: 30px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1.2px solid var(--ink);
+    color: var(--ink);
+    font: 700 11px/1 var(--font-mono);
+    display: inline-grid; place-items: center;
+  }
+  /* Big hero numeric */
+  .btn-hero {
+    background: transparent;
+    color: var(--ink);
+    font: 800 38px/1 'Inter Tight', sans-serif;
+    letter-spacing: -0.04em;
+    padding: 4px 10px;
+    border-radius: 10px;
+  }
+  /* Card surface for tap-ripple demo */
+  .card-tap {
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    background: rgba(255,255,255, 0.7);
+    border: 1.2px solid rgba(255,255,255, 0.85);
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    box-shadow: 0 1px 0 rgba(255,255,255, 0.85) inset, 0 2px 6px rgba(15,22,34, 0.05);
+  }
+  .card-tap .nm { font: 600 14px/1.2 'Inter Tight', sans-serif; }
+  .card-tap .meta { font: 700 10px/1 var(--font-mono); letter-spacing: 0.15em; text-transform: uppercase; color: var(--label); margin-left: auto; }
+
+  /* ============================================================
+     EFFECT 1 — Press-scale (current INCYTE default)
+     ============================================================ */
+  .fx-scale {
+    transition: transform 100ms var(--ease-out-cubic);
+  }
+  .fx-scale:active { transform: scale(0.95); }
+
+  /* ============================================================
+     EFFECT 2 — Translate-down press
+     ============================================================ */
+  .fx-translate {
+    transition: transform 120ms var(--ease-out-cubic),
+                box-shadow 180ms ease-out;
+  }
+  .fx-translate:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255, 0.10) inset,
+      0 2px 6px rgba(15,22,34, 0.14);
+  }
+
+  /* ============================================================
+     EFFECT 3 — Accent ripple pulse
+     One-shot box-shadow ring expanding outward in --accent
+     ============================================================ */
+  .fx-ripple {
+    position: relative;
+    transition: transform 100ms var(--ease-out-cubic);
+  }
+  .fx-ripple:active { transform: scale(0.96); }
+  .fx-ripple::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgba(93,155,184, 0.40);
+    pointer-events: none;
+    transition: box-shadow 320ms var(--ease-out-cubic);
+  }
+  .fx-ripple:active::after { box-shadow: 0 0 0 10px rgba(93,155,184, 0); }
+
+  /* ============================================================
+     EFFECT 4 — Border flash to accent
+     Best fit for toggle / chip buttons
+     ============================================================ */
+  .fx-borderflash {
+    transition: border-color 200ms var(--ease-out-cubic),
+                color 200ms var(--ease-out-cubic),
+                transform 100ms var(--ease-out-cubic);
+  }
+  .fx-borderflash:active {
+    transform: scale(0.96);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ============================================================
+     EFFECT 5 — Inset press shadow
+     Pairs well with hero numerics
+     ============================================================ */
+  .fx-inset {
+    background: rgba(255,255,255, 0.5);
+    border: 1px solid var(--hairline-soft);
+    transition: box-shadow 120ms var(--ease-out-cubic),
+                transform 120ms var(--ease-out-cubic),
+                background 120ms ease-out;
+  }
+  .fx-inset:active {
+    transform: scale(0.97);
+    background: rgba(93,155,184, 0.08);
+    box-shadow: inset 0 1px 3px rgba(15,22,34, 0.12);
+  }
+
+  /* ============================================================
+     EFFECT 6 — Tap-origin ripple (Material-style)
+     Requires JS to position the ripple at click coords
+     ============================================================ */
+  .ripple-mark {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: rgba(93,155,184, 0.30);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    animation: rippleExpand 520ms var(--ease-out-cubic) forwards;
+    pointer-events: none;
+  }
+  @keyframes rippleExpand {
+    to { transform: translate(-50%, -50%) scale(28); opacity: 0; }
+  }
+
+  /* ============================================================
+     EFFECT 7 — Success-tick punch
+     One-shot scale-up-and-back for a checkmark / confirm
+     ============================================================ */
+  .chk {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: white;
+    display: inline-grid; place-items: center;
+    border: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(79,154,168, 0.30);
+  }
+  .chk svg { width: 14px; height: 14px; }
+  @keyframes checkPunch {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.22); }
+    100% { transform: scale(1); }
+  }
+  .chk.just-logged { animation: checkPunch 280ms var(--ease-out-cubic) 1; }
+
+  /* ============================================================
+     EFFECT 8 — Damped cubic spring (no library)
+     Best in-CSS approximation of motion.dev's spring()
+     ============================================================ */
+  @keyframes springDown {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(0.9); }
+    65%  { transform: scale(1.06); }
+    85%  { transform: scale(0.98); }
+    100% { transform: scale(1); }
+  }
+  .fx-spring.springing { animation: springDown 360ms cubic-bezier(0.36, 1.6, 0.36, 1) 1; }
+
+  /* Status text (shown briefly when an effect fires) */
+  .status {
+    margin-top: 10px;
+    font: 700 11px/1 var(--font-mono);
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--label);
+    min-height: 11px;
+    transition: color 200ms ease-out, opacity 240ms ease-out;
+    opacity: 0;
+  }
+  .status.on { opacity: 1; color: var(--accent); }
+
+  .footer-note {
+    font: 500 12px/1.5 var(--font-text);
+    color: var(--muted);
+    padding: 8px 8px 4px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="head">
+      <h1>Button click animations</h1>
+      <div class="sub">Inline · INCYTE tokens · ≤360ms</div>
+    </div>
+
+    <!-- 1. Press-scale -->
+    <div class="card">
+      <div class="eyebrow">1 · Press-scale (current default)</div>
+      <div class="desc">100ms cubic-bezier scale(0.95) on press. Already used everywhere — back chip, hero numerics, BW/WU/WS toggles, bottom-nav, equipment pill.</div>
+      <div class="pair">
+        <button class="btn btn-cta fx-scale" data-status>Log set</button>
+        <button class="btn btn-chip fx-scale" data-status>RPE</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 2. Translate-down -->
+    <div class="card">
+      <div class="eyebrow">2 · Translate-down press</div>
+      <div class="desc">Button drops 2px on press, shadow softens. Reads as a physical key press. Good for primary action buttons that already have a real drop shadow.</div>
+      <div class="pair">
+        <button class="btn btn-cta fx-translate" data-status>Finish session</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 3. Accent ripple pulse -->
+    <div class="card">
+      <div class="eyebrow">3 · Accent ripple pulse</div>
+      <div class="desc">Single steel-blue ring expands 10px and fades over 320ms. One-shot, finite. Best fit for primary CTAs — Log set, Apply, Finish.</div>
+      <div class="pair">
+        <button class="btn btn-cta fx-ripple" data-status>Log set 3</button>
+        <button class="btn btn-chip fx-ripple" data-status>Apply →</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 4. Border flash -->
+    <div class="card">
+      <div class="eyebrow">4 · Border flash to accent</div>
+      <div class="desc">Border + text briefly shift to <code>--accent</code> on press. Best for toggle / chip buttons where state is the message.</div>
+      <div class="pair">
+        <button class="btn btn-square fx-borderflash" data-status>BW</button>
+        <button class="btn btn-square fx-borderflash" data-status>WS</button>
+        <button class="btn btn-chip fx-borderflash" data-status>AI</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 5. Inset press shadow -->
+    <div class="card">
+      <div class="eyebrow">5 · Inset press shadow</div>
+      <div class="desc">Inset shadow + slight scale + faint accent tint. Reads as "pushed in." Good for hero numerics (weight × reps × rpe).</div>
+      <div class="pair">
+        <button class="btn btn-hero fx-inset" data-status>185</button>
+        <span style="font: 500 22px var(--font-text); color: var(--label);">×</span>
+        <button class="btn btn-hero fx-inset" data-status>10</button>
+        <span style="font: 500 22px var(--font-text); color: var(--label);">×</span>
+        <button class="btn btn-hero fx-inset" data-status>8</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 6. Tap-origin ripple -->
+    <div class="card">
+      <div class="eyebrow">6 · Tap-origin ripple (Material-style)</div>
+      <div class="desc">Ripple expands from the exact tap point. Requires ~10 lines of vanilla JS to position the ring. Use sparingly — bigger surfaces only.</div>
+      <button class="card-tap" data-tap-ripple>
+        <span class="nm">Bench press</span>
+        <span class="meta">Barbell</span>
+      </button>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 7. Success-tick punch -->
+    <div class="card">
+      <div class="eyebrow">7 · Success-tick punch</div>
+      <div class="desc">Checkmark scales up to 1.22 and settles back. Trigger by adding <code>.just-logged</code> class for one render, then removing. Pairs with set logging.</div>
+      <div class="pair">
+        <button class="chk" data-punch aria-label="Log">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span style="font: 500 13px var(--font-text); color: var(--muted);">Tap to fire the punch</span>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <!-- 8. Damped cubic spring -->
+    <div class="card">
+      <div class="eyebrow">8 · Damped cubic spring (no library)</div>
+      <div class="desc">Multi-keyframe scale 1 → 0.9 → 1.06 → 0.98 → 1 over 360ms with a slight overshoot easing. The closest in-CSS approximation to motion.dev's <code>spring()</code> without a CDN dep.</div>
+      <div class="pair">
+        <button class="btn btn-cta fx-spring" data-spring data-status>Log set</button>
+      </div>
+      <div class="status" data-status-for></div>
+    </div>
+
+    <div class="footer-note">Tap each button to feel the effect. Spec: ≤360ms, <code>--ease-out-cubic</code>, finite, all INCYTE tokens.</div>
+  </div>
+
+<script>
+  // Status flash — pulses a label under each card so it's obvious which one fired
+  function flashStatus(card, msg) {
+    const el = card.querySelector('[data-status-for]');
+    if (!el) return;
+    el.textContent = msg || 'fired';
+    el.classList.add('on');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('on'), 700);
+  }
+  document.querySelectorAll('[data-status]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.card');
+      flashStatus(card, btn.textContent.trim() + ' →');
+    });
+  });
+
+  // 6 — Material-style ripple
+  document.querySelectorAll('[data-tap-ripple]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const r = el.getBoundingClientRect();
+      const dot = document.createElement('span');
+      dot.className = 'ripple-mark';
+      dot.style.left = (e.clientX - r.left) + 'px';
+      dot.style.top  = (e.clientY - r.top)  + 'px';
+      el.appendChild(dot);
+      setTimeout(() => dot.remove(), 540);
+      flashStatus(el.closest('.card'), 'ripple from tap →');
+    });
+  });
+
+  // 7 — Success-tick punch
+  document.querySelectorAll('[data-punch]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.remove('just-logged');
+      void btn.offsetWidth;          // force reflow so animation restarts
+      btn.classList.add('just-logged');
+      flashStatus(btn.closest('.card'), 'check punched →');
+    });
+  });
+
+  // 8 — Spring (one-shot class toggle)
+  document.querySelectorAll('[data-spring]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.remove('springing');
+      void btn.offsetWidth;
+      btn.classList.add('springing');
+    });
+  });
+</script>
+</body>
+</html>
