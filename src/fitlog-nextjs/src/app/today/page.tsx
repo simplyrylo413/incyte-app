@@ -86,9 +86,15 @@ export default function TodayPage() {
         listWorkouts({ finished: false, limit: 1 }),
         listFinishedTodayWorkouts(),
       ]);
+      // Only treat an unfinished workout as "active" if it was started today.
+      // An unfinished session from a previous day is stale — ignore it so
+      // Today always rebuilds from the current day's plan.
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const candidate = wkts[0] ?? null;
+      const isFromToday = !!candidate?.date && candidate.date.slice(0, 10) === todayStr;
       setMovements(mv);
       setPlans(pl);
-      setActiveWorkout(wkts[0] ?? null);
+      setActiveWorkout(isFromToday ? candidate : null);
       setFinishedToday(filterFinishedToday(ft));
       setErr(null);
     } catch (e) {

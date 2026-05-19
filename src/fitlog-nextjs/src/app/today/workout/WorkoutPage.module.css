@@ -276,11 +276,11 @@
   font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 3px 7px; border-radius: 5px;
-  border: none; cursor: pointer; flex-shrink: 0;
+  border: 1.5px solid #0f1622; cursor: pointer; flex-shrink: 0;
   transition: opacity 150ms ease-out;
 }
-.typePillWu { color: #c44040; background: rgba(196,64,64,0.12); }
-.typePillWs { color: #4f9aa8; background: rgba(79,154,168,0.14); }
+.typePillWu { color: #c44040; background: rgba(196,64,64,0.12); border-color: #0f1622; }
+.typePillWs { color: #4f9aa8; background: rgba(79,154,168,0.14); border-color: #0f1622; }
 
 /* ── WU / WS row tints + left rails ─────────────────────────────────────── */
 .setRowWu { background: rgba(196,64,64,0.06); }
