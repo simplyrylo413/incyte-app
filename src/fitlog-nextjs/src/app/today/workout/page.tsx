@@ -483,6 +483,26 @@ function WorkoutPage() {
           <div className={s.bodyPart}>{bodyPart} · {equip}</div>
           <div className={s.mvName}>{name}</div>
         </div>
+        <a
+          className={s.altBtn}
+          href={(() => {
+            const prevW = entry.sets?.slice(0, cur).reverse().find(x => x.done && hasValue(x.weight))?.weight;
+            const prevR = entry.sets?.slice(0, cur).reverse().find(x => x.done && hasValue(x.reps))?.reps;
+            const p = new URLSearchParams({
+              name,
+              bodypart: bodyPart,
+              weight: String(prevW ?? 135),
+              reps:   String(prevR ?? 10),
+              rpe:    "8",
+              sets:   String(entry.sets?.length ?? 3),
+              rest:   "90",
+            });
+            return `/workout-alt.html?${p.toString()}`;
+          })()}
+          aria-label="Alternate view"
+        >
+          ALT
+        </a>
       </div>
 
       {/* ── Prior session strip ── */}
