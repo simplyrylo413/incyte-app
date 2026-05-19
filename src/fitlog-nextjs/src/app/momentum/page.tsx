@@ -52,7 +52,7 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CAROUSEL_LABELS = ["Insights", "Stimulus", "PRs"];
+const CAROUSEL_LABELS = ["Insights", "PRs"];
 
 // ─── Timeline context helpers ─────────────────────────────────────────────────
 
@@ -264,16 +264,15 @@ export default function MomentumPage() {
             <div className={s.carouselTrack} ref={carouselRef}>
               {/* Slide 0 — Insights (Today | Trends | Recovery) */}
               <div className={s.carouselSlide}>
-                <InsightsCard insightResult={insightResult} scores={scores} ai={carouselAi?.readiness ?? null} />
-              </div>
-              {/* Slide 1 — Stimulus */}
-              <div className={s.carouselSlide}>
-                <StimulusCard
+                <InsightsCard
+                  insightResult={insightResult}
+                  scores={scores}
+                  ai={carouselAi?.readiness ?? null}
                   stimulus={stimulus}
-                  ai={carouselAi?.stimulus ?? null}
+                  stimulusAi={carouselAi?.stimulus ?? null}
                 />
               </div>
-              {/* Slide 2 — PRs */}
+              {/* Slide 1 — PRs */}
               <div className={s.carouselSlide}>
                 <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
               </div>
@@ -331,10 +330,14 @@ function InsightsCard({
   insightResult,
   scores,
   ai,
+  stimulus,
+  stimulusAi,
 }: {
   insightResult: InsightResult;
   scores: ReadinessScores;
   ai: import("@/lib/engine/aiInsights").AiReadiness | null;
+  stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
+  stimulusAi: import("@/lib/engine/aiInsights").AiStimulus | null;
 }) {
   const [tab, setTab] = useState<"today" | "trends" | "recovery">("today");
   const { metrics, timelineContext } = insightResult;
@@ -376,7 +379,7 @@ function InsightsCard({
         </div>
 
         {tab === "today" && <InsightsTodayTab metrics={metrics} timelineContext={timelineContext} scores={scores} ai={ai} />}
-        {tab === "trends" && <InsightsTrendsTab metrics={metrics} />}
+        {tab === "trends" && <InsightsTrendsTab metrics={metrics} stimulus={stimulus} stimulusAi={stimulusAi} />}
         {tab === "recovery" && <InsightsRecoveryTab metrics={metrics} />}
       </div>
     </section>
@@ -513,64 +516,104 @@ function InsightsTodayTab({
 
 // ── Trends tab ────────────────────────────────────────────────────────────────
 
-function InsightsTrendsTab({ metrics }: { metrics: InsightResult["metrics"] }) {
-  const sorted7d = [...metrics.bodyPartLoads7d]
-    .sort((a, b) => b.sets - a.sets)
-    .slice(0, 5);
-  const maxSets7d = sorted7d[0]?.sets ?? 1;
+function InsightsTrendsTab({
+  metrics,
+  stimulus,
+  stimulusAi,
+}: {
+  metrics: InsightResult["metrics"];
+  stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
+  stimulusAi: import("@/lib/engine/aiInsights").AiStimulus | null;
+}) {
+  // Use stimulus bars (hypertrophy-weighted) as the primary source; fall back to raw 7d loads
+  const barsSource = stimulus.bars.length > 0 ? stimulus.bars : metrics.bodyPartLoads7d;
+  const maxVal = Math.max(...barsSource.map((b) => ("pct" in b ? b.pct : b.sets)), 1);
   const totalSets7d = metrics.bodyPartLoads7d.reduce((sum, bp) => sum + bp.sets, 0);
 
-  // Analysis note
-  let noteText: string | null = null;
+  const tierClass =
+    stimulus.tierTone === "pos"  ? s.tonePos
+    : stimulus.tierTone === "med"  ? s.toneMed
+    : stimulus.tierTone === "high" ? s.toneHigh
+    : "";
+
+  // RPE trend note
+  let rpeTrend: string | null = null;
   if (metrics.rpeTrend === "rising") {
-    noteText = "Avg RPE trending upward across recent sessions — intensity is accumulating.";
+    rpeTrend = "Avg RPE trending upward — intensity is accumulating.";
   } else if (metrics.rpeTrend === "falling") {
-    noteText = "Avg RPE trending lower — effort is easing across recent sessions.";
-  } else if (totalSets7d > 0) {
-    noteText = `${totalSets7d} sets this week. Volume distribution is stable.`;
+    rpeTrend = "Avg RPE trending lower — effort is easing.";
   }
 
-  if (sorted7d.length === 0) {
+  if (stimulus.totalSets === 0 && barsSource.length === 0) {
     return (
-      <div className={s.stimulusEmpty}>No session data in the last 7 days.</div>
+      <div className={s.stimulusEmpty}>Log working sets this week to see stimulus data.</div>
     );
   }
 
   return (
     <>
-      <div className={s.muscleBarsEyebrow}>Volume vs last week</div>
+      {/* Weekly sets hero + tier — from Stimulus */}
+      <div className={s.trendHero}>
+        <div className={s.trendHeroLeft}>
+          <span className={s.stimulusNum}>{stimulus.totalSets}</span>
+          <span className={s.stimulusSuffix}>sets</span>
+        </div>
+        <div className={s.trendHeroRight}>
+          <div className={s.trendHeroLabel}>Weekly sets</div>
+          {stimulus.tier && (
+            <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Per-muscle bars: set count on left, delta vs last week on right */}
+      <div className={s.muscleBarsEyebrow}>Volume by muscle</div>
       <div className={s.muscleBars}>
-        {sorted7d.map((bp) => {
-          const deltaRaw = metrics.volumeChangeVsBaseline[bp.key];
-          let deltaLabel: string;
-          let deltaClass: string;
-          if (deltaRaw === undefined || deltaRaw === null) {
+        {barsSource.map((bar) => {
+          const key = bar.key;
+          const sets = "sets" in bar ? bar.sets : 0;
+          const barPct = "pct" in bar ? bar.pct : (sets / maxVal) * 100;
+          const deltaRaw = metrics.volumeChangeVsBaseline[key];
+          let deltaLabel = "";
+          let deltaClass = "";
+          if (deltaRaw != null) {
+            deltaLabel = deltaRaw > 0 ? `+${Math.round(deltaRaw)}%` : `${Math.round(deltaRaw)}%`;
+            deltaClass = deltaRaw > 0 ? s.deltaUp : s.deltaDown;
+          } else if (totalSets7d > 0) {
             deltaLabel = "New";
             deltaClass = s.deltaNew;
-          } else if (deltaRaw > 0) {
-            deltaLabel = `+${Math.round(deltaRaw)}%`;
-            deltaClass = s.deltaUp;
-          } else {
-            deltaLabel = `${Math.round(deltaRaw)}%`;
-            deltaClass = s.deltaDown;
           }
 
           return (
-            <div key={bp.key} className={s.muscleBarRow}>
-              <span className={s.muscleBarName}>{bp.label}</span>
-              <div className={`${s.muscleBarTrack} ${s.hasDelta}`}>
-                <div
-                  className={s.muscleBarFill}
-                  style={{ width: `${(bp.sets / maxSets7d) * 100}%` }}
-                />
+            <div key={key} className={s.muscleBarRow}>
+              <span className={s.muscleBarName}>{bar.label}</span>
+              <div className={`${s.muscleBarTrack} ${deltaLabel ? s.hasDelta : ""}`}>
+                <div className={s.muscleBarFill} style={{ width: `${barPct}%` }} />
               </div>
-              <span className={`${s.muscleBarDelta} ${deltaClass}`}>{deltaLabel}</span>
+              <span className={s.muscleBarCount}>{sets}</span>
+              {deltaLabel && (
+                <span className={`${s.muscleBarDelta} ${deltaClass}`}>{deltaLabel}</span>
+              )}
             </div>
           );
         })}
       </div>
-      {noteText && (
-        <div className={s.insightNote}>{noteText}</div>
+
+      {/* AI adjustments */}
+      {stimulusAi && (
+        <div className={s.aiBlock}>
+          <p className={s.aiBlockText}>{stimulusAi.summary}</p>
+          {stimulusAi.adjustments.length > 0 && (
+            <ul className={s.aiBlockList}>
+              {stimulusAi.adjustments.map((adj, i) => <li key={i}>{adj}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* RPE trend note if no AI */}
+      {!stimulusAi && rpeTrend && (
+        <div className={s.insightNote}>{rpeTrend}</div>
       )}
     </>
   );
