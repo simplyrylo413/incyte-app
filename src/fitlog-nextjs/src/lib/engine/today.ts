@@ -329,9 +329,10 @@ export function groupByBodyPart(items: TodayItem[]): [string, TodayItem[]][] {
   const order: string[] = [];
   const groups: Record<string, TodayItem[]> = {};
   for (const item of items) {
+    // Normalize to UPPERCASE so "Chest" / "chest" / "CHEST" all merge into one group.
     const bp = (
       item.mv?.bodyPart || item.mv?.muscle || item.mv?.category || "Other"
-    ).toString();
+    ).toString().toUpperCase();
     if (!groups[bp]) { groups[bp] = []; order.push(bp); }
     groups[bp].push(item);
   }
