@@ -52,7 +52,7 @@ import {
 } from "@/lib/engine/aiInsights";
 import s from "./MomentumPage.module.css";
 
-const CAROUSEL_LABELS = ["Insights", "Readiness", "Stimulus", "PRs", "Muscles"];
+const CAROUSEL_LABELS = ["Insights", "Stimulus", "PRs"];
 
 // ─── Timeline context helpers ─────────────────────────────────────────────────
 
@@ -227,49 +227,6 @@ export default function MomentumPage() {
             </div>
           )}
 
-          {/* ── Carousel ──────────────────────────────────────────────────── */}
-          <div className={s.carouselWrap}>
-            <div className={s.carouselTrack} ref={carouselRef}>
-              {/* Slide 0 — Insights (Today | Trends | Recovery) */}
-              <div className={s.carouselSlide}>
-                <InsightsCard insightResult={insightResult} />
-              </div>
-              {/* Slide 1 — Readiness */}
-              <div className={s.carouselSlide}>
-                <ReadinessCard scores={scores} ai={carouselAi?.readiness ?? null} />
-              </div>
-              {/* Slide 2 — Stimulus */}
-              <div className={s.carouselSlide}>
-                <StimulusCard
-                  stimulus={stimulus}
-                  ai={carouselAi?.stimulus ?? null}
-                />
-              </div>
-              {/* Slide 3 — PRs */}
-              <div className={s.carouselSlide}>
-                <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
-              </div>
-              {/* Slide 4 — Muscle Readiness */}
-              <div className={s.carouselSlide}>
-                <MuscleReadinessCard
-                  upper={muscleReadiness.upper}
-                  lower={muscleReadiness.lower}
-                />
-              </div>
-            </div>
-            <div className={s.dots}>
-              {CAROUSEL_LABELS.map((label, i) => (
-                <button
-                  key={label}
-                  type="button"
-                  aria-label={label}
-                  className={`${s.dot} ${carouselIdx === i ? s.dotActive : ""}`}
-                  onClick={() => scrollToCard(i)}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* ── AI status bar ──────────────────────────────────────────────── */}
           <div className={s.aiBar}>
             <span className={s.aiBarLabel}>
@@ -300,6 +257,38 @@ export default function MomentumPage() {
                 ↻
               </button>
             )}
+          </div>
+
+          {/* ── Carousel ──────────────────────────────────────────────────── */}
+          <div className={s.carouselWrap}>
+            <div className={s.carouselTrack} ref={carouselRef}>
+              {/* Slide 0 — Insights (Today | Trends | Recovery) */}
+              <div className={s.carouselSlide}>
+                <InsightsCard insightResult={insightResult} scores={scores} ai={carouselAi?.readiness ?? null} />
+              </div>
+              {/* Slide 1 — Stimulus */}
+              <div className={s.carouselSlide}>
+                <StimulusCard
+                  stimulus={stimulus}
+                  ai={carouselAi?.stimulus ?? null}
+                />
+              </div>
+              {/* Slide 2 — PRs */}
+              <div className={s.carouselSlide}>
+                <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
+              </div>
+            </div>
+            <div className={s.dots}>
+              {CAROUSEL_LABELS.map((label, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-label={label}
+                  className={`${s.dot} ${carouselIdx === i ? s.dotActive : ""}`}
+                  onClick={() => scrollToCard(i)}
+                />
+              ))}
+            </div>
           </div>
         </>
       ) : null}
@@ -338,7 +327,15 @@ function StatusBanner({ insightResult }: { insightResult: InsightResult }) {
 
 // ─── InsightsCard — 3-tab: Today | Trends | Recovery ─────────────────────────
 
-function InsightsCard({ insightResult }: { insightResult: InsightResult }) {
+function InsightsCard({
+  insightResult,
+  scores,
+  ai,
+}: {
+  insightResult: InsightResult;
+  scores: ReadinessScores;
+  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
+}) {
   const [tab, setTab] = useState<"today" | "trends" | "recovery">("today");
   const { metrics, timelineContext } = insightResult;
 
@@ -378,7 +375,7 @@ function InsightsCard({ insightResult }: { insightResult: InsightResult }) {
           </button>
         </div>
 
-        {tab === "today" && <InsightsTodayTab metrics={metrics} timelineContext={timelineContext} />}
+        {tab === "today" && <InsightsTodayTab metrics={metrics} timelineContext={timelineContext} scores={scores} ai={ai} />}
         {tab === "trends" && <InsightsTrendsTab metrics={metrics} />}
         {tab === "recovery" && <InsightsRecoveryTab metrics={metrics} />}
       </div>
@@ -391,13 +388,14 @@ function InsightsCard({ insightResult }: { insightResult: InsightResult }) {
 function InsightsTodayTab({
   metrics,
   timelineContext,
+  scores,
+  ai,
 }: {
   metrics: InsightResult["metrics"];
   timelineContext: TimelineContext;
+  scores: ReadinessScores;
+  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
 }) {
-  // Only show empty state when there is truly no session today.
-  // CURRENT_ACTIVE_SESSION with 0 sets logged still renders session data
-  // (the insightEngine produces a "session started" item for that case).
   const noData =
     timelineContext === "NO_TODAY_RECENT_HISTORY" &&
     metrics.currentSessionSets === 0;
@@ -414,47 +412,80 @@ function InsightsTodayTab({
   const avgRpe = metrics.currentSessionAvgRpe;
   const hardSets = metrics.currentSessionHardSets;
 
+  // Readiness captions (prefer AI-enhanced, fall back to rules)
+  const readinessCap = ai?.readinessCap ?? scores.readinessCap;
+  const recoveryCap  = ai?.recoveryCap  ?? scores.recoveryCap;
+  const fatigueCap   = ai?.fatigueCap   ?? scores.fatigueCap;
+
   // Top 5 body parts by sets
   const sorted = [...metrics.currentSessionBodyParts]
     .sort((a, b) => b.sets - a.sets)
     .slice(0, 5);
   const maxSets = sorted[0]?.sets ?? 1;
 
-  // Analysis note
-  let noteText: string | null = null;
-  let noteWarn = false;
-  if (avgRpe != null && avgRpe >= 8.5) {
-    noteText = `Avg RPE ${avgRpe.toFixed(1)} — high-intensity session. Allow adequate recovery before next.`;
-    noteWarn = true;
-  } else if (totalSets > 0 && hardSets / totalSets >= 0.7) {
-    const pct = Math.round((hardSets / totalSets) * 100);
-    noteText = `${pct}% of sets at RPE 7+ — high-intensity block.`;
-    noteWarn = true;
-  } else if (avgRpe != null && avgRpe >= 7) {
-    noteText = `Avg RPE ${avgRpe.toFixed(1)} — solid working intensity. Fatigue is accumulating.`;
-  } else {
-    noteText = `${totalSets} sets logged. Effort is controlled — recovery cost is moderate.`;
-  }
-
   return (
     <>
-      {/* 3 stat tiles */}
+      {/* Readiness headline from scores */}
+      {scores.title && (
+        <div className={s.readinessHeadline}>{scores.title}</div>
+      )}
+
+      {/* Readiness / Recovery / Fatigue tiles — absorbed from ReadinessCard */}
       <div className={s.statTiles}>
         <div className={s.statTile}>
-          <span className={s.statTileLabel}>Sets</span>
-          <div className={s.statTileValue}>{totalSets}</div>
-        </div>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>RPE Avg</span>
+          <span className={s.statTileLabel}>Readiness</span>
           <div className={s.statTileValue}>
-            {avgRpe != null ? avgRpe.toFixed(1) : <span className={s.statTileValueSuffix}>—</span>}
+            {scores.readiness != null ? scores.readiness : "—"}
+            {scores.readiness != null && <span className={s.statTileValueSuffix}>%</span>}
           </div>
+          <div className={s.readinessBar}>
+            <div className={s.readinessBarFill} style={{ width: `${scores.readiness ?? 0}%` }} />
+          </div>
+          <div className={s.statTileCaption}>{readinessCap}</div>
         </div>
         <div className={s.statTile}>
-          <span className={s.statTileLabel}>Hard Sets</span>
-          <div className={s.statTileValue}>{hardSets}</div>
+          <span className={s.statTileLabel}>Recovery</span>
+          <div className={s.statTileValue}>
+            {scores.recovery}<span className={s.statTileValueSuffix}>%</span>
+          </div>
+          <div className={s.readinessBar}>
+            <div className={s.readinessBarFill} style={{ width: `${scores.recovery}%` }} />
+          </div>
+          <div className={s.statTileCaption}>{recoveryCap}</div>
+        </div>
+        <div className={s.statTile}>
+          <span className={s.statTileLabel}>Fatigue</span>
+          <div className={s.statTileValue}>
+            {scores.fatigue}<span className={s.statTileValueSuffix}>%</span>
+          </div>
+          <div className={s.readinessBar}>
+            <div className={s.readinessBarFill} style={{ width: `${scores.fatigue}%` }} />
+          </div>
+          <div className={s.statTileCaption}>{fatigueCap}</div>
         </div>
       </div>
+
+      {/* Session stats — secondary row */}
+      {totalSets > 0 && (
+        <div className={s.sessionStatRow}>
+          <span className={s.sessionStatItem}>
+            <span className={s.sessionStatVal}>{totalSets}</span>
+            <span className={s.sessionStatLbl}>sets</span>
+          </span>
+          <span className={s.sessionStatDot} aria-hidden="true">·</span>
+          <span className={s.sessionStatItem}>
+            <span className={s.sessionStatVal}>
+              {avgRpe != null ? avgRpe.toFixed(1) : "—"}
+            </span>
+            <span className={s.sessionStatLbl}>avg RPE</span>
+          </span>
+          <span className={s.sessionStatDot} aria-hidden="true">·</span>
+          <span className={s.sessionStatItem}>
+            <span className={s.sessionStatVal}>{hardSets}</span>
+            <span className={s.sessionStatLbl}>hard sets</span>
+          </span>
+        </div>
+      )}
 
       {/* Volume by muscle */}
       {sorted.length > 0 && (
@@ -475,13 +506,6 @@ function InsightsTodayTab({
             ))}
           </div>
         </>
-      )}
-
-      {/* Analysis note */}
-      {noteText && (
-        <div className={`${s.insightNote} ${noteWarn ? s.insightNoteWarn : ""}`}>
-          {noteText}
-        </div>
       )}
     </>
   );
