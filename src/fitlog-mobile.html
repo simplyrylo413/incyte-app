@@ -7743,10 +7743,10 @@
      tinted pill selection window, 4-step opacity decay, and momentum snap. */
   /* ── Option C card layout ──────────────────────────────────────────── */
   .wm-picker-section { padding: 0; }
-  /* Card wraps all three pickers */
+  /* Card wraps all three pickers — nearly full-width, lighter bg for contrast */
   .wm-pk-card {
-    margin: 4px 16px 12px;
-    background: rgba(15,22,34,.05);
+    margin: 4px 6px 12px;
+    background: rgba(15,22,34,.03);
     border: 1.2px solid var(--hairline-soft);
     border-radius: 16px; overflow: hidden;
   }
@@ -7759,8 +7759,8 @@
     margin-bottom: 2px;
   }
   .wm-pk-group-lbl {
-    font: 700 9px/1 var(--font-mono);
-    color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase;
+    font: 700 11px/1 var(--font-mono);
+    color: var(--ink); letter-spacing: 1px; text-transform: uppercase;
   }
   .wm-pk-group-badge {
     font: 800 11px/1 var(--font-display);
@@ -7770,7 +7770,7 @@
   /* Blue glow underline — selection indicator */
   .wm-pk-indicator {
     position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
-    width: 22px; height: 2.5px; border-radius: 99px;
+    width: 28px; height: 2.5px; border-radius: 99px;
     background: var(--accent);
     box-shadow: 0 0 9px rgba(93,155,184,.60);
     pointer-events: none; z-index: 5;
@@ -7798,9 +7798,9 @@
   .wm-picker-track.wm-snapping {
     transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
-  /* Items — 4-step opacity / size decay */
+  /* Items */
   .wm-picker-item {
-    width: 44px; flex-shrink: 0; text-align: center;
+    width: 56px; flex-shrink: 0; text-align: center;
     font-family: var(--font-mono); font-size: 11px; font-weight: 500;
     color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
   }
@@ -8903,7 +8903,7 @@
     border-color: rgba(255,255,255,.10);
   }
   body.theme-dark .wm-pk-group-divider { background: rgba(255,255,255,.07); }
-  body.theme-dark .wm-pk-group-lbl { color: rgba(255,255,255,.40); }
+  body.theme-dark .wm-pk-group-lbl { color: rgba(255,255,255,.85); }
   body.theme-dark .wm-pk-group-badge { color: var(--accent-2); }
   /* Legacy */
   body.theme-dark .wm-picker-label { color: rgba(255,255,255,0.35); }
@@ -14810,7 +14810,7 @@ const WM_WEIGHT_VALS = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 
 const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
-const WM_PICKER_ITEM_W = 44;   // px — keeps 5 items visible in ~220px width
+const WM_PICKER_ITEM_W = 56;   // px — wider items prevent overlap during scroll
 const WM_PICKER_ROW_H  = 76;   // px — comfortable thumb target
 
 function _wmPickerClosestIdx(vals, val) {
@@ -14871,14 +14871,14 @@ function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
     const center = cw() / 2 - itemW / 2;
     const fi = (center - x) / itemW;
     const isDark = document.body.classList.contains('theme-dark');
-    // Blue (accent) at center, muted at edges — continuous exponential blend
+    // Accent blue at center → near-black (light) / near-white (dark) at edges
     const [ar,ag,ab] = [93,155,184]; // --accent
-    const [mr,mg,mb] = isDark ? [155,165,188] : [94,106,130]; // muted light/dark
+    const [mr,mg,mb] = isDark ? [200,210,225] : [15,22,34]; // readable dark unselected
     track.querySelectorAll('.wm-picker-item').forEach((el, i) => {
       const d = Math.abs(i - fi);
       const t     = Math.exp(-d * 0.9);
-      const size  = (11 + 21 * t).toFixed(1); // 11px far → 32px center
-      const alpha = (0.12 + 0.88 * t).toFixed(3);
+      const size  = (10 + 28 * t).toFixed(1); // 10px far → 38px center (~20% bigger than before)
+      const alpha = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — unselected clearly visible
       const fw    = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
       const ls    = d < 0.6 ? '-0.018em' : '0em';
       const cr    = Math.round(ar * t + mr * (1-t));
