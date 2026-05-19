@@ -7763,7 +7763,7 @@
     color: var(--ink); letter-spacing: 1px; text-transform: uppercase;
   }
   .wm-pk-group-badge {
-    font: 800 38px/1 var(--font-display);
+    font: 800 20px/1 var(--font-display);
     color: rgba(93,155,184,1.0); letter-spacing: -0.018em;
   }
   .wm-pk-group-body { position: relative; }
@@ -7801,7 +7801,7 @@
   }
   /* Items */
   .wm-picker-item {
-    width: 112px; flex-shrink: 0; text-align: center;
+    width: 160px; flex-shrink: 0; text-align: center;
     font-family: var(--font-mono); font-size: 11px; font-weight: 500;
     color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
   }
@@ -14811,7 +14811,7 @@ const WM_WEIGHT_VALS = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 
 const WM_REPS_VALS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS  = ['—', 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
-const WM_PICKER_ITEM_W = 128;  // px — wider items prevent overlap during scroll
+const WM_PICKER_ITEM_W = 160;  // px — wider items prevent overlap during scroll
 const WM_PICKER_ROW_H  = 76;   // px — comfortable thumb target
 
 function _wmPickerClosestIdx(vals, val) {
@@ -14878,7 +14878,7 @@ function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
     track.querySelectorAll('.wm-picker-item').forEach((el, i) => {
       const d = Math.abs(i - fi);
       const t     = Math.exp(-d * 0.9);
-      const size  = (10 + 28 * t).toFixed(1); // 10px far → 38px center (~20% bigger than before)
+      const size  = (10 + 24 * t).toFixed(1); // 10px far → 34px center
       const alpha = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — unselected clearly visible
       const fw    = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
       const ls    = d < 0.6 ? '-0.018em' : '0em';

@@ -26,7 +26,7 @@ import s from "./WorkoutPage.module.css";
 const WM_WEIGHT_VALS: number[] = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 in 5lb steps; tap center for 2.5lb precision
 const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
 const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
-const WM_ITEM_W = 112; // px — wider items prevent overlap during scroll
+const WM_ITEM_W = 160; // px — wider items prevent overlap during scroll
 
 function wmClosestIdx(vals: (number | string)[], val: number | string | null | undefined): number {
   if (val == null || val === '' || val === '—') return 0;
@@ -645,7 +645,7 @@ function InlinePicker({
     track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
       const d = Math.abs(i - fi);
       const t      = Math.exp(-d * 0.9);
-      const size   = (10 + 28 * t).toFixed(1); // 10px far → 38px center
+      const size   = (10 + 24 * t).toFixed(1); // 10px far → 34px center
       const alpha  = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — clearly visible
       const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
       const ls     = d < 0.6 ? '-0.018em' : '0em';

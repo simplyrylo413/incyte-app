@@ -337,7 +337,7 @@
 }
 .pkGroupBadge {
   font-family: "Inter Tight", system-ui, sans-serif;
-  font-size: 38px; font-weight: 800; letter-spacing: -0.018em;
+  font-size: 20px; font-weight: 800; letter-spacing: -0.018em;
   color: rgba(93,155,184,1.0);
 }
 .pkGroupBody { position: relative; }
@@ -371,7 +371,7 @@
   will-change: transform;
 }
 .inlinePickerItem {
-  width: 112px; flex-shrink: 0; text-align: center;
+  width: 160px; flex-shrink: 0; text-align: center;
   font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 11px; font-weight: 500;
   color: rgba(15,22,34,0.10); line-height: 1; pointer-events: none;
