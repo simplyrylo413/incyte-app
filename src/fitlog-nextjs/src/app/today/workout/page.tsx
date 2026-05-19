@@ -512,6 +512,7 @@ function WorkoutPage() {
                 idx={i}
                 isDone={true}
                 cur={-1}
+                isCurrent={false}
                 anyPrev={anyPrev}
                 trackRpe={trackRpe}
                 onReopenSet={handleReopenSet}
@@ -546,6 +547,7 @@ function WorkoutPage() {
                 idx={i}
                 isDone={false}
                 cur={cur}
+                isCurrent={i === cur}
                 anyPrev={anyPrev}
                 trackRpe={trackRpe}
                 onReopenSet={handleReopenSet}
@@ -880,21 +882,28 @@ function HeroCard(props: {
         )}
         <span className={s.eyebrowPills}>
           <button
-            className={`${s.togglePill} ${trackRpe ? s.togglePillOn : ""}`}
+            className={`${s.ctrlChip} ${trackRpe ? s.ctrlChipOn : ""}`}
             onClick={props.onToggleRpe}
             type="button"
-          >RPE</button>
+          >
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5"/></svg>
+            RPE
+          </button>
           <button
-            className={`${s.togglePill} ${props.aiOn ? s.togglePillOn : ""}`}
+            className={`${s.ctrlChip} ${props.aiOn ? s.ctrlChipOn : ""}`}
             onClick={props.onToggleAi}
             type="button"
-          >AI</button>
+          >
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 9l2-4 2 2 2-5 2 7"/></svg>
+            AI
+          </button>
           <button
-            className={`${s.restPill} ${restOn ? s.restPillOn : ""} ${restOn && restRemaining <= 10 ? s.restPillUrgent : ""}`}
+            className={`${s.ctrlChip} ${s.restChip}${restOn && restRemaining <= 10 ? ` ${s.restChipUrgent}` : ""}`}
             onClick={props.onToggleRest}
             type="button"
           >
-            Rest <span>{restDisplay}</span>
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><polyline points="6 3.5 6 6 7.5 7.5"/></svg>
+            <span>{restDisplay}</span>
           </button>
         </span>
       </div>
@@ -1030,7 +1039,7 @@ function ColHeader({ hasPrev, s }: { hasPrev: boolean; s: Record<string, string>
 // ─── SetRow ───────────────────────────────────────────────────────────────────
 
 function SetRow({
-  set, idx, isDone, cur: _cur, anyPrev, trackRpe,
+  set, idx, isDone, cur: _cur, anyPrev, trackRpe, isCurrent,
   onReopenSet, onToggleType, onToggleBW, onRemove, onOpenPicker, styles,
 }: {
   set: SetEntry;
@@ -1039,6 +1048,7 @@ function SetRow({
   cur: number;
   anyPrev: boolean;
   trackRpe: boolean;
+  isCurrent: boolean;
   onReopenSet: (i: number) => void;
   onToggleType: (i: number) => void;
   onToggleBW: (i: number) => void;
@@ -1055,7 +1065,7 @@ function SetRow({
   const hasR = hasValue(set.reps);
 
   return (
-    <div className={`${s.setRow} ${isDone ? s.setRowDone : ""}`}>
+    <div className={`${s.setRow} ${isDone ? s.setRowDone : ""} ${isWarmup ? s.setRowWu : s.setRowWs} ${isCurrent ? s.setRowCurrent : ""}`}>
       {/* Set number / type toggle */}
       <button
         className={`${s.rSetBtn} ${isWarmup ? s.rSetBtnWarmup : ""}`}
@@ -1067,11 +1077,11 @@ function SetRow({
 
       {/* WS/WU toggle */}
       <button
-        className={`${s.wuBtn} ${isWarmup ? s.wuBtnWarmup : ""}`}
+        className={`${s.typePill} ${isWarmup ? s.typePillWu : s.typePillWs}`}
         onClick={() => onToggleType(idx)}
         type="button"
       >
-        {isWarmup ? "WU" : "WS"}
+        {isWarmup ? "Warm-up" : "Working"}
       </button>
 
       {/* BW toggle */}
@@ -1116,7 +1126,7 @@ function SetRow({
         </span>
       )}
 
-      {/* Check / Reopen */}
+      {/* Check / Reopen / NOW tag */}
       {isDone ? (
         <button
           className={`${s.chk} ${s.chkDone}`}
@@ -1126,6 +1136,8 @@ function SetRow({
         >
           {CHECK_SVG}
         </button>
+      ) : isCurrent ? (
+        <span className={s.nowTag}>NOW</span>
       ) : (
         <span className={`${s.chk} ${s.chkTarget}`} aria-hidden="true">
           {CHECK_SVG}

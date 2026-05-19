@@ -166,16 +166,16 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 10.5px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: #0f1622;
 }
 
 .nowDot {
-  width: 5px; height: 5px;
+  width: 7px; height: 7px;
   border-radius: 50%;
-  background: #5d9bb8;
-  box-shadow: 0 0 0 3px rgba(93,155,184,0.20);
+  background: #4f9aa8;
+  box-shadow: 0 0 0 3px rgba(79,154,168,0.20);
   flex-shrink: 0;
 }
 
@@ -187,7 +187,8 @@
 .activeSet {
   color: #5d9bb8;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 
 .activeSetOk { color: #4f9aa8; }
@@ -251,6 +252,49 @@
   background: rgba(176,128,146,0.12);
   border-color: rgba(176,128,146,0.30);
   color: #b08092;
+}
+
+/* ── Option A chip controls ─────────────────────────────────────────────── */
+.ctrlChip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 8px;
+  background: rgba(15,22,34,0.07);
+  border: 1.2px solid rgba(15,22,34,0.10);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 600; color: #0f1622;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+}
+.ctrlChip svg { width: 12px; height: 12px; flex-shrink: 0; }
+.ctrlChipOn { background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.28); color: #5d9bb8; }
+.restChip   { background: rgba(93,155,184,0.12); border-color: rgba(93,155,184,0.25); color: #5d9bb8; }
+.restChipUrgent { background: rgba(176,128,146,0.12); border-color: rgba(176,128,146,0.25); color: #b08092; }
+
+/* ── Type pills (full word Warm-up / Working) ────────────────────────────── */
+.typePill {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 7px; border-radius: 5px;
+  border: none; cursor: pointer; flex-shrink: 0;
+  transition: opacity 150ms ease-out;
+}
+.typePillWu { color: #c49a6c; background: rgba(196,154,108,0.16); }
+.typePillWs { color: #4f9aa8; background: rgba(79,154,168,0.14); }
+
+/* ── WU / WS row tints + left rails ─────────────────────────────────────── */
+.setRowWu { background: rgba(196,154,108,0.07); position: relative; box-shadow: -3.5px 0 0 0 #c49a6c, 0 1px 0 rgba(255,255,255,1) inset, 0 4px 10px rgba(15,22,34,0.04); }
+.setRowWs { background: rgba(79,154,168,0.05); position: relative; box-shadow: -3.5px 0 0 0 #4f9aa8, 0 1px 0 rgba(255,255,255,1) inset, 0 4px 10px rgba(15,22,34,0.04); }
+
+/* ── Current set highlight ───────────────────────────────────────────────── */
+.setRowCurrent { outline: 1.5px solid rgba(93,155,184,0.38); outline-offset: -1px; }
+
+/* NOW tag */
+.nowTag {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #5d9bb8; flex-shrink: 0; white-space: nowrap;
 }
 
 /* Big-type hero numbers */
@@ -453,7 +497,7 @@
 /* ─── Column header ──────────────────────────────────────────────────────── */
 .colHead {
   display: grid;
-  grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+  grid-template-columns: 36px auto 28px 0.85fr 1fr auto 16px;
   align-items: center;
   gap: 10px;
   padding: 0 35px 6px;
@@ -472,7 +516,7 @@
 /* Source: fitlog-mobile.html lines 7532–7736 */
 .setRow {
   display: grid;
-  grid-template-columns: 36px 30px 28px 0.85fr 1fr 22px 16px;
+  grid-template-columns: 36px auto 28px 0.85fr 1fr auto 16px;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -1123,6 +1167,15 @@
   }
 
   :global(body:not(.theme-light)) .pkPreset:hover { background: rgba(255,255,255,0.12); }
+
+  :global(body:not(.theme-light)) .ctrlChip { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #f7f9fc; }
+  :global(body:not(.theme-light)) .ctrlChipOn { background: rgba(93,155,184,0.18); border-color: rgba(93,155,184,0.30); color: #7fa5c7; }
+  :global(body:not(.theme-light)) .restChip { background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.25); color: #7fa5c7; }
+  :global(body:not(.theme-light)) .typePillWu { color: #d4a96a; background: rgba(196,154,108,0.18); }
+  :global(body:not(.theme-light)) .typePillWs { color: #7ec0a8; background: rgba(79,154,168,0.16); }
+  :global(body:not(.theme-light)) .setRowWu { background: rgba(196,154,108,0.09); box-shadow: -3.5px 0 0 0 #c49a6c, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+  :global(body:not(.theme-light)) .setRowWs { background: rgba(79,154,168,0.06); box-shadow: -3.5px 0 0 0 #4f9aa8, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+  :global(body:not(.theme-light)) .nowTag { color: #7fa5c7; }
 }
 
 :global(body.theme-dark) .page { background: #161b23; }
@@ -1286,6 +1339,15 @@
 }
 
 :global(body.theme-dark) .pkPreset:hover { background: rgba(255,255,255,0.12); }
+
+:global(body.theme-dark) .ctrlChip { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #f7f9fc; }
+:global(body.theme-dark) .ctrlChipOn { background: rgba(93,155,184,0.18); border-color: rgba(93,155,184,0.30); color: #7fa5c7; }
+:global(body.theme-dark) .restChip { background: rgba(93,155,184,0.15); border-color: rgba(93,155,184,0.25); color: #7fa5c7; }
+:global(body.theme-dark) .typePillWu { color: #d4a96a; background: rgba(196,154,108,0.18); }
+:global(body.theme-dark) .typePillWs { color: #7ec0a8; background: rgba(79,154,168,0.16); }
+:global(body.theme-dark) .setRowWu { background: rgba(196,154,108,0.09); box-shadow: -3.5px 0 0 0 #c49a6c, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+:global(body.theme-dark) .setRowWs { background: rgba(79,154,168,0.06); box-shadow: -3.5px 0 0 0 #4f9aa8, 0 2px 8px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35); }
+:global(body.theme-dark) .nowTag { color: #7fa5c7; }
 
 /* ─── AI next-set recommendation pill ──────────────────────────────────────── */
 
