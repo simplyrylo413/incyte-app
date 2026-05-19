@@ -398,8 +398,11 @@ function InsightsTodayTab({
   metrics: InsightResult["metrics"];
   timelineContext: TimelineContext;
 }) {
+  // Only show empty state when there is truly no session today.
+  // CURRENT_ACTIVE_SESSION with 0 sets logged still renders session data
+  // (the insightEngine produces a "session started" item for that case).
   const noData =
-    timelineContext === "NO_TODAY_RECENT_HISTORY" ||
+    timelineContext === "NO_TODAY_RECENT_HISTORY" &&
     metrics.currentSessionSets === 0;
 
   if (noData) {

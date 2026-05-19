@@ -738,31 +738,36 @@ export function computeInsightResult(
   // ── 1. Timeline classification ──────────────────────────────────────────────
   const timelineContext = classifyTimeline(finishedWorkouts, activeWorkout);
 
-  // ── 2. Current workout reference ────────────────────────────────────────────
-  // The "current" workout is the active one, or the most-recent finished today.
-  const currentWorkout: Workout | null =
-    activeWorkout ??
-    finishedWorkouts
-      .filter((w) => isToday(workoutTs(w)))
-      .sort((a, b) => workoutTs(b) - workoutTs(a))[0] ??
-    null;
+  // ── 2. Current session workouts ──────────────────────────────────────────────
+  // The HTML build archives each completed movement into its own finished workout
+  // immediately (archiveMovementToTodayV2). So when a session is in progress the
+  // active workout often contains only the current (partially-done) movement, while
+  // already-completed movements live in finished-today workouts.
+  //
+  // "Current session" = active workout  +  all finished workouts from today.
+  // This matches exactly what the Today screen aggregates for its stats bar.
+  const todayFinished = finishedWorkouts.filter((w) => isToday(workoutTs(w)));
+  const sessionWorkouts: Workout[] = [
+    ...(activeWorkout ? [activeWorkout] : []),
+    ...todayFinished,
+  ];
 
   // ── 3. Readiness/recovery/fatigue (reuse momentum engine) ──────────────────
   const readinessData = computeReadiness(finishedWorkouts, movements);
 
   // ── 4. Current session body-part loads ──────────────────────────────────────
-  const currentBPLoads: BodyPartLoad[] = currentWorkout
-    ? bodyPartLoadsFrom([currentWorkout], mvMap)
+  const currentBPLoads: BodyPartLoad[] = sessionWorkouts.length
+    ? bodyPartLoadsFrom(sessionWorkouts, mvMap)
     : [];
 
   // All completed sets (warmup + working) → session display count
-  const currentLS: SetEntry[] = currentWorkout
-    ? currentWorkout.entries.flatMap((e) => loggedSets(e.sets))
-    : [];
+  const currentLS: SetEntry[] = sessionWorkouts.flatMap((w) =>
+    w.entries.flatMap((e) => loggedSets(e.sets))
+  );
   // Working sets only → quality metrics (hard sets, RPE)
-  const currentWS: SetEntry[] = currentWorkout
-    ? currentWorkout.entries.flatMap((e) => workingSets(e.sets))
-    : [];
+  const currentWS: SetEntry[] = sessionWorkouts.flatMap((w) =>
+    w.entries.flatMap((e) => workingSets(e.sets))
+  );
 
   const currentSessionSets = currentLS.length;          // all done sets shown to user
   const currentSessionHardSets = currentWS.filter(      // working-set RPE ≥ 7 only
@@ -828,7 +833,7 @@ export function computeInsightResult(
 
   // ── 9. Generate sections ────────────────────────────────────────────────────
   const currentSessionInsights =
-    timelineContext !== "NO_TODAY_RECENT_HISTORY" && currentWorkout
+    timelineContext !== "NO_TODAY_RECENT_HISTORY" && sessionWorkouts.length > 0
       ? generateCurrentSessionInsights(
           timelineContext,
           currentBPLoads,

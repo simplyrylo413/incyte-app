@@ -722,29 +722,52 @@ function InlinePicker({
       lastXRef.current = cx; lastTRef.current = now;
       applyX(dragStartTXRef.current + (cx - dragStartXRef.current), false);
     }
-    function end(endCX: number) {
+    const LONG_PRESS_MS = 450;
+    const LONG_PRESS_MOVE_THRESHOLD = 6;
+    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function end() {
       if (!draggingRef.current) return;
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
       draggingRef.current = false;
-      // Tap detection: short movement + center zone → open manual input
-      if (onCenterTapRef.current && Math.abs(endCX - dragStartXRef.current) < 8) {
-        const rect = widgetRef.current?.getBoundingClientRect();
-        if (rect) {
-          const tapX = endCX - rect.left;
-          if (Math.abs(tapX - cw() / 2) < WM_ITEM_W / 2) {
-            onCenterTapRef.current(values[selIdxRef.current]);
-            return;
-          }
-        }
-      }
       doSnap();
     }
 
-    const onMD = (e: MouseEvent) => { e.preventDefault(); start(e.clientX); };
-    const onMM = (e: MouseEvent) => { if (draggingRef.current) move(e.clientX); };
-    const onMU = (e: MouseEvent) => end(e.clientX);
-    const onTS = (e: TouchEvent) => start(e.touches[0].clientX);
-    const onTM = (e: TouchEvent) => { e.preventDefault(); move(e.touches[0].clientX); };
-    const onTE = (e: TouchEvent) => end(e.changedTouches[0].clientX);
+    // Wrap start to add long-press timer
+    const origStart = start;
+    function startWithLongPress(cx: number) {
+      origStart(cx);
+      if (onCenterTapRef.current) {
+        longPressTimer = setTimeout(() => {
+          longPressTimer = null;
+          if (!draggingRef.current) return;
+          const rect = widgetRef.current?.getBoundingClientRect();
+          const centerOffset = rect
+            ? Math.abs((dragStartXRef.current - rect.left) - cw() / 2)
+            : Infinity;
+          if (centerOffset < WM_ITEM_W / 2) {
+            draggingRef.current = false;
+            onCenterTapRef.current!(values[selIdxRef.current]);
+          }
+        }, LONG_PRESS_MS);
+      }
+    }
+    // Wrap move to cancel long press on drag
+    const origMove = move;
+    function moveWithLongPress(cx: number) {
+      if (longPressTimer && Math.abs(cx - dragStartXRef.current) > LONG_PRESS_MOVE_THRESHOLD) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      origMove(cx);
+    }
+
+    const onMD = (e: MouseEvent) => { e.preventDefault(); startWithLongPress(e.clientX); };
+    const onMM = (e: MouseEvent) => { if (draggingRef.current) moveWithLongPress(e.clientX); };
+    const onMU = () => end();
+    const onTS = (e: TouchEvent) => startWithLongPress(e.touches[0].clientX);
+    const onTM = (e: TouchEvent) => { e.preventDefault(); moveWithLongPress(e.touches[0].clientX); };
+    const onTE = () => end();
 
     widget.addEventListener('mousedown', onMD);
     window.addEventListener('mousemove', onMM);

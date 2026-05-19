@@ -14859,8 +14859,10 @@ function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
   let curX = 0, dragging = false;
   let dragStartX = 0, dragStartTX = 0;
   let vel = 0, lastX = 0, lastT = 0;
-  let lastClientX = 0; // used for tap detection
   let _selIdx = selIdx;
+  let _longPressTimer = null;
+  const LONG_PRESS_MS = 450;
+  const LONG_PRESS_MOVE_THRESHOLD = 6;
 
   function cw() { return widget.getBoundingClientRect().width; }
   function txForIdx(i) { return cw() / 2 - itemW / 2 - i * itemW; }
@@ -14912,36 +14914,45 @@ function _wmPickerInit(widget, vals, selIdx, onSnap, onCenterTap) {
     dragging = true;
     dragStartX = cx; dragStartTX = curX;
     lastX = cx; lastT = Date.now(); vel = 0;
+    // Long-press: fire after LONG_PRESS_MS if pointer hasn't moved
+    if (onCenterTap) {
+      _longPressTimer = setTimeout(() => {
+        _longPressTimer = null;
+        if (!dragging) return;
+        const rect = widget.getBoundingClientRect();
+        const centerOffset = Math.abs((dragStartX - rect.left) - cw() / 2);
+        if (centerOffset < itemW / 2) {
+          dragging = false;
+          onCenterTap(vals[_selIdx]);
+        }
+      }, LONG_PRESS_MS);
+    }
   }
   function move(cx) {
     if (!dragging) return;
+    // Cancel long press if the user starts dragging
+    if (_longPressTimer && Math.abs(cx - dragStartX) > LONG_PRESS_MOVE_THRESHOLD) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
     const now = Date.now(), dt = now - lastT;
     if (dt > 0) vel = (cx - lastX) / dt;
     lastX = cx; lastT = now;
     applyX(dragStartTX + (cx - dragStartX), false);
   }
-  function end(endCX) {
+  function end() {
     if (!dragging) return;
+    if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; }
     dragging = false;
-    // Tap detection: tiny movement + optional center-tap callback
-    if (onCenterTap && Math.abs(endCX - dragStartX) < 8) {
-      const rect = widget.getBoundingClientRect();
-      const tapX = endCX - rect.left;
-      const halfItem = itemW / 2;
-      if (Math.abs(tapX - cw() / 2) < halfItem) {
-        onCenterTap(vals[_selIdx]);
-        return;
-      }
-    }
     snap();
   }
 
   widget.addEventListener('mousedown',  e => { e.preventDefault(); start(e.clientX); });
-  window.addEventListener('mousemove',  e => { if (dragging) { move(e.clientX); lastClientX = e.clientX; } });
-  window.addEventListener('mouseup',    e => end(e.clientX));
-  widget.addEventListener('touchstart', e => { start(e.touches[0].clientX); lastClientX = e.touches[0].clientX; }, { passive: true });
-  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); lastClientX = e.touches[0].clientX; e.preventDefault(); }, { passive: false });
-  widget.addEventListener('touchend',   e => end(e.changedTouches[0].clientX));
+  window.addEventListener('mousemove',  e => { if (dragging) move(e.clientX); });
+  window.addEventListener('mouseup',    () => end());
+  widget.addEventListener('touchstart', e => start(e.touches[0].clientX), { passive: true });
+  widget.addEventListener('touchmove',  e => { move(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+  widget.addEventListener('touchend',   () => end());
 
   return { setValue: (v) => {
     const i = _wmPickerClosestIdx(vals, v);
