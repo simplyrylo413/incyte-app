@@ -55,18 +55,17 @@ const config: Config = {
       // Matches --font-display, --font-text, --font-mono in :root
       fontFamily: {
         display: [
-          "Inter Tight",
+          "DM Sans",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "sans-serif",
         ],
         sans: [
+          "DM Sans",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
-          "SF Pro Text",
-          "Inter Tight",
           "sans-serif",
         ],
         mono: [
