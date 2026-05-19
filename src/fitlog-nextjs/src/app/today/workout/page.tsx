@@ -645,7 +645,7 @@ function InlinePicker({
     track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
       const d = Math.abs(i - fi);
       const t      = Math.exp(-d * 0.9);
-      const size   = (10 + 18 * t).toFixed(1); // 10px far → 28px center
+      const size   = (10 + 25 * t).toFixed(1); // 10px far → 35px center
       const alpha  = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — clearly visible
       const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
       const ls     = d < 0.6 ? '-0.018em' : '0em';
