@@ -680,7 +680,9 @@
   }
 
   /* SILVER CHROME OPEN BUTTON */
-  .cassette-open-btn {
+  /* Shared matte black button base */
+  .cassette-open-btn,
+  .cassette-log-btn {
     flex: 1;
     padding: 6px 9px;
     background: #141618;
@@ -695,7 +697,7 @@
     font-family: 'Black Ops One', sans-serif;
     font-size: 11px;
     letter-spacing: 1.5px;
-    transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+    transition: transform 0.08s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out;
     position: relative;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.06),
@@ -704,58 +706,39 @@
       0 3px 4px rgba(0,0,0,0.4);
     text-shadow: none;
   }
-  .cassette-open-btn::before { display: none; }
-  .cassette-open-btn:active {
+  .cassette-open-btn::before,
+  .cassette-log-btn::before { display: none; }
+
+  /* Yellow glow on press */
+  .cassette-open-btn:active,
+  .cassette-log-btn:active {
     transform: translateY(1px);
+    color: var(--yellow);
+    text-shadow: 0 0 8px var(--yellow), 0 0 18px rgba(245,236,0,0.5);
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.04),
       inset 0 2px 3px rgba(0,0,0,0.5),
       0 1px 0 -1px #050607;
   }
+
+  /* OPEN button: glow persists while panel is open */
+  .cassette-open-btn.is-open {
+    color: var(--yellow);
+    text-shadow: 0 0 8px var(--yellow), 0 0 18px rgba(245,236,0,0.5);
+  }
+
+  /* LOG SET: brief glow flash after click */
+  .cassette-log-btn.flashing {
+    color: var(--yellow);
+    text-shadow: 0 0 8px var(--yellow), 0 0 18px rgba(245,236,0,0.5);
+  }
+
   .cassette-open-btn .open-arrow {
     font-size: 8px;
-    color: #5a5e62;
-    text-shadow: none;
     transition: transform 0.4s ease;
   }
   .cassette-open-btn.is-open .open-arrow {
     transform: rotate(180deg);
-  }
-
-  /* YELLOW LOG SET BUTTON — matte, reduced opacity */
-  .cassette-log-btn {
-    flex: 1;
-    padding: 6px 9px;
-    background: linear-gradient(180deg, #d9d100 0%, #b8b200 50%, #8a8400 100%);
-    border: 1px solid #4a4400;
-    border-radius: 5px;
-    color: #0a0b0c;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-family: 'Black Ops One', sans-serif;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
-    position: relative;
-    opacity: 0.72;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.10),
-      inset 0 -1px 0 rgba(0,0,0,0.5),
-      0 2px 0 -1px #3a3200,
-      0 3px 4px rgba(0,0,0,0.4);
-    text-shadow: none;
-  }
-  .cassette-log-btn::before { display: none; }
-  .cassette-log-btn:active {
-    transform: translateY(1px);
-    opacity: 0.85;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.06),
-      inset 0 2px 3px rgba(0,0,0,0.35),
-      0 1px 0 -1px #3a3200;
   }
   .cassette-log-btn .play-tri {
     font-size: 8px;
@@ -3190,7 +3173,11 @@ function renderLog() {
 /* ============== ACTIONS ============== */
 // New cassette LOG SET button — fires the same handler as the original
 const _logSetBtn2 = document.getElementById('logSetBtn2');
-if (_logSetBtn2) _logSetBtn2.addEventListener('click', () => document.getElementById('logSetBtn').click());
+if (_logSetBtn2) _logSetBtn2.addEventListener('click', () => {
+  document.getElementById('logSetBtn').click();
+  _logSetBtn2.classList.add('flashing');
+  setTimeout(() => _logSetBtn2.classList.remove('flashing'), 400);
+});
 
 document.getElementById('logSetBtn').addEventListener('click', () => {
   const target = state.logs.find(l => l.num === state.currentSet && !l.done) || state.logs.find(l => !l.done);
