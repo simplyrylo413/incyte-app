@@ -2,7 +2,7 @@
 
 > Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-16_
+_Last updated: 2026-05-19_
 
 ---
 
@@ -229,7 +229,68 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 9. Active work — what's next
+## 9. workout-alt.html — inline workout prototype (active, 2026-05-19)
+
+A standalone single-file prototype at `src/fitlog-nextjs/public/workout-alt.html`, served statically from the Netlify deployment at **incyte13.netlify.app/workout-alt.html**.
+
+This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring a "cassette deck" visual language for the workout logging screen. It is called from the existing app via URL with params (`?name=...&bodypart=...&weight=...&reps=...&rpe=...&sets=...&rest=...`).
+
+### What's been built (session 2026-05-19)
+
+| Feature | State |
+|---|---|
+| Cassette SVG panel with WEIGHT / RPE / REPS readouts | ✅ |
+| VU-bar faders (drag up/down) — weight, RPE, reps | ✅ |
+| Reel spin animation synced to timer (RAF-based) | ✅ |
+| Timer strip — click to start/stop, countdown, reel spin | ✅ |
+| LOG SET button — logs current set, starts timer | ✅ |
+| OPEN button — reveals fader panel with slide animation | ✅ |
+| BACK / AI ASSIST buttons (matte black, yellow glow on press) | ✅ |
+| Bottom nav (matte black, 5 tabs, yellow glow active) | ✅ |
+| Log rows — WARM UP (yellow pill) / WORK (green pill) / NOW (white pulsing pill) | ✅ |
+| Delete button per log row (✕, slide-out animation) | ✅ |
+| Cassette panel sticky (fixed above scrollable log) | ✅ |
+| WEIGHT / RPE / REPS labels aligned + 10.5px | ✅ |
+| Mobile layout + iOS touch fixed (see bugs section) | ✅ |
+
+### Key layout rules
+
+```
+.phone (flex column, height: calc(var(--vh) * 100))
+  .sticky-top     ← cassette panel + fader, flex-shrink: 0, NOT inside scroll container
+  .content        ← overflow-y: auto, flex: 1, min-height: 0, log rows live here
+  .bottom-nav-wrap← flex-shrink: 0
+```
+
+`--vh` is set by JS (`window.innerHeight * 0.01`) so iOS Safari / Chrome never overflows behind browser chrome.
+
+### Bugs fixed (important for next session)
+
+1. **`#mvBodyPart` null crash** — the page is called with `?bodypart=CHEST` (etc.) from the main app. A missing null-check caused `document.getElementById('mvBodyPart').textContent = ...` to throw, aborting the entire script (no event listeners, no log rows). Fixed by null-guarding the element access. **Any future code that touches URL params must null-check every element it writes to.**
+
+2. **iOS `100vh` bug** — `100vh` on iOS Safari / Chrome = large viewport (chrome hidden). On load with chrome visible, the phone frame overflowed behind the address/tab bar, hiding the bottom nav. Fixed with `--vh` CSS variable set from `window.innerHeight`. Updated on `resize` and `orientationchange`.
+
+3. **`position: sticky` inside `overflow: auto`** — doesn't work on iOS Safari. Fixed by moving `.sticky-top` outside `.content` (sibling, not child).
+
+4. **Reel CSS animation vs SVG attribute conflict** — `.reel.spinning` CSS animation wrote `transform` property, conflicting with fader drag's SVG `transform` attribute. Fixed by replacing CSS animation with RAF loop writing directly to the SVG `transform` attribute. `window.__reelRot = { weight, reps }` is the shared state object.
+
+5. **RPE fader not updating big cassette readout** — `updateReadouts()` was missing `#rpeReadoutTop`. Fixed by adding a second element update.
+
+### Deployment
+
+- **Site:** incyte13.netlify.app (site ID: `3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`)
+- **Build:** `cd src/fitlog-nextjs && npm run build` (copies `public/` → `out/`)
+- **Deploy:** `~/.local/bin/netlify deploy --prod --dir=src/fitlog-nextjs/out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
+- **Rule:** State target site in chat and wait for explicit confirmation before every deploy.
+
+### What's still open
+
+- The log rows use **hardcoded test data** in `state.logs`. They do not yet read from URL params or real session data.
+- The `SET COUNTER` and `ACTIVE SET X / Y` reads from `state.logs` correctly, but the log itself is static.
+- No persistence — refreshing loses all logged sets.
+- The `workout-alt.html` is a prototype, not yet wired to the Next.js Supabase data layer.
+
+---
 
 **Phase 9 — Capacitor wrap (launch only):**
 1. `npx cap init` inside `src/fitlog-nextjs/`
@@ -256,7 +317,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 10. Workflow rules
+## 11. Workflow rules
 
 - **Edit `src/fitlog-nextjs/` for all active development.** The HTML build (`fitlog-mobile.html`) is the visual reference only — read it when porting engine behavior or checking icon glyphs, don't edit it for the Next.js work.
 - **Commits:** prefix Next.js commits with `nextjs:`, HTML build commits with `src:`.
@@ -268,7 +329,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 11. Open decisions
+## 12. Open decisions
 
 | ID | Status |
 |---|---|
@@ -279,7 +340,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 12. Where to read next
+## 13. Where to read next
 
 | Doc | When to read it |
 |---|---|
@@ -294,7 +355,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 13. House style for AI sessions
+## 14. House style for AI sessions
 
 - Read this doc + linked docs **before** proposing changes. Don't re-litigate settled decisions; flag them if you think they need revisiting.
 - The user is solo dev + PM. Help him ship — bias toward concrete, small, verified changes over open-ended exploration.

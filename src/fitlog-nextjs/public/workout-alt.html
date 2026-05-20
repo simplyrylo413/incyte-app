@@ -44,14 +44,24 @@
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  /* Eliminate 300ms tap delay and allow iOS to dispatch taps without gesture ambiguity */
+  button, [role="button"], .nav-btn, .cassette-open-btn, .cassette-log-btn,
+  .log-tag, .log-check, .log-remove, .stepper, .fader-toggle-btn {
+    touch-action: manipulation;
+    cursor: pointer;
+  }
 
-  html, body {
+  html {
+    height: 100%;
+  }
+  body {
     background: #030404;
     color: var(--text);
     font-family: 'Barlow Condensed', sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    height: 100vh;
+    /* iOS Safari: use --vh set by JS so the frame never overflows behind the browser chrome */
+    height: calc(var(--vh, 1vh) * 100);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -61,7 +71,7 @@
   .phone {
     width: 100%;
     max-width: 410px;
-    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     max-height: 900px;
     background:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
@@ -149,18 +159,18 @@
 
   .content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0 14px 100px;
+    padding: 0 14px 20px;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
   .sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 20;
+    flex-shrink: 0;
     background: #0a0b0c;
-    margin: 0 -14px;
     padding: 0 14px;
+    z-index: 20;
   }
   .content::-webkit-scrollbar { display: none; }
 
@@ -1902,12 +1912,8 @@
 
 <div class="phone">
 
-  <!-- Status bar -->
-  <div class="content">
-
-
-    <!-- Sticky top block: cassette panel + fader open/close together -->
-    <div class="sticky-top">
+  <!-- Sticky top block: cassette panel + fader open/close together (outside scroll container) -->
+  <div class="sticky-top">
     <!-- CASSETTE / TIMER — chrome-rim outer panel with recessed dark interior -->
     <div class="panel cassette-panel">
       <span class="panel-rivet tl"></span>
@@ -2125,11 +2131,11 @@
           <rect x="22" y="10" width="316" height="48" rx="3" fill="url(#labelGrad)" stroke="#000" stroke-width="0.8"/>
           <rect x="23" y="11" width="314" height="46" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
           <!-- Three small white labels: WEIGHT / RPE / REPS -->
-          <text x="32" y="20" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="8.5" letter-spacing="1" font-weight="700">WEIGHT</text>
-          <text x="328" y="20" text-anchor="end" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="8.5" letter-spacing="1" font-weight="700">REPS</text>
+          <text x="32" y="20" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">WEIGHT</text>
+          <text x="328" y="20" text-anchor="end" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">REPS</text>
           <!-- BIG yellow numbers — WEIGHT / RPE / REPS, vertically centered with 3px padding -->
           <text x="95" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="weightReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
-          <text x="180" y="16" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="8.5" letter-spacing="1" font-weight="700">RPE</text>
+          <text x="180" y="20" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">RPE</text>
           <text x="180" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="rpeReadoutTop" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
           <text x="265" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="repsReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">19</text>
           <!-- Tiny bottom hint -->
@@ -2434,7 +2440,10 @@
       </div>
     </div>
     </div><!-- /mixer-wrap -->
-    </div><!-- /sticky-top -->
+  </div><!-- /sticky-top -->
+
+  <!-- scrollable content area -->
+  <div class="content">
 
     <!-- ORIGINAL SELECTORS PANEL (HIDDEN) -->
     <div class="panel selectors" style="display:none">
@@ -2562,6 +2571,28 @@
 </div>
 
 <script>
+/* ── iOS Safari viewport fix ──
+   100vh on iOS = height with browser chrome hidden (large viewport).
+   window.innerHeight = actual visible height at any moment.
+   We set --vh once on load and on every resize so the phone frame
+   never overflows behind Safari's address/tab bars. */
+(function() {
+  function setVH() {
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', function() { setTimeout(setVH, 200); });
+})();
+
+/* ── JS error trap — visible red banner if anything throws on mobile ── */
+window.addEventListener('error', function(e) {
+  var b = document.createElement('div');
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;font-size:11px;padding:6px 10px;z-index:99999;font-family:monospace';
+  b.textContent = 'JS ERR: ' + (e.message || e) + ' (' + (e.filename || '') + ':' + e.lineno + ')';
+  document.body.appendChild(b);
+});
+
 /* ============== STATE ============== */
 /* ── Scramble-reveal for the LED name display ── */
 /* Animates text character-by-character — each char cycles through random glyphs
@@ -2629,7 +2660,8 @@ function scrambleLedText(text, opts) {
   // Scramble-reveal on DOMContentLoaded so container is in the DOM
   // Inline scripts run after DOM is parsed — call directly, no DOMContentLoaded needed
   scrambleLedText(name);
-  if (p.get('bodypart')) document.getElementById('mvBodyPart').textContent = p.get('bodypart').toUpperCase();
+  const _mvBodyPart = document.getElementById('mvBodyPart');
+  if (p.get('bodypart') && _mvBodyPart) _mvBodyPart.textContent = p.get('bodypart').toUpperCase();
   document.title = name + ' — Workout';
   // Back button returns to caller
   document.getElementById('backBtn').addEventListener('click', () => history.back(), { once: true });
@@ -3282,12 +3314,16 @@ buildPicker('reps');
 buildPicker('rpe');
 
 requestAnimationFrame(() => {
-  setValue('weight', state.weight, true);
-  setValue('reps', state.reps, true);
-  setValue('rpe', state.rpe, true);
-  updateTimerDisplay();
-  renderLog();
-  updateReadouts();
+  try {
+    setValue('weight', state.weight, true);
+    setValue('reps', state.reps, true);
+    setValue('rpe', state.rpe, true);
+    updateTimerDisplay();
+  } catch(e) { console.error('init-a:', e); }
+  try {
+    renderLog();
+    updateReadouts();
+  } catch(e) { console.error('init-b:', e); }
 });
 
 </script>
