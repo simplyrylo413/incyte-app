@@ -1662,6 +1662,56 @@
     box-shadow: 0 0 6px rgba(245,236,0,0.5);
   }
 
+  /* Remove-set button — revealed on swipe-left or row hover */
+  .log-row { overflow: hidden; }
+  .log-row-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    transition: transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .log-remove {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(180,60,60,0.4);
+    background: rgba(120,30,30,0.25);
+    color: rgba(220,80,80,0.7);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s, background 0.12s, transform 0.1s;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0;
+    /* sits outside the row flow until revealed */
+    position: absolute;
+    right: -36px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  /* On done rows, always show remove */
+  .log-row.done-row .log-remove,
+  .log-row:hover .log-remove {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .log-remove:hover {
+    background: rgba(180,40,40,0.5);
+    color: #ff6060;
+    border-color: rgba(220,60,60,0.7);
+  }
+  .log-remove:active { transform: translateY(-50%) scale(0.88); }
+  /* Slide row left to reveal remove */
+  .log-row.swiped .log-row-inner { transform: translateX(-38px); }
+  .log-row.swiped .log-remove { opacity: 1; pointer-events: auto; }
+
   /* ================= BOTTOM NAV — MECHANICAL TRANSPORT PANEL ================= */
   .bottom-nav-wrap {
     background:
@@ -3126,14 +3176,20 @@ function renderLog() {
   const next = state.logs.find(l => !l.done);
   state.currentSet = next ? next.num : state.totalSets;
 
-  state.logs.forEach((log) => {
+  state.logs.forEach((log, idx) => {
     const row = document.createElement('div');
-    row.className = 'log-row' + (log.num === state.currentSet && !log.done ? ' current' : '');
+    const isCurrent = log.num === state.currentSet && !log.done;
+    row.className = 'log-row' + (isCurrent ? ' current' : '') + (log.done ? ' done-row' : '');
+    row.style.position = 'relative';
+
+    // Inner flex wrapper (slides left on swipe to reveal remove btn)
+    const inner = document.createElement('div');
+    inner.className = 'log-row-inner';
 
     const num = document.createElement('div');
     num.className = 'log-num';
     num.textContent = String(log.num).padStart(2, '0');
-    row.appendChild(num);
+    inner.appendChild(num);
 
     const tags = document.createElement('div');
     tags.className = 'log-tags';
@@ -3147,12 +3203,16 @@ function renderLog() {
       });
       tags.appendChild(t);
     });
-    row.appendChild(tags);
+    inner.appendChild(tags);
 
     const val = document.createElement('div');
     val.className = 'log-value' + (log.weight === null ? ' empty' : '');
-    val.textContent = log.weight !== null ? `${log.weight} × ${log.reps}` : '— × —';
-    row.appendChild(val);
+    if (log.weight !== null) {
+      val.innerHTML = `${log.weight} <span class="x-sep">×</span> ${log.reps}`;
+    } else {
+      val.textContent = '— × —';
+    }
+    inner.appendChild(val);
 
     const check = document.createElement('div');
     check.className = 'log-check' + (log.done ? ' done' : '');
@@ -3161,7 +3221,48 @@ function renderLog() {
       log.done = !log.done;
       renderLog();
     });
-    row.appendChild(check);
+    inner.appendChild(check);
+
+    row.appendChild(inner);
+
+    // Remove button — absolutely positioned, revealed by hover or swipe
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'log-remove';
+    removeBtn.setAttribute('aria-label', 'Remove set');
+    removeBtn.innerHTML = '✕';
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Animate out, then remove
+      row.style.transition = 'opacity 0.18s, max-height 0.22s';
+      row.style.opacity = '0';
+      row.style.maxHeight = row.offsetHeight + 'px';
+      requestAnimationFrame(() => {
+        row.style.maxHeight = '0';
+        row.style.padding = '0';
+        row.style.overflow = 'hidden';
+      });
+      setTimeout(() => {
+        state.logs.splice(idx, 1);
+        // Re-number remaining sets
+        state.logs.forEach((l, i) => { l.num = i + 1; });
+        state.totalSets = state.logs.length;
+        renderLog();
+        showToast('SET REMOVED');
+      }, 220);
+    });
+    row.appendChild(removeBtn);
+
+    // Swipe-left to reveal remove (touch devices)
+    let touchStartX = null;
+    inner.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    inner.addEventListener('touchmove', (e) => {
+      if (touchStartX === null) return;
+      const dx = e.touches[0].clientX - touchStartX;
+      if (dx < -20) { row.classList.add('swiped'); }
+      else if (dx > 10) { row.classList.remove('swiped'); }
+    }, { passive: true });
 
     container.appendChild(row);
   });

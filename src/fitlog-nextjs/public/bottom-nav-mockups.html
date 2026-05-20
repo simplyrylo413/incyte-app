@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bottom Nav Mockups — INCYTE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+
+<!-- Micro-texture filter — applied as SVG background on button faces -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="grain-tex" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+      <feBlend in="SourceGraphic" in2="gray" mode="overlay" result="blend"/>
+      <feComponentTransfer in="blend">
+        <feFuncA type="linear" slope="1"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="grain-tex-b" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="4" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+      <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="blend"/>
+      <feComponentTransfer in="blend">
+        <feFuncA type="linear" slope="1"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
+
+<style>
+/* ─────────────────────────────────────────────
+   RESET + GLOBAL
+───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #050607;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245,236,0,0.025) 0%, transparent 70%);
+  font-family: 'Share Tech Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  padding: 52px 20px 80px;
+  min-height: 100vh;
+}
+
+.page-header {
+  color: rgba(245,236,0,0.25);
+  font-size: 9px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.option-label {
+  color: rgba(245,236,0,0.55);
+  font-size: 9px;
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.divider {
+  width: 280px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245,236,0,0.08) 40%, rgba(245,236,0,0.08) 60%, transparent 100%);
+}
+
+/* ─────────────────────────────────────────────
+   PHONE FRAME — shared
+───────────────────────────────────────────── */
+.phone {
+  width: 340px;
+  background: #080a0c;
+  border-radius: 38px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* Outer phone bezel — anodized aluminum ring */
+  box-shadow:
+    0 0 0 1.5px #1a1e22,
+    0 0 0 3px #0d0f11,
+    0 0 0 4px #222629,
+    0 0 0 5.5px #0a0c0e,
+    0 8px 32px rgba(0,0,0,0.85),
+    0 24px 60px rgba(0,0,0,0.7),
+    0 60px 120px rgba(0,0,0,0.5);
+}
+
+/* Camera notch area */
+.phone-top {
+  height: 32px;
+  background: #06080a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.phone-top::before {
+  content: '';
+  width: 100px;
+  height: 20px;
+  border-radius: 0 0 16px 16px;
+  background: #020304;
+  border: 1px solid #111315;
+  border-top: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+/* Camera lens */
+.phone-top::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1a1e22 0%, #05070a 60%, #020304 100%);
+  box-shadow:
+    0 0 0 1.5px #111416,
+    inset 0 1px 2px rgba(0,0,0,0.9),
+    inset 0 -0.5px 1px rgba(255,255,255,0.04);
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ─────────────────────────────────────────────
+   FAKE CONTENT AREA — INCYTE workout panel look
+───────────────────────────────────────────── */
+.fake-content {
+  flex: 1;
+  background: linear-gradient(180deg, #0b0d10 0%, #080a0c 80%, #060708 100%);
+  padding: 14px 14px 0;
+  min-height: 160px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+/* Screen glare — angled reflection */
+.fake-content::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -30px;
+  width: 200px; height: 120px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 0 0 100% 0;
+}
+
+/* Yellow underglow from nav bleeding up */
+.fake-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  background: linear-gradient(0deg, rgba(245,236,0,0.06) 0%, rgba(245,236,0,0.02) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fake-eyebrow {
+  height: 7px;
+  width: 52px;
+  border-radius: 2px;
+  background: rgba(245,236,0,0.2);
+  margin-bottom: 4px;
+}
+
+.fake-row {
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+  position: relative;
+}
+
+.fake-row::before {
+  content: '';
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgba(93,155,184,0.2) 0%, rgba(155,130,200,0.15) 100%);
+  border: 1px solid rgba(93,155,184,0.12);
+  flex-shrink: 0;
+}
+
+.fake-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fake-row-name {
+  height: 7px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.12);
+}
+.fake-row-meta {
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.05);
+  width: 55%;
+}
+
+.fake-chip {
+  height: 20px;
+  width: 32px;
+  border-radius: 5px;
+  background: rgba(245,236,0,0.12);
+  border: 1px solid rgba(245,236,0,0.2);
+}
+
+.fake-row.accent .fake-row-name { background: rgba(245,236,0,0.2); }
+.fake-row.accent { border-color: rgba(245,236,0,0.1); }
+
+/* ─────────────────────────────────────────────
+   SHARED BUTTON TEXTURE HELPER
+   Micro-grain via repeating-linear-gradient trick
+───────────────────────────────────────────── */
+.btn-grain-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.018) 0px,
+      rgba(255,255,255,0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0.022) 0px,
+      rgba(0,0,0,0.022) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* ─────────────────────────────────────────────
+   SHARED LED + SPEC LABEL
+───────────────────────────────────────────── */
+.led-dot {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  /* OFF state: dark with slight green tint, bezeled ring */
+  background: radial-gradient(circle at 45% 35%, #1c2020 0%, #0d1010 60%, #050808 100%);
+  box-shadow:
+    0 0 0 1px #0a0d0d,
+    0 0 0 1.5px #161a1a,
+    inset 0 1px 2px rgba(0,0,0,0.95),
+    inset 0 -0.5px 1px rgba(255,255,255,0.02);
+  z-index: 3;
+}
+
+.led-dot::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 25%;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.0);
+}
+
+/* LED ON (active state) */
+.led-on {
+  background: radial-gradient(circle at 40% 30%, #ffffff 0%, #f5ec00 40%, #c8bc00 75%, #8a8000 100%);
+  box-shadow:
+    0 0 0 1px rgba(245,236,0,0.6),
+    0 0 0 2px rgba(245,236,0,0.2),
+    0 0 4px rgba(245,236,0,0.9),
+    0 0 8px rgba(245,236,0,0.6),
+    0 0 16px rgba(245,236,0,0.3);
+}
+
+.led-on::after {
+  background: rgba(255,255,255,0.75);
+}
+
+/* ─────────────────────────────────────────────
+   ═══════════════════════════════════════════
+   OPTION A
+   Single-border bezel, corner screws, PCB traces
+   ═══════════════════════════════════════════
+───────────────────────────────────────────── */
+.nav-a-wrap {
+  flex-shrink: 0;
+  background: #06080a;
+  padding: 10px 10px 16px;
+  position: relative;
+}
+
+/* Yellow reflection on chassis surface above bezel */
+.nav-a-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10px; right: 10px;
+  height: 10px;
+  background: linear-gradient(180deg, rgba(245,236,0,0.04) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.nav-a-bezel {
+  border-radius: 12px;
+  position: relative;
+  /* Brushed aluminum effect: layered gradients */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg,
+      rgba(245,236,0,0.06) 0%,
+      rgba(245,236,0,0.02) 25%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #1a1c20 0%, #121418 50%, #0a0b0c 100%);
+  /* Chamfered border: inner + outer with slight color difference */
+  border: 1.5px solid rgba(245,236,0,0.55);
+  outline: 1px solid rgba(0,0,0,0.8);
+  outline-offset: -3px;
+  padding: 9px 9px 11px;
+  /* Multi-layer yellow bloom glow */
+  box-shadow:
+    0 0 8px rgba(245,236,0,0.5),
+    0 0 24px rgba(245,236,0,0.2),
+    0 0 60px rgba(245,236,0,0.08),
+    inset 0 1px 0 rgba(245,236,0,0.12),
+    inset 0 0 24px rgba(0,0,0,0.7);
+}
+
+/* Corner screw — top-left */
+.nav-a-bezel::before {
+  content: '';
+  position: absolute;
+  top: 7px; left: 8px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a2e32 0%, #141618 60%, #0a0c0e 100%);
+  box-shadow:
+    0 0 0 1px #080a0c,
+    inset 0 1px 2px rgba(0,0,0,0.95),
+    inset 0 -0.5px 0.5px rgba(255,255,255,0.06);
+  /* Crosshair scratch (can't do in pseudo but we style as inset circle) */
+}
+
+/* Corner screw — top-right */
+.nav-a-bezel::after {
+  content: '';
+  position: absolute;
+  top: 7px; right: 8px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a2e32 0%, #141618 60%, #0a0c0e 100%);
+  box-shadow:
+    0 0 0 1px #080a0c,
+    inset 0 1px 2px rgba(0,0,0,0.95),
+    inset 0 -0.5px 0.5px rgba(255,255,255,0.06);
+}
+
+/* SYS-NAV strip */
+.nav-a-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 7px;
+  letter-spacing: 3.5px;
+  color: rgba(245,236,0,0.6);
+  margin-bottom: 9px;
+  padding: 0 20px;
+  /* Laser-engraved look */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9), 0 -0.5px 0 rgba(245,236,0,0.1);
+}
+
+.strip-dot {
+  display: inline-block;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #f5ec00;
+  box-shadow: 0 0 4px #f5ec00, 0 0 8px rgba(245,236,0,0.4);
+  flex-shrink: 0;
+}
+
+/* Serial number */
+.nav-a-serial {
+  position: absolute;
+  bottom: 4px; right: 10px;
+  font-size: 5.5px;
+  letter-spacing: 1.5px;
+  color: rgba(245,236,0,0.2);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+
+/* PCB traces bottom edge */
+.nav-a-pcb {
+  position: absolute;
+  bottom: 5px; left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.pcb-trace {
+  height: 1px;
+  background: rgba(245,236,0,0.15);
+}
+.pcb-trace.t1 { width: 14px; }
+.pcb-trace.t2 { width: 8px; }
+.pcb-trace.t3 { width: 20px; }
+.pcb-pad {
+  width: 4px; height: 4px;
+  border-radius: 1px;
+  background: rgba(245,236,0,0.0);
+  border: 1px solid rgba(245,236,0,0.2);
+}
+.pcb-pad-circle {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(245,236,0,0.15);
+}
+
+/* Button row */
+.nav-a-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Core button keycap ── */
+.nav-a-btn {
+  flex: 1;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  /* Physical step shadow below keycap */
+  filter: drop-shadow(0 3px 0 #05060a) drop-shadow(0 4px 6px rgba(0,0,0,0.8));
+}
+
+/* Button top face */
+.btn-face {
+  position: relative;
+  height: 66px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  /* Multi-layer keycap face gradient */
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.14) 0%,
+      rgba(255,255,255,0.06) 12%,
+      rgba(255,255,255,0.01) 30%,
+      transparent 55%,
+      rgba(0,0,0,0.08) 100%
+    ),
+    linear-gradient(180deg, #3a3d42 0%, #2e3238 25%, #23272d 60%, #1e2228 100%);
+  /* Top chamfer highlight line */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 0.5px 0 rgba(255,255,255,0.35),
+    inset 0 -3px 6px rgba(0,0,0,0.7),
+    inset 1px 0 0 rgba(255,255,255,0.05),
+    inset -1px 0 0 rgba(0,0,0,0.4);
+  /* Hard drop shadow = physical step between surface and chassis */
+  border: 1px solid rgba(0,0,0,0.6);
+  border-top-color: rgba(255,255,255,0.07);
+  z-index: 2;
+}
+
+/* Side wall — darker strip below face to simulate 3-4px physical depth */
+.btn-face::before {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 1px; right: 1px;
+  height: 4px;
+  border-radius: 0 0 5px 5px;
+  background: linear-gradient(180deg, #0a0c10 0%, #050608 100%);
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.9);
+  z-index: -1;
+}
+
+/* Grain texture overlay */
+.btn-face .btn-grain-overlay {
+  border-radius: 8px;
+}
+
+/* Active button face */
+.nav-a-btn.active .btn-face {
+  background:
+    linear-gradient(180deg,
+      rgba(245,236,0,0.22) 0%,
+      rgba(245,236,0,0.08) 20%,
+      rgba(245,236,0,0.02) 45%,
+      transparent 70%
+    ),
+    linear-gradient(180deg, #2e3018 0%, #20221a 30%, #181a12 65%, #12140c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(245,236,0,0.4),
+    inset 0 0.5px 0 rgba(245,236,0,0.6),
+    inset 0 -3px 6px rgba(0,0,0,0.7),
+    /* Anisotropic glow: stronger top, fading bottom */
+    0 -2px 8px rgba(245,236,0,0.25),
+    0 -1px 3px rgba(245,236,0,0.4),
+    inset 0 0 20px rgba(245,236,0,0.04);
+  border-color: rgba(245,236,0,0.15);
+  border-top-color: rgba(245,236,0,0.2);
+}
+
+.nav-a-btn svg { width: 20px; height: 20px; position: relative; z-index: 2; }
+
+.btn-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: #505660;
+  text-transform: uppercase;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  /* Silkscreened look */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.8);
+}
+.nav-a-btn.active .btn-lbl {
+  color: rgba(245,236,0,0.9);
+  text-shadow: 0 0 6px rgba(245,236,0,0.5), 0 1px 0 rgba(0,0,0,0.7);
+}
+
+/* SW spec label below button */
+.btn-spec {
+  display: block;
+  text-align: center;
+  font-size: 5.5px;
+  letter-spacing: 1px;
+  color: rgba(245,236,0,0.18);
+  margin-top: 3px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+
+/* ─────────────────────────────────────────────
+   ═══════════════════════════════════════════
+   OPTION B
+   Dual-layer bezel, taller buttons, more depth
+   ═══════════════════════════════════════════
+───────────────────────────────────────────── */
+.nav-b-wrap {
+  flex-shrink: 0;
+  background: #050607;
+  padding: 8px 8px 16px;
+  position: relative;
+}
+
+.nav-b-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8px; right: 8px;
+  height: 8px;
+  background: linear-gradient(180deg, rgba(245,236,0,0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Outer ring — gradient border simulate chamfer ring */
+.nav-b-outer {
+  border-radius: 14px;
+  padding: 2.5px;
+  background: linear-gradient(160deg,
+    rgba(245,236,0,0.65) 0%,
+    rgba(245,236,0,0.35) 30%,
+    rgba(245,236,0,0.15) 60%,
+    rgba(245,236,0,0.45) 100%
+  );
+  box-shadow:
+    0 0 8px rgba(245,236,0,0.55),
+    0 0 24px rgba(245,236,0,0.22),
+    0 0 60px rgba(245,236,0,0.08);
+}
+
+/* Inner recessed frame */
+.nav-b-inner {
+  border-radius: 12px;
+  padding: 9px 9px 11px;
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.025) 0px,
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(180deg,
+      rgba(245,236,0,0.05) 0%,
+      rgba(245,236,0,0.01) 20%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #181a1e 0%, #101214 50%, #08090b 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.9),
+    inset 0 0 30px rgba(0,0,0,0.6);
+}
+
+/* Corner rivet TL */
+.nav-b-inner::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 9px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #252a2f 0%, #111518 55%, #080a0c 100%);
+  box-shadow:
+    0 0 0 1px #060809,
+    inset 0 1.5px 3px rgba(0,0,0,0.97),
+    inset 0 -0.5px 0.5px rgba(255,255,255,0.04);
+}
+.nav-b-inner::after {
+  content: '';
+  position: absolute;
+  top: 8px; right: 9px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #252a2f 0%, #111518 55%, #080a0c 100%);
+  box-shadow:
+    0 0 0 1px #060809,
+    inset 0 1.5px 3px rgba(0,0,0,0.97),
+    inset 0 -0.5px 0.5px rgba(255,255,255,0.04);
+}
+
+.nav-b-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 7px;
+  letter-spacing: 3.5px;
+  color: rgba(245,236,0,0.55);
+  margin-bottom: 9px;
+  padding: 0 22px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95), 0 -0.5px 0 rgba(245,236,0,0.08);
+}
+
+.nav-b-serial {
+  position: absolute;
+  bottom: 5px; right: 11px;
+  font-size: 5.5px;
+  letter-spacing: 1.5px;
+  color: rgba(245,236,0,0.18);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+
+.nav-b-pcb {
+  position: absolute;
+  bottom: 5px; left: 11px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.nav-b-row { display: flex; gap: 5px; }
+
+/* Option B keycap — taller, more physical depth */
+.nav-b-btn {
+  flex: 1;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  border-radius: 9px;
+  padding: 0;
+  background: transparent;
+  filter: drop-shadow(0 4px 0 #040507) drop-shadow(0 6px 8px rgba(0,0,0,0.85));
+}
+
+.nav-b-face {
+  position: relative;
+  height: 74px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,0.16) 0%,
+      rgba(255,255,255,0.07) 10%,
+      rgba(255,255,255,0.015) 28%,
+      transparent 50%,
+      rgba(0,0,0,0.1) 100%
+    ),
+    linear-gradient(175deg, #3c4048 0%, #2e3340 25%, #222830 60%, #1c2028 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.26),
+    inset 0 0.5px 0 rgba(255,255,255,0.4),
+    inset 0 -4px 8px rgba(0,0,0,0.8),
+    inset 1px 0 0 rgba(255,255,255,0.06),
+    inset -1px 0 0 rgba(0,0,0,0.45);
+  border: 1px solid rgba(0,0,0,0.55);
+  border-top-color: rgba(255,255,255,0.08);
+  z-index: 2;
+}
+
+/* Side wall — taller on B (more depth) */
+.nav-b-face::before {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 1px; right: 1px;
+  height: 5px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, #090b10 0%, #040508 100%);
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.95);
+  z-index: -1;
+}
+
+.nav-b-face .btn-grain-overlay { border-radius: 9px; }
+
+.nav-b-btn.active .nav-b-face {
+  background:
+    linear-gradient(180deg,
+      rgba(245,236,0,0.24) 0%,
+      rgba(245,236,0,0.09) 18%,
+      rgba(245,236,0,0.02) 42%,
+      transparent 68%
+    ),
+    linear-gradient(175deg, #30321c 0%, #222418 30%, #191b12 65%, #11130d 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(245,236,0,0.45),
+    inset 0 0.5px 0 rgba(245,236,0,0.65),
+    inset 0 -4px 8px rgba(0,0,0,0.8),
+    0 -2px 10px rgba(245,236,0,0.28),
+    0 -1px 4px rgba(245,236,0,0.45),
+    inset 0 0 24px rgba(245,236,0,0.04);
+  border-color: rgba(245,236,0,0.18);
+  border-top-color: rgba(245,236,0,0.22);
+}
+
+.nav-b-btn svg { width: 22px; height: 22px; position: relative; z-index: 2; }
+.nav-b-btn .btn-lbl { z-index: 2; font-size: 7.5px; }
+.nav-b-btn.active .btn-lbl {
+  color: rgba(245,236,0,0.9);
+  text-shadow: 0 0 6px rgba(245,236,0,0.5), 0 1px 0 rgba(0,0,0,0.7);
+}
+
+/* ─────────────────────────────────────────────
+   ═══════════════════════════════════════════
+   OPTION C
+   Single glowing rail, glass/translucent bezel,
+   circuit trace "through" effect
+   ═══════════════════════════════════════════
+───────────────────────────────────────────── */
+.nav-c-wrap {
+  flex-shrink: 0;
+  background: #050607;
+  padding: 0 8px 16px;
+  position: relative;
+}
+
+/* Glowing top rail */
+.nav-c-rail {
+  height: 2px;
+  margin: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(245,236,0,0.2) 10%,
+    rgba(245,236,0,0.7) 30%,
+    rgba(245,236,0,1.0) 50%,
+    rgba(245,236,0,0.7) 70%,
+    rgba(245,236,0,0.2) 90%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 4px rgba(245,236,0,0.8),
+    0 0 12px rgba(245,236,0,0.4),
+    0 0 28px rgba(245,236,0,0.15);
+  position: relative;
+  z-index: 5;
+}
+
+/* Rail glow reflection above */
+.nav-c-rail::before {
+  content: '';
+  position: absolute;
+  top: -8px; left: 15%; right: 15%;
+  height: 8px;
+  background: linear-gradient(180deg, transparent 0%, rgba(245,236,0,0.06) 100%);
+  pointer-events: none;
+}
+
+/* Glass bezel frame */
+.nav-c-frame {
+  border-radius: 0 0 10px 10px;
+  border: 1px solid rgba(245,236,0,0.3);
+  border-top: none;
+  padding: 9px 8px 11px;
+  position: relative;
+  overflow: hidden;
+  /* Glass/translucent — slight transparency showing circuit trace look */
+  background:
+    /* Circuit traces "under glass" */
+    repeating-linear-gradient(
+      0deg,
+      rgba(245,236,0,0.018) 0px,
+      rgba(245,236,0,0.018) 1px,
+      transparent 1px,
+      transparent 18px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(245,236,0,0.012) 0px,
+      rgba(245,236,0,0.012) 1px,
+      transparent 1px,
+      transparent 22px
+    ),
+    /* Glass body */
+    linear-gradient(180deg,
+      rgba(245,236,0,0.04) 0%,
+      rgba(10,11,14,0.82) 20%,
+      rgba(8,9,11,0.88) 100%
+    );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 8px rgba(245,236,0,0.18),
+    0 0 24px rgba(245,236,0,0.07),
+    inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Glass surface sheen */
+.nav-c-frame::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 55%; height: 100%;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.015) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.nav-c-serial {
+  position: absolute;
+  bottom: 4px; right: 9px;
+  font-size: 5.5px;
+  letter-spacing: 1.5px;
+  color: rgba(245,236,0,0.18);
+  text-shadow: 0 1px 0 rgba(0,0,0,0.9);
+}
+
+.nav-c-pcb {
+  position: absolute;
+  bottom: 5px; left: 9px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.nav-c-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 7px;
+  letter-spacing: 3px;
+  color: rgba(245,236,0,0.5);
+  margin-bottom: 8px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.95);
+}
+
+.nav-c-row { display: flex; gap: 5px; }
+
+/* Option C buttons — slightly translucent, circuit trace visible through */
+.nav-c-btn {
+  flex: 1;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  border-radius: 7px;
+  padding: 0;
+  background: transparent;
+  filter: drop-shadow(0 2px 0 #030405) drop-shadow(0 3px 5px rgba(0,0,0,0.75));
+}
+
+.nav-c-face {
+  position: relative;
+  height: 60px;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  /* Semi-transparent — circuit traces bleed through slightly */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(245,236,0,0.022) 0px,
+      rgba(245,236,0,0.022) 1px,
+      transparent 1px,
+      transparent 14px
+    ),
+    linear-gradient(180deg,
+      rgba(255,255,255,0.12) 0%,
+      rgba(255,255,255,0.05) 14%,
+      rgba(255,255,255,0.01) 30%,
+      transparent 55%,
+      rgba(0,0,0,0.05) 100%
+    ),
+    linear-gradient(180deg, rgba(52,58,64,0.92) 0%, rgba(30,34,40,0.94) 40%, rgba(22,26,32,0.95) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 0.5px 0 rgba(255,255,255,0.32),
+    inset 0 -2px 5px rgba(0,0,0,0.65),
+    inset 1px 0 0 rgba(255,255,255,0.04),
+    inset -1px 0 0 rgba(0,0,0,0.35);
+  border: 1px solid rgba(245,236,0,0.12);
+  border-top-color: rgba(255,255,255,0.07);
+  z-index: 2;
+}
+
+/* Side wall — thin on C */
+.nav-c-face::before {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 1px; right: 1px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(180deg, #08090d 0%, #030406 100%);
+  z-index: -1;
+}
+
+.nav-c-face .btn-grain-overlay { border-radius: 7px; }
+
+.nav-c-btn.active .nav-c-face {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(245,236,0,0.03) 0px,
+      rgba(245,236,0,0.03) 1px,
+      transparent 1px,
+      transparent 14px
+    ),
+    linear-gradient(180deg,
+      rgba(245,236,0,0.2) 0%,
+      rgba(245,236,0,0.07) 22%,
+      rgba(245,236,0,0.015) 45%,
+      transparent 68%
+    ),
+    linear-gradient(180deg, rgba(44,46,28,0.95) 0%, rgba(30,32,20,0.97) 40%, rgba(22,24,14,0.98) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(245,236,0,0.42),
+    inset 0 0.5px 0 rgba(245,236,0,0.6),
+    inset 0 -2px 5px rgba(0,0,0,0.7),
+    0 -2px 7px rgba(245,236,0,0.22),
+    0 -1px 3px rgba(245,236,0,0.38);
+  border-color: rgba(245,236,0,0.22);
+  border-top-color: rgba(245,236,0,0.18);
+}
+
+.nav-c-btn svg { width: 18px; height: 18px; position: relative; z-index: 2; }
+.nav-c-btn .btn-lbl { font-size: 7px; z-index: 2; }
+.nav-c-btn.active .btn-lbl {
+  color: rgba(245,236,0,0.9);
+  text-shadow: 0 0 5px rgba(245,236,0,0.5), 0 1px 0 rgba(0,0,0,0.7);
+}
+
+/* ─────────────────────────────────────────────
+   SVG ICON COLORS
+───────────────────────────────────────────── */
+.icon-dim { color: #48505a; }
+.icon-active { color: #f5ec00; }
+</style>
+</head>
+<body>
+
+<div class="page-header">◆ INCYTE SYS-NAV ◆ BOTTOM BAR HARDWARE MOCKUPS ◆</div>
+
+<!-- ══════════════════════════════════════════
+     OPTION A
+     Single-border bezel + corner screws + PCB traces
+═══════════════════════════════════════════ -->
+<div>
+  <div class="option-label">▸ OPTION A — Bezel border · Corner screws · PCB traces</div>
+  <div class="phone">
+    <!-- Camera notch -->
+    <div class="phone-top"></div>
+    <!-- INCYTE workout content -->
+    <div class="fake-content">
+      <div class="fake-eyebrow"></div>
+      <div class="fake-row accent">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:70%"></div>
+          <div class="fake-row-meta"></div>
+        </div>
+        <div class="fake-chip"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:55%"></div>
+          <div class="fake-row-meta" style="width:40%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:65%"></div>
+          <div class="fake-row-meta" style="width:48%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+    </div>
+    <!-- Nav Hardware -->
+    <div class="nav-a-wrap">
+      <div class="nav-a-bezel">
+        <!-- SYS-NAV laser strip -->
+        <div class="nav-a-strip">
+          SYS-NAV <span class="strip-dot"></span> MDL-X7
+        </div>
+        <!-- PCB traces -->
+        <div class="nav-a-pcb" aria-hidden="true">
+          <div class="pcb-pad"></div>
+          <div class="pcb-trace t1"></div>
+          <div class="pcb-pad-circle"></div>
+          <div class="pcb-trace t2"></div>
+          <div class="pcb-pad"></div>
+          <div class="pcb-trace t3"></div>
+          <div class="pcb-pad-circle"></div>
+        </div>
+        <!-- Serial -->
+        <div class="nav-a-serial">S/N: 4K-0X19</div>
+        <!-- Button row -->
+        <div class="nav-a-row">
+          <!-- TRAINING -->
+          <button class="nav-a-btn" aria-label="Training">
+            <div class="btn-face">
+              <div class="btn-grain-overlay"></div>
+              <!-- LED dot OFF -->
+              <div class="led-dot"></div>
+              <!-- Dumbbell with barbell plates -->
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Left outer plate -->
+                <rect x="1" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+                <!-- Left inner plate -->
+                <rect x="3.5" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                <!-- Bar left -->
+                <rect x="5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                <!-- Center grip -->
+                <rect x="9.5" y="10.2" width="5" height="3.6" rx="0.8" fill="#48505a"/>
+                <!-- Bar right -->
+                <rect x="14.5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                <!-- Right inner plate -->
+                <rect x="19" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                <!-- Right outer plate -->
+                <rect x="20.5" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+              </svg>
+              <span class="btn-lbl">TRAINING</span>
+            </div>
+            <span class="btn-spec">SW-1</span>
+          </button>
+          <!-- PROGRESS -->
+          <button class="nav-a-btn" aria-label="Progress">
+            <div class="btn-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot"></div>
+              <!-- Bar chart + trend line -->
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bars -->
+                <rect x="2.5" y="15" width="3.5" height="7" rx="0.8" fill="#48505a"/>
+                <rect x="8" y="10" width="3.5" height="12" rx="0.8" fill="#48505a"/>
+                <rect x="13.5" y="6" width="3.5" height="16" rx="0.8" fill="#48505a"/>
+                <rect x="19" y="3" width="3.5" height="19" rx="0.8" fill="#48505a"/>
+                <!-- Trend line overlay -->
+                <polyline points="4.25,14 9.75,8.5 15.25,5.5 20.75,2.5" stroke="#48505a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+                <circle cx="4.25" cy="14" r="1" fill="#48505a" opacity="0.8"/>
+                <circle cx="20.75" cy="2.5" r="1" fill="#48505a" opacity="0.8"/>
+              </svg>
+              <span class="btn-lbl">PROGRESS</span>
+            </div>
+            <span class="btn-spec">SW-2</span>
+          </button>
+          <!-- WORKOUT / PLAY — ACTIVE -->
+          <button class="nav-a-btn active" aria-label="Start Workout">
+            <div class="btn-face">
+              <div class="btn-grain-overlay"></div>
+              <!-- LED ON -->
+              <div class="led-dot led-on"></div>
+              <!-- Play triangle with 3D bevel -->
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bevel layer (slightly darker, offset) -->
+                <polygon points="5.5,4 19.5,12.5 5.5,21" fill="rgba(180,170,0,0.6)"/>
+                <!-- Main fill -->
+                <polygon points="5,3.5 19,12 5,20.5" fill="#f5ec00"/>
+                <!-- Top highlight bevel -->
+                <polygon points="5,3.5 19,12 13,12 5,3.5" fill="rgba(255,255,255,0.22)"/>
+              </svg>
+              <span class="btn-lbl">WORKOUT</span>
+            </div>
+            <span class="btn-spec" style="color:rgba(245,236,0,0.35)">SW-3</span>
+          </button>
+          <!-- MORE -->
+          <button class="nav-a-btn" aria-label="More">
+            <div class="btn-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot"></div>
+              <!-- Three horizontal bars with spacing variation (menu icon) -->
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="7" width="18" height="1.8" rx="0.9" fill="#48505a"/>
+                <rect x="4.5" y="11.1" width="15" height="1.8" rx="0.9" fill="#48505a"/>
+                <rect x="6" y="15.2" width="12" height="1.8" rx="0.9" fill="#48505a"/>
+              </svg>
+              <span class="btn-lbl">MORE</span>
+            </div>
+            <span class="btn-spec">SW-4</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     OPTION B
+     Dual-layer bezel, taller buttons, more depth
+═══════════════════════════════════════════ -->
+<div>
+  <div class="option-label">▸ OPTION B — Dual-layer bezel · Taller keycaps · Deeper relief</div>
+  <div class="phone">
+    <div class="phone-top"></div>
+    <div class="fake-content">
+      <div class="fake-eyebrow"></div>
+      <div class="fake-row accent">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:68%"></div>
+          <div class="fake-row-meta"></div>
+        </div>
+        <div class="fake-chip"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:52%"></div>
+          <div class="fake-row-meta" style="width:38%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:60%"></div>
+          <div class="fake-row-meta" style="width:45%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+    </div>
+    <!-- Nav Hardware B -->
+    <div class="nav-b-wrap">
+      <div class="nav-b-outer">
+        <div class="nav-b-inner">
+          <!-- SYS-NAV strip -->
+          <div class="nav-b-strip">
+            SYS-NAV <span class="strip-dot"></span> MDL-X7
+          </div>
+          <!-- PCB traces -->
+          <div class="nav-b-pcb" aria-hidden="true">
+            <div class="pcb-pad"></div>
+            <div class="pcb-trace t1"></div>
+            <div class="pcb-pad-circle"></div>
+            <div class="pcb-trace t2"></div>
+            <div class="pcb-pad"></div>
+            <div class="pcb-trace t3"></div>
+            <div class="pcb-pad-circle"></div>
+          </div>
+          <div class="nav-b-serial">S/N: 4K-0X19</div>
+          <!-- Button row -->
+          <div class="nav-b-row">
+            <!-- TRAINING -->
+            <button class="nav-b-btn" aria-label="Training">
+              <div class="nav-b-face">
+                <div class="btn-grain-overlay"></div>
+                <div class="led-dot"></div>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+                  <rect x="3.5" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                  <rect x="5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                  <rect x="9.5" y="10.2" width="5" height="3.6" rx="0.8" fill="#48505a"/>
+                  <rect x="14.5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                  <rect x="19" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                  <rect x="20.5" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+                </svg>
+                <span class="btn-lbl">TRAINING</span>
+              </div>
+              <span class="btn-spec">SW-1</span>
+            </button>
+            <!-- PROGRESS -->
+            <button class="nav-b-btn" aria-label="Progress">
+              <div class="nav-b-face">
+                <div class="btn-grain-overlay"></div>
+                <div class="led-dot"></div>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2.5" y="15" width="3.5" height="7" rx="0.8" fill="#48505a"/>
+                  <rect x="8" y="10" width="3.5" height="12" rx="0.8" fill="#48505a"/>
+                  <rect x="13.5" y="6" width="3.5" height="16" rx="0.8" fill="#48505a"/>
+                  <rect x="19" y="3" width="3.5" height="19" rx="0.8" fill="#48505a"/>
+                  <polyline points="4.25,14 9.75,8.5 15.25,5.5 20.75,2.5" stroke="#48505a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+                  <circle cx="4.25" cy="14" r="1" fill="#48505a" opacity="0.8"/>
+                  <circle cx="20.75" cy="2.5" r="1" fill="#48505a" opacity="0.8"/>
+                </svg>
+                <span class="btn-lbl">PROGRESS</span>
+              </div>
+              <span class="btn-spec">SW-2</span>
+            </button>
+            <!-- WORKOUT ACTIVE -->
+            <button class="nav-b-btn active" aria-label="Start Workout">
+              <div class="nav-b-face">
+                <div class="btn-grain-overlay"></div>
+                <div class="led-dot led-on"></div>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="5.5,4 19.5,12.5 5.5,21" fill="rgba(180,170,0,0.6)"/>
+                  <polygon points="5,3.5 19,12 5,20.5" fill="#f5ec00"/>
+                  <polygon points="5,3.5 19,12 13,12 5,3.5" fill="rgba(255,255,255,0.22)"/>
+                </svg>
+                <span class="btn-lbl">WORKOUT</span>
+              </div>
+              <span class="btn-spec" style="color:rgba(245,236,0,0.35)">SW-3</span>
+            </button>
+            <!-- MORE -->
+            <button class="nav-b-btn" aria-label="More">
+              <div class="nav-b-face">
+                <div class="btn-grain-overlay"></div>
+                <div class="led-dot"></div>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="7" width="18" height="1.8" rx="0.9" fill="#48505a"/>
+                  <rect x="4.5" y="11.1" width="15" height="1.8" rx="0.9" fill="#48505a"/>
+                  <rect x="6" y="15.2" width="12" height="1.8" rx="0.9" fill="#48505a"/>
+                </svg>
+                <span class="btn-lbl">MORE</span>
+              </div>
+              <span class="btn-spec">SW-4</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════════
+     OPTION C
+     Single rail top, glass bezel, circuit traces through
+═══════════════════════════════════════════ -->
+<div>
+  <div class="option-label">▸ OPTION C — Rail glow · Glass bezel · PCB trace-through</div>
+  <div class="phone">
+    <div class="phone-top"></div>
+    <div class="fake-content">
+      <div class="fake-eyebrow"></div>
+      <div class="fake-row accent">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:72%"></div>
+          <div class="fake-row-meta"></div>
+        </div>
+        <div class="fake-chip"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:50%"></div>
+          <div class="fake-row-meta" style="width:36%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+      <div class="fake-row">
+        <div class="fake-row-body">
+          <div class="fake-row-name" style="width:63%"></div>
+          <div class="fake-row-meta" style="width:42%"></div>
+        </div>
+        <div class="fake-chip" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08)"></div>
+      </div>
+    </div>
+    <!-- Nav Hardware C -->
+    <div class="nav-c-wrap">
+      <div class="nav-c-rail"></div>
+      <div class="nav-c-frame">
+        <div class="nav-c-strip">
+          SYS-NAV <span class="strip-dot"></span> MDL-X7
+        </div>
+        <!-- PCB traces -->
+        <div class="nav-c-pcb" aria-hidden="true">
+          <div class="pcb-pad"></div>
+          <div class="pcb-trace t1"></div>
+          <div class="pcb-pad-circle"></div>
+          <div class="pcb-trace t2"></div>
+          <div class="pcb-pad"></div>
+          <div class="pcb-trace t3"></div>
+          <div class="pcb-pad-circle"></div>
+        </div>
+        <div class="nav-c-serial">S/N: 4K-0X19</div>
+        <!-- Button row -->
+        <div class="nav-c-row">
+          <!-- TRAINING -->
+          <button class="nav-c-btn" aria-label="Training">
+            <div class="nav-c-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot"></div>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
+                <rect x="1" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+                <rect x="3.5" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                <rect x="5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                <rect x="9.5" y="10.2" width="5" height="3.6" rx="0.8" fill="#48505a"/>
+                <rect x="14.5" y="11.2" width="4.5" height="1.6" rx="0.4" fill="#48505a"/>
+                <rect x="19" y="10" width="1.5" height="4" rx="0.4" fill="#48505a"/>
+                <rect x="20.5" y="9" width="2.5" height="6" rx="0.6" fill="#48505a"/>
+              </svg>
+              <span class="btn-lbl">TRAINING</span>
+            </div>
+            <span class="btn-spec">SW-1</span>
+          </button>
+          <!-- PROGRESS -->
+          <button class="nav-c-btn" aria-label="Progress">
+            <div class="nav-c-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot"></div>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
+                <rect x="2.5" y="15" width="3.5" height="7" rx="0.8" fill="#48505a"/>
+                <rect x="8" y="10" width="3.5" height="12" rx="0.8" fill="#48505a"/>
+                <rect x="13.5" y="6" width="3.5" height="16" rx="0.8" fill="#48505a"/>
+                <rect x="19" y="3" width="3.5" height="19" rx="0.8" fill="#48505a"/>
+                <polyline points="4.25,14 9.75,8.5 15.25,5.5 20.75,2.5" stroke="#48505a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+                <circle cx="4.25" cy="14" r="1" fill="#48505a" opacity="0.8"/>
+                <circle cx="20.75" cy="2.5" r="1" fill="#48505a" opacity="0.8"/>
+              </svg>
+              <span class="btn-lbl">PROGRESS</span>
+            </div>
+            <span class="btn-spec">SW-2</span>
+          </button>
+          <!-- WORKOUT ACTIVE -->
+          <button class="nav-c-btn active" aria-label="Start Workout">
+            <div class="nav-c-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot led-on"></div>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
+                <polygon points="5.5,4 19.5,12.5 5.5,21" fill="rgba(180,170,0,0.6)"/>
+                <polygon points="5,3.5 19,12 5,20.5" fill="#f5ec00"/>
+                <polygon points="5,3.5 19,12 13,12 5,3.5" fill="rgba(255,255,255,0.22)"/>
+              </svg>
+              <span class="btn-lbl">WORKOUT</span>
+            </div>
+            <span class="btn-spec" style="color:rgba(245,236,0,0.35)">SW-3</span>
+          </button>
+          <!-- MORE -->
+          <button class="nav-c-btn" aria-label="More">
+            <div class="nav-c-face">
+              <div class="btn-grain-overlay"></div>
+              <div class="led-dot"></div>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
+                <rect x="3" y="7" width="18" height="1.8" rx="0.9" fill="#48505a"/>
+                <rect x="4.5" y="11.1" width="15" height="1.8" rx="0.9" fill="#48505a"/>
+                <rect x="6" y="15.2" width="12" height="1.8" rx="0.9" fill="#48505a"/>
+              </svg>
+              <span class="btn-lbl">MORE</span>
+            </div>
+            <span class="btn-spec">SW-4</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
