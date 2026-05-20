@@ -154,6 +154,14 @@
     padding: 0 14px 100px;
     scrollbar-width: none;
   }
+  .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #0a0b0c;
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
   .content::-webkit-scrollbar { display: none; }
 
   /* ================= HEADER ================= */
@@ -1898,6 +1906,8 @@
   <div class="content">
 
 
+    <!-- Sticky top block: cassette panel + fader open/close together -->
+    <div class="sticky-top">
     <!-- CASSETTE / TIMER — chrome-rim outer panel with recessed dark interior -->
     <div class="panel cassette-panel">
       <span class="panel-rivet tl"></span>
@@ -2424,6 +2434,7 @@
       </div>
     </div>
     </div><!-- /mixer-wrap -->
+    </div><!-- /sticky-top -->
 
     <!-- ORIGINAL SELECTORS PANEL (HIDDEN) -->
     <div class="panel selectors" style="display:none">
