@@ -1930,7 +1930,7 @@
       </div>
 
       <div class="cassette-svg-wrap" id="cassetteWrap">
-        <svg viewBox="0 0 360 175" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 360 178" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <!-- DARK SMOKED GLASS shell — tinted but still translucent -->
             <linearGradient id="shellGrad" x1="0" y1="0" x2="0" y2="1">
@@ -2329,8 +2329,8 @@
 
           <!-- Bottom info strip -->
           <g>
-            <rect x="22" y="146" width="316" height="20" rx="3" fill="#050607" stroke="#000" stroke-width="0.8"/>
-            <rect x="23" y="147" width="314" height="18" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+            <rect x="22" y="144" width="316" height="23" rx="3" fill="#050607" stroke="#000" stroke-width="0.8"/>
+            <rect x="23" y="145" width="314" height="21" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
             <!-- Timer in center -->
             <g style="cursor:pointer" id="timerStrip">
               <text id="timerText" x="180" y="161" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="14" font-weight="700" letter-spacing="4" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">01:30</text>
@@ -2780,10 +2780,14 @@ function updateReadouts() {
 const FADER_BARS = 14;       // # of LED bar segments in each fader column
 const FADER_PAD = 4;         // top/bottom padding inside .fader-track (matches CSS)
 
+// Must be initialized before setupFaders IIFE so visualRot alias works correctly
+window.__reelRot = { weight: 0, reps: 0 };
+
 (function setupFaders() {
   const reelL = document.getElementById('reelL');
   const reelR = document.getElementById('reelR');
-  const visualRot = { weight: 0, reps: 0 };
+  // Share rotation state with timer RAF so both systems stay in sync
+  const visualRot = window.__reelRot;
   let lastDragY = null;
   // Degrees of reel rotation per pixel of finger/mouse movement
   const ROT_PER_PX = 3;
@@ -3142,15 +3146,24 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 });
 
 /* ============== TIMER ============== */
+let _reelRAF = null;
+const REEL_SPEED = 0.4; // degrees per frame while timer runs
+
+function _tickReels() {
+  if (!state.timerRunning) { _reelRAF = null; return; }
+  window.__reelRot.weight += REEL_SPEED;
+  window.__reelRot.reps   -= REEL_SPEED;
+  const rL = document.getElementById('reelL');
+  const rR = document.getElementById('reelR');
+  if (rL) rL.setAttribute('transform', `rotate(${window.__reelRot.weight} 95 100)`);
+  if (rR) rR.setAttribute('transform', `rotate(${window.__reelRot.reps} 265 100)`);
+  _reelRAF = requestAnimationFrame(_tickReels);
+}
+
 function startTimer() {
   stopTimer();
   state.timerRemaining = state.restSeconds;
   state.timerRunning = true;
-  // Clear any manual spin transform so the CSS animation can take over
-  document.getElementById('reelL').removeAttribute('transform');
-  document.getElementById('reelR').removeAttribute('transform');
-  document.getElementById('reelL').classList.add('spinning');
-  document.getElementById('reelR').classList.add('spinning');
   updateTimerDisplay();
   state.timerInterval = setInterval(() => {
     state.timerRemaining--;
@@ -3162,14 +3175,14 @@ function startTimer() {
     updateTimerDisplay();
   }, 1000);
   state.vuInterval = setInterval(animateVU, 130);
+  _reelRAF = requestAnimationFrame(_tickReels);
 }
 
 function stopTimer() {
   clearInterval(state.timerInterval);
   clearInterval(state.vuInterval);
+  if (_reelRAF) { cancelAnimationFrame(_reelRAF); _reelRAF = null; }
   state.timerRunning = false;
-  document.getElementById('reelL').classList.remove('spinning');
-  document.getElementById('reelR').classList.remove('spinning');
   state.timerRemaining = state.restSeconds;
   updateTimerDisplay();
   const bars = document.getElementById('vuBars').children;
@@ -3206,16 +3219,8 @@ document.getElementById('restBtn').addEventListener('click', () => {
 });
 
 document.getElementById('timerStrip').addEventListener('click', () => {
-  const input = prompt('Set rest time in seconds (e.g. 90):', state.restSeconds);
-  if (input) {
-    const n = parseInt(input, 10);
-    if (!isNaN(n) && n > 0 && n < 3600) {
-      state.restSeconds = n;
-      state.timerRemaining = n;
-      updateTimerDisplay();
-      showToast(`REST ${formatTime(n)}`);
-    }
-  }
+  if (state.timerRunning) { stopTimer(); showToast('TIMER STOPPED'); }
+  else { startTimer(); showToast('TIMER STARTED'); }
 });
 
 /* ============== MISC ============== */
