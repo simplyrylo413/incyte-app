@@ -1532,30 +1532,36 @@
   .log-num::before { display: none; }
   .log-row.current .log-num { color: var(--yellow); font-weight: 500; }
 
-  /* Tags inline as monospace yellow text — no chip backgrounds */
-  .log-tags { display: flex; gap: 6px; flex-shrink: 0; min-width: 50px; }
+  /* Tags — pill style */
+  .log-tags { display: flex; gap: 6px; flex-shrink: 0; }
   .log-tag {
-    background: transparent;
-    border: none;
-    padding: 0;
-    color: var(--yellow);
-    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 9px;
     font-family: 'JetBrains Mono', monospace;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
     text-transform: uppercase;
-    box-shadow: none;
     transition: opacity 0.1s;
+    border: 1px solid transparent;
   }
-  .log-tag:hover { opacity: 0.7; }
-  .log-tag.active { background: transparent; color: var(--yellow); border: none; }
-  .log-tag.inactive { color: #3a3e42; cursor: pointer; }
-  .log-tag.inactive:hover { color: #6a6e72; }
-  .log-row.future .log-tag { color: #555; }
-  /* WU tag — slightly dimmer yellow to distinguish from WS */
-  .log-tag-type { opacity: 1; }
-  .log-tag.active.log-tag-type[data-type="WU"] { color: rgba(245,236,0,0.6); }
+  .log-tag:hover { opacity: 0.75; }
+  /* WARM UP — yellow pill */
+  .log-tag-wu {
+    color: var(--yellow);
+    border-color: rgba(245,236,0,0.35);
+    background: rgba(245,236,0,0.08);
+  }
+  /* WORK — green pill */
+  .log-tag-ws {
+    color: #4ecb71;
+    border-color: rgba(78,203,113,0.35);
+    background: rgba(78,203,113,0.08);
+  }
+  .log-row.future .log-tag { opacity: 0.4; }
 
   /* Weight × reps — clean monospace */
   .log-value {
@@ -3000,9 +3006,9 @@ function renderLog() {
     const typeTag = log.tags.includes('WU') ? 'WU' : (log.tags.includes('WS') ? 'WS' : null);
     if (typeTag) {
       const t = document.createElement('div');
-      t.className = 'log-tag active log-tag-type';
-      t.textContent = typeTag;
-      t.title = typeTag === 'WU' ? 'Warmup — tap to change to Working Set' : 'Working Set — tap to change to Warmup';
+      t.className = 'log-tag ' + (typeTag === 'WU' ? 'log-tag-wu' : 'log-tag-ws');
+      t.textContent = typeTag === 'WU' ? 'WARM UP' : 'WORK';
+      t.title = typeTag === 'WU' ? 'Warm up — tap to switch to Work' : 'Work — tap to switch to Warm up';
       t.addEventListener('click', () => {
         if (log.tags.includes('WU')) {
           log.tags = log.tags.filter(x => x !== 'WU');
