@@ -2764,9 +2764,11 @@ function updateReadouts() {
   const w = document.getElementById('weightReadout');
   const r = document.getElementById('repsReadout');
   const p = document.getElementById('rpeReadout');
+  const pt = document.getElementById('rpeReadoutTop');
   if (w) w.textContent = state.weight;
   if (r) r.textContent = state.reps;
   if (p) p.textContent = state.rpe;
+  if (pt) pt.textContent = state.rpe;
   // Light up VU bars to reflect RPE (when timer is idle)
   if (!state.timerRunning) {
     const bars = document.getElementById('vuBars');
