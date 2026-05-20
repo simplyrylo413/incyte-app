@@ -2640,7 +2640,7 @@ const state = {
   logs: [
     { num: 1, tags: ['WU'], weight: 95,  reps: 10, done: true  },
     { num: 2, tags: [],     weight: 115, reps: 10, done: true  },
-    { num: 3, tags: [],     weight: null,reps: null,done: false },
+    { num: 3, tags: ['WS'], weight: null,reps: null,done: false },
     { num: 4, tags: ['WS'],      weight: 155, reps: 10, done: false },
     { num: 5, tags: ['WS'],      weight: 155, reps: 10, done: false },
     { num: 6, tags: ['WS'],      weight: 155, reps: 10, done: false },
@@ -3029,14 +3029,7 @@ function renderLog() {
     const tags = document.createElement('div');
     tags.className = 'log-tags';
 
-    // --- Set-type tag (WU / WS) — mutually exclusive toggle ---
-    if (isCurrent) {
-      const now = document.createElement('div');
-      now.className = 'log-tag log-tag-now';
-      now.textContent = 'NOW';
-      tags.appendChild(now);
-    }
-
+    // --- Set-type tag (WU / WS) first, then NOW pill alongside it ---
     const typeTag = log.tags.includes('WU') ? 'WU' : (log.tags.includes('WS') ? 'WS' : null);
     if (typeTag) {
       const t = document.createElement('div');
@@ -3054,6 +3047,13 @@ function renderLog() {
         renderLog();
       });
       tags.appendChild(t);
+    }
+
+    if (isCurrent) {
+      const now = document.createElement('div');
+      now.className = 'log-tag log-tag-now';
+      now.textContent = 'NOW';
+      tags.appendChild(now);
     }
 
     inner.appendChild(tags);
