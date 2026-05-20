@@ -423,3 +423,30 @@ Before implementing major systems, evaluate: scalability impact, mobile implicat
 ### The final principle
 
 Every implementation decision should answer: **Will this still make sense when INCYTE becomes a large-scale production product?** If the answer is no — redesign it, abstract it, simplify it, modularize it, future-proof it. The goal is not simply making the app work. The goal is building a scalable premium software product intentionally.
+
+---
+
+## 14. Button & panel lighting standard (workout-alt.html / cassette prototype)
+
+**Locked 2026-05-20.** All buttons and interactive panels in the cassette/MPC prototype use **matte black with angled rim-light** (Option B from the nav-lighting-mockups study).
+
+### Button surface
+```css
+background: linear-gradient(145deg, #4a4a4e 0%, #38383c 35%, #28282c 100%);
+border: 1px solid #111113;
+box-shadow:
+  inset 1.5px 1.5px 0 rgba(255,255,255,0.20),   /* top-left rim catch */
+  inset 0 1px 0 rgba(255,255,255,0.12),           /* top edge ambient */
+  inset -1px -1.5px 0 rgba(0,0,0,0.65),           /* bottom-right in shadow */
+  inset 0 -2px 5px rgba(0,0,0,0.45),              /* base shadow */
+  3px 8px 16px rgba(0,0,0,0.85),                  /* angled drop shadow */
+  1px 3px 6px rgba(0,0,0,0.65);
+```
+
+### Rules
+- **Never** change buttons to flat black (`#141618`) or a plastic gradient without explicit user instruction.
+- **Always ask** before altering this treatment on any button — even to add a hover/active state.
+- Active/pressed state: `transform: translateY(1px)` + reduced drop shadow. Keep rim-light insets intact.
+- Text/icon color on idle: `rgba(245,245,240,0.65)`. Active glow uses yellow (`var(--yellow)`) or red (`#FF3D3D`) depending on context.
+- The chassis/panel body (`.mpc-chassis`) uses flat matte black `#161618` — the lighting treatment applies to **buttons only**, not the outer frame.
+- Border-radius follows the element type: nav pads `3px`, toolbar buttons `5px`.

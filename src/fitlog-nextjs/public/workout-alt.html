@@ -171,6 +171,7 @@
     background: #0a0b0c;
     padding: 0 14px;
     z-index: 20;
+    position: relative;
   }
   .content::-webkit-scrollbar { display: none; }
 
@@ -703,10 +704,10 @@
   .cassette-log-btn {
     flex: 1;
     padding: 6px 9px;
-    background: #141618;
-    border: 1px solid #0a0b0c;
+    background: linear-gradient(145deg, #4a4a4e 0%, #38383c 35%, #28282c 100%);
+    border: 1px solid #111113;
     border-radius: 5px;
-    color: #5a5e62;
+    color: rgba(245,245,240,0.65);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -718,10 +719,12 @@
     transition: transform 0.08s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out;
     position: relative;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.06),
-      inset 0 -1px 0 rgba(0,0,0,0.6),
-      0 2px 0 -1px #050607,
-      0 3px 4px rgba(0,0,0,0.4);
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.20),
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      inset -1px -1.5px 0 rgba(0,0,0,0.65),
+      inset 0 -2px 5px rgba(0,0,0,0.45),
+      3px 8px 16px rgba(0,0,0,0.85),
+      1px 3px 6px rgba(0,0,0,0.65);
     text-shadow: none;
   }
   .cassette-open-btn::before,
@@ -764,17 +767,18 @@
 
   /* Fader panel collapse animation wrapper */
   .mixer-wrap {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    z-index: 50;
     overflow: hidden;
     max-height: 0;
-    margin-bottom: 0;
     opacity: 0;
     transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                margin-bottom 0.45s ease,
                 opacity 0.3s ease 0.05s;
   }
   .mixer-wrap.is-open {
     max-height: 600px;
-    margin-bottom: 12px;
     opacity: 1;
   }
   .mixer-wrap .mixer-panel { margin-bottom: 0 !important; }
@@ -1538,7 +1542,7 @@
     padding: 0;
     text-align: left;
     color: #555;
-    font-size: 11px;
+    font-size: 14px;
     flex-shrink: 0;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 400;
@@ -1557,7 +1561,7 @@
     align-items: center;
     padding: 2px 7px;
     border-radius: 999px;
-    font-size: 9px;
+    font-size: 12px;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -1688,64 +1692,307 @@
   }
   .log-remove:active { transform: scale(0.88); }
 
-  /* ================= BOTTOM NAV — MECHANICAL TRANSPORT PANEL ================= */
-  .bottom-nav-wrap {
-    background: linear-gradient(180deg, #0c0e10 0%, #080a0b 100%);
-    border-top: 1px solid #000;
-    padding: 10px 14px 12px;
+  /* ================= BOTTOM NAV — MPC CHASSIS (PROTOTYPE PORT) ================= */
+  .mpc-chassis-wrap {
     flex-shrink: 0;
     position: relative;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  .bottom-nav-wrap::before, .bottom-nav-wrap::after { display: none; }
+  .mpc-chassis {
+    position: relative;
+    background: #161618;
+    border-radius: 6px;
+    padding: 7px 16px 9px 14px;
+    box-shadow:
+      0 16px 32px rgba(0,0,0,0.9),
+      0 4px 8px rgba(0,0,0,0.6),
+      0 0 0 1px #0a0a0b;
+    border: 1px solid #0d0d0e;
+  }
+  .mpc-chassis::before { display: none; }
+  .mpc-chassis::after { display: none; }
 
-  /* Status / model label strip across the top of the nav */
-  .nav-strip {
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%);
+  /* Chassis — flex row with left I/O panel + main */
+  .mpc-chassis { display: flex; align-items: stretch; gap: 10px; }
+  .mpc-chassis-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; z-index: 2; }
+
+  /* Left I/O marks column */
+  .mpc-left-marks {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    padding: 2px 0;
+    margin-left: -2px;
+  }
+  .mpc-left-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 5px 4px 1px;
+    height: 75%;
+    border-top: 1px dotted rgba(245,245,240,0.5);
+    border-right: 1px dotted rgba(245,245,240,0.5);
+    border-bottom: 1px dotted rgba(245,245,240,0.5);
+    border-radius: 0 3px 3px 0;
+  }
+  .mpc-mark-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+  }
+  .mpc-mark-label {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 7px;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-    opacity: 0.7;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: rgba(245,245,240,0.6);
+    font-weight: 700;
+    line-height: 1;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    user-select: none;
+  }
+  .mpc-mark-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Scale labels row — above pads */
+  .mpc-scale-row {
+    display: flex;
+    gap: 0;
+    align-items: center;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 2;
+  }
+  .mpc-scale-label {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 6px;
-    z-index: 3;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 700;
+    user-select: none;
+    white-space: nowrap;
   }
-  .nav-strip::before, .nav-strip::after {
+  /* Line segments flanking each word — join across adjacent cells */
+  .mpc-scale-label::before,
+  .mpc-scale-label::after {
     content: '';
-    display: inline-block;
-    width: 22px; height: 1px;
-    background: var(--text-dim);
-    opacity: 0.4;
+    flex: 1;
+    height: 1.25px;
+    background: rgba(255,255,255,0.45);
+    margin: 0 4px;
   }
-  .nav-strip .nav-strip-led {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--green-led);
-    box-shadow: 0 0 4px var(--green-led);
-    animation: ledBlink 2s infinite;
+  .mpc-scale-label.active-label {
+    color: #FF3D3D;
+    text-shadow: 0 0 5px rgba(255,61,61,0.6);
+  }
+  .mpc-scale-label.active-label::before,
+  .mpc-scale-label.active-label::after {
+    background: rgba(255,61,61,0.5);
   }
 
-  .bottom-nav {
+  /* Pads container */
+  .mpc-pads {
     display: flex;
+    gap: 7px;
+    justify-content: center;
+    align-items: stretch;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Each pad column — wrapper + pin rows + button */
+  .mpc-pad-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 3px;
+    flex: 1;
+  }
+
+  /* Pin row dots above/below pads */
+  .mpc-pin-row {
+    display: flex;
+    justify-content: space-between;
+    width: 92%;
+    margin: 0 auto;
+  }
+  .mpc-pin {
+    width: 3px; height: 2px;
+    background: #5a5a5e;
+    border-radius: 0.5px;
+    transition: all 0.25s ease;
+  }
+  .mpc-pad-wrapper.active .mpc-pin {
+    background: #FF3D3D;
+    box-shadow: 0 0 5px rgba(255,61,61,0.9);
+  }
+
+  /* Physical raised pad button */
+  .mpc-pad {
+    width: 92%;
+    height: 46px;
+    margin: 0 auto;
+    display: block;
+    background: #38383c;
+    border-radius: 3px;
+    border: 1px solid #111113;
+    position: relative;
+    cursor: pointer;
+    overflow: visible;
+    z-index: 1;
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 12px rgba(0,0,0,0.85),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 #060607,
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: manipulation;
     padding: 0;
-    background: transparent;
-    border: none;
+  }
+  .mpc-pad::before { display: none; }
+
+  /* Active/pressed pad — recessed look */
+  .mpc-pad-wrapper.active .mpc-pad {
+    background: #242428;
+    box-shadow:
+      inset 0 5px 10px rgba(0,0,0,0.75),
+      inset 0 2px 5px rgba(0,0,0,0.55),
+      inset 0 -3px 10px rgba(255,61,61,0.25);
+    border-color: #0a0a0c;
+    transform: translateY(2px);
+  }
+  .mpc-pad-wrapper.active .mpc-pad::before { display: none; }
+
+  /* Red light-leak seam at bottom of active pad */
+  .mpc-pad-wrapper.active .mpc-pad::after {
+    content: '';
+    position: absolute;
+    bottom: 5px; left: 20%; right: 20%;
+    height: 1.5px;
+    background: #FF3D3D;
+    border-radius: 0.9px;
+    box-shadow: 0 0 6px #FF3D3D, 0 1px 4px rgba(255,61,61,0.95);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Neon glow border — sits outside the pad */
+  .mpc-neon-glow {
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 4px;
+    border: 1.8px solid #FF3D3D;
+    box-shadow:
+      0 0 11px rgba(255,61,61,1),
+      0 0 24px rgba(255,61,61,0.75),
+      0 0 45px rgba(255,61,61,0.4),
+      0 0 75px rgba(255,61,61,0.2),
+      inset 0 0 10px rgba(255,61,61,0.65);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    z-index: 3;
+  }
+  .mpc-pad-wrapper.active .mpc-neon-glow {
+    opacity: 1;
+    animation: mpcNeonBright 1.0s ease-in-out 0.3s infinite;
+  }
+  @keyframes mpcNeonBright { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  /* Pad corner screws */
+  .mpc-pad .mpc-screw {
+    display: none;
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #6a6a6e;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .mpc-pad .mpc-screw::before {
+    content: '';
+    position: absolute;
+    inset: 0.6px;
+    background: #2a2a2c;
+    border-radius: 50%;
+  }
+  .mpc-pad .mpc-screw.tl { top: 4px; left: 4px; }
+  .mpc-pad .mpc-screw.tr { top: 4px; right: 4px; }
+  .mpc-pad .mpc-screw.bl { bottom: 4px; left: 4px; }
+  .mpc-pad .mpc-screw.br { bottom: 4px; right: 4px; }
+  .mpc-pad-wrapper.active .mpc-pad .mpc-screw { background: #5a5a5e; }
+  .mpc-pad-wrapper.active .mpc-pad .mpc-screw::before { background: #1a1a1c; }
+
+  /* LED dot */
+  .mpc-led {
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 2.4px; height: 2.4px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #3a3a3c 0%, #1a1a1c 70%);
+    pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 4;
+  }
+  .mpc-pad-wrapper.active .mpc-led {
+    background: radial-gradient(circle at 35% 35%, #FFB8B8 0%, #FF3D3D 50%, #8B1212 100%);
+    box-shadow: 0 0 6px #FF3D3D, 0 0 12px rgba(255,61,61,0.6);
+  }
+
+  /* Pad icon — centered SVG */
+  .mpc-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 4;
+  }
+  /* Idle: white icons */
+  .mpc-icon svg [fill="#1a1a1c"] { fill: #f0f0eb; transition: fill 0.25s; }
+  .mpc-icon svg [stroke="#1a1a1c"] { stroke: #f0f0eb; transition: stroke 0.25s; }
+  /* Active: red + glow */
+  .mpc-pad-wrapper.active .mpc-icon svg [fill="#1a1a1c"] { fill: #FF3D3D; }
+  .mpc-pad-wrapper.active .mpc-icon svg [stroke="#1a1a1c"] { stroke: #FF3D3D; }
+  .mpc-pad-wrapper.active .mpc-icon svg {
+    filter: drop-shadow(0 0 5px rgba(255,61,61,1)) drop-shadow(0 0 10px rgba(255,61,61,0.6));
+  }
+
+  /* Footer spec label */
+  .mpc-footer-spec {
+    text-align: center;
+    color: rgba(255,255,255,0.75);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 6px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+    user-select: none;
   }
 
   .nav-btn {
     flex: 1;
-    height: 44px;
-    background: #141618;
-    border: 1px solid #0a0b0c;
+    height: 53px;
+    background: linear-gradient(145deg, #4a4a4e 0%, #38383c 35%, #28282c 100%);
+    border: 1px solid #111113;
     border-radius: 5px;
     padding: 6px 4px;
-    color: #5a5e62;
+    color: rgba(245,245,240,0.65);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -1756,10 +2003,12 @@
     transition: color 0.15s ease-out, text-shadow 0.15s ease-out, transform 0.08s;
     position: relative;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.06),
-      inset 0 -1px 0 rgba(0,0,0,0.6),
-      0 2px 0 -1px #050607,
-      0 3px 4px rgba(0,0,0,0.4);
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.20),
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      inset -1px -1.5px 0 rgba(0,0,0,0.65),
+      inset 0 -2px 5px rgba(0,0,0,0.45),
+      3px 8px 16px rgba(0,0,0,0.85),
+      1px 3px 6px rgba(0,0,0,0.65);
   }
   .nav-btn::before { display: none; }
   .nav-btn::after  { display: none; }
@@ -1776,17 +2025,45 @@
 
   .nav-btn .nav-icon {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1;
     letter-spacing: 1.5px;
     font-weight: 700;
   }
   .nav-btn svg { display: none; }
   .nav-btn .nav-label {
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1.5px;
     font-weight: 700;
     line-height: 1;
+  }
+
+  /* ── Toggle switch nav button ── */
+  .toggle-nav-btn {
+    overflow: visible;
+    padding: 4px 4px 5px;
+  }
+  .toggle-svg { overflow: visible; display: block; margin: 0 auto; }
+  .toggle-lever {
+    transform: rotate(-28deg);
+    transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .toggle-nav-btn[aria-pressed="true"] .toggle-lever {
+    transform: rotate(28deg);
+  }
+  .toggle-glow-ring {
+    transition: stroke 0.2s ease, filter 0.2s ease;
+  }
+  .toggle-nav-btn[aria-pressed="true"] .toggle-glow-ring {
+    stroke: rgba(255, 40, 40, 0.9);
+    filter: drop-shadow(0 0 4px rgba(255, 40, 40, 0.8)) drop-shadow(0 0 10px rgba(255, 40, 40, 0.5));
+  }
+  .toggle-nav-btn[aria-pressed="true"] .nav-label {
+    color: #ff3030;
+    text-shadow: 0 0 8px rgba(255, 40, 40, 0.8);
+  }
+  .toggle-nav-btn[aria-pressed="true"] {
+    color: #ff3030;
   }
 
   /* ACTIVE — yellow glow text, same black body */
@@ -1809,6 +2086,7 @@
     font-size: 10px;
     letter-spacing: 1px;
   }
+
 
   /* ================= TOAST ================= */
   .toast {
@@ -2349,11 +2627,11 @@
             <rect x="23" y="145" width="314" height="21" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
             <!-- Timer in center -->
             <g style="cursor:pointer" id="timerStrip">
-              <text id="timerText" x="180" y="161" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="14" font-weight="700" letter-spacing="4">01:30</text>
+              <text id="timerText" x="180" y="161" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="16" font-weight="700" letter-spacing="4">01:30</text>
             </g>
             <!-- Side labels -->
-            <text x="32" y="159" fill="#ffffff" font-family="Barlow Condensed, sans-serif" font-size="8" font-weight="700" letter-spacing="2">⏵ REST</text>
-            <text x="328" y="159" text-anchor="end" fill="#ffffff" font-family="Barlow Condensed, sans-serif" font-size="8" font-weight="700" letter-spacing="2">TIMER ⏸</text>
+            <text x="32" y="159" fill="#ffffff" font-family="Barlow Condensed, sans-serif" font-size="10" font-weight="700" letter-spacing="2">⏵ REST</text>
+            <text x="328" y="159" text-anchor="end" fill="#ffffff" font-family="Barlow Condensed, sans-serif" font-size="10" font-weight="700" letter-spacing="2">TIMER ⏸</text>
             <!-- Tick marks under label -->
             <g stroke="rgba(255,255,255,0.1)" stroke-width="0.6">
               <line x1="60" y1="151" x2="60" y2="154"/>
@@ -2535,37 +2813,118 @@
 
   </div>
 
-  <!-- BOTTOM NAV — mechanical transport panel -->
-  <!-- (status strip injected below) -->
-  <div class="bottom-nav-wrap">
-    <div class="nav-strip">
-      <span class="nav-strip-led"></span>
-      <span>SYS-NAV ◆ MDL-X7</span>
-      <span class="nav-strip-led"></span>
-    </div>
-    <div class="bottom-nav">
-      <button class="nav-btn" data-tab="TRAINING">
-        <span class="nav-icon">◄◄</span>
-        <span class="nav-label">TRAINING</span>
-      </button>
-      <button class="nav-btn" data-tab="PROGRESS">
-        <span class="nav-icon">▮▯▯</span>
-        <span class="nav-label">PROGRESS</span>
-      </button>
-      <button class="nav-btn active" data-tab="WORKOUT">
-        <span class="nav-icon">▶ <span class="nav-icon-label">PLAY</span></span>
-        <span class="nav-label">WORKOUT</span>
-      </button>
-      <button class="nav-btn" data-tab="HISTORY">
-        <span class="nav-icon">▣</span>
-        <span class="nav-label">HISTORY</span>
-      </button>
-      <button class="nav-btn" data-tab="MORE">
-        <span class="nav-icon">►►</span>
-        <span class="nav-label">MORE</span>
-      </button>
-    </div>
-  </div>
+  <!-- BOTTOM NAV — MPC chassis (exact prototype match) -->
+  <div class="mpc-chassis-wrap">
+    <div class="mpc-chassis">
+
+      <!-- Left I/O port column -->
+      <div class="mpc-left-marks" aria-hidden="true">
+        <div class="mpc-left-box">
+          <div class="mpc-mark-row">
+            <svg width="5" height="6" viewBox="0 0 7 8"><path d="M7,0 L0,4 L7,8 Z" fill="rgba(245,245,240,0.6)"/></svg>
+            <span class="mpc-mark-label">USB</span>
+          </div>
+          <div class="mpc-mark-row">
+            <svg width="5" height="6" viewBox="0 0 7 8"><path d="M7,0 L0,4 L7,8 Z" fill="rgba(245,245,240,0.6)"/></svg>
+            <div class="mpc-mark-icon">
+              <svg width="10" height="12" viewBox="-7 -9 14 18">
+                <path d="M-3,-6 L0,-6 A6,6 0 0 1 0,6 L-3,6" fill="none" stroke="rgba(245,245,240,0.6)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="-7" y="-7" width="5" height="2.6" rx="1" fill="none" stroke="rgba(245,245,240,0.6)" stroke-width="1.4"/>
+                <rect x="-7" y="4.4" width="5" height="2.6" rx="1" fill="none" stroke="rgba(245,245,240,0.6)" stroke-width="1.4"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="mpc-chassis-main">
+
+        <!-- Scale labels above pads -->
+        <div class="mpc-scale-row">
+          <span class="mpc-scale-label" data-tab="INSIGHT">INSIGHT</span>
+          <span class="mpc-scale-label active-label" data-tab="TODAY">TODAY</span>
+          <span class="mpc-scale-label" data-tab="PLAN">PLAN</span>
+          <span class="mpc-scale-label" data-tab="MORE">MORE</span>
+        </div>
+
+        <!-- Pad row — 4 pads -->
+        <div class="mpc-pads">
+
+          <!-- INSIGHT -->
+          <div class="mpc-pad-wrapper" data-tab="INSIGHT">
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+            <button class="mpc-pad" aria-label="Insight">
+              <span class="mpc-neon-glow"></span>
+              <span class="mpc-led"></span>
+              <div class="mpc-icon">
+                <svg width="22" height="18" viewBox="-15 -13 30 26">
+                  <rect x="-13" y="2"  width="5.4" height="9"  rx="0.8" fill="#1a1a1c"/>
+                  <rect x="-6"  y="-2" width="5.4" height="13" rx="0.8" fill="#1a1a1c"/>
+                  <rect x="1"   y="-7" width="5.4" height="18" rx="0.8" fill="#1a1a1c"/>
+                  <rect x="8"  y="-12" width="5.4" height="23" rx="0.8" fill="#1a1a1c"/>
+                </svg>
+              </div>
+            </button>
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+          </div>
+
+          <!-- TODAY (active) -->
+          <div class="mpc-pad-wrapper active" data-tab="TODAY">
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+            <button class="mpc-pad" aria-label="Today">
+              <span class="mpc-neon-glow"></span>
+              <span class="mpc-led"></span>
+              <div class="mpc-icon">
+                <svg width="18" height="18" viewBox="-13 -13 26 26">
+                  <path d="M-7,-11 L11,0 L-7,11 Z" fill="#1a1a1c" stroke="#1a1a1c" stroke-width="2.4" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+          </div>
+
+          <!-- PLAN -->
+          <div class="mpc-pad-wrapper" data-tab="PLAN">
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+            <button class="mpc-pad" aria-label="Plan">
+              <span class="mpc-neon-glow"></span>
+              <span class="mpc-led"></span>
+              <div class="mpc-icon">
+                <svg width="19" height="19" viewBox="-14 -14 28 28">
+                  <circle cx="0" cy="0" r="12" fill="none" stroke="#1a1a1c" stroke-width="2.4"/>
+                  <circle cx="0" cy="0" r="6.5" fill="none" stroke="#1a1a1c" stroke-width="2.2"/>
+                  <circle cx="0" cy="0" r="2.4" fill="#1a1a1c"/>
+                </svg>
+              </div>
+            </button>
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+          </div>
+
+          <!-- MORE -->
+          <div class="mpc-pad-wrapper" data-tab="MORE">
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+            <button class="mpc-pad" aria-label="More">
+              <span class="mpc-neon-glow"></span>
+              <span class="mpc-led"></span>
+              <div class="mpc-icon">
+                <svg width="18" height="18" viewBox="-12 -12 24 24">
+                  <rect x="-10" y="-10" width="8" height="8" rx="1.8" fill="#1a1a1c"/>
+                  <rect x="2"   y="-10" width="8" height="8" rx="1.8" fill="#1a1a1c"/>
+                  <rect x="-10" y="2"   width="8" height="8" rx="1.8" fill="#1a1a1c"/>
+                  <rect x="2"   y="2"   width="8" height="8" rx="1.8" fill="#1a1a1c"/>
+                </svg>
+              </div>
+            </button>
+            <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
+          </div>
+
+        </div><!-- .mpc-pads -->
+        <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH</div>
+      </div><!-- .mpc-chassis-main -->
+
+    </div><!-- .mpc-chassis -->
+  </div><!-- .mpc-chassis-wrap -->
 
   <div class="toast" id="toast">SET LOGGED</div>
 </div>
@@ -2708,7 +3067,7 @@ function formatTime(sec) {
 /* ============== SCROLL PICKERS ============== */
 const pickerConfigs = {
   // curve > 1 = more sensitive at the low end (less fader travel per unit at the bottom)
-  weight: { id: 'weightTrack', min: 5, max: 500, step: 5, curve: 2 },
+  weight: { id: 'weightTrack', min: 5, max: 500, faderMax: 200, step: 5, curve: 2 },
   reps:   { id: 'repsTrack',   min: 1, max: 30,  step: 1 },
   rpe:    { id: 'rpeTrack',    min: 1, max: 10,  step: 1 },
 };
@@ -2851,16 +3210,18 @@ window.__reelRot = { weight: 0, reps: 0 };
 
   function ratioToValue(key, ratio) {
     const cfg = pickerConfigs[key];
-    // Apply non-linear curve so low values get more fader travel
+    const effectiveMax = cfg.faderMax !== undefined ? cfg.faderMax : cfg.max;
     const curved = cfg.curve ? Math.pow(ratio, cfg.curve) : ratio;
-    const rawValue = cfg.min + curved * (cfg.max - cfg.min);
+    const rawValue = cfg.min + curved * (effectiveMax - cfg.min);
     const stepIndex = Math.round((rawValue - cfg.min) / cfg.step);
-    return Math.max(cfg.min, Math.min(cfg.max, cfg.min + stepIndex * cfg.step));
+    return Math.max(cfg.min, Math.min(effectiveMax, cfg.min + stepIndex * cfg.step));
   }
   function valueToRatio(key, value) {
     const cfg = pickerConfigs[key];
-    const base = (value - cfg.min) / (cfg.max - cfg.min);
-    return cfg.curve ? Math.pow(base, 1 / cfg.curve) : base;
+    const effectiveMax = cfg.faderMax !== undefined ? cfg.faderMax : cfg.max;
+    const clamped = Math.max(cfg.min, Math.min(effectiveMax, value));
+    const base = (clamped - cfg.min) / (effectiveMax - cfg.min);
+    return cfg.curve ? Math.pow(Math.max(0, base), 1 / cfg.curve) : base;
   }
 
   function paintFader(key) {
@@ -3299,12 +3660,16 @@ document.getElementById('aiBtn').addEventListener('click', () => {
   showToast(on ? 'AI ON' : 'AI OFF');
 });
 
-// Nav group toggle — exclude the AI and Back buttons (they're not nav tabs)
-document.querySelectorAll('.nav-btn:not(.ai-nav-btn)').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn:not(.ai-nav-btn)').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    showToast(btn.dataset.tab);
+// MPC nav — click inner .mpc-pad, active class on .mpc-pad-wrapper, sync scale labels
+document.querySelectorAll('.mpc-pad-wrapper').forEach(wrapper => {
+  wrapper.querySelector('.mpc-pad').addEventListener('click', () => {
+    document.querySelectorAll('.mpc-pad-wrapper').forEach(w => w.classList.remove('active'));
+    wrapper.classList.add('active');
+    const tab = wrapper.dataset.tab;
+    document.querySelectorAll('.mpc-scale-label[data-tab]').forEach(l => {
+      l.classList.toggle('active-label', l.dataset.tab === tab);
+    });
+    showToast(tab);
   });
 });
 
