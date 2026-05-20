@@ -456,7 +456,7 @@
       inset 0 -1px 0 rgba(0,0,0,0.6),
       0 2px 4px rgba(0,0,0,0.55);
     padding: 14px;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     position: relative;
   }
   .panel > .panel-rivet.tl { top: 6px; left: 6px; }
@@ -1445,7 +1445,7 @@
 
   /* ================= LOG PANEL — Editorial minimal ================= */
   .log-panel {
-    padding: 20px 20px 16px;
+    padding: 10px 20px 16px;
     background: transparent;
     border: none;
     border-radius: 4px;
@@ -1562,6 +1562,18 @@
     background: rgba(78,203,113,0.08);
   }
   .log-row.future .log-tag { opacity: 0.4; }
+  /* NOW pill — current active set */
+  .log-tag-now {
+    color: #fff;
+    border-color: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.07);
+    letter-spacing: 1px;
+    animation: nowPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes nowPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
 
   /* Weight × reps — clean monospace */
   .log-value {
@@ -2983,11 +2995,22 @@ function renderLog() {
 
   const next = state.logs.find(l => !l.done);
   state.currentSet = next ? next.num : state.totalSets;
+  const currentIdx = next ? state.logs.indexOf(next) : -1;
 
-  state.logs.forEach((log, idx) => {
+  // Show: all done sets + current active set + one upcoming set
+  const visibleLogs = state.logs.filter((log, idx) => {
+    if (log.done) return true;
+    if (idx === currentIdx) return true;       // the NOW set
+    if (idx === currentIdx + 1) return true;   // the next set
+    return false;
+  });
+
+  visibleLogs.forEach((log) => {
+    const idx = state.logs.indexOf(log);
     const row = document.createElement('div');
     const isCurrent = log.num === state.currentSet && !log.done;
-    row.className = 'log-row' + (isCurrent ? ' current' : '') + (log.done ? ' done-row' : '');
+    const isNext = !log.done && !isCurrent;
+    row.className = 'log-row' + (isCurrent ? ' current' : '') + (log.done ? ' done-row' : '') + (isNext ? ' future' : '');
     row.style.position = 'relative';
 
     // Inner flex wrapper (slides left on swipe to reveal remove btn)
@@ -3003,6 +3026,13 @@ function renderLog() {
     tags.className = 'log-tags';
 
     // --- Set-type tag (WU / WS) — mutually exclusive toggle ---
+    if (isCurrent) {
+      const now = document.createElement('div');
+      now.className = 'log-tag log-tag-now';
+      now.textContent = 'NOW';
+      tags.appendChild(now);
+    }
+
     const typeTag = log.tags.includes('WU') ? 'WU' : (log.tags.includes('WS') ? 'WS' : null);
     if (typeTag) {
       const t = document.createElement('div');
