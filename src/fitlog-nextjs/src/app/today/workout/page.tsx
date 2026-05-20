@@ -19,6 +19,7 @@ import {
   PICKER_CONFIG, type PickerField,
 } from "@/lib/engine/workout";
 import { filterFinishedToday } from "@/lib/engine/today";
+import OdometerNumber from "@/components/OdometerNumber";
 import s from "./WorkoutPage.module.css";
 
 // ── Inline picker value arrays ────────────────────────────────────────────
@@ -1092,7 +1093,6 @@ function SetRow({
   styles: Record<string, string>;
 }) {
   const s = styles;
-  const num = String(idx + 1).padStart(2, "0");
   const isWarmup = !!set.warmup;
   const isBW = !!set.bw;
 
@@ -1107,7 +1107,7 @@ function SetRow({
         onClick={() => onToggleType(idx)}
         type="button"
       >
-        {num}
+        <OdometerNumber value={idx + 1} duration={350} className={s.setNumOdometer} />
       </button>
 
       {/* WS/WU toggle */}

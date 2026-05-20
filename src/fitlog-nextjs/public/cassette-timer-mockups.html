@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cassette Timer Mockups</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0b0c;
+    font-family: 'Barlow Condensed', sans-serif;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+  }
+  .label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #5a6065;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .cassette-wrap {
+    width: 380px;
+    background:
+      linear-gradient(125deg, transparent 0%, transparent 38%, rgba(255,255,255,0.04) 48%, rgba(255,255,255,0.08) 52%, rgba(255,255,255,0.04) 56%, transparent 65%, transparent 100%),
+      linear-gradient(180deg, #1f2226 0%, #14171a 100%);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(0,0,0,0.6);
+  }
+  svg { display: block; width: 100%; height: auto; }
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Share+Tech+Mono&family=VT323&display=swap');
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ OPTION A -->
+<div>
+  <div class="label">Option A — Reels pushed to edges · Timer large in center bottom strip</div>
+  <div class="cassette-wrap">
+    <svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="shellA" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(35,40,45,0.85)"/>
+          <stop offset="100%" stop-color="rgba(35,40,45,0.85)"/>
+        </linearGradient>
+        <radialGradient id="reelGA" cx="0.3" cy="0.3" r="0.85">
+          <stop offset="0%" stop-color="#6a7075"/>
+          <stop offset="35%" stop-color="#2a2e33"/>
+          <stop offset="100%" stop-color="#050607"/>
+        </radialGradient>
+        <radialGradient id="hubA" cx="0.3" cy="0.3" r="0.7">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="15%" stop-color="#fff366"/>
+          <stop offset="55%" stop-color="#f5ec00"/>
+          <stop offset="100%" stop-color="#5a5400"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Shell -->
+      <rect x="2" y="2" width="376" height="176" rx="7" fill="rgba(20,23,26,0.92)" stroke="#000" stroke-width="1.2"/>
+      <rect x="4" y="4" width="372" height="172" rx="6" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>
+
+      <!-- Top label strip: Weight / RPE / Reps -->
+      <rect x="22" y="8" width="336" height="38" rx="3" fill="rgba(0,0,0,0.7)" stroke="#000" stroke-width="0.8"/>
+      <text x="50" y="18" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">WEIGHT</text>
+      <text x="190" y="18" text-anchor="middle" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">RPE</text>
+      <text x="330" y="18" text-anchor="end" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">REPS</text>
+      <text x="95" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
+      <text x="190" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
+      <text x="285" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">10</text>
+
+      <!-- LEFT REEL — pushed to cx=58 -->
+      <g>
+        <circle cx="58" cy="105" r="44" fill="url(#reelGA)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="58" cy="105" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="58" cy="105" r="20" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="58" cy="105" r="13" fill="url(#hubA)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="58" cy="105" r="3.5" fill="#050607"/>
+        <!-- Spokes -->
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="58" y1="67" x2="58" y2="85"/><line x1="58" y1="125" x2="58" y2="143"/>
+          <line x1="20" y1="105" x2="38" y2="105"/><line x1="78" y1="105" x2="96" y2="105"/>
+          <line x1="31" y1="78" x2="45" y2="92"/><line x1="71" y1="118" x2="85" y2="132"/>
+          <line x1="85" y1="78" x2="71" y2="92"/><line x1="31" y1="132" x2="45" y2="118"/>
+        </g>
+      </g>
+
+      <!-- RIGHT REEL — pushed to cx=322 -->
+      <g>
+        <circle cx="322" cy="105" r="44" fill="url(#reelGA)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="322" cy="105" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="322" cy="105" r="20" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="322" cy="105" r="13" fill="url(#hubA)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="322" cy="105" r="3.5" fill="#050607"/>
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="322" y1="67" x2="322" y2="85"/><line x1="322" y1="125" x2="322" y2="143"/>
+          <line x1="284" y1="105" x2="302" y2="105"/><line x1="342" y1="105" x2="360" y2="105"/>
+          <line x1="295" y1="78" x2="309" y2="92"/><line x1="335" y1="118" x2="349" y2="132"/>
+          <line x1="349" y1="78" x2="335" y2="92"/><line x1="295" y1="132" x2="309" y2="118"/>
+        </g>
+      </g>
+
+      <!-- Tape line -->
+      <path d="M 100 105 Q 190 72 280 105" stroke="#3a2a0a" stroke-width="3" fill="none" opacity="0.6"/>
+
+      <!-- LARGE TIMER — center bottom, 32px -->
+      <rect x="112" y="140" width="156" height="32" rx="4" fill="#050607" stroke="#1a1d20" stroke-width="0.8"/>
+      <rect x="113" y="141" width="154" height="30" rx="3" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+      <text x="190" y="162" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="22" font-weight="700" letter-spacing="6" style="filter:drop-shadow(0 0 8px rgba(245,236,0,0.9))">01:30</text>
+      <text x="122" y="152" fill="#5a6065" font-family="Barlow Condensed, monospace" font-size="7" font-weight="700" letter-spacing="2">REST</text>
+      <text x="258" y="152" text-anchor="end" fill="#5a6065" font-family="Barlow Condensed, monospace" font-size="7" font-weight="700" letter-spacing="2">TIMER</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ OPTION B -->
+<div>
+  <div class="label">Option B — Reels pushed out · Timer as tall glowing LED clock between reels</div>
+  <div class="cassette-wrap">
+    <svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="reelGB" cx="0.3" cy="0.3" r="0.85">
+          <stop offset="0%" stop-color="#6a7075"/>
+          <stop offset="35%" stop-color="#2a2e33"/>
+          <stop offset="100%" stop-color="#050607"/>
+        </radialGradient>
+        <radialGradient id="hubB" cx="0.3" cy="0.3" r="0.7">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="15%" stop-color="#fff366"/>
+          <stop offset="55%" stop-color="#f5ec00"/>
+          <stop offset="100%" stop-color="#5a5400"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Shell -->
+      <rect x="2" y="2" width="376" height="176" rx="7" fill="rgba(20,23,26,0.92)" stroke="#000" stroke-width="1.2"/>
+      <rect x="4" y="4" width="372" height="172" rx="6" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>
+
+      <!-- Top label strip -->
+      <rect x="22" y="8" width="336" height="38" rx="3" fill="rgba(0,0,0,0.7)" stroke="#000" stroke-width="0.8"/>
+      <text x="50" y="18" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">WEIGHT</text>
+      <text x="190" y="18" text-anchor="middle" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">RPE</text>
+      <text x="330" y="18" text-anchor="end" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">REPS</text>
+      <text x="95" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
+      <text x="190" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
+      <text x="285" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">10</text>
+
+      <!-- LEFT REEL cx=55 -->
+      <g>
+        <circle cx="55" cy="108" r="48" fill="url(#reelGB)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="55" cy="108" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="55" cy="108" r="22" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="55" cy="108" r="14" fill="url(#hubB)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="55" cy="108" r="3.5" fill="#050607"/>
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="55" y1="66" x2="55" y2="86"/><line x1="55" y1="130" x2="55" y2="150"/>
+          <line x1="13" y1="108" x2="33" y2="108"/><line x1="77" y1="108" x2="97" y2="108"/>
+          <line x1="25" y1="78" x2="41" y2="94"/><line x1="69" y1="122" x2="85" y2="138"/>
+          <line x1="85" y1="78" x2="69" y2="94"/><line x1="25" y1="138" x2="41" y2="122"/>
+        </g>
+      </g>
+
+      <!-- RIGHT REEL cx=325 -->
+      <g>
+        <circle cx="325" cy="108" r="48" fill="url(#reelGB)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="325" cy="108" r="42" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="325" cy="108" r="22" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="325" cy="108" r="14" fill="url(#hubB)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="325" cy="108" r="3.5" fill="#050607"/>
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="325" y1="66" x2="325" y2="86"/><line x1="325" y1="130" x2="325" y2="150"/>
+          <line x1="283" y1="108" x2="303" y2="108"/><line x1="347" y1="108" x2="367" y2="108"/>
+          <line x1="295" y1="78" x2="311" y2="94"/><line x1="339" y1="122" x2="355" y2="138"/>
+          <line x1="355" y1="78" x2="339" y2="94"/><line x1="295" y1="138" x2="311" y2="122"/>
+        </g>
+      </g>
+
+      <!-- Tape line -->
+      <path d="M 101 108 Q 190 68 279 108" stroke="#3a2a0a" stroke-width="3" fill="none" opacity="0.6"/>
+
+      <!-- TALL TIMER PANEL between reels — takes full height of reel zone -->
+      <rect x="118" y="52" width="144" height="82" rx="5" fill="#050607" stroke="#1a1d20" stroke-width="0.8"/>
+      <rect x="119" y="53" width="142" height="80" rx="4" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+      <!-- scanlines -->
+      <rect x="118" y="52" width="144" height="82" rx="5" fill="url(#scan)" opacity="0.4"/>
+      <!-- REST label top -->
+      <text x="190" y="65" text-anchor="middle" fill="#5a6065" font-family="Barlow Condensed, monospace" font-size="7" font-weight="700" letter-spacing="3">⏵ REST TIMER</text>
+      <!-- Big time -->
+      <text x="190" y="108" text-anchor="middle" dominant-baseline="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="32" font-weight="700" letter-spacing="4" style="filter:drop-shadow(0 0 12px rgba(245,236,0,0.95))">01:30</text>
+      <!-- TAP TO SET hint -->
+      <text x="190" y="127" text-anchor="middle" fill="#3a3f44" font-family="Barlow Condensed, monospace" font-size="6" font-weight="700" letter-spacing="2">TAP TO SET</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ OPTION C -->
+<div>
+  <div class="label">Option C — Reels at edges · Timer replaces tape line · Arc progress ring</div>
+  <div class="cassette-wrap">
+    <svg viewBox="0 0 380 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="reelGC" cx="0.3" cy="0.3" r="0.85">
+          <stop offset="0%" stop-color="#6a7075"/>
+          <stop offset="35%" stop-color="#2a2e33"/>
+          <stop offset="100%" stop-color="#050607"/>
+        </radialGradient>
+        <radialGradient id="hubC" cx="0.3" cy="0.3" r="0.7">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="15%" stop-color="#fff366"/>
+          <stop offset="55%" stop-color="#f5ec00"/>
+          <stop offset="100%" stop-color="#5a5400"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Shell -->
+      <rect x="2" y="2" width="376" height="176" rx="7" fill="rgba(20,23,26,0.92)" stroke="#000" stroke-width="1.2"/>
+      <rect x="4" y="4" width="372" height="172" rx="6" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.7"/>
+
+      <!-- Top label strip -->
+      <rect x="22" y="8" width="336" height="38" rx="3" fill="rgba(0,0,0,0.7)" stroke="#000" stroke-width="0.8"/>
+      <text x="50" y="18" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">WEIGHT</text>
+      <text x="190" y="18" text-anchor="middle" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">RPE</text>
+      <text x="330" y="18" text-anchor="end" fill="#aaa" font-family="Share Tech Mono, monospace" font-size="7" letter-spacing="1">REPS</text>
+      <text x="95" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
+      <text x="190" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
+      <text x="285" y="37" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="28" font-weight="700" style="filter:drop-shadow(0 0 5px rgba(245,236,0,0.7))">10</text>
+
+      <!-- LEFT REEL cx=56 -->
+      <g>
+        <circle cx="56" cy="108" r="46" fill="url(#reelGC)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="56" cy="108" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="56" cy="108" r="21" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="56" cy="108" r="13" fill="url(#hubC)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="56" cy="108" r="3.5" fill="#050607"/>
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="56" y1="68" x2="56" y2="87"/><line x1="56" y1="129" x2="56" y2="148"/>
+          <line x1="16" y1="108" x2="35" y2="108"/><line x1="77" y1="108" x2="96" y2="108"/>
+          <line x1="27" y1="79" x2="42" y2="94"/><line x1="70" y1="122" x2="85" y2="137"/>
+          <line x1="85" y1="79" x2="70" y2="94"/><line x1="27" y1="137" x2="42" y2="122"/>
+        </g>
+      </g>
+
+      <!-- RIGHT REEL cx=324 -->
+      <g>
+        <circle cx="324" cy="108" r="46" fill="url(#reelGC)" stroke="#000" stroke-width="1.3"/>
+        <circle cx="324" cy="108" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>
+        <circle cx="324" cy="108" r="21" fill="rgba(10,11,12,0.9)" stroke="#000" stroke-width="0.8"/>
+        <circle cx="324" cy="108" r="13" fill="url(#hubC)" stroke="#000" stroke-width="0.7"/>
+        <circle cx="324" cy="108" r="3.5" fill="#050607"/>
+        <g stroke="rgba(255,255,255,0.15)" stroke-width="0.7">
+          <line x1="324" y1="68" x2="324" y2="87"/><line x1="324" y1="129" x2="324" y2="148"/>
+          <line x1="284" y1="108" x2="303" y2="108"/><line x1="345" y1="108" x2="364" y2="108"/>
+          <line x1="295" y1="79" x2="310" y2="94"/><line x1="338" y1="122" x2="353" y2="137"/>
+          <line x1="353" y1="79" x2="338" y2="94"/><line x1="295" y1="137" x2="310" y2="122"/>
+        </g>
+      </g>
+
+      <!-- Arc progress ring around timer (60% complete = 216deg of 360) -->
+      <!-- Track ring -->
+      <circle cx="190" cy="108" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+      <!-- Progress arc ~60% (stroke-dasharray: circumference=239, 60%=143) -->
+      <circle cx="190" cy="108" r="38" fill="none" stroke="#f5ec00" stroke-width="3"
+        stroke-dasharray="143 239" stroke-dashoffset="60"
+        stroke-linecap="round"
+        style="filter:drop-shadow(0 0 4px rgba(245,236,0,0.8));transform-origin:190px 108px;transform:rotate(-90deg)"/>
+
+      <!-- Timer center -->
+      <circle cx="190" cy="108" r="34" fill="#050607" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+      <text x="190" y="103" text-anchor="middle" fill="#5a6065" font-family="Barlow Condensed, monospace" font-size="7" font-weight="700" letter-spacing="2">REST</text>
+      <text x="190" y="118" text-anchor="middle" dominant-baseline="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="24" font-weight="700" letter-spacing="3" style="filter:drop-shadow(0 0 10px rgba(245,236,0,0.95))">01:30</text>
+
+      <!-- Tape lines going INTO the ring -->
+      <path d="M 100 108 Q 140 90 156 108" stroke="#3a2a0a" stroke-width="3" fill="none" opacity="0.6"/>
+      <path d="M 224 108 Q 240 90 280 108" stroke="#3a2a0a" stroke-width="3" fill="none" opacity="0.6"/>
+    </svg>
+  </div>
+</div>
+
+</body>
+</html>

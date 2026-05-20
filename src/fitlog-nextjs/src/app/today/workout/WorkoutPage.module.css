@@ -583,6 +583,26 @@
 .rSetBtnWarmup { color: #c44040; }
 .setRowDone .rSetBtn { opacity: 0.75; }
 
+/* Odometer inside the set-number button — inherits font from .rSetBtn,
+   just constrains the rendered odometer wrapper so it stays inline. */
+.setNumOdometer {
+  display: inline-block;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
+  letter-spacing: 0.18em;
+}
+/* Override odometer's own inner font to match INCYTE mono */
+.setNumOdometer :global(.odometer-inside),
+.setNumOdometer :global(.odometer-digit) {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
 /* WS/WU toggle */
 .wuBtn {
   width: 28px;

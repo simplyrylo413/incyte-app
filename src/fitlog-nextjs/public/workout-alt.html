@@ -151,7 +151,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 14px 0;
+    padding: 0 14px 100px;
     scrollbar-width: none;
   }
   .content::-webkit-scrollbar { display: none; }
@@ -160,19 +160,8 @@
   .header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 14px 14px;
-    background:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='1' seed='3'/><feColorMatrix values='0 0 0 0 0.15  0 0 0 0 0.15  0 0 0 0 0.15  0 0 0 0.12 0'/></filter><rect width='100' height='100' filter='url(%23n)'/></svg>"),
-      #1a1a1a;
-    border: 1px solid #000;
-    border-radius: 2px;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.1),
-      inset 0 -1px 0 rgba(0,0,0,0.6),
-      0 2px 4px rgba(0,0,0,0.55);
-    margin-bottom: 12px;
-    position: relative;
+    padding: 4px 0 4px;
+    margin-bottom: 4px;
   }
   /* Panel inner rivets */
   /* Square Phillips-head screws at panel corners */
@@ -371,6 +360,89 @@
   }
   .ai-btn:active { transform: translateY(1px); }
 
+  /* AI button repositioned next to ACTIVE SET — inherits nav-btn style */
+  .ai-nav-btn {
+    width: 42px !important;
+    height: auto !important;
+    padding: 5px 6px !important;
+    flex: none !important;
+    position: relative;
+    align-self: stretch !important;
+  }
+  .ai-nav-btn .nav-icon { font-family: 'Black Ops One', sans-serif; font-size: 10px; letter-spacing: 1px; }
+
+  /* ── LED scrolling ticker ── */
+  .led-ticker-wrap {
+    width: 100%;
+    background: #050607;
+    border: 1px solid #2a2e33;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    padding: 2px 0;
+    box-shadow:
+      inset 0 2px 10px rgba(0,0,0,0.95),
+      inset 0 0 0 1px rgba(255,255,255,0.03),
+      0 1px 0 rgba(255,255,255,0.06);
+    margin: 4px 0;
+  }
+  /* Pixel scanline overlay */
+  .led-ticker-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 2px,
+      rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px
+    );
+    z-index: 2;
+    pointer-events: none;
+  }
+  /* Side vignette fade */
+  .led-ticker-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+      #050607 0%, transparent 12%,
+      transparent 88%, #050607 100%);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .led-ticker-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 0 10px;
+    /* static — scramble JS handles the reveal */
+  }
+  /* Individual character spans for the scramble effect */
+  .led-char {
+    display: inline-block;
+    font-family: 'VT323', 'Share Tech Mono', monospace;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow:
+      0 0 6px rgba(245,236,0,0.9),
+      0 0 14px rgba(245,236,0,0.5),
+      0 0 28px rgba(245,236,0,0.2);
+    letter-spacing: 3px;
+    image-rendering: pixelated;
+    -webkit-font-smoothing: none;
+    transition: text-shadow 120ms ease-out;
+    min-width: 0.6em;
+  }
+  /* Flash on character land */
+  .led-char.settling {
+    text-shadow:
+      0 0 10px rgba(245,236,0,1),
+      0 0 22px rgba(245,236,0,0.9),
+      0 0 44px rgba(245,236,0,0.5);
+  }
+
   /* ================= PANEL ================= */
   .panel {
     /* Matte anodized black metal — powder-coat texture, flat finish */
@@ -495,11 +567,11 @@
     color: var(--yellow);
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    letter-spacing: 2.5px;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 2px;
     font-weight: 700;
-    padding: 6px 14px;
+    padding: 5px 11px;
     background: linear-gradient(180deg, rgba(245,236,0,0.10) 0%, transparent 100%);
     border: 1px solid rgba(245,236,0,0.3);
     border-radius: 4px;
@@ -507,16 +579,16 @@
   }
   .active-set-counter {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 13px;
+    font-size: 10px;
     letter-spacing: 1px;
     color: var(--yellow);
     text-shadow: 0 0 8px rgba(245,236,0,0.6);
-    padding-left: 4px;
+    padding-left: 3px;
     border-left: 1px solid rgba(245,236,0,0.3);
     margin-left: 2px;
   }
   .active-dot {
-    width: 6px; height: 6px; border-radius: 50%;
+    width: 5px; height: 5px; border-radius: 50%;
     background: var(--yellow);
     box-shadow: 0 0 8px var(--yellow);
     animation: pulse 1.2s infinite;
@@ -610,7 +682,7 @@
   /* SILVER CHROME OPEN BUTTON */
   .cassette-open-btn {
     flex: 1;
-    padding: 9px 14px;
+    padding: 6px 9px;
     background:
       /* Top chrome highlight */
       linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.15) 8%, transparent 28%),
@@ -628,10 +700,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 6px;
     font-family: 'Black Ops One', sans-serif;
-    font-size: 12px;
-    letter-spacing: 2.5px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
     transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
     position: relative;
     box-shadow:
@@ -660,7 +732,7 @@
       0 1px 2px rgba(0,0,0,0.5);
   }
   .cassette-open-btn .open-arrow {
-    font-size: 14px;
+    font-size: 8px;
     color: #1a1d20;
     text-shadow: 0 1px 0 rgba(255,255,255,0.5);
     transition: transform 0.4s ease;
@@ -672,7 +744,7 @@
   /* YELLOW LOG SET BUTTON (matches primary action style) */
   .cassette-log-btn {
     flex: 1;
-    padding: 9px 14px;
+    padding: 6px 9px;
     background:
       linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 8%, transparent 32%),
       repeating-linear-gradient(0deg,
@@ -687,10 +759,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 5px;
     font-family: 'Black Ops One', sans-serif;
-    font-size: 12px;
-    letter-spacing: 2px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
     transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
     position: relative;
     box-shadow:
@@ -719,7 +791,7 @@
       0 0 14px rgba(245,236,0,0.35);
   }
   .cassette-log-btn .play-tri {
-    font-size: 13px;
+    font-size: 8px;
   }
 
   /* Fader panel collapse animation wrapper */
@@ -1669,7 +1741,7 @@
 
   .nav-btn {
     flex: 1;
-    height: 50px;
+    height: 40px;
     background:
       /* Top reflective gloss */
       linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.04) 8%, transparent 30%),
@@ -1707,11 +1779,11 @@
   .nav-btn::before {
     content: '';
     position: absolute;
-    top: 3px;
+    top: 2px;
     left: 50%;
     transform: translateX(-50%);
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
     background: radial-gradient(circle, #1a1d20 30%, #050607 100%);
     box-shadow:
@@ -1733,7 +1805,7 @@
   /* Transport-style icon (chunky symbol like ◄◄  ▶  ►►) */
   .nav-btn .nav-icon {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px;
+    font-size: 11px;
     line-height: 1;
     color: var(--text-mid);
     letter-spacing: 1.5px;
@@ -1744,7 +1816,7 @@
   }
   .nav-btn svg { display: none; }
   .nav-btn .nav-label {
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 1.5px;
     font-weight: 700;
     color: var(--text-dim);
@@ -1801,11 +1873,11 @@
     color: #0a0b0c;
     text-shadow: 0 1px 0 rgba(255,255,255,0.35);
   }
-  /* PLAY label specifically — bigger on active button */
-  .nav-btn.active .nav-icon { font-size: 16px; }
+  /* PLAY label — keep consistent with 20%-reduced scale */
+  .nav-btn.active .nav-icon { font-size: 11px; }
   .nav-btn.active .nav-icon-label {
     font-family: 'Black Ops One', sans-serif;
-    font-size: 13px;
+    font-size: 10px;
     letter-spacing: 1px;
     color: #0a0b0c;
   }
@@ -1813,7 +1885,7 @@
   /* ================= TOAST ================= */
   .toast {
     position: fixed;
-    bottom: 96px;
+    bottom: 140px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background:
@@ -1943,26 +2015,12 @@
 
     <!-- HEADER -->
     <div class="header">
-      <span class="panel-rivet tl"></span>
-      <span class="panel-rivet tr"></span>
-      <span class="panel-rivet bl"></span>
-      <span class="panel-rivet br"></span>
-      <button class="icon-btn" id="backBtn" aria-label="Back">
-        <svg><use href="#i-chevron-left"/></svg>
-      </button>
       <div class="header-title">
-        <div class="header-label">MOVEMENT</div>
-        <div class="header-name" id="mvName">Leg Extension</div>
-        <div class="focus-row">
-          <span class="focus-label">FOCUS</span>
-          <span class="tag" id="mvBodyPart">QUADS</span>
+        <!-- LED scramble display -->
+        <div class="led-ticker-wrap" aria-live="polite">
+          <div class="led-ticker-inner" id="ledNameDisplay"></div>
         </div>
       </div>
-      <button class="ai-btn" id="aiBtn">
-        <span class="ai-led"></span>
-        <span class="ai-big">AI</span>
-        <span class="ai-sub">ASSIST</span>
-      </button>
     </div>
 
     <!-- CASSETTE / TIMER — chrome-rim outer panel with recessed dark interior -->
@@ -1977,7 +2035,11 @@
       <span class="bracket bl"></span>
       <span class="bracket br"></span>
 
-      <div class="cassette-top" style="justify-content:center">
+      <div class="cassette-top" style="justify-content:space-between;align-items:center">
+        <button class="nav-btn ai-nav-btn" id="backBtn" aria-label="Back">
+          <span class="nav-icon">◄</span>
+          <span class="nav-label">BACK</span>
+        </button>
         <div class="active-set">
           <span class="active-dot"></span>
           <span>ACTIVE SET</span>
@@ -1985,6 +2047,11 @@
         </div>
         <!-- Hidden timer readout — kept so timer JS still updates it -->
         <span id="restTopVal" style="display:none">01:30</span>
+        <button class="nav-btn ai-nav-btn" id="aiBtn" data-tab="AI">
+          <span class="ai-led" style="top:3px;right:3px;position:absolute;width:3px;height:3px;border-radius:50%;background:var(--yellow);box-shadow:0 0 4px var(--yellow);animation:ledBlink 1.5s infinite;"></span>
+          <span class="nav-icon">AI</span>
+          <span class="nav-label">ASSIST</span>
+        </button>
       </div>
 
       <div class="cassette-svg-wrap" id="cassetteWrap">
@@ -2615,12 +2682,74 @@
 
 <script>
 /* ============== STATE ============== */
+/* ── Scramble-reveal for the LED name display ── */
+/* Animates text character-by-character — each char cycles through random glyphs
+   before snapping to the correct letter, staggered left-to-right.
+   Equivalent of AnimateNumber's slot-machine digit roll, applied to text. */
+function scrambleLedText(text, opts) {
+  const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%$&*+=?';
+  const staggerMs  = (opts && opts.stagger)  || 52;   // ms delay per character
+  const cycleMs    = (opts && opts.cycleMs)  || 42;   // ms per scramble frame
+  const minCycles  = (opts && opts.minCycles)|| 10;   // min scramble frames
+  const maxExtra   = (opts && opts.maxExtra) || 7;    // random extra frames
+  const container  = document.getElementById('ledNameDisplay');
+  if (!container) return;
+
+  const upper = text.toUpperCase();
+  container.innerHTML = '';
+
+  // Build one <span class="led-char"> per character
+  const spans = upper.split('').map(ch => {
+    const span = document.createElement('span');
+    span.className = 'led-char';
+    span.setAttribute('aria-hidden', 'true');
+    span.textContent = ch === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    container.appendChild(span);
+    return { el: span, final: ch };
+  });
+
+  // Hidden accessible label so screen readers get the real text
+  let sr = container.querySelector('.sr-only');
+  if (!sr) {
+    sr = document.createElement('span');
+    sr.className = 'sr-only';
+    sr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);';
+    container.appendChild(sr);
+  }
+  sr.textContent = text;
+
+  // Stagger each character's scramble interval
+  spans.forEach(({ el, final }, i) => {
+    if (final === ' ') { el.textContent = ' '; return; }
+
+    const cycles = minCycles + Math.floor(Math.random() * maxExtra);
+    let frame = 0;
+
+    setTimeout(() => {
+      const iv = setInterval(() => {
+        if (frame >= cycles) {
+          clearInterval(iv);
+          el.textContent = final;
+          el.classList.add('settling');
+          setTimeout(() => el.classList.remove('settling'), 200);
+          return;
+        }
+        el.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        frame++;
+      }, cycleMs);
+    }, i * staggerMs);
+  });
+}
+
 /* ── URL param bootstrap ── */
 (function() {
   const p = new URLSearchParams(location.search);
-  if (p.get('name')) document.getElementById('mvName').textContent = p.get('name');
+  const name = p.get('name') || 'Leg Extension';
+  // Scramble-reveal on DOMContentLoaded so container is in the DOM
+  // Inline scripts run after DOM is parsed — call directly, no DOMContentLoaded needed
+  scrambleLedText(name);
   if (p.get('bodypart')) document.getElementById('mvBodyPart').textContent = p.get('bodypart').toUpperCase();
-  document.title = (p.get('name') || 'Leg Extension') + ' — Workout';
+  document.title = name + ' — Workout';
   // Back button returns to caller
   document.getElementById('backBtn').addEventListener('click', () => history.back(), { once: true });
   window.__urlParams = p;
@@ -3060,6 +3189,9 @@ document.getElementById('logSetBtn').addEventListener('click', () => {
   showToast(`SET ${target.num} LOGGED`);
   renderLog();
   startTimer();
+  // Scroll log panel into view so user sees the logged set
+  const logPanel = document.querySelector('.log-panel');
+  if (logPanel) setTimeout(() => logPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -3170,11 +3302,17 @@ document.getElementById('timerStrip').addEventListener('click', () => {
 })();
 
 // backBtn: URL param bootstrap already wired history.back(); this is a no-op fallback
-document.getElementById('aiBtn').addEventListener('click', () => showToast('AI ASSIST'));
+// AI button: toggle on/off independently of the nav group
+document.getElementById('aiBtn').addEventListener('click', () => {
+  const btn = document.getElementById('aiBtn');
+  const on = btn.classList.toggle('active');
+  showToast(on ? 'AI ON' : 'AI OFF');
+});
 
-document.querySelectorAll('.nav-btn').forEach(btn => {
+// Nav group toggle — exclude the AI and Back buttons (they're not nav tabs)
+document.querySelectorAll('.nav-btn:not(.ai-nav-btn)').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn:not(.ai-nav-btn)').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     showToast(btn.dataset.tab);
   });
@@ -3193,6 +3331,7 @@ requestAnimationFrame(() => {
   renderLog();
   updateReadouts();
 });
+
 </script>
 
 </body>
