@@ -1628,44 +1628,29 @@
   }
   .log-remove {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    border: 0.5px solid rgba(180,60,60,0.4);
-    background: rgba(120,30,30,0.25);
-    color: rgba(220,80,80,0.7);
-    font-size: 13px;
+    border: 0.5px solid rgba(180,60,60,0.3);
+    background: transparent;
+    color: rgba(180,60,60,0.45);
+    font-size: 11px;
     line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s, background 0.12s, transform 0.1s;
+    transition: background 0.12s, color 0.12s, border-color 0.12s, transform 0.1s;
     font-family: 'JetBrains Mono', monospace;
     padding: 0;
-    /* sits outside the row flow until revealed */
-    position: absolute;
-    right: -36px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  /* On done rows, always show remove */
-  .log-row.done-row .log-remove,
-  .log-row:hover .log-remove {
-    opacity: 1;
-    pointer-events: auto;
+    margin-left: auto;
   }
   .log-remove:hover {
-    background: rgba(180,40,40,0.5);
+    background: rgba(180,40,40,0.2);
     color: #ff6060;
-    border-color: rgba(220,60,60,0.7);
+    border-color: rgba(220,60,60,0.6);
   }
-  .log-remove:active { transform: translateY(-50%) scale(0.88); }
-  /* Slide row left to reveal remove */
-  .log-row.swiped .log-row-inner { transform: translateX(-38px); }
-  .log-row.swiped .log-remove { opacity: 1; pointer-events: auto; }
+  .log-remove:active { transform: scale(0.88); }
 
   /* ================= BOTTOM NAV — MECHANICAL TRANSPORT PANEL ================= */
   .bottom-nav-wrap {
@@ -2116,6 +2101,7 @@
           <text x="328" y="20" text-anchor="end" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="8.5" letter-spacing="1" font-weight="700">REPS</text>
           <!-- BIG yellow numbers — WEIGHT / RPE / REPS, vertically centered with 3px padding -->
           <text x="95" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="weightReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
+          <text x="180" y="16" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="8.5" letter-spacing="1" font-weight="700">RPE</text>
           <text x="180" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="rpeReadoutTop" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
           <text x="265" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="repsReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">19</text>
           <!-- Tiny bottom hint -->
@@ -2634,9 +2620,9 @@ const state = {
   timerInterval: null,
   vuInterval: null,
   logs: [
-    { num: 1, tags: ['WU','BW'], weight: 95,  reps: 10, done: true  },
-    { num: 2, tags: ['BW'],      weight: 115, reps: 10, done: true  },
-    { num: 3, tags: ['BW'],      weight: null,reps: null,done: false },
+    { num: 1, tags: ['WU'], weight: 95,  reps: 10, done: true  },
+    { num: 2, tags: [],     weight: 115, reps: 10, done: true  },
+    { num: 3, tags: [],     weight: null,reps: null,done: false },
     { num: 4, tags: ['WS'],      weight: 155, reps: 10, done: false },
     { num: 5, tags: ['WS'],      weight: 155, reps: 10, done: false },
     { num: 6, tags: ['WS'],      weight: 155, reps: 10, done: false },
@@ -3030,22 +3016,6 @@ function renderLog() {
       tags.appendChild(t);
     }
 
-    // --- BW tag — independent toggle ---
-    const hasBW = log.tags.includes('BW');
-    const bw = document.createElement('div');
-    bw.className = 'log-tag' + (hasBW ? ' active' : ' inactive');
-    bw.textContent = 'BW';
-    bw.title = hasBW ? 'Bodyweight — tap to remove' : 'Tap to mark as bodyweight';
-    bw.addEventListener('click', () => {
-      if (log.tags.includes('BW')) {
-        log.tags = log.tags.filter(x => x !== 'BW');
-      } else {
-        log.tags.push('BW');
-      }
-      renderLog();
-    });
-    tags.appendChild(bw);
-
     inner.appendChild(tags);
 
     const val = document.createElement('div');
@@ -3064,18 +3034,13 @@ function renderLog() {
       log.done = !log.done;
       renderLog();
     });
-    inner.appendChild(check);
-
-    row.appendChild(inner);
-
-    // Remove button — absolutely positioned, revealed by hover or swipe
+    // Remove button — inline at right edge of row
     const removeBtn = document.createElement('button');
     removeBtn.className = 'log-remove';
     removeBtn.setAttribute('aria-label', 'Remove set');
     removeBtn.innerHTML = '✕';
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Animate out, then remove
       row.style.transition = 'opacity 0.18s, max-height 0.22s';
       row.style.opacity = '0';
       row.style.maxHeight = row.offsetHeight + 'px';
@@ -3086,26 +3051,17 @@ function renderLog() {
       });
       setTimeout(() => {
         state.logs.splice(idx, 1);
-        // Re-number remaining sets
         state.logs.forEach((l, i) => { l.num = i + 1; });
         state.totalSets = state.logs.length;
         renderLog();
         showToast('SET REMOVED');
       }, 220);
     });
-    row.appendChild(removeBtn);
+    inner.appendChild(check);
+    inner.appendChild(removeBtn);
 
-    // Swipe-left to reveal remove (touch devices)
-    let touchStartX = null;
-    inner.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-    }, { passive: true });
-    inner.addEventListener('touchmove', (e) => {
-      if (touchStartX === null) return;
-      const dx = e.touches[0].clientX - touchStartX;
-      if (dx < -20) { row.classList.add('swiped'); }
-      else if (dx > 10) { row.classList.remove('swiped'); }
-    }, { passive: true });
+    row.appendChild(inner);
+
 
     container.appendChild(row);
   });
