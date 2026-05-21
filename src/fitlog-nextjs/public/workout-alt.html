@@ -3434,6 +3434,7 @@ const state = {
   timerRemaining: 90,
   timerInterval: null,
   vuInterval: null,
+  aiOn: false,
   logs: [{ num: 1, tags: ['WS'], weight: null, reps: null, done: false }],
 };
 
@@ -4052,7 +4053,7 @@ document.getElementById('logSetBtn').addEventListener('click', () => {
   target.done = true;
   renderLog();
   startTimer();
-  showAIInsight();
+  if (state.aiOn) showAIInsight();
   // Scroll log panel into view so user sees the logged set
   const logPanel = document.querySelector('.log-panel');
   if (logPanel) setTimeout(() => logPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
@@ -4262,7 +4263,12 @@ document.getElementById('timerStrip').addEventListener('click', () => {
 // AI button: toggle on/off independently of the nav group
 document.getElementById('aiBtn').addEventListener('click', () => {
   const btn = document.getElementById('aiBtn');
-  const on = btn.classList.toggle('active');
+  state.aiOn = btn.classList.toggle('active');
+  if (state.aiOn) {
+    // Surface a reco for the most recent logged set immediately on toggle-on
+    const hasDone = state.logs.some(l => l.done);
+    if (hasDone) showAIInsight();
+  }
 });
 
 // MPC nav — click inner .mpc-pad, active class on .mpc-pad-wrapper, sync scale labels
