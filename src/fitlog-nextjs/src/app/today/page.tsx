@@ -214,9 +214,19 @@ export default function TodayPage() {
 
   // ── Navigation ────────────────────────────────────────────────────────────
   function handleMovementTap(item: TodayItem) {
-    const params = new URLSearchParams({ mid: item.mid, planId: item.planId });
-    if (item.sourceWorkoutId) params.set("src", item.sourceWorkoutId);
-    router.push(`/today/workout?${params}`);
+    const mv = item.mv;
+    const planItem = plans.find((p) => p.id === item.planId);
+    const lastSet = item.entry?.sets?.[item.entry.sets.length - 1];
+    const params = new URLSearchParams();
+    params.set("name", mv?.name ?? "Movement");
+    if (mv?.bodyPart || mv?.muscle) params.set("bodypart", String(mv.bodyPart ?? mv.muscle));
+    if (lastSet?.weight != null && lastSet.weight !== "") params.set("weight", String(lastSet.weight));
+    if (lastSet?.reps != null && lastSet.reps !== "") params.set("reps", String(lastSet.reps));
+    if (lastSet?.rpe != null && lastSet.rpe !== "") params.set("rpe", String(lastSet.rpe));
+    const setsCount = planItem?.sets ?? item.entry?.sets?.length;
+    if (setsCount) params.set("sets", String(setsCount));
+    params.set("rest", "90");
+    window.location.href = `/workout-alt.html?${params}`;
   }
 
   // Save edited sets back to Supabase

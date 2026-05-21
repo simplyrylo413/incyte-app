@@ -229,86 +229,66 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 9. workout-alt.html — inline workout prototype (active, 2026-05-19)
+## 9. workout-alt.html — cassette prototype (active, 2026-05-19 → 2026-05-20)
 
-A standalone single-file prototype at `src/fitlog-nextjs/public/workout-alt.html`, served statically from the Netlify deployment at **incyte13.netlify.app/workout-alt.html**.
+Standalone single-file prototype at `src/fitlog-nextjs/public/workout-alt.html`, deployed at **incyte13.netlify.app/workout-alt.html**. Build stamp: `20 MAY 23:08`.
 
-This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring a "cassette deck" visual language for the workout logging screen. It is called from the existing app via URL with params (`?name=...&bodypart=...&weight=...&reps=...&rpe=...&sets=...&rest=...`).
+This is **not** the Next.js app. It explores a "cassette deck" visual language for the workout logging screen. Designed to be called from the Today page via URL params (`?name=...&bodypart=...&weight=...&reps=...&rpe=...&sets=...&rest=...`) but **nothing currently dispatches to it** — the Today page still routes to `/today/workout`.
 
-### What's been built (sessions 2026-05-19 → 2026-05-20)
+### What's built
 
 | Feature | State |
 |---|---|
-| Cassette SVG panel with WEIGHT / RPE / REPS readouts | ✅ |
+| Cassette SVG panel — WEIGHT / RPE / REPS readouts | ✅ |
 | VU-bar faders (drag up/down) — weight, RPE, reps | ✅ |
-| Reel spin animation synced to timer (RAF-based) | ✅ |
-| Timer strip — click to start/stop, countdown, reel spin | ✅ |
-| LOG SET button — logs current set, starts timer | ✅ |
+| Reel spin animation synced to rest timer (RAF-based) | ✅ |
+| Timer strip — tap to start/stop, countdown | ✅ |
+| LOG SET button — logs set, starts timer | ✅ |
 | OPEN button — reveals fader panel with slide animation | ✅ |
-| BACK / AI ASSIST buttons (matte black, yellow glow on press in dark; see light mode below) | ✅ |
-| Bottom nav (matte black, 5 tabs, yellow glow active) | ✅ |
-| Log rows — WARM UP (yellow pill) / WORK (green pill) / NOW (white pulsing pill) | ✅ |
-| Delete button per log row (✕, slide-out animation) | ✅ |
-| Cassette panel sticky (fixed above scrollable log) | ✅ |
-| WEIGHT / RPE / REPS labels aligned + 10.5px | ✅ |
-| Mobile layout + iOS touch fixed (see bugs section) | ✅ |
-| **Light mode** (`body.light-mode` toggle): full theme pass | ✅ |
-| Light mode — cassette SVG shell/label/timer: JS `setAttribute` (iOS Safari can't CSS-override `fill="url(#gradient)"`) | ✅ |
-| Light mode — MPC pad press: inset-only shadow, no outer drop shadow | ✅ |
-| Light mode — log row tags: WORK solid green, WARM UP solid yellow, NOW black border, ✕ solid red, + solid green | ✅ |
-| Light mode — ACTIVE SET pill + dot: black | ✅ |
-| Light mode — USB column icons + scale divider lines: black | ✅ |
-| Light mode — scale label dashes (— INSIGHT —): fully black (opacity 1) | ✅ |
-| Light mode — top nav press: BACK sinks with inset shadow (no outer drop shadow, no glow, `transition: none`); AI ASSIST flashes yellow bg + black text instantly | ✅ |
-| Light mode — AI LED blinker: green (#4ecb71) | ✅ |
-| AI ASSIST button text: centered within box | ✅ |
+| BACK / AI ASSIST top buttons | ✅ |
+| Bottom MPC nav (matte black, 4 pads, active glow) | ✅ |
+| Log rows — WARM UP (yellow) / WORK (green) / NOW (pulsing) | ✅ |
+| Delete per row (✕) | ✅ |
+| Cassette panel sticky (flex sibling of scroll container — not inside it) | ✅ |
+| **Light mode** — full theme pass via `body.light-mode` toggle | ✅ |
+
+### Light mode implementation notes
+
+- **SVG fill override (iOS Safari):** CSS `fill` cannot override `fill="url(#gradient)"` on iOS Safari. Must use JS `element.setAttribute('fill', value)` inside `applyLightMode(on)`. Classes: `.cassette-shell`, `.cassette-label-strip`, `.cassette-timer-strip`.
+- **`!important` required on all active-state overrides** — base `.nav-btn` light mode has `color !important`, so `:active` overrides must also use `!important` to win.
+- **`transition: none !important` on `:active`** — `.nav-btn` has a `color 0.15s` transition. Without killing it on press, a quick tap reverts before the color change registers.
+- **ID selector for AI ASSIST:** `body.light-mode #aiBtn:active` beats class-based `.nav-btn:active` when both have `!important` (ID specificity wins).
+- **AI LED blinker:** green (`#4ecb71`). AI ASSIST press = yellow bg (`#f5ec00`) + black text. BACK press = neutral darker bg.
+- **Scale label dashes (— INSIGHT —):** black, opacity 1.
 
 ### Key layout rules
 
 ```
 .phone (flex column, height: calc(var(--vh) * 100))
   .sticky-top     ← cassette panel + fader, flex-shrink: 0, NOT inside scroll container
-  .content        ← overflow-y: auto, flex: 1, min-height: 0, log rows live here
+  .content        ← overflow-y: auto, flex: 1, min-height: 0
   .bottom-nav-wrap← flex-shrink: 0
 ```
 
-`--vh` is set by JS (`window.innerHeight * 0.01`) so iOS Safari / Chrome never overflows behind browser chrome.
+`--vh` = `window.innerHeight * 0.01` — fixes iOS Safari `100vh` overflow behind browser chrome.
 
-### Bugs fixed (important for next session)
+### What's still open
 
-1. **`#mvBodyPart` null crash** — the page is called with `?bodypart=CHEST` (etc.) from the main app. A missing null-check caused `document.getElementById('mvBodyPart').textContent = ...` to throw, aborting the entire script (no event listeners, no log rows). Fixed by null-guarding the element access. **Any future code that touches URL params must null-check every element it writes to.**
-
-2. **iOS `100vh` bug** — `100vh` on iOS Safari / Chrome = large viewport (chrome hidden). On load with chrome visible, the phone frame overflowed behind the address/tab bar, hiding the bottom nav. Fixed with `--vh` CSS variable set from `window.innerHeight`. Updated on `resize` and `orientationchange`.
-
-3. **`position: sticky` inside `overflow: auto`** — doesn't work on iOS Safari. Fixed by moving `.sticky-top` outside `.content` (sibling, not child).
-
-4. **Reel CSS animation vs SVG attribute conflict** — `.reel.spinning` CSS animation wrote `transform` property, conflicting with fader drag's SVG `transform` attribute. Fixed by replacing CSS animation with RAF loop writing directly to the SVG `transform` attribute. `window.__reelRot = { weight, reps }` is the shared state object.
-
-5. **RPE fader not updating big cassette readout** — `updateReadouts()` was missing `#rpeReadoutTop`. Fixed by adding a second element update.
+- **Log rows are hardcoded test data** — don't read from URL params or real session data
+- **No persistence** — refresh loses all logged sets
+- **No dispatch from the app** — Today page `handleMovementTap` still routes to `/today/workout`, not the cassette
+- **Not wired to Supabase** — LOG SET doesn't write anywhere
+- **Open decision:** does the cassette *replace* `/today/workout` or route alongside it (e.g. strength → cassette, cardio/mobility → existing page)?
 
 ### Deployment
 
 - **Site:** incyte13.netlify.app (site ID: `3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`)
-- **Build:** `cd src/fitlog-nextjs && npm run build` (copies `public/` → `out/`)
-- **Deploy:** `~/.local/bin/netlify deploy --prod --dir=src/fitlog-nextjs/out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
-- **Rule:** State target site in chat and wait for explicit confirmation before every deploy.
-
-### Light mode implementation notes
-
-- **SVG fill override (iOS Safari):** CSS `fill` cannot override `fill="url(#gradient)"` on iOS Safari. Use JS `element.setAttribute('fill', value)` inside `applyLightMode(on)`. Classes: `.cassette-shell`, `.cassette-label-strip`, `.cassette-timer-strip`.
-- **`!important` required:** Many dark-mode rules have `!important` on `color` for the base `.nav-btn` state (`body.light-mode .nav-btn { color: rgba(40,35,30,0.7) !important }`). All active-state light-mode overrides need `!important` on the same properties.
-- **`transition: none !important` on `:active`:** `.nav-btn` has a `color 0.15s` transition. Without killing it on `:active`, a quick tap doesn't visually register because the state reverts before the transition completes. Always add `transition: none !important` to any button `:active` light-mode override.
-- **ID selector for AI ASSIST:** `body.light-mode #aiBtn:active` beats the class-based `.nav-btn:active` rule when both have `!important`, because ID specificity (1,_,_) > class specificity (0,_,_).
-
-### What's still open
-
-- The log rows use **hardcoded test data** in `state.logs`. They do not yet read from URL params or real session data.
-- The `SET COUNTER` and `ACTIVE SET X / Y` reads from `state.logs` correctly, but the log itself is static.
-- No persistence — refreshing loses all logged sets.
-- The `workout-alt.html` is a prototype, not yet wired to the Next.js Supabase data layer.
-- **Not yet deployed to incyte13.netlify.app** — latest build stamp `20 MAY 23:08` is committed but Netlify has not been updated this session.
+- **Deploy:** `cd src/fitlog-nextjs && npm run build && ~/.local/bin/netlify deploy --prod --dir=out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
+- **Rule:** state target site in chat, wait for explicit confirmation before every deploy. Update build stamp (`DD MMM HH:MM`) before every deploy.
 
 ---
+
+## 10. Active work — what's next
 
 **Phase 9 — Capacitor wrap (launch only):**
 1. `npx cap init` inside `src/fitlog-nextjs/`
@@ -355,6 +335,7 @@ This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring
 | **A-02** — Light-mode default on first load | Next.js defaults to system; verify `body.theme-dark` isn't applied when `fitlog_theme` key is absent. |
 | **D-03** — Account deletion flow | Required by App Store guideline 5.1.1(v). Needs Supabase edge function + UI. |
 | **North Star metric** | Working candidate: weekly active session completion rate. Not yet confirmed. |
+| **Cassette integration** | Does `workout-alt.html` replace `/today/workout` entirely, or route by movement type (strength → cassette, cardio/mobility → existing)? Must decide before any wiring work. |
 
 ---
 
