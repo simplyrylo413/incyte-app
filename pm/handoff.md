@@ -2,7 +2,7 @@
 
 > Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-19_
+_Last updated: 2026-05-20_
 
 ---
 
@@ -235,7 +235,7 @@ A standalone single-file prototype at `src/fitlog-nextjs/public/workout-alt.html
 
 This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring a "cassette deck" visual language for the workout logging screen. It is called from the existing app via URL with params (`?name=...&bodypart=...&weight=...&reps=...&rpe=...&sets=...&rest=...`).
 
-### What's been built (session 2026-05-19)
+### What's been built (sessions 2026-05-19 → 2026-05-20)
 
 | Feature | State |
 |---|---|
@@ -245,13 +245,23 @@ This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring
 | Timer strip — click to start/stop, countdown, reel spin | ✅ |
 | LOG SET button — logs current set, starts timer | ✅ |
 | OPEN button — reveals fader panel with slide animation | ✅ |
-| BACK / AI ASSIST buttons (matte black, yellow glow on press) | ✅ |
+| BACK / AI ASSIST buttons (matte black, yellow glow on press in dark; see light mode below) | ✅ |
 | Bottom nav (matte black, 5 tabs, yellow glow active) | ✅ |
 | Log rows — WARM UP (yellow pill) / WORK (green pill) / NOW (white pulsing pill) | ✅ |
 | Delete button per log row (✕, slide-out animation) | ✅ |
 | Cassette panel sticky (fixed above scrollable log) | ✅ |
 | WEIGHT / RPE / REPS labels aligned + 10.5px | ✅ |
 | Mobile layout + iOS touch fixed (see bugs section) | ✅ |
+| **Light mode** (`body.light-mode` toggle): full theme pass | ✅ |
+| Light mode — cassette SVG shell/label/timer: JS `setAttribute` (iOS Safari can't CSS-override `fill="url(#gradient)"`) | ✅ |
+| Light mode — MPC pad press: inset-only shadow, no outer drop shadow | ✅ |
+| Light mode — log row tags: WORK solid green, WARM UP solid yellow, NOW black border, ✕ solid red, + solid green | ✅ |
+| Light mode — ACTIVE SET pill + dot: black | ✅ |
+| Light mode — USB column icons + scale divider lines: black | ✅ |
+| Light mode — scale label dashes (— INSIGHT —): fully black (opacity 1) | ✅ |
+| Light mode — top nav press: BACK sinks with inset shadow (no outer drop shadow, no glow, `transition: none`); AI ASSIST flashes yellow bg + black text instantly | ✅ |
+| Light mode — AI LED blinker: green (#4ecb71) | ✅ |
+| AI ASSIST button text: centered within box | ✅ |
 
 ### Key layout rules
 
@@ -283,12 +293,20 @@ This is **not** the Next.js app. It's a separate HTML/CSS/JS prototype exploring
 - **Deploy:** `~/.local/bin/netlify deploy --prod --dir=src/fitlog-nextjs/out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
 - **Rule:** State target site in chat and wait for explicit confirmation before every deploy.
 
+### Light mode implementation notes
+
+- **SVG fill override (iOS Safari):** CSS `fill` cannot override `fill="url(#gradient)"` on iOS Safari. Use JS `element.setAttribute('fill', value)` inside `applyLightMode(on)`. Classes: `.cassette-shell`, `.cassette-label-strip`, `.cassette-timer-strip`.
+- **`!important` required:** Many dark-mode rules have `!important` on `color` for the base `.nav-btn` state (`body.light-mode .nav-btn { color: rgba(40,35,30,0.7) !important }`). All active-state light-mode overrides need `!important` on the same properties.
+- **`transition: none !important` on `:active`:** `.nav-btn` has a `color 0.15s` transition. Without killing it on `:active`, a quick tap doesn't visually register because the state reverts before the transition completes. Always add `transition: none !important` to any button `:active` light-mode override.
+- **ID selector for AI ASSIST:** `body.light-mode #aiBtn:active` beats the class-based `.nav-btn:active` rule when both have `!important`, because ID specificity (1,_,_) > class specificity (0,_,_).
+
 ### What's still open
 
 - The log rows use **hardcoded test data** in `state.logs`. They do not yet read from URL params or real session data.
 - The `SET COUNTER` and `ACTIVE SET X / Y` reads from `state.logs` correctly, but the log itself is static.
 - No persistence — refreshing loses all logged sets.
 - The `workout-alt.html` is a prototype, not yet wired to the Next.js Supabase data layer.
+- **Not yet deployed to incyte13.netlify.app** — latest build stamp `20 MAY 23:08` is committed but Netlify has not been updated this session.
 
 ---
 
