@@ -4060,43 +4060,50 @@ document.getElementById('logSetBtn').addEventListener('click', () => {
 
 function showAIInsight() {
   const btn = document.getElementById('aiBtn');
-  if (!btn) return;
+  // Only fire when user has AI toggled ON
+  if (!btn || !btn.classList.contains('active')) return;
+
   const doneSets = state.logs.filter(l => l.done);
   if (doneSets.length === 0) return;
 
   const lastSet = doneSets[doneSets.length - 1];
   const rpe = lastSet.rpe || 0;
+  const weight = lastSet.weight;
   const reps = lastSet.reps || state.reps;
   const remaining = state.logs.filter(l => !l.done).length;
 
-  let msg = '';
-  if (rpe === 0) {
-    msg = remaining > 0 ? `${remaining} set${remaining > 1 ? 's' : ''} remaining. Log RPE for better recommendations.` : 'Session complete.';
-  } else if (rpe <= 5) {
-    msg = `RPE ${rpe} — well below threshold. Add 5–10 lb next set.`;
-  } else if (rpe === 6) {
-    msg = `RPE 6 — good working pace. Maintain weight.`;
-  } else if (rpe === 7) {
-    msg = remaining > 2 ? `RPE 7 — on target. Hold weight for remaining sets.` : `RPE 7 — strong finish. Consider +5 lb next session.`;
-  } else if (rpe === 8) {
-    msg = remaining > 0 ? `RPE 8 — near limit. Keep weight steady.` : `RPE 8 — good effort. Micro-load +2.5 lb next session.`;
-  } else if (rpe === 9) {
-    msg = remaining > 0 ? `RPE 9 — drop 5 lb for remaining sets.` : `RPE 9 — maximum effort recorded.`;
-  } else if (rpe === 10) {
-    msg = remaining > 0 ? `RPE 10 — drop weight 10 lb for next set.` : `RPE 10 — all-out. Full recovery before next session.`;
+  // Logged set prefix: "135 × 10 @ RPE 8 — "
+  let prefix = '';
+  if (weight && reps) {
+    prefix = `${weight} × ${reps}`;
+    if (rpe) prefix += ` @ RPE ${rpe}`;
+    prefix += '  —  ';
   }
 
-  // Flash the AI button and show insight in the ticker if present
-  btn.classList.add('active');
+  let rec = '';
+  if (rpe === 0) {
+    rec = remaining > 0 ? `${remaining} set${remaining > 1 ? 's' : ''} remaining. Log RPE for better recommendations.` : 'Session complete.';
+  } else if (rpe <= 5) {
+    rec = `Add 5–10 lb next set.`;
+  } else if (rpe === 6) {
+    rec = `Good working pace. Maintain weight.`;
+  } else if (rpe === 7) {
+    rec = remaining > 2 ? `On target. Hold weight for remaining sets.` : `Strong finish. Consider +5 lb next session.`;
+  } else if (rpe === 8) {
+    rec = remaining > 0 ? `Near limit. Keep weight steady.` : `Good effort. Micro-load +2.5 lb next session.`;
+  } else if (rpe === 9) {
+    rec = remaining > 0 ? `Drop 5 lb for remaining sets.` : `Maximum effort recorded.`;
+  } else if (rpe === 10) {
+    rec = remaining > 0 ? `Drop weight 10 lb for next set.` : `All-out. Full recovery before next session.`;
+  }
+
   const ticker = document.querySelector('.led-ticker-text');
-  if (ticker && msg) {
-    ticker.textContent = msg;
+  if (ticker) {
+    ticker.textContent = prefix + rec;
     const tickerWrap = document.querySelector('.led-ticker-wrap');
     if (tickerWrap) tickerWrap.style.display = 'block';
   }
-
-  // Brief flash on the button
-  setTimeout(() => btn.classList.remove('active'), 2000);
+  // Do NOT touch btn.classList — respect the user's toggle state
 }
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -4263,6 +4270,8 @@ document.getElementById('timerStrip').addEventListener('click', () => {
 document.getElementById('aiBtn').addEventListener('click', () => {
   const btn = document.getElementById('aiBtn');
   const on = btn.classList.toggle('active');
+  const tickerWrap = document.querySelector('.led-ticker-wrap');
+  if (tickerWrap) tickerWrap.style.display = on ? 'block' : 'none';
 });
 
 // MPC nav — click inner .mpc-pad, active class on .mpc-pad-wrapper, sync scale labels
