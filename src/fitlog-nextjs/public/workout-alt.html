@@ -2229,6 +2229,18 @@
     background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
     border-color: #a09b94;
   }
+  /* Light mode: :active press keeps the soft shadow — no dark bleed */
+  body.light-mode .mpc-pad:active {
+    background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset -1px -1.5px 0 rgba(0,0,0,0.15),
+      inset 0 -2px 5px rgba(0,0,0,0.12),
+      3px 8px 16px rgba(0,0,0,0.2),
+      1px 3px 6px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
   /* Light mode: solid black icons via currentColor */
   body.light-mode .mpc-icon svg { color: #1a1814; }
   body.light-mode .mpc-pad-wrapper.active .mpc-icon svg { color: #FF3D3D; }
@@ -3236,7 +3248,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:41';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:48';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
