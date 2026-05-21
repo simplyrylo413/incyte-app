@@ -357,6 +357,23 @@
     box-shadow: 0 0 4px var(--yellow);
     animation: ledBlink 1.5s infinite;
   }
+  /* AI ASSIST on-state — yellow-tinted face + brighter, faster LED */
+  .ai-btn.ai-on {
+    background:
+      linear-gradient(180deg, rgba(245,236,0,0.32) 0%, rgba(120,110,0,0.22) 100%),
+      linear-gradient(180deg, #353a40 0%, #14171a 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      0 0 10px rgba(245,236,0,0.35),
+      0 2px 3px rgba(0,0,0,0.7);
+  }
+  .ai-btn.ai-on .ai-big { color: #fff7a8; text-shadow: 0 0 6px rgba(245,236,0,0.6); }
+  .ai-btn.ai-on .ai-sub { color: rgba(255,247,168,0.85); }
+  .ai-btn.ai-on .ai-led {
+    width: 4px; height: 4px;
+    box-shadow: 0 0 8px var(--yellow), 0 0 14px rgba(245,236,0,0.7);
+    animation: ledBlink 0.55s infinite;
+  }
   .ai-btn .ai-big {
     font-family: 'Black Ops One', sans-serif;
     font-size: 14px;
@@ -2638,23 +2655,44 @@ const state = {
   timerRemaining: 90,
   timerInterval: null,
   vuInterval: null,
+  aiOn: false,
   logs: [
-    { num: 1, tags: ['WU','BW'], weight: 95,  reps: 10, done: true  },
-    { num: 2, tags: ['BW'],      weight: 115, reps: 10, done: true  },
-    { num: 3, tags: ['BW'],      weight: null,reps: null,done: false },
-    { num: 4, tags: ['WS'],      weight: 155, reps: 10, done: false },
-    { num: 5, tags: ['WS'],      weight: 155, reps: 10, done: false },
-    { num: 6, tags: ['WS'],      weight: 155, reps: 10, done: false },
+    { num: 1, tags: ['WU','BW'], weight: 95,  reps: 10, rpe: null, done: true  },
+    { num: 2, tags: ['BW'],      weight: 115, reps: 10, rpe: null, done: true  },
+    { num: 3, tags: ['BW'],      weight: null,reps: null,rpe: null,done: false },
+    { num: 4, tags: ['WS'],      weight: 155, reps: 10, rpe: null, done: false },
+    { num: 5, tags: ['WS'],      weight: 155, reps: 10, rpe: null, done: false },
+    { num: 6, tags: ['WS'],      weight: 155, reps: 10, rpe: null, done: false },
   ],
 };
 
 /* ============== HELPERS ============== */
-function showToast(msg) {
+function showToast(msg, duration) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => t.classList.remove('show'), 1500);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), duration || 1500);
+}
+
+// Matches nextSetRec() in src/app/today/workout/page.tsx — keep thresholds in sync.
+function computeAiRec() {
+  const doneWithRpe = state.logs.filter(l => l.done && l.rpe != null && l.rpe !== '');
+  if (!doneWithRpe.length) return null;
+  const last = doneWithRpe[doneWithRpe.length - 1];
+  const rpe = Number(last.rpe);
+  const w   = last.weight != null && last.weight !== '' ? Number(last.weight) : null;
+  const r   = last.reps   != null && last.reps   !== '' ? Number(last.reps)   : null;
+  if (Number.isNaN(rpe)) return null;
+  const wLabel = w != null ? `${w} lb` : 'same weight';
+  const rLabel = r != null ? `${r} reps` : 'same reps';
+  if (rpe >= 9.5) return `AI · drop 10 lb · ${rLabel} · high effort last set`;
+  if (rpe >= 9)   return `AI · −5–10 lb · ${rLabel} · near max`;
+  if (rpe >= 8.5) return `AI · ${wLabel} or −5 lb · ${rLabel}`;
+  if (rpe >= 8)   return `AI · hold ${wLabel} · ${rLabel}`;
+  if (rpe >= 7)   return `AI · ${wLabel} or +5 lb · ${rLabel}`;
+  if (rpe >= 6)   return `AI · +5–10 lb · ${rLabel} · room to push`;
+  return `AI · +10 lb · ${rLabel} · effort too low`;
 }
 
 function formatTime(sec) {
@@ -3056,10 +3094,18 @@ document.getElementById('logSetBtn').addEventListener('click', () => {
   }
   target.weight = state.weight;
   target.reps = state.reps;
+  target.rpe = state.rpe;
   target.done = true;
   showToast(`SET ${target.num} LOGGED`);
   renderLog();
   startTimer();
+  if (state.aiOn) {
+    const rec = computeAiRec();
+    if (rec) {
+      clearTimeout(window.__aiRecTimer);
+      window.__aiRecTimer = setTimeout(() => showToast(rec, 4500), 1600);
+    }
+  }
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -3170,7 +3216,11 @@ document.getElementById('timerStrip').addEventListener('click', () => {
 })();
 
 // backBtn: URL param bootstrap already wired history.back(); this is a no-op fallback
-document.getElementById('aiBtn').addEventListener('click', () => showToast('AI ASSIST'));
+document.getElementById('aiBtn').addEventListener('click', () => {
+  state.aiOn = !state.aiOn;
+  document.getElementById('aiBtn').classList.toggle('ai-on', state.aiOn);
+  showToast(state.aiOn ? 'AI ASSIST ON' : 'AI ASSIST OFF');
+});
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
