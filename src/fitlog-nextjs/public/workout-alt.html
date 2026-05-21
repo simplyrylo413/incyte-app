@@ -675,7 +675,7 @@
     text-align: center;
     font-size: 8px;
     letter-spacing: 2.5px;
-    color: var(--text-dim);
+    color: rgba(255,255,255,0.55);
     margin-top: 6px;
     font-weight: 700;
     display: flex;
@@ -687,8 +687,8 @@
     content: '';
     height: 1px;
     width: 24px;
-    background: var(--text-dim);
-    opacity: 0.3;
+    background: rgba(255,255,255,0.2);
+    opacity: 1;
   }
 
   /* ================= CASSETTE BOTTOM BUTTON ROW ================= */
@@ -1960,12 +1960,10 @@
     pointer-events: none;
     z-index: 4;
   }
-  /* Idle: white icons */
-  .mpc-icon svg [fill="#1a1a1c"] { fill: #f0f0eb; transition: fill 0.25s; }
-  .mpc-icon svg [stroke="#1a1a1c"] { stroke: #f0f0eb; transition: stroke 0.25s; }
-  /* Active: red + glow */
-  .mpc-pad-wrapper.active .mpc-icon svg [fill="#1a1a1c"] { fill: #FF3D3D; }
-  .mpc-pad-wrapper.active .mpc-icon svg [stroke="#1a1a1c"] { stroke: #FF3D3D; }
+  /* Idle: white icons via currentColor */
+  .mpc-icon svg { color: #f0f0eb; transition: color 0.25s; }
+  /* Active: red */
+  .mpc-pad-wrapper.active .mpc-icon svg { color: #FF3D3D; }
   .mpc-pad-wrapper.active .mpc-icon svg {
     animation: iconPulse 1.6s ease-in-out infinite;
   }
@@ -2221,7 +2219,9 @@
     background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
     border-color: #a09b94;
   }
-  body.light-mode .mpc-icon svg rect { fill: #a09b94; }
+  /* Light mode: solid black icons via currentColor */
+  body.light-mode .mpc-icon svg { color: #1a1814; }
+  body.light-mode .mpc-pad-wrapper.active .mpc-icon svg { color: #FF3D3D; }
   body.light-mode .nav-btn {
     background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
     border-color: #a09b94;
@@ -2335,12 +2335,6 @@
   /* White text → dark */
   body.light-mode .cassette-open-btn { color: rgba(40,35,30,0.75) !important; }
   body.light-mode .nav-btn { color: rgba(40,35,30,0.7) !important; }
-  /* Icons: override the white-forcing rule (#f0f0eb) — light mode needs solid dark fills */
-  body.light-mode .mpc-icon svg [fill="#1a1a1c"] { fill: #1a1814 !important; }
-  body.light-mode .mpc-icon svg [stroke="#1a1a1c"] { stroke: #1a1814 !important; }
-  /* Active pad icons still glow red */
-  body.light-mode .mpc-pad-wrapper.active .mpc-icon svg [fill="#1a1a1c"] { fill: #FF3D3D !important; }
-  body.light-mode .mpc-pad-wrapper.active .mpc-icon svg [stroke="#1a1a1c"] { stroke: #FF3D3D !important; }
   /* Timer / rest labels */
   body.light-mode .rest-label, body.light-mode .timer-label { color: rgba(40,35,30,0.55); }
   /* White trim outlines → subtle dark */
@@ -3145,10 +3139,10 @@
               <span class="mpc-led"></span>
               <div class="mpc-icon">
                 <svg width="22" height="18" viewBox="-15 -13 30 26">
-                  <rect x="-13" y="2"  width="5.4" height="9"  rx="0.8" fill="#1a1a1c"/>
-                  <rect x="-6"  y="-2" width="5.4" height="13" rx="0.8" fill="#1a1a1c"/>
-                  <rect x="1"   y="-7" width="5.4" height="18" rx="0.8" fill="#1a1a1c"/>
-                  <rect x="8"  y="-12" width="5.4" height="23" rx="0.8" fill="#1a1a1c"/>
+                  <rect x="-13" y="2"  width="5.4" height="9"  rx="0.8" fill="currentColor"/>
+                  <rect x="-6"  y="-2" width="5.4" height="13" rx="0.8" fill="currentColor"/>
+                  <rect x="1"   y="-7" width="5.4" height="18" rx="0.8" fill="currentColor"/>
+                  <rect x="8"  y="-12" width="5.4" height="23" rx="0.8" fill="currentColor"/>
                 </svg>
               </div>
             </button>
@@ -3163,7 +3157,7 @@
               <span class="mpc-led"></span>
               <div class="mpc-icon">
                 <svg width="18" height="18" viewBox="-13 -13 26 26">
-                  <path d="M-7,-11 L11,0 L-7,11 Z" fill="#1a1a1c" stroke="#1a1a1c" stroke-width="2.4" stroke-linejoin="round"/>
+                  <path d="M-7,-11 L11,0 L-7,11 Z" fill="currentColor" stroke="none"/>
                 </svg>
               </div>
             </button>
@@ -3178,9 +3172,9 @@
               <span class="mpc-led"></span>
               <div class="mpc-icon">
                 <svg width="19" height="19" viewBox="-14 -14 28 28">
-                  <circle cx="0" cy="0" r="12" fill="none" stroke="#1a1a1c" stroke-width="2.4"/>
-                  <circle cx="0" cy="0" r="6.5" fill="none" stroke="#1a1a1c" stroke-width="2.2"/>
-                  <circle cx="0" cy="0" r="2.4" fill="#1a1a1c"/>
+                  <circle cx="0" cy="0" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/>
+                  <circle cx="0" cy="0" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                  <circle cx="0" cy="0" r="2.4" fill="currentColor"/>
                 </svg>
               </div>
             </button>
@@ -3204,10 +3198,10 @@
               <span class="mpc-led"></span>
               <div class="mpc-icon">
                 <svg width="18" height="18" viewBox="-12 -12 24 24">
-                  <rect x="-10" y="-10" width="8" height="8" rx="1.8" fill="#1a1a1c"/>
-                  <rect x="2"   y="-10" width="8" height="8" rx="1.8" fill="#1a1a1c"/>
-                  <rect x="-10" y="2"   width="8" height="8" rx="1.8" fill="#1a1a1c"/>
-                  <rect x="2"   y="2"   width="8" height="8" rx="1.8" fill="#1a1a1c"/>
+                  <rect x="-10" y="-10" width="8" height="8" rx="1.8" fill="currentColor"/>
+                  <rect x="2"   y="-10" width="8" height="8" rx="1.8" fill="currentColor"/>
+                  <rect x="-10" y="2"   width="8" height="8" rx="1.8" fill="currentColor"/>
+                  <rect x="2"   y="2"   width="8" height="8" rx="1.8" fill="currentColor"/>
                 </svg>
               </div>
             </button>
@@ -3216,7 +3210,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:45';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:55';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
