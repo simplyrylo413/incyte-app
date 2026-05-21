@@ -218,6 +218,8 @@ export default function TodayPage() {
     const planItem = plans.find((p) => p.id === item.planId);
     const lastSet = item.entry?.sets?.[item.entry.sets.length - 1];
     const params = new URLSearchParams();
+    params.set("mid", item.mid);
+    params.set("planId", item.planId);
     params.set("name", mv?.name ?? "Movement");
     if (mv?.bodyPart || mv?.muscle) params.set("bodypart", String(mv.bodyPart ?? mv.muscle));
     if (lastSet?.weight != null && lastSet.weight !== "") params.set("weight", String(lastSet.weight));
