@@ -247,3 +247,36 @@ The newer rationale doc describes a light-mode experience. The handoff baseline 
 - A blocker is discovered that makes parity infeasible (e.g. a Capacitor-specific behavior that doesn't translate to Next.js + Capacitor wrap) → reassess scope.
 
 **Status:** Locked. Port-plan + CLAUDE.md updates owed in this commit.
+
+---
+
+## 2026-05-19 — workout-alt.html: cassette prototype mobile layout approach
+
+**Decision:** Sticky cassette panel is a flex sibling of the scroll container, not a sticky child inside it. Phone height uses `--vh` CSS variable from `window.innerHeight`, not `100vh`.
+
+**Context:** `position: sticky` inside `overflow: auto` doesn't work on iOS Safari. `100vh` on iOS = large viewport (chrome hidden), causing the phone frame to overflow behind the browser address/tab bars on load. Both bugs combined to hide the bottom nav and break all interactivity.
+
+**Alternatives considered:**
+- Keep `position: sticky` inside overflow — doesn't work on iOS Safari.
+- Use `100dvh` or `100svh` — not supported in all iOS browsers in use (DuckDuckGo, older Chrome).
+- Use `position: fixed` for the cassette — works but creates z-index/scroll offset complexity.
+
+**Rationale:** Moving `.sticky-top` outside `.content` (as a flex sibling in `.phone`) eliminates the sticky-inside-overflow bug entirely with no CSS hacks. The `--vh` variable approach via `window.innerHeight` is the most battle-tested iOS viewport fix, updating correctly on resize and orientationchange.
+
+**Revisit when:** Prototype is replaced by a proper Next.js Workout Mode screen.
+
+---
+
+## 2026-05-19 — workout-alt.html: URL param null-guard requirement
+
+**Decision:** All URL param reads that write to DOM elements must null-check the target element before accessing `.textContent` or other properties.
+
+**Context:** The page is called from the main app with params including `bodypart=CHEST`. The JS IIFE wrote `document.getElementById('mvBodyPart').textContent = p.get('bodypart').toUpperCase()` — `mvBodyPart` no longer exists in the HTML. The null dereference threw a TypeError that aborted the entire script block: no event listeners attached, no log rows rendered. The entire app appeared broken.
+
+**Alternatives considered:**
+- Add `mvBodyPart` back to the HTML — element was removed during earlier cleanup; adding it back just to satisfy an old reference creates dead UI.
+- Wrap entire IIFE in try-catch — valid safety net, but doesn't fix the root cause.
+
+**Rationale:** Guard the element, not the whole block. One-line fix: `const el = document.getElementById('mvBodyPart'); if (p.get('bodypart') && el) el.textContent = ...`. Pattern applies to all future URL-param DOM writes.
+
+**Revisit when:** workout-alt.html is retired in favor of Next.js Workout Mode.

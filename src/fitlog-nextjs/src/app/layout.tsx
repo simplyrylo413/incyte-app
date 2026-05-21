@@ -34,6 +34,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="stylesheet" href="/odometer-train-station.css" />
+      </head>
       <body
         className="min-h-dvh font-sans antialiased"
         style={{
