@@ -1,64 +1,72 @@
 "use client";
 
-// Phase 4 — Workout Mode.
-// Route: /today/workout?mid=xxx&planId=yyy
-// Ported from renderWorkoutV2() (~line 13982) + set-action helpers.
-// Source: src/fitlog-mobile.html
+// Workout Mode — cassette-deck UI, ported 1:1 from the workout-alt prototype
+// (public/workout-alt.html, 2026-05-20). Replaces the prior glass-card layout.
+// Data layer is preserved from the previous version: same db helpers, same
+// engine functions, same Supabase persistence.
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   listMovements, listWorkouts, listPlans, upsertWorkout, listFinishedTodayWorkouts,
 } from "@/lib/db";
-import { tryGetDeviceId } from "@/lib/device";
 import type { Movement, Workout, WorkoutEntry, SetEntry, PlanItem } from "@/lib/types";
 import {
-  currentSetIdx, hasValue, prevLabel, hasAnyPrev, defaultSetsFor,
-  logSet, reopenSet, toggleSetType, toggleBodyweight, patchSet,
-  addSet, removeSet, allSetsDone, archiveEntryToToday,
-  PICKER_CONFIG, type PickerField,
+  currentSetIdx, hasValue, defaultSetsFor, logSet, reopenSet, toggleSetType,
+  toggleBodyweight, patchSet, addSet, removeSet, allSetsDone, archiveEntryToToday,
 } from "@/lib/engine/workout";
 import { filterFinishedToday } from "@/lib/engine/today";
 import s from "./WorkoutPage.module.css";
 
-// ── Inline picker value arrays ────────────────────────────────────────────
-// 2.5 lb steps 0 → 500 — consistent increment throughout
-const WM_WEIGHT_VALS: number[] = Array.from({ length: 101 }, (_, i) => i * 5); // 0–500 in 5lb steps; tap center for 2.5lb precision
-const WM_REPS_VALS: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30];
-const WM_RPE_VALS: (number | string)[] = ['—',6,6.5,7,7.5,8,8.5,9,9.5,10];
-const WM_ITEM_W = 100; // px — 100px item slot
+// Fader picker config — same min/max/step thresholds as prototype state
+const PICKER_CFG = {
+  weight: { min: 0, max: 500, step: 5, curve: 2 },
+  reps:   { min: 1, max: 30,  step: 1, curve: 1 },
+  rpe:    { min: 1, max: 10,  step: 0.5, curve: 1 },
+} as const;
+type FaderKey = keyof typeof PICKER_CFG;
 
-function wmClosestIdx(vals: (number | string)[], val: number | string | null | undefined): number {
-  if (val == null || val === '' || val === '—') return 0;
-  let best = 0, bestD = Infinity;
-  vals.forEach((v, i) => {
-    const d = Math.abs(Number(v) - Number(val));
-    if (!isNaN(d) && d < bestD) { bestD = d; best = i; }
-  });
-  return best;
+const FADER_BARS = 14;
+const FADER_PAD = 4;
+
+// Inject the Google Fonts stylesheet once on mount — same set used by the prototype.
+const FONT_HREF = "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow+Condensed:wght@500;600;700;800&family=Caveat:wght@700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap";
+
+// SVG-symbol library used by the cassette + bottom-nav + status-bar.
+function SvgSymbols() {
+  return (
+    <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden>
+      <defs>
+        <symbol id="wo-chev" viewBox="0 0 24 24">
+          <path d="M15 4 L7 12 L15 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </symbol>
+        <symbol id="wo-check" viewBox="0 0 24 24">
+          <path d="M5 12 L10 17 L19 7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </symbol>
+        <symbol id="wo-cal" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M3 9 H21" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M8 3 V7 M16 3 V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </symbol>
+        <symbol id="wo-signal" viewBox="0 0 24 24">
+          <rect x="3" y="14" width="3" height="6" fill="currentColor" />
+          <rect x="8" y="10" width="3" height="10" fill="currentColor" />
+          <rect x="13" y="6" width="3" height="14" fill="currentColor" />
+          <rect x="18" y="2" width="3" height="18" fill="currentColor" opacity="0.4" />
+        </symbol>
+        <symbol id="wo-batt" viewBox="0 0 24 24">
+          <rect x="2" y="7" width="18" height="10" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <rect x="21" y="10" width="2" height="4" fill="currentColor" />
+          <rect x="4" y="9" width="13" height="6" fill="currentColor" />
+        </symbol>
+      </defs>
+    </svg>
+  );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-const CHECK_SVG = (
-  <svg viewBox="0 0 12 12" fill="none">
-    <path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.8"
-      strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-const REMOVE_SVG = (
-  <svg viewBox="0 0 12 12" fill="none">
-    <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-);
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-// useSearchParams() requires a Suspense boundary in Next.js 14 static export.
 export default function WorkoutPageShell() {
   return (
-    <Suspense fallback={<div className={s.page} style={{ padding: 24, color: "#5e6a82", fontSize: 13 }}>Loading…</div>}>
+    <Suspense fallback={<div className={s.page} style={{ padding: 24 }}><div style={{ color: '#5e6a82', fontSize: 13 }}>Loading…</div></div>}>
       <WorkoutPage />
     </Suspense>
   );
@@ -67,31 +75,70 @@ export default function WorkoutPageShell() {
 function WorkoutPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const mid   = params.get("mid") ?? "";
+  const mid = params.get("mid") ?? "";
   const planId = params.get("planId") ?? "";
-  const srcId  = params.get("src") ?? "";   // sourceWorkoutId for edit-after-archive
+  const srcId = params.get("src") ?? "";
 
-  // ── Data ──────────────────────────────────────────────────────────────────
+  // ── Data state ────────────────────────────────────────────────────────────
   const [mv, setMv] = useState<Movement | null>(null);
-  const [plan, setPlan] = useState<PlanItem | null>(null);
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [allWorkouts, setAllWorkouts] = useState<Workout[]>([]);
   const [entry, setEntry] = useState<WorkoutEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const lastEntryRef = useRef<WorkoutEntry | null>(null); // prev session entry for prev values
+  const lastEntryRef = useRef<WorkoutEntry | null>(null);
 
-  // ── Session UI state ──────────────────────────────────────────────────────
-  const [trackRpe, setTrackRpe] = useState(true);
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [aiOn, setAiOn] = useState(false);
+  const [faderOpen, setFaderOpen] = useState(false);
   const [restSecs, setRestSecs] = useState(90);
   const [restRemaining, setRestRemaining] = useState(0);
   const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [picker, setPicker] = useState<{ field: PickerField; idx: number; value: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [toastKind, setToastKind] = useState<'std' | 'ai'>('std');
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aiToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // Manual-entry picker (tap an LCD readout to type a value)
+  const [picker, setPicker] = useState<{ field: FaderKey; value: string } | null>(null);
+  const pickerInputRef = useRef<HTMLInputElement>(null);
+
+  // SVG refs for reels + VU bars
+  const reelLRef = useRef<SVGGElement>(null);
+  const reelRRef = useRef<SVGGElement>(null);
+  const vuBarsRef = useRef<SVGGElement>(null);
+  const vuIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fader visual rotation cache (separate from value so dragging spins reels naturally)
+  const visualRotRef = useRef<{ weight: number; reps: number }>({ weight: 0, reps: 0 });
+
+  // ── iOS viewport fix — set --vh on root so calc(var(--vh)*100) ≈ window.innerHeight
+  useEffect(() => {
+    function setVh() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+    };
+  }, []);
+
+  // Inject Google Fonts stylesheet once (idempotent)
+  useEffect(() => {
+    const id = 'wo-fonts';
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = FONT_HREF;
+    document.head.appendChild(link);
+  }, []);
+
+  // ── Load data ─────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     if (!mid) { setErr("No movement specified."); setLoading(false); return; }
     try {
@@ -103,18 +150,13 @@ function WorkoutPage() {
       ]);
       const movement = mvs.find((m) => m.id === mid) ?? null;
       const planItem = plans.find((p) => p.id === planId) ?? null;
-
-      // All workouts for archive lookups (active + finished today)
       const ft = filterFinishedToday(finished);
       const allW = [...wkts, ...ft];
       setAllWorkouts(allW);
       setMv(movement);
-      setPlan(planItem);
 
-      // Find or build the active workout for this session
       let aw = wkts[0] ?? null;
 
-      // If editing a history entry (srcId), find the source workout
       if (srcId) {
         const srcWorkout = allW.find((w) => w.id === srcId) ?? null;
         if (srcWorkout) {
@@ -131,26 +173,20 @@ function WorkoutPage() {
         }
       }
 
-      // Find previous session entry for seeding prev values
       const prevEntry = (() => {
-        const allFinishedSorted = allW
-          .filter((w) => w.finished && w.id !== (aw?.id ?? ""))
+        const sorted = allW
+          .filter((w) => w.finished && w.id !== (aw?.id ?? ''))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        for (const w of allFinishedSorted) {
+        for (const w of sorted) {
           const e = w.entries.find((e) => e.movementId === mid);
-          if (e && e.sets?.some((s) => hasValue(s.weight) || hasValue(s.reps))) {
-            return e;
-          }
+          if (e && e.sets?.some((s) => hasValue(s.weight) || hasValue(s.reps))) return e;
         }
         return null;
       })();
       lastEntryRef.current = prevEntry;
 
-      // Find or create the active entry for this movement
       let activeEntry = aw?.entries.find((e) => e.movementId === mid) ?? null;
-
       if (!activeEntry) {
-        // Seed sets from prior session or plan defaults
         const seeds = defaultSetsFor({
           planSets: planItem?.sets,
           planReps: planItem?.reps,
@@ -166,11 +202,9 @@ function WorkoutPage() {
           name: movement?.name,
           sets: seeds,
         };
-
-        // Attach to active workout (create one if needed)
         if (!aw) {
           const today = new Date();
-          const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+          const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
           aw = {
             id: crypto.randomUUID(),
             name: `${DAYS[today.getDay()]} session`,
@@ -181,10 +215,8 @@ function WorkoutPage() {
         } else {
           aw = { ...aw, entries: [...aw.entries, activeEntry] };
         }
-        // Save to Supabase immediately so it persists
         await upsertWorkout(aw);
       }
-
       setActiveWorkout(aw);
       setEntry({ ...activeEntry });
     } catch (e) {
@@ -195,10 +227,9 @@ function WorkoutPage() {
   }, [mid, planId, srcId]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => () => { stopRest(); }, []); // cleanup on unmount
+  useEffect(() => () => { stopRest(); stopVuAnim(); }, []);
 
-  // Preload current set from most-recently completed set — always overwrites so
-  // within-session adjustments take priority over cross-session defaults.
+  // Preload current set's weight from most-recent completed set (resets reps/rpe).
   useEffect(() => {
     if (!entry) return;
     const cur = currentSetIdx(entry);
@@ -209,14 +240,13 @@ function WorkoutPage() {
     let changed = false;
     const newSet = { ...currentSet, reps: null, rpe: null };
     if (hasValue(prevDone.weight)) { newSet.weight = prevDone.weight; changed = true; }
-    // Reps and RPE always reset to blank for each new set
     if (hasValue(currentSet.reps) || hasValue(currentSet.rpe)) changed = true;
     if (!changed) return;
     const newSets = entry.sets.map((set, i) => i === cur ? newSet : set);
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     persist(newEntry);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry?.sets?.length]);
 
   // ── Persistence ───────────────────────────────────────────────────────────
@@ -231,11 +261,34 @@ function WorkoutPage() {
     await upsertWorkout(updated);
   }, [activeWorkout, mid]);
 
-  // ── Toast helper ──────────────────────────────────────────────────────────
-  function showToast(msg: string) {
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg: string, durationMs = 1500, kind: 'std' | 'ai' = 'std') {
     setToast(msg);
+    setToastKind(kind);
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = setTimeout(() => setToast(null), 2200);
+    toastTimerRef.current = setTimeout(() => setToast(null), durationMs);
+  }
+
+  // Matches the canonical nextSetRec thresholds — keeps the prototype and the
+  // app's coaching insights in lockstep.
+  function computeAiRec(): string | null {
+    if (!entry) return null;
+    const doneWithRpe = entry.sets.filter((sx) => sx.done && hasValue(sx.rpe));
+    if (!doneWithRpe.length) return null;
+    const last = doneWithRpe[doneWithRpe.length - 1];
+    const rpe = Number(last.rpe);
+    if (Number.isNaN(rpe)) return null;
+    const w = hasValue(last.weight) ? Number(last.weight) : null;
+    const r = hasValue(last.reps)   ? Number(last.reps)   : null;
+    const wLabel = w != null ? `${w} lb` : 'same weight';
+    const rLabel = r != null ? `${r} reps` : 'same reps';
+    if (rpe >= 9.5) return `AI · drop 10 lb · ${rLabel} · high effort last set`;
+    if (rpe >= 9)   return `AI · −5–10 lb · ${rLabel} · near max`;
+    if (rpe >= 8.5) return `AI · ${wLabel} or −5 lb · ${rLabel}`;
+    if (rpe >= 8)   return `AI · hold ${wLabel} · ${rLabel}`;
+    if (rpe >= 7)   return `AI · ${wLabel} or +5 lb · ${rLabel}`;
+    if (rpe >= 6)   return `AI · +5–10 lb · ${rLabel} · room to push`;
+    return `AI · +10 lb · ${rLabel} · effort too low`;
   }
 
   // ── Rest timer ────────────────────────────────────────────────────────────
@@ -243,49 +296,101 @@ function WorkoutPage() {
     stopRest();
     let rem = restSecs;
     setRestRemaining(rem);
+    if (reelLRef.current) reelLRef.current.removeAttribute('transform');
+    if (reelRRef.current) reelRRef.current.removeAttribute('transform');
+    reelLRef.current?.classList.add(s['spinning']);
+    reelRRef.current?.classList.add(s['spinning']);
+    startVuAnim();
     restIntervalRef.current = setInterval(() => {
       rem--;
       setRestRemaining(rem);
-      if (rem <= 0) { stopRest(); showToast("Rest complete."); }
+      if (rem <= 0) { stopRest(); showToast('REST COMPLETE'); }
     }, 1000);
   }
-
   function stopRest() {
     if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null; }
     setRestRemaining(0);
+    reelLRef.current?.classList.remove(s['spinning']);
+    reelRRef.current?.classList.remove(s['spinning']);
+    stopVuAnim();
+    resetVuToRpe();
   }
+  function startVuAnim() {
+    if (vuIntervalRef.current) return;
+    vuIntervalRef.current = setInterval(() => {
+      const bars = vuBarsRef.current?.children;
+      if (!bars) return;
+      const lit = Math.floor(Math.random() * 6) + 3;
+      for (let i = 0; i < bars.length; i++) {
+        const bar = bars[i] as SVGRectElement;
+        if (i < lit) {
+          bar.setAttribute('fill', i >= 7 ? '#ff3030' : '#f5ec00');
+          bar.setAttribute('opacity', (1 - i * 0.06).toFixed(2));
+        } else {
+          bar.setAttribute('fill', '#2a2e33');
+          bar.setAttribute('opacity', '1');
+        }
+      }
+    }, 130);
+  }
+  function stopVuAnim() {
+    if (vuIntervalRef.current) { clearInterval(vuIntervalRef.current); vuIntervalRef.current = null; }
+  }
+  function resetVuToRpe() {
+    const bars = vuBarsRef.current?.children;
+    if (!bars) return;
+    const cur = entry ? currentSetIdx(entry) : -1;
+    const set = cur >= 0 ? entry!.sets[cur] : null;
+    const rpe = set && hasValue(set.rpe) ? Number(set.rpe) : 0;
+    const total = bars.length;
+    const lit = Math.min(total, Math.round((rpe / 10) * total));
+    for (let i = 0; i < total; i++) {
+      const bar = bars[i] as SVGRectElement;
+      if (i < lit) {
+        bar.setAttribute('fill', i >= 7 ? '#ff3030' : '#f5ec00');
+        bar.setAttribute('opacity', '1');
+      } else {
+        bar.setAttribute('fill', '#2a2e33');
+        bar.setAttribute('opacity', '1');
+      }
+    }
+  }
+  useEffect(() => { resetVuToRpe(); }, [entry]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const restOn = restRemaining > 0;
-
-  function formatRest(s: number): string {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return m > 0 ? `${m}:${String(sec).padStart(2,"0")}` : `${s}s`;
+  function formatRest(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
   // ── Set actions ───────────────────────────────────────────────────────────
-  async function handleLogSet(idx: number) {
+  async function handleLogSet() {
     if (!entry) return;
-    const s = entry.sets[idx];
-    if (!hasValue(s.weight)) { showToast("Scroll to set weight before logging."); return; }
-    if (!hasValue(s.reps))   { showToast("Scroll to set reps before logging.");   return; }
-    // RPE is always shown and defaults to null ('—'). Logging with null RPE is allowed.
-
+    const idx = currentSetIdx(entry);
+    if (idx === -1) { showToast('ALL SETS COMPLETE'); return; }
+    const set = entry.sets[idx];
+    if (!hasValue(set.weight)) { showToast('SET A WEIGHT'); return; }
+    if (!hasValue(set.reps))   { showToast('SET REPS'); return; }
     const newSets = logSet(entry.sets, idx);
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     await persist(newEntry);
+    showToast(`SET ${idx + 1} LOGGED`);
+
+    if (aiOn) {
+      const rec = computeAiRec();
+      if (rec) {
+        if (aiToastTimerRef.current) clearTimeout(aiToastTimerRef.current);
+        aiToastTimerRef.current = setTimeout(() => showToast(rec, 4500, 'ai'), 1600);
+      }
+    }
 
     if (allSetsDone(newSets)) {
-      // Auto-archive and go back to Today
       await handleComplete(newEntry);
-      showToast(`Set ${idx + 1} logged — movement complete.`);
-      startRest();
       router.refresh();
-      router.push("/today");
+      router.push('/today');
       return;
     }
-    showToast(`Set ${idx + 1} logged.`);
     startRest();
   }
 
@@ -296,7 +401,6 @@ function WorkoutPage() {
     setEntry(newEntry);
     await persist(newEntry);
   }
-
   async function handleToggleType(idx: number) {
     if (!entry) return;
     const newSets = toggleSetType(entry.sets, idx);
@@ -304,7 +408,6 @@ function WorkoutPage() {
     setEntry(newEntry);
     await persist(newEntry);
   }
-
   async function handleToggleBW(idx: number) {
     if (!entry) return;
     const newSets = toggleBodyweight(entry.sets, idx);
@@ -312,7 +415,6 @@ function WorkoutPage() {
     setEntry(newEntry);
     await persist(newEntry);
   }
-
   async function handleAddSet() {
     if (!entry) return;
     const newSets = addSet(entry.sets);
@@ -320,26 +422,21 @@ function WorkoutPage() {
     setEntry(newEntry);
     await persist(newEntry);
   }
-
   async function handleRemoveSet(idx: number) {
     if (!entry) return;
-    if (entry.sets.length <= 1) { showToast("Need at least one set."); return; }
+    if (entry.sets.length <= 1) { showToast('NEED ≥ 1 SET'); return; }
     if (entry.sets[idx].done && !confirm(`Remove logged set ${idx + 1}?`)) return;
     const newSets = removeSet(entry.sets, idx);
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     await persist(newEntry);
   }
-
   async function handleComplete(completedEntry?: WorkoutEntry) {
     const e = completedEntry ?? entry;
-    if (!e || srcId) { router.push("/today"); return; }
-    // Archive to today's history session
+    if (!e || srcId) { router.push('/today'); return; }
     const { workouts: updatedWorkouts, session } = archiveEntryToToday(e, allWorkouts);
     setAllWorkouts(updatedWorkouts);
-    // Save the finished session
     await upsertWorkout(session);
-    // Remove entry from active workout (keep active workout alive for other movements)
     if (activeWorkout) {
       const trimmed: Workout = {
         ...activeWorkout,
@@ -350,908 +447,723 @@ function WorkoutPage() {
     }
   }
 
-  // ── Picker ────────────────────────────────────────────────────────────────
-  function openPicker(field: PickerField, idx: number) {
+  async function patchCurrent(field: FaderKey, value: number | null) {
     if (!entry) return;
-    const s = entry.sets[idx];
-    const cfg = PICKER_CONFIG[field];
-    const raw = s[field as keyof SetEntry];
-    const val = (raw != null && raw !== "") ? +raw : cfg.default;
-    setPicker({ field, idx, value: val });
-  }
-
-  async function commitPicker() {
-    if (!picker || !entry) return;
-    const newSets = patchSet(entry.sets, picker.idx, picker.field, picker.value);
-    const newEntry = { ...entry, sets: newSets };
-    setEntry(newEntry);
-    setPicker(null);
-    await persist(newEntry);
-  }
-
-  async function handlePatchSet(field: PickerField, value: number | string) {
-    if (!entry) return;
-    const cur = currentSetIdx(entry);
-    if (cur === -1) return;
-    const newVal = (value === '—' || value == null) ? null : Number(value);
-    const newSets = patchSet(entry.sets, cur, field, newVal as number);
+    const idx = currentSetIdx(entry);
+    if (idx === -1) return;
+    const newSets = patchSet(entry.sets, idx, field, value as number);
     const newEntry = { ...entry, sets: newSets };
     setEntry(newEntry);
     await persist(newEntry);
   }
 
-  // ── RPE toggle ────────────────────────────────────────────────────────────
-  async function handleToggleRpe() {
-    const turningOff = trackRpe;
-    setTrackRpe(!turningOff);
-    // Turning off → clear RPE on the current (undone) set so the scroller snaps to '—'
-    if (turningOff && entry) {
-      const curIdx = currentSetIdx(entry);
-      if (curIdx !== -1) {
-        const newSets = patchSet(entry.sets, curIdx, "rpe", null as unknown as number);
-        const newEntry = { ...entry, sets: newSets };
-        setEntry(newEntry);
-        await persist(newEntry);
+  // ── Fader drag ────────────────────────────────────────────────────────────
+  const faderRefs = useRef<{ [K in FaderKey]?: HTMLDivElement | null }>({});
+  const draggingRef = useRef<{ key: FaderKey; lastY: number } | null>(null);
+
+  function ratioToValue(key: FaderKey, ratio: number): number {
+    const cfg = PICKER_CFG[key];
+    const curved = cfg.curve > 1 ? Math.pow(ratio, cfg.curve) : ratio;
+    const raw = cfg.min + curved * (cfg.max - cfg.min);
+    const stepIdx = Math.round((raw - cfg.min) / cfg.step);
+    return Math.max(cfg.min, Math.min(cfg.max, cfg.min + stepIdx * cfg.step));
+  }
+  function valueToRatio(key: FaderKey, value: number): number {
+    const cfg = PICKER_CFG[key];
+    const base = (value - cfg.min) / (cfg.max - cfg.min);
+    return cfg.curve > 1 ? Math.pow(Math.max(0, Math.min(1, base)), 1 / cfg.curve) : Math.max(0, Math.min(1, base));
+  }
+  function paintFader(key: FaderKey, value: number) {
+    const track = faderRefs.current[key];
+    if (!track) return;
+    const ratio = valueToRatio(key, value);
+    const bars = track.querySelectorAll<HTMLDivElement>(`.${s['fader-bar']}`);
+    const lit = Math.round(ratio * FADER_BARS);
+    bars.forEach((bar, i) => {
+      bar.classList.toggle(s['on'], i < lit);
+      bar.classList.toggle(s['hot'], i < lit && i >= FADER_BARS - 2);
+    });
+    const thumb = track.querySelector<HTMLDivElement>(`.${s['fader-thumb']}`);
+    if (thumb) {
+      const usable = track.clientHeight - FADER_PAD * 2;
+      const topPx = FADER_PAD + (1 - ratio) * usable;
+      thumb.style.top = `${topPx}px`;
+    }
+  }
+  // Paint faders whenever entry/current changes
+  useEffect(() => {
+    if (!entry) return;
+    const idx = currentSetIdx(entry);
+    const set = idx >= 0 ? entry.sets[idx] : null;
+    paintFader('weight', set && hasValue(set.weight) ? Number(set.weight) : PICKER_CFG.weight.min);
+    paintFader('reps',   set && hasValue(set.reps)   ? Number(set.reps)   : PICKER_CFG.reps.min);
+    paintFader('rpe',    set && hasValue(set.rpe)    ? Number(set.rpe)    : PICKER_CFG.rpe.min);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry, faderOpen]);
+
+  function setupFader(track: HTMLDivElement | null, key: FaderKey) {
+    if (!track) return;
+    faderRefs.current[key] = track;
+    // Build bar children once (idempotent: skip if already populated)
+    if (!track.querySelector(`.${s['fader-bar']}`)) {
+      const thumb = track.querySelector(`.${s['fader-thumb']}`);
+      for (let i = 0; i < FADER_BARS; i++) {
+        const bar = document.createElement('div');
+        bar.className = s['fader-bar'];
+        track.insertBefore(bar, thumb);
       }
     }
   }
 
-  // ── Back ──────────────────────────────────────────────────────────────────
-  function handleBack() {
-    stopRest();
-    router.push("/today");
+  // Pointer/touch fader handlers wired at the page level
+  useEffect(() => {
+    function onMove(e: MouseEvent | TouchEvent) {
+      const drag = draggingRef.current;
+      if (!drag) return;
+      const pt = 'touches' in e ? e.touches[0] : e;
+      const cy = pt.clientY;
+      const dy = cy - drag.lastY;
+      drag.lastY = cy;
+      // Rotate the appropriate reel based on drag direction
+      const ROT_PER_PX = 3;
+      if (drag.key === 'weight' && reelLRef.current) {
+        visualRotRef.current.weight -= dy * ROT_PER_PX;
+        reelLRef.current.setAttribute('transform', `rotate(${visualRotRef.current.weight} 95 100)`);
+      } else if (drag.key === 'reps' && reelRRef.current) {
+        visualRotRef.current.reps -= dy * ROT_PER_PX;
+        reelRRef.current.setAttribute('transform', `rotate(${visualRotRef.current.reps} 265 100)`);
+      }
+      const track = faderRefs.current[drag.key];
+      if (!track) return;
+      const r = track.getBoundingClientRect();
+      const usable = r.height - FADER_PAD * 2;
+      let relY = cy - r.top - FADER_PAD;
+      relY = Math.max(0, Math.min(usable, relY));
+      const ratio = 1 - relY / usable;
+      const newVal = ratioToValue(drag.key, ratio);
+      paintFader(drag.key, newVal);
+      patchCurrent(drag.key, newVal);
+      if ('touches' in e) e.preventDefault();
+    }
+    function onUp() {
+      const drag = draggingRef.current;
+      if (!drag) return;
+      faderRefs.current[drag.key]?.classList.remove(s['dragging']);
+      draggingRef.current = null;
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry]);
+
+  function onFaderDown(key: FaderKey, e: React.MouseEvent | React.TouchEvent) {
+    const track = faderRefs.current[key];
+    if (!track) return;
+    track.classList.add(s['dragging']);
+    const pt = 'touches' in e ? e.touches[0] : (e as React.MouseEvent);
+    draggingRef.current = { key, lastY: pt.clientY };
+    // Apply initial position immediately
+    const r = track.getBoundingClientRect();
+    const usable = r.height - FADER_PAD * 2;
+    let relY = pt.clientY - r.top - FADER_PAD;
+    relY = Math.max(0, Math.min(usable, relY));
+    const ratio = 1 - relY / usable;
+    const newVal = ratioToValue(key, ratio);
+    paintFader(key, newVal);
+    patchCurrent(key, newVal);
+    if ('touches' in e) e.preventDefault();
+  }
+
+  // ── Picker (manual entry) ────────────────────────────────────────────────
+  function openPicker(field: FaderKey) {
+    if (!entry) return;
+    const idx = currentSetIdx(entry);
+    if (idx === -1) return;
+    const set = entry.sets[idx];
+    const raw = set[field as keyof SetEntry];
+    setPicker({ field, value: hasValue(raw) ? String(raw) : '' });
+    requestAnimationFrame(() => pickerInputRef.current?.focus());
+  }
+  async function commitPicker() {
+    if (!picker) return;
+    const num = parseFloat(picker.value);
+    if (!isNaN(num) && num >= PICKER_CFG[picker.field].min && num <= PICKER_CFG[picker.field].max) {
+      await patchCurrent(picker.field, num);
+    } else if (picker.value === '') {
+      await patchCurrent(picker.field, null);
+    }
+    setPicker(null);
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
   if (loading) {
-    return (
-      <div className={s.page}>
-        <div style={{ padding: 24, color: "#5e6a82", fontSize: 13 }}>Loading…</div>
-      </div>
-    );
+    return <div className={s.page}><div style={{ padding: 24, color: '#5e6a82', fontSize: 13 }}>Loading…</div></div>;
   }
-
   if (err || !entry) {
-    return (
-      <div className={s.page}>
-        <div style={{ padding: 24, color: "#b08092", fontSize: 13 }}>{err ?? "Movement not found."}</div>
-      </div>
-    );
+    return <div className={s.page}><div style={{ padding: 24, color: '#b08092', fontSize: 13 }}>{err ?? 'Movement not found.'}</div></div>;
   }
 
   const cur = currentSetIdx(entry);
   const allDone = cur === -1;
-  const prevEntry = lastEntryRef.current;
-  const hasPrior = prevEntry?.sets?.some((s) => hasValue(s.weight) || hasValue(s.reps));
-  const anyPrev = hasAnyPrev(entry);
+  const curSet = !allDone ? entry.sets[cur] : null;
+  const total = entry.sets.length;
+  const setNum = !allDone ? cur + 1 : total;
+  const bodyPart = ((mv?.bodyPart || mv?.muscle || mv?.category) ?? '—').toUpperCase();
+  const name = mv?.name ?? entry.name ?? '—';
 
-  const bodyPart = ((mv?.bodyPart || mv?.muscle || mv?.category) ?? "—").toUpperCase();
-  const equip = (entry.equipmentType ?? mv?.equipmentType ?? "unspecified").toUpperCase();
-  const name = mv?.name ?? entry.name ?? "—";
-
-  const doneSets  = (entry.sets ?? []).map((s, i) => ({ s, i })).filter((x) =>  x.s.done && x.i !== cur);
-  const targetSets = (entry.sets ?? []).map((s, i) => ({ s, i })).filter((x) => !x.s.done && x.i !== cur);
-
-  // Rule-based next-set recommendation (shown when AI toggle is on + ≥1 done set with RPE)
-  const nextSetRec = (() => {
-    if (!aiOn || doneSets.length === 0) return null;
-    const last = doneSets[doneSets.length - 1].s;
-    const rpe = last.rpe != null && last.rpe !== "" ? Number(last.rpe) : null;
-    const w   = last.weight != null && last.weight !== "" ? Number(last.weight) : null;
-    const r   = last.reps   != null && last.reps   !== "" ? Number(last.reps)   : null;
-    if (rpe == null) return null;
-    const wLabel = w != null ? `${w} lb` : "same weight";
-    const rLabel = r != null ? `${r} reps` : "same reps";
-    if (rpe >= 9.5) return `Drop 10 lb · ${rLabel} · high effort last set`;
-    if (rpe >= 9)   return `−5–10 lb · ${rLabel} · near max`;
-    if (rpe >= 8.5) return `${wLabel} or −5 lb · ${rLabel}`;
-    if (rpe >= 8)   return `Hold ${wLabel} · ${rLabel}`;
-    if (rpe >= 7)   return `${wLabel} or +5 lb · ${rLabel}`;
-    if (rpe >= 6)   return `+5–10 lb · ${rLabel} · room to push`;
-    return `+10 lb · ${rLabel} · effort too low`;
-  })();
-
-  // Prior session summary
-  let priorSummary = "";
-  let priorDate = "";
-  if (hasPrior && prevEntry) {
-    const ws = prevEntry.sets.map((s) => s.weight).filter((v) => hasValue(v));
-    const rs = prevEntry.sets.map((s) => s.reps).filter((v) => hasValue(v));
-    const wMin = Math.min(...ws.map(Number)), wMax = Math.max(...ws.map(Number));
-    const rMin = Math.min(...rs.map(Number)), rMax = Math.max(...rs.map(Number));
-    const wStr = ws.length === 0 ? "—" : wMin === wMax ? `${wMin} lb` : `${wMin}–${wMax} lb`;
-    const rStr = rs.length === 0 ? "" : rMin === rMax ? `${rMin} reps` : `${rMin}–${rMax} reps`;
-    priorSummary = rStr ? `${wStr} · ${rStr}` : wStr;
-    const d = new Date((prevEntry as WorkoutEntry & { date?: string }).date ?? "");
-    if (!isNaN(d.getTime())) {
-      const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      priorDate = `· ${MONTHS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
-    }
-  }
+  const weightDisplay = curSet && hasValue(curSet.weight) ? String(curSet.weight) : '—';
+  const repsDisplay   = curSet && hasValue(curSet.reps)   ? String(curSet.reps)   : '—';
+  const rpeDisplay    = curSet && hasValue(curSet.rpe)    ? String(curSet.rpe)    : '—';
 
   return (
     <div className={s.page}>
-      {/* ── Top bar ── */}
-      <div className={s.topBar}>
-        <button className={s.backChip} onClick={handleBack} aria-label="Back to Today" type="button">
-          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8"
-            strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 2L4 7l5 5" />
-          </svg>
-        </button>
-        <div className={s.identity}>
-          <div className={s.bodyPart}>{bodyPart} · {equip}</div>
-          <div className={s.mvName}>{name}</div>
-        </div>
-        <a
-          className={s.altBtn}
-          href={(() => {
-            const prevW = entry.sets?.slice(0, cur).reverse().find(x => x.done && hasValue(x.weight))?.weight;
-            const prevR = entry.sets?.slice(0, cur).reverse().find(x => x.done && hasValue(x.reps))?.reps;
-            const p = new URLSearchParams({
-              name,
-              bodypart: bodyPart,
-              weight: String(prevW ?? 135),
-              reps:   String(prevR ?? 10),
-              rpe:    "8",
-              sets:   String(entry.sets?.length ?? 3),
-              rest:   "90",
-            });
-            return `/workout-alt.html?${p.toString()}`;
-          })()}
-          aria-label="Alternate view"
-        >
-          ALT
-        </a>
-      </div>
+      <SvgSymbols />
+      <div className={s.phone}>
+        {/* Edge rivets — 8 total */}
+        <span className={`${s.rivet} ${s['rivet-tl']}`} />
+        <span className={`${s.rivet} ${s['rivet-tr']}`} />
+        <span className={`${s.rivet} ${s['rivet-bl']}`} />
+        <span className={`${s.rivet} ${s['rivet-br']}`} />
+        <span className={`${s.rivet} ${s['rivet-tm-l']}`} />
+        <span className={`${s.rivet} ${s['rivet-tm-r']}`} />
+        <span className={`${s.rivet} ${s['rivet-bm-l']}`} />
+        <span className={`${s.rivet} ${s['rivet-bm-r']}`} />
+        <span className={`${s['frame-led']} ${s['frame-led-top-l']}`} />
+        <span className={`${s['frame-led']} ${s['frame-led-green']} ${s['frame-led-top-r']}`} />
 
-      {/* ── Prior session strip ── */}
-      {hasPrior && (
-        <div className={s.prior}>
-          <span className={s.priorLbl}>
-            Previous
-            {priorDate && <span className={s.priorDate}>{priorDate}</span>}
-          </span>
-          <span className={s.priorVals}>{priorSummary}</span>
-        </div>
-      )}
-
-      {/* ── Hero card ── */}
-      <HeroCard
-        entry={entry}
-        cur={cur}
-        allDone={allDone}
-        trackRpe={trackRpe}
-        aiOn={aiOn}
-        restOn={restOn}
-        restRemaining={restRemaining}
-        restSecs={restSecs}
-        onLogSet={handleLogSet}
-        onComplete={async () => { await handleComplete(); router.refresh(); router.push("/today"); }}
-        onPatchSet={handlePatchSet}
-        onToggleRpe={handleToggleRpe}
-        onToggleAi={() => setAiOn((v) => !v)}
-        onToggleRest={() => restOn ? stopRest() : startRest()}
-        formatRest={formatRest}
-        s={s}
-      />
-
-      {/* ── Done set rows ── */}
-      {doneSets.length > 0 && (
-        <div>
-          <ColHeader hasPrev={anyPrev} s={s} />
-          <div className={s.sets}>
-            {doneSets.map(({ s: set, i }) => (
-              <SetRow
-                key={i}
-                set={set}
-                idx={i}
-                isDone={true}
-                cur={-1}
-                isCurrent={false}
-                anyPrev={anyPrev}
-                trackRpe={trackRpe}
-                onReopenSet={handleReopenSet}
-                onToggleType={handleToggleType}
-                onToggleBW={handleToggleBW}
-                onRemove={handleRemoveSet}
-                onOpenPicker={openPicker}
-                styles={s}
-              />
-            ))}
+        {/* ── Status bar ── */}
+        <div className={s['status-bar']}>
+          <div className={s['status-bar-side']}>
+            <span className={s['status-led']} />
+            <span>SYS.OK</span>
+            <span className={s['status-sep']}>|</span>
+            <span>v2.1.4</span>
+          </div>
+          <div className={s['status-bar-side']}>
+            <span>MDL-X7</span>
+            <span className={s['status-sep']}>|</span>
+            <svg style={{ width: 12, height: 12, color: '#6a6e72' }}><use href="#wo-signal" /></svg>
+            <svg style={{ width: 14, height: 10, color: '#6a6e72' }}><use href="#wo-batt" /></svg>
+            <span className={s['status-yellow']}>84%</span>
           </div>
         </div>
-      )}
 
-      {/* ── AI next-set recommendation ── */}
-      {nextSetRec && (
-        <div className={s.aiRec}>
-          <span className={s.aiRecLabel}>AI</span>
-          <span className={s.aiRecText}>{nextSetRec}</span>
-        </div>
-      )}
-
-      {/* ── Target set rows ── */}
-      {targetSets.length > 0 && (
-        <div>
-          {doneSets.length === 0 && <ColHeader hasPrev={anyPrev} s={s} />}
-          <div className={s.sets}>
-            {targetSets.map(({ s: set, i }) => (
-              <SetRow
-                key={i}
-                set={set}
-                idx={i}
-                isDone={false}
-                cur={cur}
-                isCurrent={i === cur}
-                anyPrev={anyPrev}
-                trackRpe={trackRpe}
-                onReopenSet={handleReopenSet}
-                onToggleType={handleToggleType}
-                onToggleBW={handleToggleBW}
-                onRemove={handleRemoveSet}
-                onOpenPicker={openPicker}
-                styles={s}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Add set ── */}
-      <button className={s.addSetBtn} onClick={handleAddSet} type="button">
-        + Add set
-      </button>
-
-      {/* ── Toast ── */}
-      {toast && <div className={s.toast}>{toast}</div>}
-
-      {/* ── Picker sheet ── */}
-      {picker && (
-        <PickerSheet
-          field={picker.field}
-          value={picker.value}
-          onChange={(v) => setPicker((p) => p ? { ...p, value: v } : p)}
-          onDone={commitPicker}
-          onDismiss={() => setPicker(null)}
-          s={s}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── InlinePicker ─────────────────────────────────────────────────────────────
-// Horizontal drag-to-scroll strip with tinted pill selection window.
-// Items are rendered as plain divs; distance-from-center classes (wm-pk-*)
-// are applied imperatively via classList since CSS Modules hashes names.
-// The item state classes are declared :global() in the CSS module so they match.
-
-function InlinePicker({
-  label,
-  values,
-  value,
-  onChange,
-  styles,
-  onCenterTap,
-}: {
-  label: string;
-  values: (number | string)[];
-  value: number | string | null | undefined;
-  onChange: (val: number | string) => void;
-  styles: Record<string, string>;
-  onCenterTap?: (currentVal: number | string) => void;
-}) {
-  const s = styles;
-  const widgetRef  = useRef<HTMLDivElement>(null);
-  const trackRef   = useRef<HTMLDivElement>(null);
-  const fadeLRef   = useRef<HTMLDivElement>(null);
-  const fadeRRef   = useRef<HTMLDivElement>(null);
-
-  // Drag state in refs — never triggers re-render
-  const curXRef        = useRef(0);
-  const draggingRef    = useRef(false);
-  const dragStartXRef  = useRef(0);
-  const dragStartTXRef = useRef(0);
-  const velRef         = useRef(0);
-  const lastXRef       = useRef(0);
-  const lastTRef       = useRef(0);
-  const selIdxRef      = useRef(wmClosestIdx(values, value));
-  const onCenterTapRef = useRef(onCenterTap);
-  useEffect(() => { onCenterTapRef.current = onCenterTap; });
-
-  // Keep onChange in ref to avoid stale closure in drag handlers
-  const onChangeRef = useRef(onChange);
-  useEffect(() => { onChangeRef.current = onChange; });
-
-  function cw(): number {
-    return widgetRef.current?.getBoundingClientRect().width ?? 220;
-  }
-  function txForIdx(i: number): number {
-    return cw() / 2 - WM_ITEM_W / 2 - i * WM_ITEM_W;
-  }
-
-  function updateClasses(x: number) {
-    const track = trackRef.current;
-    if (!track) return;
-    const center = cw() / 2 - WM_ITEM_W / 2;
-    const fi = (center - x) / WM_ITEM_W;
-    const isDark = document.body.classList.contains('theme-dark');
-    // Accent blue at center → near-black (light) / near-white (dark) at edges
-    const [ar,ag,ab] = [93,155,184]; // accent blue
-    const [mr,mg,mb] = isDark ? [200,210,225] : [15,22,34]; // readable dark unselected
-    track.querySelectorAll('[data-pk-item]').forEach((el, i) => {
-      const d = Math.abs(i - fi);
-      const t      = Math.exp(-d * 0.9);
-      const size   = (10 + 30 * t).toFixed(1); // 10px far → 40px center
-      const alpha  = (0.30 + 0.70 * t).toFixed(3); // min 0.30 — clearly visible
-      const weight = d < 0.6 ? '800' : d < 1.4 ? '650' : '500';
-      const ls     = d < 0.6 ? '-0.018em' : '0em';
-      const cr = Math.round(ar * t + mr * (1-t));
-      const cg = Math.round(ag * t + mg * (1-t));
-      const cb = Math.round(ab * t + mb * (1-t));
-      (el as HTMLElement).style.cssText =
-        `font-size:${size}px;font-weight:${weight};color:rgba(${cr},${cg},${cb},${alpha});letter-spacing:${ls};`;
-    });
-  }
-
-  function applyX(x: number, animate: boolean) {
-    const track = trackRef.current;
-    if (!track) return;
-    if (animate) track.classList.add('wm-pk-snapping');
-    else         track.classList.remove('wm-pk-snapping');
-    track.style.transform = `translateX(${x}px)`;
-    curXRef.current = x;
-    updateClasses(x);
-  }
-
-  function doSnap() {
-    const center = cw() / 2 - WM_ITEM_W / 2;
-    const proj = curXRef.current + velRef.current * 80;
-    let idx = Math.round((center - proj) / WM_ITEM_W);
-    idx = Math.max(0, Math.min(values.length - 1, idx));
-    selIdxRef.current = idx;
-    applyX(txForIdx(idx), true);
-    onChangeRef.current(values[idx]);
-  }
-
-  // Position track and set up edge fades on mount / value change
-  useEffect(() => {
-    const newIdx = wmClosestIdx(values, value);
-    selIdxRef.current = newIdx;
-    requestAnimationFrame(() => { applyX(txForIdx(newIdx), false); });
-
-    // Edge fades: match actual surface background colour (light + dark)
-    const widget = widgetRef.current;
-    if (!widget) return;
-    const getBg = (el: Element | null): string => {
-      let e = el;
-      while (e && e !== document.documentElement) {
-        const bg = window.getComputedStyle(e).backgroundColor;
-        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
-        e = e.parentElement;
-      }
-      return '#f5f7fb';
-    };
-    const bg = getBg(widget.parentElement);
-    if (fadeLRef.current) fadeLRef.current.style.background = `linear-gradient(to right, ${bg} 0%, rgba(0,0,0,0) 100%)`;
-    if (fadeRRef.current) fadeRRef.current.style.background = `linear-gradient(to left, ${bg} 0%, rgba(0,0,0,0) 100%)`;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, values]);
-
-  // Wire pointer/touch drag
-  useEffect(() => {
-    const widget = widgetRef.current;
-    if (!widget) return;
-
-    function start(cx: number) {
-      trackRef.current?.classList.remove('wm-pk-snapping');
-      draggingRef.current    = true;
-      dragStartXRef.current  = cx;
-      dragStartTXRef.current = curXRef.current;
-      lastXRef.current = cx;
-      lastTRef.current = Date.now();
-      velRef.current   = 0;
-    }
-    function move(cx: number) {
-      if (!draggingRef.current) return;
-      const now = Date.now(), dt = now - lastTRef.current;
-      if (dt > 0) velRef.current = (cx - lastXRef.current) / dt;
-      lastXRef.current = cx; lastTRef.current = now;
-      applyX(dragStartTXRef.current + (cx - dragStartXRef.current), false);
-    }
-    const LONG_PRESS_MS = 450;
-    const LONG_PRESS_MOVE_THRESHOLD = 6;
-    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-
-    function end() {
-      if (!draggingRef.current) return;
-      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-      draggingRef.current = false;
-      doSnap();
-    }
-
-    // Wrap start to add long-press timer
-    const origStart = start;
-    function startWithLongPress(cx: number) {
-      origStart(cx);
-      if (onCenterTapRef.current) {
-        longPressTimer = setTimeout(() => {
-          longPressTimer = null;
-          if (!draggingRef.current) return;
-          const rect = widgetRef.current?.getBoundingClientRect();
-          const centerOffset = rect
-            ? Math.abs((dragStartXRef.current - rect.left) - cw() / 2)
-            : Infinity;
-          if (centerOffset < WM_ITEM_W / 2) {
-            draggingRef.current = false;
-            onCenterTapRef.current!(values[selIdxRef.current]);
-          }
-        }, LONG_PRESS_MS);
-      }
-    }
-    // Wrap move to cancel long press on drag
-    const origMove = move;
-    function moveWithLongPress(cx: number) {
-      if (longPressTimer && Math.abs(cx - dragStartXRef.current) > LONG_PRESS_MOVE_THRESHOLD) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
-      origMove(cx);
-    }
-
-    const onMD = (e: MouseEvent) => { e.preventDefault(); startWithLongPress(e.clientX); };
-    const onMM = (e: MouseEvent) => { if (draggingRef.current) moveWithLongPress(e.clientX); };
-    const onMU = () => end();
-    const onTS = (e: TouchEvent) => startWithLongPress(e.touches[0].clientX);
-    const onTM = (e: TouchEvent) => { e.preventDefault(); moveWithLongPress(e.touches[0].clientX); };
-    const onTE = () => end();
-
-    widget.addEventListener('mousedown', onMD);
-    window.addEventListener('mousemove', onMM);
-    window.addEventListener('mouseup', onMU);
-    widget.addEventListener('touchstart', onTS, { passive: true });
-    widget.addEventListener('touchmove', onTM, { passive: false });
-    widget.addEventListener('touchend', onTE);
-
-    return () => {
-      widget.removeEventListener('mousedown', onMD);
-      window.removeEventListener('mousemove', onMM);
-      window.removeEventListener('mouseup', onMU);
-      widget.removeEventListener('touchstart', onTS);
-      widget.removeEventListener('touchmove', onTM);
-      widget.removeEventListener('touchend', onTE);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount-only — drag handlers use refs, no stale closures
-
-  // Live badge: show the current snap value (updates on snap, not during drag)
-  const displayVal = value != null && value !== '' ? String(value) : '—';
-
-  return (
-    <div className={s.pkGroup}>
-      <div className={s.pkGroupHdr}>
-        <span className={s.pkGroupLbl}>{label}</span>
-        <span className={s.pkGroupBadge}>{displayVal}</span>
-      </div>
-      <div className={s.pkGroupBody}>
-        <div ref={widgetRef} className={s.inlinePickerWidget}>
-          <div ref={trackRef} className={s.inlinePickerTrack}>
-            {values.map((v, i) => (
-              <div key={i} data-pk-item className={s.inlinePickerItem}>
-                {String(v)}
+        {/* ── Scrolling content ── */}
+        <div className={s.content}>
+          {/* Header */}
+          <div className={s.header}>
+            <span className={`${s['panel-rivet']} ${s['pr-tl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-tr']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-bl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-br']}`} />
+            <button className={s['icon-btn']} onClick={() => { stopRest(); router.push('/today'); }} aria-label="Back">
+              <svg><use href="#wo-chev" /></svg>
+            </button>
+            <div className={s['header-title']}>
+              <div className={s['header-label']}>MOVEMENT</div>
+              <div className={s['header-name']}>{name}</div>
+              <div className={s['focus-row']}>
+                <span className={s['focus-label']}>FOCUS</span>
+                <span className={s.tag}>{bodyPart}</span>
               </div>
-            ))}
-          </div>
-          <div ref={fadeLRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeL}`} />
-          <div ref={fadeRRef} className={`${s.inlinePickerFade} ${s.inlinePickerFadeR}`} />
-          <div className={s.pkIndicator} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── HeroCard ─────────────────────────────────────────────────────────────────
-
-function HeroCard(props: {
-  entry: WorkoutEntry;
-  cur: number;
-  allDone: boolean;
-  trackRpe: boolean;
-  aiOn: boolean;
-  restOn: boolean;
-  restRemaining: number;
-  restSecs: number;
-  onLogSet: (idx: number) => void;
-  onComplete: () => void;
-  onPatchSet: (field: PickerField, value: number | string) => void;
-  onToggleRpe: () => void;
-  onToggleAi: () => void;
-  onToggleRest: () => void;
-  formatRest: (s: number) => string;
-  s: Record<string, string>;
-}) {
-  const { entry, cur, allDone, trackRpe, restOn, restRemaining, restSecs, s } = props;
-  const set = !allDone ? entry.sets[cur] : null;
-
-  const total = entry.sets.length;
-
-  // Manual weight entry state — shown when user taps the center weight number
-  const [manualWeightOpen, setManualWeightOpen] = useState(false);
-  const [manualWeightVal, setManualWeightVal] = useState<string>('');
-  const manualInputRef = useRef<HTMLInputElement>(null);
-
-  function openManualWeight(currentVal: number | string) {
-    setManualWeightVal(currentVal != null ? String(currentVal) : '');
-    setManualWeightOpen(true);
-    requestAnimationFrame(() => {
-      manualInputRef.current?.focus();
-      manualInputRef.current?.select();
-    });
-  }
-  function confirmManualWeight() {
-    const raw = parseFloat(manualWeightVal);
-    if (!isNaN(raw) && raw >= 0) {
-      const rounded = Math.round(raw * 4) / 4; // nearest 0.25 to avoid float dust
-      props.onPatchSet('weight', rounded);
-    }
-    setManualWeightOpen(false);
-  }
-
-  const restDisplay = restOn ? props.formatRest(restRemaining) : props.formatRest(restSecs);
-
-  return (
-    <div className={s.hero}>
-      <div className={s.heroEyebrow}>
-        {allDone ? (
-          <span className={s.nowMarker}>
-            <span className={`${s.nowDot} ${s.nowDotOk}`} />
-            <span className={`${s.activeSet} ${s.activeSetOk}`}>MOVEMENT COMPLETE</span>
-          </span>
-        ) : (
-          <span className={s.nowMarker}>
-            <span className={s.nowDot} />
-            <span className={s.activeSet}>SET {cur + 1}/{total}</span>
-          </span>
-        )}
-        <span className={s.eyebrowPills}>
-          <button
-            className={`${s.ctrlChip} ${trackRpe ? s.ctrlChipOn : ""}`}
-            onClick={props.onToggleRpe}
-            type="button"
-          >
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1.5"/></svg>
-            RPE
-          </button>
-          <button
-            className={`${s.ctrlChip} ${props.aiOn ? s.ctrlChipOn : ""}`}
-            onClick={props.onToggleAi}
-            type="button"
-          >
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M2 9l2-4 2 2 2-5 2 7"/></svg>
-            AI
-          </button>
-          <button
-            className={`${s.ctrlChip} ${s.restChip}${restOn && restRemaining <= 10 ? ` ${s.restChipUrgent}` : ""}`}
-            onClick={props.onToggleRest}
-            type="button"
-          >
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="6" cy="6" r="4.5"/><polyline points="6 3.5 6 6 7.5 7.5"/></svg>
-            <span>{restDisplay}</span>
-          </button>
-        </span>
-      </div>
-
-      {allDone ? (
-        <>
-          <p className={s.completeMsg}>All sets logged.</p>
-          <div className={s.heroActions}>
-            <button className={s.heroCta} onClick={props.onComplete} type="button">
-              Complete
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className={s.inlinePickerSection}>
-            <div className={s.pkCard}>
-              <InlinePicker
-                key={`w-${cur}`}
-                label="WEIGHT · LB"
-                values={WM_WEIGHT_VALS}
-                value={set?.weight}
-                onChange={(v) => props.onPatchSet("weight", v)}
-                styles={s}
-                onCenterTap={(cv) => openManualWeight(cv)}
-              />
-              <div className={s.pkGroupDivider} />
-              <InlinePicker
-                key={`r-${cur}`}
-                label="REPS"
-                values={WM_REPS_VALS}
-                value={set?.reps}
-                onChange={(v) => props.onPatchSet("reps", v)}
-                styles={s}
-              />
-              <div className={s.pkGroupDivider} />
-              <InlinePicker
-                key={`e-${cur}`}
-                label="RPE"
-                values={WM_RPE_VALS}
-                value={set?.rpe}
-                onChange={(v) => props.onPatchSet("rpe", v)}
-                styles={s}
-              />
             </div>
-          </div>
-          <div className={s.heroActions}>
             <button
-              className={s.heroCta}
-              onClick={() => props.onLogSet(cur)}
-              type="button"
-            >
-              Log set {cur + 1}
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Manual weight entry overlay — tap center number to enter exact value (e.g. 137.5 lb) */}
-      {manualWeightOpen && (
-        <div
-          style={{
-            position:'fixed',inset:0,zIndex:900,
-            background:'rgba(15,22,34,0.38)',
-            backdropFilter:'blur(6px)',WebkitBackdropFilter:'blur(6px)',
-            display:'flex',alignItems:'flex-end',justifyContent:'center',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setManualWeightOpen(false); }}
-        >
-          <div style={{
-            background:'var(--paper,#f5f7fb)',borderRadius:'20px 20px 0 0',
-            padding:'20px 24px 36px',width:'100%',maxWidth:480,
-            borderTop:'1.2px solid rgba(15,22,34,0.11)',
-          }}>
-            <div style={{width:36,height:4,borderRadius:2,background:'#d8dee8',margin:'0 auto 18px'}}/>
-            <div style={{font:'600 10px/1 var(--font-mono,monospace)',color:'var(--muted,#5e6a82)',letterSpacing:'1.2px',textTransform:'uppercase',marginBottom:12}}>
-              Weight · lb
-            </div>
-            <input
-              ref={manualInputRef}
-              type="number"
-              step="any"
-              inputMode="decimal"
-              placeholder="e.g. 137.5"
-              value={manualWeightVal}
-              onChange={e => setManualWeightVal(e.target.value)}
-              onKeyDown={e => { if (e.key==='Enter') confirmManualWeight(); if (e.key==='Escape') setManualWeightOpen(false); }}
-              style={{
-                display:'block',width:'100%',
-                font:'700 28px/1 var(--font-display,sans-serif)',color:'var(--ink,#0f1622)',
-                letterSpacing:'-0.018em',
-                border:'none',borderBottom:'1.8px solid var(--accent,#5d9bb8)',
-                background:'transparent',outline:'none',padding:'6px 0 10px',
-                MozAppearance:'textfield',
+              className={`${s['ai-btn']} ${aiOn ? s['ai-on'] : ''}`}
+              onClick={() => {
+                const next = !aiOn;
+                setAiOn(next);
+                showToast(next ? 'AI ASSIST ON' : 'AI ASSIST OFF');
               }}
-            />
-            <div style={{font:'500 11px/1.4 system-ui',color:'var(--label,#8893a8)',marginTop:8}}>
-              Scroll for 5 lb steps · type for any increment
-            </div>
-            <div style={{display:'flex',gap:10,marginTop:20}}>
-              <button
-                onClick={() => setManualWeightOpen(false)}
-                style={{flex:1,height:44,borderRadius:10,border:'1.2px solid rgba(15,22,34,0.25)',background:'transparent',font:'600 13px/1 sans-serif',color:'var(--muted,#5e6a82)',cursor:'pointer'}}
-              >Cancel</button>
-              <button
-                onClick={confirmManualWeight}
-                style={{flex:2,height:44,borderRadius:10,border:'none',background:'var(--ink,#0f1622)',font:'700 13px/1 sans-serif',color:'#fff',cursor:'pointer'}}
-              >Set weight</button>
+              aria-pressed={aiOn}
+            >
+              <span className={s['ai-led']} />
+              <span className={s['ai-big']}>AI</span>
+              <span className={s['ai-sub']}>ASSIST</span>
+            </button>
+          </div>
+
+          {/* ── Cassette panel ── */}
+          <div className={`${s.panel} ${s['cassette-panel']}`}>
+            <span className={`${s['panel-rivet']} ${s['pr-tl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-tr']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-bl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-br']}`} />
+            <div className={s['cassette-inner']}>
+              <span className={`${s.bracket} ${s['bracket-tl']}`} />
+              <span className={`${s.bracket} ${s['bracket-tr']}`} />
+              <span className={`${s.bracket} ${s['bracket-bl']}`} />
+              <span className={`${s.bracket} ${s['bracket-br']}`} />
+
+              <div className={s['cassette-top']}>
+                <div className={s['active-set']}>
+                  <span className={s['active-dot']} />
+                  <span>ACTIVE SET</span>
+                  <span className={s['active-set-counter']}>{setNum} / {total}</span>
+                </div>
+              </div>
+
+              <div className={s['cassette-svg-wrap']}>
+                <svg viewBox="0 0 360 175" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="wo-shellGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(35,40,45,0.85)" />
+                      <stop offset="12%" stopColor="rgba(25,28,32,0.78)" />
+                      <stop offset="35%" stopColor="rgba(18,21,24,0.72)" />
+                      <stop offset="50%" stopColor="rgba(15,17,20,0.70)" />
+                      <stop offset="65%" stopColor="rgba(18,21,24,0.72)" />
+                      <stop offset="88%" stopColor="rgba(25,28,32,0.78)" />
+                      <stop offset="100%" stopColor="rgba(35,40,45,0.85)" />
+                    </linearGradient>
+                    <linearGradient id="wo-shellEdge" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.85)" />
+                      <stop offset="4%" stopColor="rgba(255,255,255,0.35)" />
+                      <stop offset="48%" stopColor="rgba(255,255,255,0.05)" />
+                      <stop offset="52%" stopColor="rgba(255,255,255,0.05)" />
+                      <stop offset="95%" stopColor="rgba(255,255,255,0.32)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0.75)" />
+                    </linearGradient>
+                    <linearGradient id="wo-shellEdgeH" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.65)" />
+                      <stop offset="5%" stopColor="rgba(255,255,255,0.20)" />
+                      <stop offset="50%" stopColor="rgba(255,255,255,0)" />
+                      <stop offset="95%" stopColor="rgba(255,255,255,0.20)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0.65)" />
+                    </linearGradient>
+                    <linearGradient id="wo-plasticSheen" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+                      <stop offset="20%" stopColor="rgba(255,255,255,0)" />
+                      <stop offset="35%" stopColor="rgba(255,255,255,0.18)" />
+                      <stop offset="42%" stopColor="rgba(255,255,255,0.32)" />
+                      <stop offset="48%" stopColor="rgba(255,255,255,0.18)" />
+                      <stop offset="62%" stopColor="rgba(255,255,255,0)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                    </linearGradient>
+                    <linearGradient id="wo-topGloss" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
+                      <stop offset="40%" stopColor="rgba(255,255,255,0.04)" />
+                      <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                    </linearGradient>
+                    <linearGradient id="wo-labelGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(40,46,52,0.55)" />
+                      <stop offset="100%" stopColor="rgba(10,11,12,0.7)" />
+                    </linearGradient>
+                    <radialGradient id="wo-reelGrad" cx="0.3" cy="0.3" r="0.85">
+                      <stop offset="0%" stopColor="#6a7075" />
+                      <stop offset="35%" stopColor="#2a2e33" />
+                      <stop offset="100%" stopColor="#050607" />
+                    </radialGradient>
+                    <radialGradient id="wo-reelInner" cx="0.3" cy="0.3" r="0.8">
+                      <stop offset="0%" stopColor="#2a2e33" />
+                      <stop offset="100%" stopColor="#050607" />
+                    </radialGradient>
+                    <radialGradient id="wo-hubGrad" cx="0.3" cy="0.3" r="0.7">
+                      <stop offset="0%" stopColor="#ffffff" />
+                      <stop offset="15%" stopColor="#fff366" />
+                      <stop offset="55%" stopColor="#f5ec00" />
+                      <stop offset="100%" stopColor="#5a5400" />
+                    </radialGradient>
+                    <linearGradient id="wo-tapeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3a2a0a" />
+                      <stop offset="50%" stopColor="#1a1208" />
+                      <stop offset="100%" stopColor="#3a2a0a" />
+                    </linearGradient>
+                    <pattern id="wo-hatch" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
+                      <line x1="0" y1="0" x2="0" y2="4" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                    </pattern>
+                    <pattern id="wo-tapeWind" patternUnits="userSpaceOnUse" width="2" height="2">
+                      <rect width="2" height="2" fill="#1a1208" />
+                      <line x1="0" y1="0.5" x2="2" y2="0.5" stroke="rgba(60,40,20,0.5)" strokeWidth="0.3" />
+                      <line x1="0" y1="1.5" x2="2" y2="1.5" stroke="rgba(80,55,30,0.3)" strokeWidth="0.3" />
+                    </pattern>
+                    <radialGradient id="wo-feltPad" cx="0.5" cy="0.4" r="0.6">
+                      <stop offset="0%" stopColor="#5a4030" />
+                      <stop offset="60%" stopColor="#3a2818" />
+                      <stop offset="100%" stopColor="#1a1208" />
+                    </radialGradient>
+                  </defs>
+
+                  {/* Glass shell */}
+                  <rect x="2" y="2" width="356" height="171" rx="7" fill="none" stroke="#000" strokeWidth="1.2" />
+                  <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#wo-shellGrad)" />
+                  <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#wo-shellEdgeH)" opacity="0.9" />
+                  <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#wo-shellEdge)" opacity="0.6" />
+                  <rect x="4" y="4" width="352" height="60" rx="5" fill="url(#wo-topGloss)" pointerEvents="none" />
+                  <rect x="4" y="4" width="352" height="167" rx="6" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="0.7" />
+                  <rect x="6" y="6" width="348" height="163" rx="5" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+
+                  {/* Corner Phillips screws */}
+                  {[[12, 12], [348, 12], [12, 161], [348, 161]].map(([cx, cy], i) => (
+                    <g key={i}>
+                      <circle cx={cx} cy={cy} r="3.5" fill="#5a6065" stroke="#000" strokeWidth="0.6" />
+                      <circle cx={cx} cy={cy} r="2.5" fill="#3a3f44" />
+                      <line x1={cx - 2} y1={cy - 2} x2={cx + 2} y2={cy + 2} stroke="#000" strokeWidth="0.7" />
+                      <line x1={cx + 2} y1={cy - 2} x2={cx - 2} y2={cy + 2} stroke="#000" strokeWidth="0.7" />
+                    </g>
+                  ))}
+                  {/* Center screws */}
+                  <circle cx="180" cy="12" r="2.5" fill="#5a6065" stroke="#000" strokeWidth="0.5" />
+                  <line x1="178.5" y1="10.5" x2="181.5" y2="13.5" stroke="#000" strokeWidth="0.6" />
+                  <line x1="181.5" y1="10.5" x2="178.5" y2="13.5" stroke="#000" strokeWidth="0.6" />
+                  <circle cx="180" cy="161" r="2.5" fill="#5a6065" stroke="#000" strokeWidth="0.5" />
+                  <line x1="178.5" y1="159.5" x2="181.5" y2="162.5" stroke="#000" strokeWidth="0.6" />
+                  <line x1="181.5" y1="159.5" x2="178.5" y2="162.5" stroke="#000" strokeWidth="0.6" />
+
+                  {/* Write-protection tabs */}
+                  <rect x="22" y="3" width="14" height="5" rx="0.5" fill="#1a1d20" stroke="#000" strokeWidth="0.4" />
+                  <rect x="23" y="4" width="12" height="3" rx="0.3" fill="#0a0b0c" />
+                  <rect x="324" y="3" width="14" height="5" rx="0.5" fill="#1a1d20" stroke="#000" strokeWidth="0.4" />
+                  <rect x="325" y="4" width="12" height="3" rx="0.3" fill="#0a0b0c" />
+
+                  {/* Label strip + readouts */}
+                  <rect x="22" y="10" width="316" height="48" rx="3" fill="url(#wo-labelGrad)" stroke="#000" strokeWidth="0.8" />
+                  <rect x="23" y="11" width="314" height="46" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+                  <text x="32"  y="20" fill="#ffffff" fontFamily="Share Tech Mono, monospace" fontSize="8.5" letterSpacing="1" fontWeight="700">WEIGHT</text>
+                  <text x="180" y="20" textAnchor="middle" fill="#ffffff" fontFamily="Share Tech Mono, monospace" fontSize="8.5" letterSpacing="1" fontWeight="700">RPE</text>
+                  <text x="328" y="20" textAnchor="end" fill="#ffffff" fontFamily="Share Tech Mono, monospace" fontSize="8.5" letterSpacing="1" fontWeight="700">REPS</text>
+                  <text x="95"  y="40" textAnchor="middle" dominantBaseline="central" fill="#f5ec00" fontFamily="Share Tech Mono, monospace" fontSize="34" fontWeight="700" letterSpacing="1" style={{ filter: 'drop-shadow(0 0 5px rgba(245,236,0,0.7))', cursor: 'pointer' }} onClick={() => openPicker('weight')}>{weightDisplay}</text>
+                  <text x="180" y="40" textAnchor="middle" dominantBaseline="central" fill="#f5ec00" fontFamily="Share Tech Mono, monospace" fontSize="34" fontWeight="700" letterSpacing="1" style={{ filter: 'drop-shadow(0 0 5px rgba(245,236,0,0.7))', cursor: 'pointer' }} onClick={() => openPicker('rpe')}>{rpeDisplay}</text>
+                  <text x="265" y="40" textAnchor="middle" dominantBaseline="central" fill="#f5ec00" fontFamily="Share Tech Mono, monospace" fontSize="34" fontWeight="700" letterSpacing="1" style={{ filter: 'drop-shadow(0 0 5px rgba(245,236,0,0.7))', cursor: 'pointer' }} onClick={() => openPicker('reps')}>{repsDisplay}</text>
+                  <text x="180" y="54" textAnchor="middle" fill="#5a6065" fontFamily="Barlow Condensed, sans-serif" fontSize="5" letterSpacing="2" fontWeight="700" opacity="0.75">— TAP NUMBER TO EDIT —</text>
+
+                  {/* Tape line between reels */}
+                  <path d="M 95 100 Q 180 70 265 100" stroke="url(#wo-tapeGrad)" strokeWidth="3" fill="none" opacity="0.55" />
+                  <path d="M 95 100 Q 180 70 265 100" stroke="rgba(245,236,0,0.15)" strokeWidth="1" fill="none" />
+
+                  {/* Left reel */}
+                  <g ref={reelLRef} className={s.reel}>
+                    <circle cx="95" cy="100" r="42" fill="url(#wo-reelGrad)" stroke="#000" strokeWidth="1.3" />
+                    <circle cx="95" cy="100" r="38" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
+                    <circle cx="95" cy="100" r="36" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="0.6" />
+                    <g fill="#5a6065" stroke="#000" strokeWidth="0.4">
+                      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((rot, i) => (
+                        <rect key={i} x="92.5" y="62" width="5" height="14" rx="1" transform={`rotate(${rot} 95 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="95" cy="100" r="22" fill="url(#wo-reelInner)" stroke="#000" strokeWidth="0.8" />
+                    <circle cx="95" cy="100" r="22" fill="url(#wo-hatch)" opacity="0.5" />
+                    <circle cx="95" cy="100" r="20" fill="url(#wo-tapeWind)" opacity="0.9" />
+                    <circle cx="95" cy="100" r="20" fill="none" stroke="#0a0805" strokeWidth="0.5" />
+                    <circle cx="95" cy="100" r="18.5" fill="none" stroke="rgba(60,40,20,0.4)" strokeWidth="0.3" />
+                    <circle cx="95" cy="100" r="16" fill="none" stroke="rgba(60,40,20,0.35)" strokeWidth="0.3" />
+                    <circle cx="95" cy="100" r="14" fill="none" stroke="rgba(70,48,25,0.3)" strokeWidth="0.3" />
+                    <circle cx="95" cy="100" r="12" fill="#0a0805" stroke="#000" strokeWidth="0.4" />
+                    <g fill="#3a3f44" stroke="#000" strokeWidth="0.3">
+                      {[0, 45, 90, 135, 180, 225, 270, 315].map((rot, i) => (
+                        <rect key={i} x="93" y="83" width="4" height="6" transform={`rotate(${rot} 95 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="95" cy="100" r="11" fill="url(#wo-hubGrad)" stroke="#000" strokeWidth="0.7" />
+                    <circle cx="95" cy="100" r="11" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.4" />
+                    <g fill="#1a1208" stroke="#000" strokeWidth="0.2">
+                      {[0, 60, 120, 180, 240, 300].map((rot, i) => (
+                        <rect key={i} x="93.5" y="91" width="3" height="3.5" transform={`rotate(${rot} 95 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="95" cy="100" r="3.5" fill="#050607" stroke="#000" strokeWidth="0.4" />
+                    <circle cx="95" cy="100" r="1.2" fill="#7a7400" />
+                  </g>
+
+                  {/* RPE box with VU bars */}
+                  <g>
+                    <rect x="152" y="62" width="56" height="78" rx="4" fill="#050607" stroke="#000" strokeWidth="1" />
+                    <rect x="153" y="63" width="54" height="76" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+                    <text x="180" y="72" textAnchor="middle" fill="#ffffff" fontFamily="Share Tech Mono, monospace" fontSize="8" fontWeight="700" letterSpacing="1">RPE</text>
+                    <text x="180" y="138" textAnchor="middle" fill="#f5ec00" fontFamily="Share Tech Mono, monospace" fontSize="9" fontWeight="700" letterSpacing="1" style={{ filter: 'drop-shadow(0 0 3px rgba(245,236,0,0.7))' }}>{rpeDisplay}</text>
+                    <g ref={vuBarsRef} transform="translate(157, 77)">
+                      {[50, 44, 38, 32, 26, 20, 14, 8, 2].map((y, i) => (
+                        <rect key={i} x="0" y={y} width="46" height="3" fill={i < 4 ? '#f5ec00' : '#2a2e33'} opacity={i < 4 ? String(0.95 - i * 0.1) : '1'} />
+                      ))}
+                    </g>
+                    <g stroke="#7c8085" strokeWidth="0.5">
+                      <line x1="156" y1="79" x2="158" y2="79" />
+                      <line x1="156" y1="115" x2="158" y2="115" />
+                      <line x1="204" y1="79" x2="206" y2="79" />
+                      <line x1="204" y1="115" x2="206" y2="115" />
+                    </g>
+                  </g>
+
+                  {/* Right reel */}
+                  <g ref={reelRRef} className={s.reel}>
+                    <circle cx="265" cy="100" r="42" fill="url(#wo-reelGrad)" stroke="#000" strokeWidth="1.3" />
+                    <circle cx="265" cy="100" r="38" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
+                    <circle cx="265" cy="100" r="36" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="0.6" />
+                    <g fill="#5a6065" stroke="#000" strokeWidth="0.4">
+                      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((rot, i) => (
+                        <rect key={i} x="262.5" y="62" width="5" height="14" rx="1" transform={`rotate(${rot} 265 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="265" cy="100" r="22" fill="url(#wo-reelInner)" stroke="#000" strokeWidth="0.8" />
+                    <circle cx="265" cy="100" r="22" fill="url(#wo-hatch)" opacity="0.5" />
+                    <circle cx="265" cy="100" r="20" fill="url(#wo-tapeWind)" opacity="0.9" />
+                    <circle cx="265" cy="100" r="20" fill="none" stroke="#0a0805" strokeWidth="0.5" />
+                    <circle cx="265" cy="100" r="18.5" fill="none" stroke="rgba(60,40,20,0.4)" strokeWidth="0.3" />
+                    <circle cx="265" cy="100" r="16" fill="none" stroke="rgba(60,40,20,0.35)" strokeWidth="0.3" />
+                    <circle cx="265" cy="100" r="14" fill="none" stroke="rgba(70,48,25,0.3)" strokeWidth="0.3" />
+                    <circle cx="265" cy="100" r="12" fill="#0a0805" stroke="#000" strokeWidth="0.4" />
+                    <g fill="#3a3f44" stroke="#000" strokeWidth="0.3">
+                      {[0, 45, 90, 135, 180, 225, 270, 315].map((rot, i) => (
+                        <rect key={i} x="263" y="83" width="4" height="6" transform={`rotate(${rot} 265 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="265" cy="100" r="11" fill="url(#wo-hubGrad)" stroke="#000" strokeWidth="0.7" />
+                    <circle cx="265" cy="100" r="11" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.4" />
+                    <g fill="#1a1208" stroke="#000" strokeWidth="0.2">
+                      {[0, 60, 120, 180, 240, 300].map((rot, i) => (
+                        <rect key={i} x="263.5" y="91" width="3" height="3.5" transform={`rotate(${rot} 265 100)`} />
+                      ))}
+                    </g>
+                    <circle cx="265" cy="100" r="3.5" fill="#050607" stroke="#000" strokeWidth="0.4" />
+                    <circle cx="265" cy="100" r="1.2" fill="#7a7400" />
+                  </g>
+
+                  {/* Specular reflections (drawn last) */}
+                  <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#wo-plasticSheen)" pointerEvents="none" />
+                  <rect x="8" y="3" width="344" height="3" rx="1.5" fill="rgba(255,255,255,0.6)" pointerEvents="none" />
+                  <rect x="14" y="6" width="332" height="1" rx="0.5" fill="rgba(255,255,255,0.25)" pointerEvents="none" />
+                  <rect x="8" y="169" width="344" height="2" rx="1" fill="rgba(255,255,255,0.18)" pointerEvents="none" />
+                  <circle cx="20" cy="14" r="1.5" fill="rgba(255,255,255,0.7)" pointerEvents="none" />
+                  <circle cx="340" cy="14" r="1" fill="rgba(255,255,255,0.4)" pointerEvents="none" />
+                  <ellipse cx="60" cy="30" rx="50" ry="14" fill="rgba(255,255,255,0.07)" pointerEvents="none" />
+
+                  {/* Felt pad + tape path */}
+                  <rect x="148" y="132" width="64" height="8" rx="0.5" fill="url(#wo-feltPad)" stroke="#000" strokeWidth="0.4" />
+                  <rect x="148" y="132" width="64" height="8" rx="0.5" fill="url(#wo-hatch)" opacity="0.6" />
+                  <rect x="80" y="139" width="200" height="3" fill="#1a1208" stroke="#000" strokeWidth="0.3" opacity="0.85" />
+                  <circle cx="80" cy="140.5" r="2.2" fill="#7a8085" stroke="#000" strokeWidth="0.4" />
+                  <circle cx="80" cy="140.5" r="1" fill="#0a0b0c" />
+                  <circle cx="280" cy="140.5" r="2.2" fill="#7a8085" stroke="#000" strokeWidth="0.4" />
+                  <circle cx="280" cy="140.5" r="1" fill="#0a0b0c" />
+
+                  {/* Bottom timer strip */}
+                  <g>
+                    <rect x="22" y="146" width="316" height="20" rx="3" fill="#050607" stroke="#000" strokeWidth="0.8" />
+                    <rect x="23" y="147" width="314" height="18" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+                    <g style={{ cursor: 'pointer' }} onClick={() => {
+                      const input = prompt('Set rest time in seconds (e.g. 90):', String(restSecs));
+                      if (input) {
+                        const n = parseInt(input, 10);
+                        if (!isNaN(n) && n > 0 && n < 3600) {
+                          setRestSecs(n);
+                          showToast(`REST ${formatRest(n)}`);
+                        }
+                      }
+                    }}>
+                      <text x="180" y="161" textAnchor="middle" fill="#f5ec00" fontFamily="Share Tech Mono, monospace" fontSize="14" fontWeight="700" letterSpacing="4" style={{ filter: 'drop-shadow(0 0 5px rgba(245,236,0,0.7))' }}>
+                        {formatRest(restRemaining > 0 ? restRemaining : restSecs)}
+                      </text>
+                    </g>
+                    <text x="32" y="159" fill="#7c8085" fontFamily="Barlow Condensed, sans-serif" fontSize="8" fontWeight="700" letterSpacing="2">⏵ REST</text>
+                    <text x="328" y="159" textAnchor="end" fill="#7c8085" fontFamily="Barlow Condensed, sans-serif" fontSize="8" fontWeight="700" letterSpacing="2">TIMER ⏸</text>
+                  </g>
+                </svg>
+                <div className={s['tape-edit-hint']}>TAP TIMER TO EDIT</div>
+              </div>
+
+              <div className={s['cassette-btn-row']}>
+                <button
+                  type="button"
+                  className={`${s['cassette-open-btn']} ${faderOpen ? s['is-open'] : ''}`}
+                  aria-expanded={faderOpen}
+                  onClick={() => setFaderOpen((v) => !v)}
+                >
+                  <span className={s['open-arrow']}>▼</span>
+                  <span>{faderOpen ? 'CLOSE' : 'OPEN'}</span>
+                  <span className={s['open-arrow']}>▼</span>
+                </button>
+                <button
+                  type="button"
+                  className={s['cassette-log-btn']}
+                  onClick={handleLogSet}
+                  disabled={allDone}
+                >
+                  <span className={s['play-tri']}>▶</span>
+                  <span>LOG SET {setNum}</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
-// ─── ColHeader ────────────────────────────────────────────────────────────────
+          {/* ── Faders ── */}
+          <div className={`${s['mixer-wrap']} ${faderOpen ? s['is-open'] : ''}`}>
+            <div className={`${s.panel} ${s['mixer-panel']}`}>
+              <span className={`${s['panel-rivet']} ${s['pr-tl']}`} />
+              <span className={`${s['panel-rivet']} ${s['pr-tr']}`} />
+              <span className={`${s['panel-rivet']} ${s['pr-bl']}`} />
+              <span className={`${s['panel-rivet']} ${s['pr-br']}`} />
+              <div className={s['panel-strip']}>
+                <div className={s['panel-strip-side']}><span className={s['strip-led']} /><span>FADER.CTRL</span></div>
+                <div className={s['panel-strip-side']}><span>3-CH</span><span className={s['strip-led']} /></div>
+              </div>
+              <div className={s['mixer-row']}>
+                {(['weight', 'rpe', 'reps'] as FaderKey[]).map((key) => (
+                  <div className={s['fader-col']} key={key}>
+                    <div
+                      ref={(el) => setupFader(el, key)}
+                      className={s['fader-track']}
+                      data-key={key}
+                      onMouseDown={(e) => onFaderDown(key, e)}
+                      onTouchStart={(e) => onFaderDown(key, e)}
+                    >
+                      <div className={s['fader-ticks']} />
+                      <div className={s['fader-zero']} />
+                      <div className={s['fader-thumb']} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-function ColHeader({ hasPrev, s }: { hasPrev: boolean; s: Record<string, string> }) {
-  return (
-    <div className={s.colHead}>
-      <span>Set</span>
-      <span></span>
-      <span></span>
-      <span>{hasPrev ? "Previous" : ""}</span>
-      <span className={s.hToday}>Today</span>
-      <span></span>
-      <span></span>
-    </div>
-  );
-}
-
-// ─── SetRow ───────────────────────────────────────────────────────────────────
-
-function SetRow({
-  set, idx, isDone, cur: _cur, anyPrev, trackRpe, isCurrent,
-  onReopenSet, onToggleType, onToggleBW, onRemove, onOpenPicker, styles,
-}: {
-  set: SetEntry;
-  idx: number;
-  isDone: boolean;
-  cur: number;
-  anyPrev: boolean;
-  trackRpe: boolean;
-  isCurrent: boolean;
-  onReopenSet: (i: number) => void;
-  onToggleType: (i: number) => void;
-  onToggleBW: (i: number) => void;
-  onRemove: (i: number) => void;
-  onOpenPicker: (field: PickerField, i: number) => void;
-  styles: Record<string, string>;
-}) {
-  const s = styles;
-  const num = String(idx + 1).padStart(2, "0");
-  const isWarmup = !!set.warmup;
-  const isBW = !!set.bw;
-
-  const hasW = hasValue(set.weight);
-  const hasR = hasValue(set.reps);
-
-  return (
-    <div className={`${s.setRow} ${isDone ? s.setRowDone : ""} ${isWarmup ? s.setRowWu : s.setRowWs} ${isCurrent ? s.setRowCurrent : ""}`}>
-      {/* Set number / type toggle */}
-      <button
-        className={`${s.rSetBtn} ${isWarmup ? s.rSetBtnWarmup : ""}`}
-        onClick={() => onToggleType(idx)}
-        type="button"
-      >
-        {num}
-      </button>
-
-      {/* WS/WU toggle */}
-      <button
-        className={`${s.typePill} ${isWarmup ? s.typePillWu : s.typePillWs}`}
-        onClick={() => onToggleType(idx)}
-        type="button"
-      >
-        {isWarmup ? "Warm-up" : "Working"}
-      </button>
-
-      {/* BW toggle */}
-      <button
-        className={`${s.bwBtn} ${isBW ? s.bwBtnOn : ""}`}
-        onClick={() => onToggleBW(idx)}
-        type="button"
-      >
-        BW
-      </button>
-
-      {/* Previous */}
-      <span className={s.rPrev}>
-        {anyPrev ? prevLabel(set) : ""}
-      </span>
-
-      {/* Today values */}
-      {isDone ? (
-        <span className={s.rVals}>
-          {set.weight} × {set.reps}
-          {trackRpe && hasValue(set.rpe) && (
-            <span className={s.rpeBit}>@{set.rpe}</span>
-          )}
-        </span>
-      ) : (
-        <span className={`${s.rVals} ${s.rValsEditable}`}>
-          <button
-            className={`${s.editNum} ${!hasW ? s.editNumBlank : ""}`}
-            onClick={() => onOpenPicker("weight", idx)}
-            type="button"
-          >
-            {hasW ? String(set.weight) : "—"}
-          </button>
-          <span className={s.editX}>×</span>
-          <button
-            className={`${s.editNum} ${!hasR ? s.editNumBlank : ""}`}
-            onClick={() => onOpenPicker("reps", idx)}
-            type="button"
-          >
-            {hasR ? String(set.reps) : "—"}
-          </button>
-        </span>
-      )}
-
-      {/* Check / Reopen / NOW tag */}
-      {isDone ? (
-        <button
-          className={`${s.chk} ${s.chkDone}`}
-          onClick={() => onReopenSet(idx)}
-          type="button"
-          aria-label="Reopen set"
-        >
-          {CHECK_SVG}
-        </button>
-      ) : isCurrent ? (
-        <span className={s.nowTag}>NOW</span>
-      ) : (
-        <span className={`${s.chk} ${s.chkTarget}`} aria-hidden="true">
-          {CHECK_SVG}
-        </span>
-      )}
-
-      {/* Remove */}
-      <button
-        className={s.rowRemove}
-        onClick={() => onRemove(idx)}
-        type="button"
-        aria-label="Remove set"
-      >
-        {REMOVE_SVG}
-      </button>
-    </div>
-  );
-}
-
-// ─── PickerSheet ──────────────────────────────────────────────────────────────
-
-function PickerSheet({
-  field, value, onChange, onDone, onDismiss, s,
-}: {
-  field: PickerField;
-  value: number;
-  onChange: (v: number) => void;
-  onDone: () => void;
-  onDismiss: () => void;
-  s: Record<string, string>;
-}) {
-  const cfg = PICKER_CONFIG[field];
-  const presets = cfg.presets(value);
-
-  function step(delta: number) {
-    const nv = +(value + delta).toFixed(cfg.decimals);
-    if (nv < cfg.min) return;
-    onChange(nv);
-  }
-
-  return (
-    <div className={s.pickerOverlay} onClick={(e) => { if (e.target === e.currentTarget) onDone(); }}>
-      <div className={s.pickerSheet} onClick={(e) => e.stopPropagation()}>
-        <div className={s.pickerHeader}>
-          <span className={s.pickerTitle}>{cfg.title}</span>
-          <span className={s.pickerUnit}>{cfg.unit}</span>
+          {/* ── Log panel ── */}
+          <div className={`${s.panel} ${s['log-panel']}`}>
+            <span className={`${s['panel-rivet']} ${s['pr-tl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-tr']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-bl']}`} />
+            <span className={`${s['panel-rivet']} ${s['pr-br']}`} />
+            <div className={s['log-header']}>
+              <div className={s['log-title']}>LOGGED SETS</div>
+              <div className={s['log-day']}>
+                <span>TODAY</span>
+                <svg><use href="#wo-cal" /></svg>
+              </div>
+            </div>
+            <div>
+              {entry.sets.map((set, i) => {
+                const isCurrent = !allDone && i === cur;
+                const isFuture = !set.done && !isCurrent;
+                const rowCls = [
+                  s['log-row'],
+                  isCurrent ? s.current : '',
+                  isFuture ? s.future : '',
+                ].filter(Boolean).join(' ');
+                return (
+                  <div key={i} className={rowCls}>
+                    <div className={s['log-num']}>{String(i + 1).padStart(2, '0')}</div>
+                    <div className={s['log-tags']}>
+                      <button
+                        type="button"
+                        className={`${s['log-tag']} ${set.warmup ? s['tag-warmup'] : ''}`}
+                        onClick={() => handleToggleType(i)}
+                      >
+                        {set.warmup ? 'WU' : 'WS'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`${s['log-tag']} ${set.bw ? s['tag-bw'] : ''}`}
+                        onClick={() => handleToggleBW(i)}
+                      >
+                        {set.bw ? 'BW' : '—'}
+                      </button>
+                    </div>
+                    <div className={`${s['log-value']} ${!hasValue(set.weight) ? s.empty : ''}`}>
+                      {hasValue(set.weight) ? (
+                        <>
+                          {set.weight}<span className={s['x-sep']}>×</span>{hasValue(set.reps) ? set.reps : '—'}
+                          {hasValue(set.rpe) && <span className={s['log-rpe']}>@ {String(set.rpe)}</span>}
+                        </>
+                      ) : '— × —'}
+                    </div>
+                    <button
+                      type="button"
+                      className={`${s['log-check']} ${set.done ? s.done : ''}`}
+                      onClick={() => set.done ? handleReopenSet(i) : undefined}
+                      aria-label={set.done ? 'Reopen set' : 'Pending'}
+                    />
+                    <button
+                      type="button"
+                      className={s['log-remove']}
+                      onClick={() => handleRemoveSet(i)}
+                      aria-label="Remove set"
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <button type="button" className={s['add-set']} onClick={handleAddSet}>+ ADD SET</button>
+            {!allDone && entry.sets.some((s) => s.done) && (
+              <button
+                type="button"
+                className={s['complete-btn']}
+                onClick={async () => { await handleComplete(); router.push('/today'); }}
+              >
+                FINISH WORKOUT
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className={s.pickerVal}>{cfg.decimals > 0 ? value.toFixed(cfg.decimals) : value}</div>
-
-        <div className={s.pickerSteppers}>
-          {cfg.steps.map((delta) => (
-            <button
-              key={delta}
-              className={s.pkStepper}
-              onClick={() => step(delta)}
-              type="button"
-            >
-              {delta > 0 ? `+${delta}` : delta}
+        {/* ── Bottom nav — wired to real routes ── */}
+        <div className={s['bottom-nav-wrap']}>
+          <div className={s['nav-strip']}>
+            <span className={s['nav-strip-led']} />
+            <span>SYS-NAV ◆ MDL-X7</span>
+            <span className={s['nav-strip-led']} />
+          </div>
+          <div className={s['bottom-nav']}>
+            <button className={s['nav-btn']} onClick={() => router.push('/today')}>
+              <span className={s['nav-icon']}>◄◄</span>
+              <span className={s['nav-label']}>TODAY</span>
             </button>
-          ))}
-        </div>
-
-        <div className={s.pickerPresets}>
-          {presets.map((p) => (
-            <button
-              key={p}
-              className={`${s.pkPreset} ${p === value ? s.pkPresetActive : ""}`}
-              onClick={() => onChange(p)}
-              type="button"
-            >
-              {p}
+            <button className={s['nav-btn']} onClick={() => router.push('/momentum')}>
+              <span className={s['nav-icon']}>▮▯▯</span>
+              <span className={s['nav-label']}>INSIGHTS</span>
             </button>
-          ))}
+            <button className={`${s['nav-btn']} ${s.active}`}>
+              <span className={s['nav-icon']}>▶ <span className={s['nav-icon-label']}>PLAY</span></span>
+              <span className={s['nav-label']}>WORKOUT</span>
+            </button>
+            <button className={s['nav-btn']} onClick={() => router.push('/plan')}>
+              <span className={s['nav-icon']}>▣</span>
+              <span className={s['nav-label']}>PLAN</span>
+            </button>
+            <button className={s['nav-btn']} onClick={() => router.push('/more')}>
+              <span className={s['nav-icon']}>►►</span>
+              <span className={s['nav-label']}>MORE</span>
+            </button>
+          </div>
         </div>
 
-        <button className={s.pkDone} onClick={onDone} type="button">
-          Done
-        </button>
+        {/* ── Toast ── */}
+        {toast && (
+          <div className={`${s.toast} ${s.show} ${toastKind === 'ai' ? s.ai : ''}`}>
+            {toast}
+          </div>
+        )}
+
+        {/* ── Picker overlay (manual entry) ── */}
+        {picker && (
+          <div className={s['picker-backdrop']} onClick={() => setPicker(null)}>
+            <div className={s['picker-sheet']} onClick={(e) => e.stopPropagation()}>
+              <div className={s['picker-header']}>SET {picker.field.toUpperCase()}</div>
+              <input
+                ref={pickerInputRef}
+                className={s['picker-input']}
+                type="number"
+                inputMode="decimal"
+                step={PICKER_CFG[picker.field].step}
+                min={PICKER_CFG[picker.field].min}
+                max={PICKER_CFG[picker.field].max}
+                value={picker.value}
+                onChange={(e) => setPicker((p) => p ? { ...p, value: e.target.value } : p)}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitPicker(); }}
+              />
+              <div className={s['picker-actions']}>
+                <button className={s['picker-cancel']} onClick={() => setPicker(null)}>CANCEL</button>
+                <button className={s['picker-ok']} onClick={commitPicker}>OK</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
