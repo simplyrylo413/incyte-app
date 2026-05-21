@@ -2207,7 +2207,7 @@
   body.light-mode .mpc-left-box {
     border-color: rgba(40,35,30,0.3) !important;
   }
-  body.light-mode .mpc-mark-label { color: rgba(40,35,30,0.7) !important; }
+  body.light-mode .mpc-mark-label { color: #1a1814 !important; }
   body.light-mode .active-set { color: #1a1814; background: rgba(26,24,20,0.06); border-color: rgba(26,24,20,0.2); text-shadow: none; }
   body.light-mode .active-set-counter { color: #1a1814; border-left-color: rgba(26,24,20,0.2); text-shadow: none; }
   body.light-mode .active-dot { background: #1a1814; box-shadow: none; }
@@ -2433,13 +2433,13 @@
   body.light-mode .popup-toggle-thumb { background: #8a8580; }
   /* Scale label divider lines — white in dark mode, muted in light */
   body.light-mode .mpc-scale-label::before,
-  body.light-mode .mpc-scale-label::after { background: rgba(40,35,30,0.18); }
+  body.light-mode .mpc-scale-label::after { background: #1a1814; opacity: 0.5; }
   /* Cassette window border — lighten from near-black */
   body.light-mode .cassette-svg-wrap { border-color: rgba(0,0,0,0.25); }
   /* Left I/O port arrows — hardcoded white SVG attributes, force dark via CSS fill */
-  body.light-mode .mpc-left-marks svg path { fill: rgba(40,35,30,0.4) !important; }
-  body.light-mode .mpc-left-marks svg path[fill="none"] { fill: none !important; stroke: rgba(40,35,30,0.4) !important; }
-  body.light-mode .mpc-left-marks svg rect { stroke: rgba(40,35,30,0.4) !important; }
+  body.light-mode .mpc-left-marks svg path { fill: #1a1814 !important; }
+  body.light-mode .mpc-left-marks svg path[fill="none"] { fill: none !important; stroke: #1a1814 !important; }
+  body.light-mode .mpc-left-marks svg rect { stroke: #1a1814 !important; }
   /* Panel strip dashed border — adapt to light */
   body.light-mode .panel-strip { border-bottom-color: rgba(40,35,30,0.12); }
 
@@ -3278,7 +3278,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 21:44';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 21:52';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
