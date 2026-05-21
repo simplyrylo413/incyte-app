@@ -1887,6 +1887,16 @@
     padding: 0;
   }
   .mpc-pad::before { display: none; }
+  /* Press state: no shadow change, no translate — only the icon glow shows feedback */
+  .mpc-pad:active {
+    background: #38383c;
+    box-shadow:
+      0 6px 12px rgba(0,0,0,0.85),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 #060607,
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    transform: translateY(-2px);
+  }
 
   /* Active/pressed pad — stays raised, icon + pins glow */
   .mpc-pad-wrapper.active .mpc-pad {
@@ -2383,6 +2393,14 @@
   /* Panel strip dashed border — adapt to light */
   body.light-mode .panel-strip { border-bottom-color: rgba(40,35,30,0.12); }
 
+  /* Cassette SVG elements — hardcoded dark SVG fills, override via CSS fill property */
+  /* Shell: warm brown (vintage tape look) instead of cold near-black */
+  body.light-mode .cassette-shell { fill: rgba(95, 72, 48, 0.88); }
+  /* Label strip (WEIGHT/RPE/REPS display): warm near-black */
+  body.light-mode .cassette-label-strip { fill: rgba(28, 18, 8, 0.88); }
+  /* Timer strip (REST | 01:30 | TIMER): warm near-black */
+  body.light-mode .cassette-timer-strip { fill: #1c1208; }
+
 </style>
 </head>
 <body>
@@ -2620,7 +2638,7 @@
           <!-- Outer dark stroke (rim of glass) -->
           <rect x="2" y="2" width="356" height="171" rx="7" fill="none" stroke="#000" stroke-width="1.2"/>
           <!-- Faint glass tint -->
-          <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#shellGrad)"/>
+          <rect class="cassette-shell" x="2" y="2" width="356" height="171" rx="7" fill="url(#shellGrad)"/>
           <!-- Vertical edge highlights (bright rim refraction left/right) -->
           <rect x="2" y="2" width="356" height="171" rx="7" fill="url(#shellEdgeH)" opacity="0.9"/>
           <!-- Horizontal edge highlights (top/bottom rim) -->
@@ -2682,7 +2700,7 @@
                   stroke-linecap="round" pointer-events="none"/>
 
           <!-- Expanded dark label strip — numbers now fill the box with 3px breathing room -->
-          <rect x="22" y="10" width="316" height="48" rx="3" fill="url(#labelGrad)" stroke="#000" stroke-width="0.8"/>
+          <rect class="cassette-label-strip" x="22" y="10" width="316" height="48" rx="3" fill="url(#labelGrad)" stroke="#000" stroke-width="0.8"/>
           <rect x="23" y="11" width="314" height="46" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
           <!-- Three small white labels: WEIGHT / RPE / REPS -->
           <text x="32" y="20" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">WEIGHT</text>
@@ -2903,7 +2921,7 @@
 
           <!-- Bottom info strip -->
           <g>
-            <rect x="22" y="144" width="316" height="23" rx="3" fill="#050607" stroke="#000" stroke-width="0.8"/>
+            <rect class="cassette-timer-strip" x="22" y="144" width="316" height="23" rx="3" fill="#050607" stroke="#000" stroke-width="0.8"/>
             <rect x="23" y="145" width="314" height="21" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
             <!-- Timer in center -->
             <g style="cursor:pointer" id="timerStrip">
@@ -3210,7 +3228,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:55';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:32';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
@@ -4183,6 +4201,14 @@ document.querySelectorAll('.mpc-pad-wrapper').forEach(wrapper => {
     lightOn = on;
     document.body.classList.toggle('light-mode', on);
     toggle.classList.toggle('on', on);
+    // Cassette SVG shell: CSS fill can't override fill="url(#gradient)" on iOS Safari,
+    // so we set the attribute directly for reliable cross-browser light mode.
+    const shell = document.querySelector('.cassette-shell');
+    if (shell) shell.setAttribute('fill', on ? 'rgba(95,72,48,0.88)' : 'url(#shellGrad)');
+    const labelStrip = document.querySelector('.cassette-label-strip');
+    if (labelStrip) labelStrip.setAttribute('fill', on ? 'rgba(28,18,8,0.88)' : 'url(#labelGrad)');
+    const timerStrip = document.querySelector('.cassette-timer-strip');
+    if (timerStrip) timerStrip.setAttribute('fill', on ? '#1c1208' : '#050607');
     // Picker fades reference the strip bg color — update them
     document.querySelectorAll('.picker-fade-l, .picker-fade-r').forEach(el => {
       el.style.opacity = on ? '1' : ''; // CSS handles the color via body.light-mode
