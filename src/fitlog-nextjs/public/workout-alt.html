@@ -361,8 +361,8 @@
     top: 3px; right: 3px;
     width: 3px; height: 3px;
     border-radius: 50%;
-    background: var(--yellow);
-    box-shadow: 0 0 4px var(--yellow);
+    background: #4ecb71;
+    box-shadow: 0 0 4px rgba(78,203,113,0.9);
     animation: ledBlink 1.5s infinite;
   }
   .ai-btn .ai-big {
@@ -387,8 +387,11 @@
     flex: none !important;
     position: relative;
     align-self: stretch !important;
+    align-items: center !important;
+    text-align: center;
   }
   .ai-nav-btn .nav-icon { font-family: 'Black Ops One', sans-serif; font-size: 10px; letter-spacing: 1px; }
+  .ai-nav-btn .nav-label { text-align: center; width: 100%; }
 
   /* ── LED scrolling ticker ── */
   .led-ticker-wrap {
@@ -2433,7 +2436,7 @@
   body.light-mode .popup-toggle-thumb { background: #8a8580; }
   /* Scale label divider lines — white in dark mode, muted in light */
   body.light-mode .mpc-scale-label::before,
-  body.light-mode .mpc-scale-label::after { background: #1a1814; opacity: 0.5; }
+  body.light-mode .mpc-scale-label::after { background: #1a1814; opacity: 1; }
   /* Cassette window border — lighten from near-black */
   body.light-mode .cassette-svg-wrap { border-color: rgba(0,0,0,0.25); }
   /* Left I/O port arrows — hardcoded white SVG attributes, force dark via CSS fill */
@@ -2442,6 +2445,41 @@
   body.light-mode .mpc-left-marks svg rect { stroke: #1a1814 !important; }
   /* Panel strip dashed border — adapt to light */
   body.light-mode .panel-strip { border-bottom-color: rgba(40,35,30,0.12); }
+
+  /* Top nav + cassette buttons: no outer drop shadow on press in light mode */
+  body.light-mode .nav-btn:active {
+    background: #a8a39c !important;
+    color: rgba(26,24,20,0.9) !important;
+    text-shadow: none !important;
+    transition: none !important;
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset -1px -1.5px 0 rgba(0,0,0,0.12),
+      inset 0 -2px 5px rgba(0,0,0,0.1) !important;
+    transform: translateY(1px);
+  }
+  body.light-mode #aiBtn:active {
+    background: #f5ec00 !important;
+    color: #1a1208 !important;
+    text-shadow: none !important;
+    transition: none !important;
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset -1px -1.5px 0 rgba(0,0,0,0.12),
+      inset 0 -2px 5px rgba(0,0,0,0.1) !important;
+  }
+  body.light-mode .cassette-open-btn:active,
+  body.light-mode .cassette-log-btn:active {
+    color: rgba(26,24,20,0.9) !important;
+    text-shadow: none !important;
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset -1px -1.5px 0 rgba(0,0,0,0.12),
+      inset 0 -2px 5px rgba(0,0,0,0.1) !important;
+  }
 
   /* Cassette SVG elements — hardcoded dark SVG fills, override via CSS fill property */
   /* Shell: warm brown (vintage tape look) instead of cold near-black */
@@ -2551,7 +2589,7 @@
         <!-- Hidden timer readout — kept so timer JS still updates it -->
         <span id="restTopVal" style="display:none">01:30</span>
         <button class="nav-btn ai-nav-btn" id="aiBtn" data-tab="AI">
-          <span class="ai-led" style="top:3px;right:3px;position:absolute;width:3px;height:3px;border-radius:50%;background:var(--yellow);box-shadow:0 0 4px var(--yellow);animation:ledBlink 1.5s infinite;"></span>
+          <span class="ai-led"></span>
           <span class="nav-icon">AI</span>
           <span class="nav-label">ASSIST</span>
         </button>
@@ -3278,7 +3316,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 21:52';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 23:08';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
