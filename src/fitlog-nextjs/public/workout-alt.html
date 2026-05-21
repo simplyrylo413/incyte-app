@@ -704,10 +704,10 @@
   .cassette-log-btn {
     flex: 1;
     padding: 6px 9px;
-    background: linear-gradient(145deg, #4a4a4e 0%, #38383c 35%, #28282c 100%);
+    background: #38383c;
     border: 1px solid #111113;
-    border-radius: 5px;
-    color: rgba(245,245,240,0.65);
+    border-radius: 3px;
+    color: rgba(245,245,240,0.9);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -719,16 +719,16 @@
     transition: transform 0.08s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out;
     position: relative;
     box-shadow:
-      inset 1.5px 1.5px 0 rgba(255,255,255,0.20),
-      inset 0 1px 0 rgba(255,255,255,0.12),
-      inset -1px -1.5px 0 rgba(0,0,0,0.65),
-      inset 0 -2px 5px rgba(0,0,0,0.45),
-      3px 8px 16px rgba(0,0,0,0.85),
-      1px 3px 6px rgba(0,0,0,0.65);
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      0 6px 12px rgba(0,0,0,0.85),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 #060607;
     text-shadow: none;
   }
   .cassette-open-btn::before,
   .cassette-log-btn::before { display: none; }
+  /* Log set always yellow */
+  .cassette-log-btn { color: var(--yellow); }
 
   /* Yellow glow on press */
   .cassette-open-btn:active,
@@ -1692,6 +1692,32 @@
   }
   .log-remove:active { transform: scale(0.88); }
 
+  .log-add {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 0.5px solid rgba(100,180,100,0.35);
+    background: transparent;
+    color: rgba(100,180,100,0.55);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, color 0.12s, border-color 0.12s, transform 0.1s;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0;
+    margin-left: 4px;
+  }
+  .log-add:hover {
+    background: rgba(60,160,60,0.18);
+    color: #80e080;
+    border-color: rgba(80,200,80,0.6);
+  }
+  .log-add:active { transform: scale(0.88); }
+
   /* ================= BOTTOM NAV — MPC CHASSIS (PROTOTYPE PORT) ================= */
   .mpc-chassis-wrap {
     flex-shrink: 0;
@@ -1862,53 +1888,26 @@
   }
   .mpc-pad::before { display: none; }
 
-  /* Active/pressed pad — recessed look */
+  /* Active/pressed pad — stays raised, icon + pins glow */
   .mpc-pad-wrapper.active .mpc-pad {
-    background: #242428;
+    background: #38383c;
     box-shadow:
-      inset 0 5px 10px rgba(0,0,0,0.75),
-      inset 0 2px 5px rgba(0,0,0,0.55),
-      inset 0 -3px 10px rgba(255,61,61,0.25);
-    border-color: #0a0a0c;
-    transform: translateY(2px);
+      0 6px 12px rgba(0,0,0,0.85),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 #060607,
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    border-color: #111113;
+    transform: translateY(-2px);
   }
   .mpc-pad-wrapper.active .mpc-pad::before { display: none; }
+  .mpc-pad-wrapper.active .mpc-pad::after { display: none; }
 
-  /* Red light-leak seam at bottom of active pad */
-  .mpc-pad-wrapper.active .mpc-pad::after {
-    content: '';
-    position: absolute;
-    bottom: 5px; left: 20%; right: 20%;
-    height: 1.5px;
-    background: #FF3D3D;
-    border-radius: 0.9px;
-    box-shadow: 0 0 6px #FF3D3D, 0 1px 4px rgba(255,61,61,0.95);
-    pointer-events: none;
-    z-index: 2;
+  /* Neon glow border — hidden; glow lives on the icon only */
+  .mpc-neon-glow { display: none; }
+  @keyframes iconPulse {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(255,61,61,1)) drop-shadow(0 0 10px rgba(255,61,61,0.55)); opacity: 1; }
+    50% { filter: drop-shadow(0 0 9px rgba(255,61,61,1)) drop-shadow(0 0 18px rgba(255,61,61,0.75)); opacity: 0.7; }
   }
-
-  /* Neon glow border — sits outside the pad */
-  .mpc-neon-glow {
-    position: absolute;
-    inset: -1.5px;
-    border-radius: 4px;
-    border: 1.8px solid #FF3D3D;
-    box-shadow:
-      0 0 11px rgba(255,61,61,1),
-      0 0 24px rgba(255,61,61,0.75),
-      0 0 45px rgba(255,61,61,0.4),
-      0 0 75px rgba(255,61,61,0.2),
-      inset 0 0 10px rgba(255,61,61,0.65);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.28s ease;
-    z-index: 3;
-  }
-  .mpc-pad-wrapper.active .mpc-neon-glow {
-    opacity: 1;
-    animation: mpcNeonBright 1.0s ease-in-out 0.3s infinite;
-  }
-  @keyframes mpcNeonBright { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
   /* Pad corner screws */
   .mpc-pad .mpc-screw {
@@ -1968,7 +1967,7 @@
   .mpc-pad-wrapper.active .mpc-icon svg [fill="#1a1a1c"] { fill: #FF3D3D; }
   .mpc-pad-wrapper.active .mpc-icon svg [stroke="#1a1a1c"] { stroke: #FF3D3D; }
   .mpc-pad-wrapper.active .mpc-icon svg {
-    filter: drop-shadow(0 0 5px rgba(255,61,61,1)) drop-shadow(0 0 10px rgba(255,61,61,0.6));
+    animation: iconPulse 1.6s ease-in-out infinite;
   }
 
   /* Footer spec label */
@@ -1988,11 +1987,11 @@
   .nav-btn {
     flex: 1;
     height: 53px;
-    background: linear-gradient(145deg, #4a4a4e 0%, #38383c 35%, #28282c 100%);
+    background: #38383c;
     border: 1px solid #111113;
-    border-radius: 5px;
+    border-radius: 3px;
     padding: 6px 4px;
-    color: rgba(245,245,240,0.65);
+    color: rgba(245,245,240,0.95);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -2003,12 +2002,10 @@
     transition: color 0.15s ease-out, text-shadow 0.15s ease-out, transform 0.08s;
     position: relative;
     box-shadow:
-      inset 1.5px 1.5px 0 rgba(255,255,255,0.20),
-      inset 0 1px 0 rgba(255,255,255,0.12),
-      inset -1px -1.5px 0 rgba(0,0,0,0.65),
-      inset 0 -2px 5px rgba(0,0,0,0.45),
-      3px 8px 16px rgba(0,0,0,0.85),
-      1px 3px 6px rgba(0,0,0,0.65);
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      0 6px 12px rgba(0,0,0,0.85),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 #060607;
   }
   .nav-btn::before { display: none; }
   .nav-btn::after  { display: none; }
@@ -2088,35 +2085,298 @@
   }
 
 
-  /* ================= TOAST ================= */
-  .toast {
-    position: fixed;
-    bottom: 140px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 30%),
-      linear-gradient(180deg, var(--yellow) 0%, var(--yellow-2) 100%);
-    color: #0a0b0c;
-    padding: 10px 18px;
+  /* ================= MORE POPUP ================= */
+  .more-popup {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    background: #1e2024;
+    border: 1px solid #3a3f44;
     border-radius: 8px;
-    font-family: 'Black Ops One', sans-serif;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
+    padding: 8px 4px;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.5);
     z-index: 100;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .more-popup.open { display: flex; }
+  .more-popup::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; right: 18px;
+    width: 10px; height: 10px;
+    background: #1e2024;
+    border-right: 1px solid #3a3f44;
+    border-bottom: 1px solid #3a3f44;
+    transform: rotate(45deg);
+  }
+  .popup-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 5px;
+    gap: 16px;
+    cursor: pointer;
+  }
+  .popup-row:hover { background: rgba(255,255,255,0.05); }
+  .popup-row-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(245,245,240,0.75);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  /* Toggle switch */
+  .popup-toggle {
+    position: relative;
+    width: 32px; height: 18px;
+    flex-shrink: 0;
+  }
+  .popup-toggle input { display: none; }
+  .popup-toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #2a2e33;
+    border-radius: 9px;
+    border: 1px solid #3a3f44;
+    transition: background 0.2s;
+  }
+  .popup-toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #6a6e72;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .popup-toggle.on .popup-toggle-track { background: #2a4a2a; border-color: #50e030; }
+  .popup-toggle.on .popup-toggle-thumb { transform: translateX(14px); background: #50e030; }
+
+  /* ================= LIGHT MODE ================= */
+  body.light-mode {
+    background: #b8b4ae;
+    --text: #1a1814;
+    --text-dim: #7a7670;
+    --text-mid: #5a5550;
+  }
+  body.light-mode .sticky-top { background: #d4cfc8; }
+  body.light-mode .phone {
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.88  0 0 0 0 0.85  0 0 0 0.06 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
+      radial-gradient(ellipse at 30% 0%, #e0dbd4 0%, #d4cfc8 45%, #c8c3bc 100%);
+    border-color: #a8a39c;
     box-shadow:
-      0 4px 22px rgba(0,0,0,0.8),
-      0 0 26px rgba(245,236,0,0.5),
-      inset 0 1px 0 rgba(255,255,255,0.4);
-    border: 1px solid var(--yellow-dark);
+      inset 0 0 90px rgba(255,255,255,0.3),
+      inset 0 0 0 1px rgba(255,255,255,0.6),
+      0 0 60px rgba(0,0,0,0.4);
   }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
+  body.light-mode .rivet {
+    background: radial-gradient(circle at 30% 30%, #d8d3cc 0%, #a8a39c 50%, #787370 100%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.3);
   }
+  body.light-mode .status-bar {
+    background: linear-gradient(180deg, #cac5be 0%, #c0bbb4 100%);
+    border-bottom-color: #a8a39c;
+    color: #5a5550;
+  }
+  body.light-mode .mpc-chassis {
+    background: #cac5be;
+    border-color: #a8a39c;
+    box-shadow:
+      0 16px 32px rgba(0,0,0,0.25),
+      0 4px 8px rgba(0,0,0,0.15),
+      0 0 0 1px #b8b3ac;
+  }
+  body.light-mode .mpc-left-box {
+    border-color: rgba(40,35,30,0.3);
+  }
+  body.light-mode .mpc-mark-label { color: rgba(40,35,30,0.5); }
+  body.light-mode .mpc-scale-label { color: rgba(40,35,30,0.45); }
+  body.light-mode .mpc-footer-spec { color: rgba(40,35,30,0.5); }
+  body.light-mode .mpc-pin { background: #888380; box-shadow: none; }
+  body.light-mode .mpc-pad {
+    background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+    border-color: #a09b94;
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset -1px -1.5px 0 rgba(0,0,0,0.15),
+      inset 0 -2px 5px rgba(0,0,0,0.12),
+      3px 8px 16px rgba(0,0,0,0.2),
+      1px 3px 6px rgba(0,0,0,0.12);
+  }
+  body.light-mode .mpc-pad-wrapper.active .mpc-pad {
+    background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+    border-color: #a09b94;
+  }
+  body.light-mode .mpc-icon svg rect { fill: #a09b94; }
+  body.light-mode .nav-btn {
+    background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+    border-color: #a09b94;
+    color: rgba(40,35,30,0.8);
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.7),
+      inset -1px -1.5px 0 rgba(0,0,0,0.15),
+      3px 8px 16px rgba(0,0,0,0.2);
+  }
+  body.light-mode .nav-btn.active {
+    background: #b0aba4;
+    border-color: #8a8580;
+    color: var(--yellow);
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.1), inset 0 -1px 0 rgba(255,255,255,0.3);
+  }
+  body.light-mode .cassette-open-btn,
+  body.light-mode .cassette-log-btn {
+    background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+    border-color: #a09b94;
+    box-shadow:
+      inset 1.5px 1.5px 0 rgba(255,255,255,0.7),
+      inset -1px -1.5px 0 rgba(0,0,0,0.15),
+      3px 8px 16px rgba(0,0,0,0.2);
+  }
+  body.light-mode .scroll-picker {
+    background: #d4cfc8;
+    border-color: #a8a39c;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.12), inset 0 -1px 0 rgba(255,255,255,0.4);
+  }
+  body.light-mode .scroll-picker::before,
+  body.light-mode .scroll-picker::after {
+    background-image: repeating-linear-gradient(90deg,
+      transparent 0, transparent 14px,
+      rgba(0,0,0,0.12) 14px, rgba(0,0,0,0.12) 15px);
+  }
+  body.light-mode .picker-fade-l { background: linear-gradient(90deg, #d4cfc8 0%, transparent 100%); }
+  body.light-mode .picker-fade-r { background: linear-gradient(270deg, #d4cfc8 0%, transparent 100%); }
+  body.light-mode .scroll-item { color: #8a8580; }
+  body.light-mode .scroll-item.near { color: #5a5550; }
+  body.light-mode .scroll-item.selected { color: var(--yellow); }
+  body.light-mode .marker-top,
+  body.light-mode .marker-bot,
+  body.light-mode .marker-center-l,
+  body.light-mode .marker-center-r { background: var(--yellow); }
+  body.light-mode .fader-track {
+    background: linear-gradient(180deg, #b0aba4 0%, #c0bbb4 50%, #b0aba4 100%);
+    border-color: #98938c;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(255,255,255,0.3);
+  }
+  body.light-mode .fader-thumb {
+    background: linear-gradient(180deg, #d8d3cc 0%, #c0bbb4 100%);
+    border-color: #a09b94;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  body.light-mode .fader-bar { background: #a8a39c; }
+  body.light-mode .fader-bar.on { background: var(--yellow); box-shadow: 0 0 4px rgba(245,236,0,0.5); }
+  body.light-mode .fader-bar.on.hot { background: #ff5030; box-shadow: 0 0 4px rgba(255,80,48,0.6); }
+  body.light-mode .fader-ticks { border-color: rgba(0,0,0,0.15); }
+  body.light-mode .fader-zero { background: rgba(0,0,0,0.2); }
+  /* Base panel — covers cassette-panel-inner and mixer-panel */
+  body.light-mode .panel {
+    background: #d0cbc4 !important;
+    border-color: #a8a39c !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(0,0,0,0.08),
+      0 2px 4px rgba(0,0,0,0.12) !important;
+  }
+  body.light-mode .mixer-panel {
+    background: #cac5be !important;
+    border-color: #a8a39c !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(0,0,0,0.08),
+      0 2px 4px rgba(0,0,0,0.12) !important;
+  }
+  /* Fader labels */
+  body.light-mode .fader-name,
+  body.light-mode .fader-unit { color: rgba(40,35,30,0.55); }
+  body.light-mode .fader-value { color: rgba(40,35,30,0.9); }
+  body.light-mode .panel-rivet {
+    background: radial-gradient(circle at 30% 30%, #d8d3cc 0%, #a8a39c 50%, #787370 100%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.2);
+  }
+  body.light-mode .cassette-panel {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 8%),
+      linear-gradient(180deg, #d0cbc4 0%, #b8b3ac 12%, #c8c3bc 50%, #b8b3ac 88%, #d0cbc4 100%) !important;
+    border-color: #a8a39c !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -1px 0 rgba(255,255,255,0.4),
+      0 4px 12px rgba(0,0,0,0.15) !important;
+  }
+  body.light-mode .cassette-panel > .panel-rivet {
+    background: radial-gradient(circle at 30% 30%, #e8e3dc 0%, #c0bbb4 60%, #8a8580 100%) !important;
+  }
+  body.light-mode .cassette-panel-inner {
+    background: linear-gradient(180deg, #d4cfc8 0%, #c8c3bc 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 0 0 1px rgba(0,0,0,0.08),
+      inset 0 2px 6px rgba(0,0,0,0.06);
+  }
+  body.light-mode .panel-strip {
+    border-bottom-color: rgba(0,0,0,0.1);
+    color: rgba(40,35,30,0.5);
+  }
+  body.light-mode .cassette-top-block { color: rgba(40,35,30,0.5); }
+  body.light-mode .nav-section-header { color: rgba(40,35,30,0.5); border-bottom-color: rgba(40,35,30,0.15); }
+  /* White text → dark */
+  body.light-mode .cassette-open-btn { color: rgba(40,35,30,0.75) !important; }
+  body.light-mode .nav-btn { color: rgba(40,35,30,0.7) !important; }
+  body.light-mode .mpc-icon svg path { stroke: #5a5550; }
+  body.light-mode .mpc-icon svg rect { fill: #5a5550 !important; }
+  /* Timer / rest labels */
+  body.light-mode .rest-label, body.light-mode .timer-label { color: rgba(40,35,30,0.55); }
+  /* White trim outlines → subtle dark */
+  body.light-mode .mpc-left-box {
+    border-color: rgba(40,35,30,0.2);
+  }
+  body.light-mode .cassette-panel-inner {
+    background: linear-gradient(180deg, #d4cfc8 0%, #c8c3bc 100%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      inset 0 0 0 1px rgba(0,0,0,0.08),
+      inset 0 2px 6px rgba(0,0,0,0.06) !important;
+  }
+  /* Mixer panel — fader slide-out */
+  body.light-mode .mixer-panel {
+    background: #cac5be !important;
+    border-color: #a8a39c !important;
+  }
+  /* Content scroll background */
+  body.light-mode .content, body.light-mode .scroll-content,
+  body.light-mode .log-section, body.light-mode .set-list-wrap { background: transparent; }
+  /* Set list text */
+  body.light-mode .log-header, body.light-mode .set-row,
+  body.light-mode .section-label { color: rgba(40,35,30,0.7); }
+  body.light-mode .set-row { border-bottom-color: rgba(40,35,30,0.1); }
+  /* More popup in light mode */
+  body.light-mode .more-popup {
+    background: #e8e3dc;
+    border-color: #a8a39c;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.1);
+  }
+  body.light-mode .more-popup::after { background: #e8e3dc; border-color: #a8a39c; }
+  body.light-mode .popup-row-label { color: rgba(40,35,30,0.75); }
+  body.light-mode .popup-row:hover { background: rgba(0,0,0,0.05); }
+  body.light-mode .popup-toggle-track { background: #c8c3bc; border-color: #a8a39c; }
+  body.light-mode .popup-toggle-thumb { background: #8a8580; }
+  /* Scale label divider lines — white in dark mode, muted in light */
+  body.light-mode .mpc-scale-label::before,
+  body.light-mode .mpc-scale-label::after { background: rgba(40,35,30,0.18); }
+  /* Cassette window border — lighten from near-black */
+  body.light-mode .cassette-svg-wrap { border-color: rgba(0,0,0,0.25); }
+  /* Left I/O port arrows — hardcoded white SVG attributes, force dark via CSS fill */
+  body.light-mode .mpc-left-marks svg path { fill: rgba(40,35,30,0.4) !important; }
+  body.light-mode .mpc-left-marks svg path[fill="none"] { fill: none !important; stroke: rgba(40,35,30,0.4) !important; }
+  body.light-mode .mpc-left-marks svg rect { stroke: rgba(40,35,30,0.4) !important; }
+  /* Panel strip dashed border — adapt to light */
+  body.light-mode .panel-strip { border-bottom-color: rgba(40,35,30,0.12); }
+
 </style>
 </head>
 <body>
@@ -2405,6 +2665,16 @@
           <line x1="180" y1="142" x2="180" y2="160" stroke="rgba(255,255,255,0.04)" stroke-width="0.4"/>
 
 
+          <!-- Timer countdown rings — drawn before label strip so top arc hides behind it -->
+          <!-- r=46, stroke-width=3.85 (75% thicker than original 2.2, extra biased inward) -->
+          <!-- stroke-dasharray driven by JS: "${arcLen} 289" shrinks clockwise from the clockwise end -->
+          <circle id="reelRingL" cx="95"  cy="100" r="46" fill="none" stroke="#ff2020" stroke-width="3.85"
+                  stroke-dasharray="0 289" stroke-dashoffset="0"
+                  stroke-linecap="round" pointer-events="none"/>
+          <circle id="reelRingR" cx="265" cy="100" r="46" fill="none" stroke="#ff2020" stroke-width="3.85"
+                  stroke-dasharray="0 289" stroke-dashoffset="0"
+                  stroke-linecap="round" pointer-events="none"/>
+
           <!-- Expanded dark label strip — numbers now fill the box with 3px breathing room -->
           <rect x="22" y="10" width="316" height="48" rx="3" fill="url(#labelGrad)" stroke="#000" stroke-width="0.8"/>
           <rect x="23" y="11" width="314" height="46" rx="2" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
@@ -2412,9 +2682,9 @@
           <text x="32" y="20" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">WEIGHT</text>
           <text x="328" y="20" text-anchor="end" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">REPS</text>
           <!-- BIG yellow numbers — WEIGHT / RPE / REPS, vertically centered with 3px padding -->
-          <text x="95" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="weightReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">225</text>
+          <text x="95" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="weightReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">135</text>
           <text x="180" y="20" text-anchor="middle" fill="#ffffff" font-family="Share Tech Mono, monospace" font-size="10.5" letter-spacing="1" font-weight="700">RPE</text>
-          <text x="180" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="rpeReadoutTop" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">8</text>
+          <text x="180" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="-1.5" id="rpeReadoutTop" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">—</text>
           <text x="265" y="40" text-anchor="middle" dominant-baseline="central" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="38" font-weight="700" letter-spacing="1" id="repsReadout" style="filter: drop-shadow(0 0 5px rgba(245,236,0,0.7))">19</text>
           <!-- Tiny bottom hint -->
           <text x="180" y="54" text-anchor="middle" fill="#5a6065" font-family="Barlow Condensed, sans-serif" font-size="5" letter-spacing="2" font-weight="700" opacity="0.75">— SPIN TO ADJUST —</text>
@@ -2494,7 +2764,7 @@
             <rect x="152" y="62" width="56" height="78" rx="4" fill="#050607" stroke="#000" stroke-width="1"/>
             <rect x="153" y="63" width="54" height="76" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
             <!-- RPE value -->
-            <text x="180" y="138" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="9" font-weight="700" letter-spacing="1" id="rpeReadout" style="filter: drop-shadow(0 0 3px rgba(245,236,0,0.7))">8</text>
+            <text x="180" y="138" text-anchor="middle" fill="#f5ec00" font-family="Share Tech Mono, monospace" font-size="9" font-weight="700" letter-spacing="-0.5" id="rpeReadout" style="filter: drop-shadow(0 0 3px rgba(245,236,0,0.7))">—</text>
 
             <!-- VU meter bars (also doubles as RPE indicator when timer is idle) -->
             <g id="vuBars" transform="translate(157, 77)">
@@ -2590,6 +2860,10 @@
           <!-- Soft light leak top-left -->
           <ellipse cx="60" cy="30" rx="50" ry="14" fill="rgba(255,255,255,0.07)" pointer-events="none"/>
 
+          <!-- Spoke-area countdown sectors — annular (r22–41), erase clockwise in sync with rings -->
+          <path id="reelSectorL" d="" fill="rgba(255,28,28,0.72)" fill-rule="evenodd" pointer-events="none"/>
+          <path id="reelSectorR" d="" fill="rgba(255,28,28,0.72)" fill-rule="evenodd" pointer-events="none"/>
+
           <!-- Felt pressure pad behind the tape window (between reels, below center) -->
           <rect x="148" y="132" width="64" height="8" rx="0.5" fill="url(#feltPad)" stroke="#000" stroke-width="0.4"/>
           <rect x="148" y="132" width="64" height="8" rx="0.5" fill="url(#hatch)" opacity="0.6"/>
@@ -2649,7 +2923,7 @@
       <div class="cassette-btn-row">
         <button type="button" class="cassette-open-btn" id="faderToggle" aria-expanded="false">
           <span class="open-arrow">▼</span>
-          <span class="open-label">OPEN</span>
+          <span class="open-label">ADJUST</span>
           <span class="open-arrow">▼</span>
         </button>
         <button type="button" class="cassette-log-btn" id="logSetBtn2">
@@ -2673,7 +2947,7 @@
         <div class="fader-col">
           <div class="fader-head">
             <div class="fader-name">WEIGHT</div>
-            <div class="fader-value" id="fadVal-weight">225</div>
+            <div class="fader-value" id="fadVal-weight">135</div>
             <div class="fader-unit">LB</div>
           </div>
           <div class="fader-track" data-key="weight">
@@ -2688,7 +2962,7 @@
         <div class="fader-col">
           <div class="fader-head">
             <div class="fader-name">RPE</div>
-            <div class="fader-value" id="fadVal-rpe">8</div>
+            <div class="fader-value" id="fadVal-rpe">—</div>
             <div class="fader-unit">1–10</div>
           </div>
           <div class="fader-track" data-key="rpe">
@@ -2802,7 +3076,7 @@
     <!-- LOG -->
     <div class="panel log-panel">
       <div class="log-header">
-        <div class="log-title">LOGGED SETS</div>
+        <div class="log-title">SET LIST</div>
         <div class="log-day">
           <span>TODAY</span>
           <svg><use href="#i-calendar"/></svg>
@@ -2902,9 +3176,18 @@
           </div>
 
           <!-- MORE -->
-          <div class="mpc-pad-wrapper" data-tab="MORE">
+          <div class="mpc-pad-wrapper" data-tab="MORE" style="position:relative;">
+            <div id="morePopup" class="more-popup">
+              <div class="popup-row" id="lightModeRow">
+                <span class="popup-row-label">LIGHT MODE</span>
+                <div class="popup-toggle" id="lightModeToggle">
+                  <div class="popup-toggle-track"></div>
+                  <div class="popup-toggle-thumb"></div>
+                </div>
+              </div>
+            </div>
             <div class="mpc-pin-row"><span class="mpc-pin"></span><span class="mpc-pin"></span><span class="mpc-pin"></span></div>
-            <button class="mpc-pad" aria-label="More">
+            <button class="mpc-pad" aria-label="More" id="morePad">
               <span class="mpc-neon-glow"></span>
               <span class="mpc-led"></span>
               <div class="mpc-icon">
@@ -2920,13 +3203,13 @@
           </div>
 
         </div><!-- .mpc-pads -->
-        <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH</div>
+        <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:18';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
   </div><!-- .mpc-chassis-wrap -->
 
-  <div class="toast" id="toast">SET LOGGED</div>
 </div>
 
 <script>
@@ -3029,34 +3312,20 @@ function scrambleLedText(text, opts) {
 
 const _p = window.__urlParams || new URLSearchParams();
 const state = {
-  weight: Number(_p.get('weight')) || 225,
+  weight: Number(_p.get('weight')) || 135,
   reps:   Number(_p.get('reps'))   || 19,
-  rpe:    Number(_p.get('rpe'))    || 8,
-  totalSets:   Number(_p.get('sets')) || 6,
+  rpe:    Number(_p.get('rpe'))    || 0,
+  totalSets:   Number(_p.get('sets')) || 1,
   currentSet: 1,
   restSeconds: Number(_p.get('rest')) || 90,
   timerRunning: false,
   timerRemaining: 90,
   timerInterval: null,
   vuInterval: null,
-  logs: [
-    { num: 1, tags: ['WU'], weight: 95,  reps: 10, done: true  },
-    { num: 2, tags: [],     weight: 115, reps: 10, done: true  },
-    { num: 3, tags: ['WS'], weight: null,reps: null,done: false },
-    { num: 4, tags: ['WS'],      weight: 155, reps: 10, done: false },
-    { num: 5, tags: ['WS'],      weight: 155, reps: 10, done: false },
-    { num: 6, tags: ['WS'],      weight: 155, reps: 10, done: false },
-  ],
+  logs: [{ num: 1, tags: ['WS'], weight: null, reps: null, done: false }],
 };
 
 /* ============== HELPERS ============== */
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => t.classList.remove('show'), 1500);
-}
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -3067,28 +3336,101 @@ function formatTime(sec) {
 /* ============== SCROLL PICKERS ============== */
 const pickerConfigs = {
   // curve > 1 = more sensitive at the low end (less fader travel per unit at the bottom)
-  weight: { id: 'weightTrack', min: 5, max: 500, faderMax: 200, step: 5, curve: 2 },
+  weight: { id: 'weightTrack', min: 5, max: 300, faderMax: 300, step: 5, curve: 2 },
   reps:   { id: 'repsTrack',   min: 1, max: 30,  step: 1 },
-  rpe:    { id: 'rpeTrack',    min: 1, max: 10,  step: 1 },
+  rpe:    { id: 'rpeTrack',    min: 0, max: 10,  step: 1 },
 };
 
 function buildPicker(key) {
   const cfg = pickerConfigs[key];
   const track = document.getElementById(cfg.id);
   track.innerHTML = '';
-  for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
+  for (let i = 0; cfg.min + i * cfg.step <= cfg.max + 1e-9; i++) {
+    const v = Math.round((cfg.min + i * cfg.step) * 100) / 100;
     const el = document.createElement('div');
     el.className = 'scroll-item';
-    el.textContent = v;
+    el.textContent = (key === 'rpe' && v === 0) ? '—' : v;
     el.dataset.value = v;
-    el.addEventListener('click', () => setValue(key, v, true));
     track.appendChild(el);
   }
+  // Encoder drives value during touch; suppress scroll-position-based updates while finger is down
+  let touching = false;
   let scrollTimer;
   track.addEventListener('scroll', () => {
+    if (touching) return;
     updateSelectedFromScroll(key, false);
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => updateSelectedFromScroll(key, true), 100);
+  });
+  attachEncoderScroll(track, key,
+    () => { touching = true; },
+    () => { touching = false; }
+  );
+}
+
+/* Encoder-style scroll — relative drag: finger travel = value steps.
+   Weight picker is velocity-sensitive: slow drag = high threshold, fast swipe = low threshold.
+   Reps/RPE use a flat threshold. */
+function attachEncoderScroll(track, key, onStart, onEnd) {
+  let lastStepX = null;
+  let prevMoveX = null, prevMoveT = null, moveVel = 0;
+
+  function stepPxForVelocity() {
+    if (key !== 'weight') return 80;
+    // px/ms → step threshold: slow finger barely moves, fast flick scrolls freely
+    if (moveVel > 1.5)  return 55;   // fast flick
+    if (moveVel > 0.8)  return 100;  // medium
+    if (moveVel > 0.2)  return 160;  // slow
+    return 240;                       // very slow / near-stationary
+  }
+
+  track.addEventListener('touchstart', e => {
+    e.preventDefault();
+    onStart();
+    const trackRect = track.getBoundingClientRect();
+    const centerX = trackRect.left + trackRect.width / 2;
+    const touchX = e.touches[0].clientX;
+    if (Math.abs(touchX - centerX) <= 48) {
+      lastStepX = touchX;
+      prevMoveX = touchX;
+      prevMoveT = Date.now();
+      moveVel = 0;
+    }
+  }, { passive: false });
+
+  track.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (lastStepX === null) return;
+    const x = e.touches[0].clientX;
+    const t = Date.now();
+
+    // Update velocity estimate (px/ms, smoothed)
+    if (prevMoveT !== null) {
+      const dt = Math.max(t - prevMoveT, 1);
+      const raw = Math.abs(x - prevMoveX) / dt;
+      moveVel = moveVel * 0.4 + raw * 0.6;
+    }
+    prevMoveX = x;
+    prevMoveT = t;
+
+    const stepPx = stepPxForVelocity();
+    const delta = lastStepX - x; // positive = dragged left = higher value
+    if (Math.abs(delta) >= stepPx) {
+      // Fire exactly one step and fully reset reference — prevents multi-step jumps
+      const dir = Math.sign(delta);
+      const cfg = pickerConfigs[key];
+      const newVal = Math.max(cfg.min, Math.min(cfg.max,
+        Math.round((state[key] + dir * cfg.step) * 1000) / 1000));
+      setValue(key, newVal, false);
+      lastStepX = x; // full reset, no remainder carry-over
+    }
+  }, { passive: false });
+
+  track.addEventListener('touchend', () => {
+    lastStepX = null;
+    prevMoveX = null; prevMoveT = null; moveVel = 0;
+    onEnd();
+    setValue(key, state[key], true);
   });
 }
 
@@ -3121,7 +3463,7 @@ function updateSelectedFromScroll(key, finalize = true) {
   });
 
   if (closest && finalize) {
-    const v = parseInt(closest.dataset.value, 10);
+    const v = parseFloat(closest.dataset.value);
     state[key] = v;
     const itemRect = closest.getBoundingClientRect();
     const offset = (itemRect.left + itemRect.width/2) - centerX;
@@ -3139,7 +3481,7 @@ function setValue(key, value, scroll = true) {
   if (track) {
     const items = track.querySelectorAll('.scroll-item');
     items.forEach(item => {
-      if (parseInt(item.dataset.value, 10) === value) {
+      if (parseFloat(item.dataset.value) === value) {
         if (scroll) item.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         setTimeout(() => updateSelectedFromScroll(key, false), 60);
       }
@@ -3158,15 +3500,14 @@ function updateReadouts() {
   const pt = document.getElementById('rpeReadoutTop');
   if (w) w.textContent = state.weight;
   if (r) r.textContent = state.reps;
-  if (p) p.textContent = state.rpe;
-  if (pt) pt.textContent = state.rpe;
+  if (p) p.textContent = state.rpe === 0 ? '—' : state.rpe;
+  if (pt) pt.textContent = state.rpe === 0 ? '—' : state.rpe;
   // Light up VU bars to reflect RPE (when timer is idle)
   if (!state.timerRunning) {
     const bars = document.getElementById('vuBars');
     if (bars) {
       const total = bars.children.length;
-      // RPE 1-10 → light up 1-9 bars (cap at 9)
-      const lit = Math.min(total, Math.round((state.rpe / 10) * total));
+      const lit = state.rpe === 0 ? 0 : Math.min(total, Math.round((state.rpe / 10) * total));
       for (let i = 0; i < total; i++) {
         if (i < lit) {
           bars.children[i].setAttribute('fill', i >= 7 ? '#ff3030' : '#f5ec00');
@@ -3251,7 +3592,7 @@ window.__reelRot = { weight: 0, reps: 0 };
     }
     // Update digital readout above the fader
     const val = document.getElementById(`fadVal-${key}`);
-    if (val) val.textContent = state[key];
+    if (val) val.textContent = (key === 'rpe' && state[key] === 0) ? '—' : state[key];
   }
   // Expose so setValue() can refresh fader visuals
   window.__paintFader = paintFader;
@@ -3270,6 +3611,30 @@ window.__reelRot = { weight: 0, reps: 0 };
   }
 
   let activeTrack = null;
+  let faderLastY = null;
+  let faderPrevY = null, faderPrevT = null, faderVel = 0;
+
+  function faderStepPx(key) {
+    // Weight: 59 steps (reference). Reps: 29 steps (~0.5x). RPE: 10 steps (~0.17x).
+    // Thresholds scale down so traversing each picker's full range takes similar effort.
+    if (key === 'weight') {
+      if (faderVel > 1.5) return 5;
+      if (faderVel > 0.8) return 14;
+      if (faderVel > 0.2) return 18;
+      return 18;
+    }
+    if (key === 'reps') {
+      if (faderVel > 1.5) return 5;
+      if (faderVel > 0.8) return 14;
+      if (faderVel > 0.2) return 18;
+      return 18;
+    }
+    // rpe — 20% slower than weight/reps
+    if (faderVel > 1.5) return 6;
+    if (faderVel > 0.8) return 17;
+    if (faderVel > 0.2) return 22;
+    return 22;
+  }
 
   function onDown(e) {
     const track = e.currentTarget;
@@ -3277,19 +3642,30 @@ window.__reelRot = { weight: 0, reps: 0 };
     track.classList.add('dragging');
     const pt = e.touches ? e.touches[0] : e;
     lastDragY = pt.clientY;
-    handleDrag(track, pt.clientY);
+    faderLastY = pt.clientY;
+    faderPrevY = pt.clientY;
+    faderPrevT = Date.now();
+    faderVel = 0; // start in near-stationary bucket (20px) until movement detected
     e.preventDefault();
   }
   function onMove(e) {
     if (!activeTrack) return;
     const pt = e.touches ? e.touches[0] : e;
     const currentY = pt.clientY;
-    const deltaY = currentY - lastDragY;  // > 0 means moved DOWN, < 0 means moved UP
+    const deltaY = currentY - lastDragY;
     lastDragY = currentY;
 
-    // Rotate the reel based on drag direction:
-    //   push UP (deltaY < 0) → rotate clockwise (positive degrees / right)
-    //   push DOWN (deltaY > 0) → rotate counter-clockwise (negative degrees / left)
+    // Update velocity estimate
+    const t = Date.now();
+    if (faderPrevT !== null) {
+      const dt = Math.max(t - faderPrevT, 1);
+      const raw = Math.abs(currentY - faderPrevY) / dt;
+      faderVel = faderVel * 0.4 + raw * 0.6;
+    }
+    faderPrevY = currentY;
+    faderPrevT = t;
+
+    // Rotate reel based on drag direction
     const key = activeTrack.dataset.key;
     if (key === 'weight' && reelL) {
       visualRot.weight -= deltaY * ROT_PER_PX;
@@ -3298,13 +3674,28 @@ window.__reelRot = { weight: 0, reps: 0 };
       visualRot.reps -= deltaY * ROT_PER_PX;
       reelR.setAttribute('transform', `rotate(${visualRot.reps} 265 100)`);
     }
-    handleDrag(activeTrack, currentY);
+
+    // Encoder: one step per threshold crossed, full reset after each step
+    const yDelta = faderLastY - currentY; // positive = dragged UP = increase value
+    const stepPx = faderStepPx(key);
+    if (Math.abs(yDelta) >= stepPx) {
+      const dir = Math.sign(yDelta);
+      const cfg = pickerConfigs[key];
+      const newVal = Math.max(cfg.min, Math.min(cfg.max,
+        Math.round((state[key] + dir * cfg.step) * 1000) / 1000));
+      setValue(key, newVal, false);
+      faderLastY = currentY;
+      paintFader(key);
+    }
+
     e.preventDefault();
   }
   function onUp() {
     if (!activeTrack) return;
     activeTrack.classList.remove('dragging');
     lastDragY = null;
+    faderLastY = null;
+    faderPrevY = null; faderPrevT = null; faderVel = 0;
     activeTrack = null;
   }
 
@@ -3500,11 +3891,24 @@ function renderLog() {
         state.logs.forEach((l, i) => { l.num = i + 1; });
         state.totalSets = state.logs.length;
         renderLog();
-        showToast('SET REMOVED');
       }, 220);
+    });
+    // Add-set button — inserts a blank set after this one
+    const addBtn = document.createElement('button');
+    addBtn.className = 'log-add';
+    addBtn.setAttribute('aria-label', 'Add set after');
+    addBtn.innerHTML = '+';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newSet = { num: 0, tags: ['WS'], weight: null, reps: null, done: false };
+      state.logs.splice(idx + 1, 0, newSet);
+      state.logs.forEach((l, i) => { l.num = i + 1; });
+      state.totalSets = state.logs.length;
+      renderLog();
     });
     inner.appendChild(check);
     inner.appendChild(removeBtn);
+    inner.appendChild(addBtn);
 
     row.appendChild(inner);
 
@@ -3529,24 +3933,62 @@ if (_logSetBtn2) _logSetBtn2.addEventListener('click', () => {
 
 document.getElementById('logSetBtn').addEventListener('click', () => {
   const target = state.logs.find(l => l.num === state.currentSet && !l.done) || state.logs.find(l => !l.done);
-  if (!target) {
-    showToast('ALL SETS COMPLETE');
-    return;
-  }
+  if (!target) return;
   target.weight = state.weight;
   target.reps = state.reps;
+  target.rpe = state.rpe;
   target.done = true;
-  showToast(`SET ${target.num} LOGGED`);
   renderLog();
   startTimer();
+  showAIInsight();
   // Scroll log panel into view so user sees the logged set
   const logPanel = document.querySelector('.log-panel');
   if (logPanel) setTimeout(() => logPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
 });
 
+function showAIInsight() {
+  const btn = document.getElementById('aiBtn');
+  if (!btn) return;
+  const doneSets = state.logs.filter(l => l.done);
+  if (doneSets.length === 0) return;
+
+  const lastSet = doneSets[doneSets.length - 1];
+  const rpe = lastSet.rpe || 0;
+  const reps = lastSet.reps || state.reps;
+  const remaining = state.logs.filter(l => !l.done).length;
+
+  let msg = '';
+  if (rpe === 0) {
+    msg = remaining > 0 ? `${remaining} set${remaining > 1 ? 's' : ''} remaining. Log RPE for better recommendations.` : 'Session complete.';
+  } else if (rpe <= 5) {
+    msg = `RPE ${rpe} — well below threshold. Add 5–10 lb next set.`;
+  } else if (rpe === 6) {
+    msg = `RPE 6 — good working pace. Maintain weight.`;
+  } else if (rpe === 7) {
+    msg = remaining > 2 ? `RPE 7 — on target. Hold weight for remaining sets.` : `RPE 7 — strong finish. Consider +5 lb next session.`;
+  } else if (rpe === 8) {
+    msg = remaining > 0 ? `RPE 8 — near limit. Keep weight steady.` : `RPE 8 — good effort. Micro-load +2.5 lb next session.`;
+  } else if (rpe === 9) {
+    msg = remaining > 0 ? `RPE 9 — drop 5 lb for remaining sets.` : `RPE 9 — maximum effort recorded.`;
+  } else if (rpe === 10) {
+    msg = remaining > 0 ? `RPE 10 — drop weight 10 lb for next set.` : `RPE 10 — all-out. Full recovery before next session.`;
+  }
+
+  // Flash the AI button and show insight in the ticker if present
+  btn.classList.add('active');
+  const ticker = document.querySelector('.led-ticker-text');
+  if (ticker && msg) {
+    ticker.textContent = msg;
+    const tickerWrap = document.querySelector('.led-ticker-wrap');
+    if (tickerWrap) tickerWrap.style.display = 'block';
+  }
+
+  // Brief flash on the button
+  setTimeout(() => btn.classList.remove('active'), 2000);
+}
+
 document.getElementById('clearBtn').addEventListener('click', () => {
   state.logs.forEach(l => { l.weight = null; l.reps = null; l.done = false; });
-  showToast('CLEARED');
   renderLog();
   stopTimer();
 });
@@ -3558,7 +4000,7 @@ const REEL_SPEED = 0.4; // degrees per frame while timer runs
 function _tickReels() {
   if (!state.timerRunning) { _reelRAF = null; return; }
   window.__reelRot.weight += REEL_SPEED;
-  window.__reelRot.reps   -= REEL_SPEED;
+  window.__reelRot.reps   += REEL_SPEED;
   const rL = document.getElementById('reelL');
   const rR = document.getElementById('reelR');
   if (rL) rL.setAttribute('transform', `rotate(${window.__reelRot.weight} 95 100)`);
@@ -3566,19 +4008,70 @@ function _tickReels() {
   _reelRAF = requestAnimationFrame(_tickReels);
 }
 
+const RING_CIRC = 289.0; // 2π × 46 ≈ 289.03
+
+/* Build annular sector path — visible arc ends fixed at 3pm, start sweeps CW as frac decreases */
+function annularSectorPath(cx, cy, rO, rI, frac) {
+  if (frac <= 0) return '';
+  const f = (n) => n.toFixed(2);
+  if (frac >= 1) {
+    // Full ring via two half-arcs (outer CW, inner CCW) — evenodd punches the hole
+    return [
+      `M ${cx} ${f(cy - rO)}`,
+      `A ${rO} ${rO} 0 1 1 ${cx} ${f(cy + rO)}`,
+      `A ${rO} ${rO} 0 1 1 ${cx} ${f(cy - rO)} Z`,
+      `M ${cx} ${f(cy - rI)}`,
+      `A ${rI} ${rI} 0 1 0 ${cx} ${f(cy + rI)}`,
+      `A ${rI} ${rI} 0 1 0 ${cx} ${f(cy - rI)} Z`,
+    ].join(' ');
+  }
+  // startAngle: (1-frac)*2π CW from 3pm (SVG: x right, y down, CW = positive angle)
+  const sa = (1 - frac) * 2 * Math.PI;
+  const ea = 0; // 3pm is always the fixed end (cos=1, sin=0)
+  const la = frac > 0.5 ? 1 : 0;
+  const x1o = f(cx + rO * Math.cos(sa)), y1o = f(cy + rO * Math.sin(sa));
+  const x2o = f(cx + rO),                y2o = f(cy); // 3pm outer
+  const x2i = f(cx + rI),                y2i = f(cy); // 3pm inner
+  const x1i = f(cx + rI * Math.cos(sa)), y1i = f(cy + rI * Math.sin(sa));
+  // Outer arc CW to 3pm → line in to 3pm inner → inner arc CCW back to start → close
+  return `M ${x1o} ${y1o} A ${rO} ${rO} 0 ${la} 1 ${x2o} ${y2o} L ${x2i} ${y2i} A ${rI} ${rI} 0 ${la} 0 ${x1i} ${y1i} Z`;
+}
+
+function updateReelRings() {
+  const ringL = document.getElementById('reelRingL');
+  const ringR = document.getElementById('reelRingR');
+  const secL  = document.getElementById('reelSectorL');
+  const secR  = document.getElementById('reelSectorR');
+
+  const frac = state.timerRunning ? Math.max(0, state.timerRemaining / state.restSeconds) : 0;
+
+  // Ring: end anchored at 3pm, gap grows clockwise from 3pm.
+  // stroke-dasharray shrinks the arc; negative dashoffset slides the start CW
+  // so the clockwise END stays pinned at 3pm.
+  const arcLen = parseFloat((RING_CIRC * frac).toFixed(1));
+  const offset = (arcLen - RING_CIRC).toFixed(1); // negative → shifts start CW
+  if (ringL) { ringL.setAttribute('stroke-dasharray', `${arcLen} ${RING_CIRC}`); ringL.setAttribute('stroke-dashoffset', offset); }
+  if (ringR) { ringR.setAttribute('stroke-dasharray', `${arcLen} ${RING_CIRC}`); ringR.setAttribute('stroke-dashoffset', offset); }
+
+  // Spoke sectors: same clockwise erasure, annular r=22–41
+  if (secL) secL.setAttribute('d', annularSectorPath(95,  100, 41, 22, frac));
+  if (secR) secR.setAttribute('d', annularSectorPath(265, 100, 41, 22, frac));
+}
+
 function startTimer() {
   stopTimer();
   state.timerRemaining = state.restSeconds;
   state.timerRunning = true;
   updateTimerDisplay();
+  updateReelRings();
   state.timerInterval = setInterval(() => {
     state.timerRemaining--;
     if (state.timerRemaining <= 0) {
       stopTimer();
-      showToast('REST COMPLETE');
       return;
     }
     updateTimerDisplay();
+    updateReelRings();
   }, 1000);
   state.vuInterval = setInterval(animateVU, 130);
   _reelRAF = requestAnimationFrame(_tickReels);
@@ -3591,6 +4084,7 @@ function stopTimer() {
   state.timerRunning = false;
   state.timerRemaining = state.restSeconds;
   updateTimerDisplay();
+  updateReelRings();
   const bars = document.getElementById('vuBars').children;
   const defaults = ['0.95','0.85','0.75','0.55','0','0','0','0','0'];
   for (let i = 0; i < bars.length; i++) {
@@ -3620,13 +4114,13 @@ function updateTimerDisplay() {
 }
 
 document.getElementById('restBtn').addEventListener('click', () => {
-  if (state.timerRunning) { stopTimer(); showToast('TIMER STOPPED'); }
-  else { startTimer(); showToast('TIMER STARTED'); }
+  if (state.timerRunning) { stopTimer(); }
+  else { startTimer(); }
 });
 
 document.getElementById('timerStrip').addEventListener('click', () => {
-  if (state.timerRunning) { stopTimer(); showToast('TIMER STOPPED'); }
-  else { startTimer(); showToast('TIMER STARTED'); }
+  if (state.timerRunning) { stopTimer(); }
+  else { startTimer(); }
 });
 
 /* ============== MISC ============== */
@@ -3640,7 +4134,7 @@ document.getElementById('timerStrip').addEventListener('click', () => {
     const open = wrap.classList.toggle('is-open');
     btn.classList.toggle('is-open', open);
     btn.setAttribute('aria-expanded', String(open));
-    if (label) label.textContent = open ? 'CLOSE' : 'OPEN';
+    if (label) label.textContent = open ? 'CLOSE' : 'ADJUST';
     // Refresh the fader visuals when opening so bars+thumbs are positioned correctly
     if (open && typeof window.__paintFader === 'function') {
       requestAnimationFrame(() => {
@@ -3657,7 +4151,6 @@ document.getElementById('timerStrip').addEventListener('click', () => {
 document.getElementById('aiBtn').addEventListener('click', () => {
   const btn = document.getElementById('aiBtn');
   const on = btn.classList.toggle('active');
-  showToast(on ? 'AI ON' : 'AI OFF');
 });
 
 // MPC nav — click inner .mpc-pad, active class on .mpc-pad-wrapper, sync scale labels
@@ -3669,9 +4162,40 @@ document.querySelectorAll('.mpc-pad-wrapper').forEach(wrapper => {
     document.querySelectorAll('.mpc-scale-label[data-tab]').forEach(l => {
       l.classList.toggle('active-label', l.dataset.tab === tab);
     });
-    showToast(tab);
   });
 });
+
+/* ============== MORE POPUP + LIGHT MODE ============== */
+(function() {
+  const morePad   = document.getElementById('morePad');
+  const popup     = document.getElementById('morePopup');
+  const toggle    = document.getElementById('lightModeToggle');
+  const lightRow  = document.getElementById('lightModeRow');
+  let lightOn = false;
+
+  function applyLightMode(on) {
+    lightOn = on;
+    document.body.classList.toggle('light-mode', on);
+    toggle.classList.toggle('on', on);
+    // Picker fades reference the strip bg color — update them
+    document.querySelectorAll('.picker-fade-l, .picker-fade-r').forEach(el => {
+      el.style.opacity = on ? '1' : ''; // CSS handles the color via body.light-mode
+    });
+  }
+
+  morePad.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popup.classList.toggle('open');
+  });
+
+  lightRow.addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyLightMode(!lightOn);
+  });
+
+  document.addEventListener('click', () => popup.classList.remove('open'));
+  popup.addEventListener('click', e => e.stopPropagation());
+})();
 
 /* ============== INIT ============== */
 buildPicker('weight');
