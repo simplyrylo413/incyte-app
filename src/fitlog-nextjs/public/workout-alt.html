@@ -2369,6 +2369,14 @@
   /* Set list text */
   body.light-mode .log-header, body.light-mode .set-row,
   body.light-mode .section-label { color: rgba(40,35,30,0.7); }
+  /* Set number — current row: black instead of yellow */
+  body.light-mode .log-row.current .log-num { color: #1a1814; }
+  /* NOW pill — black text + border */
+  body.light-mode .log-tag-now {
+    color: #1a1814;
+    border-color: rgba(26,24,20,0.35);
+    background: rgba(26,24,20,0.07);
+  }
   body.light-mode .set-row { border-bottom-color: rgba(40,35,30,0.1); }
   /* More popup in light mode */
   body.light-mode .more-popup {
@@ -3228,7 +3236,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:32';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:41';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
