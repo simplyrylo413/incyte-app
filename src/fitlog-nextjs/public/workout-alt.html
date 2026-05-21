@@ -2158,12 +2158,13 @@
 
   /* ================= LIGHT MODE ================= */
   body.light-mode {
-    background: #b8b4ae;
+    background: #b8b4ae !important;
+    background-color: #b8b4ae !important;
     --text: #1a1814;
     --text-dim: #7a7670;
     --text-mid: #5a5550;
   }
-  body.light-mode .sticky-top { background: #d4cfc8; }
+  body.light-mode .sticky-top { background: #d4cfc8 !important; }
   body.light-mode .phone {
     background:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.88  0 0 0 0 0.85  0 0 0 0.06 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
@@ -2184,17 +2185,21 @@
     color: #5a5550;
   }
   body.light-mode .mpc-chassis {
-    background: #cac5be;
-    border-color: #a8a39c;
+    background: #cac5be !important;
+    background-color: #cac5be !important;
+    border-color: #a8a39c !important;
     box-shadow:
       0 16px 32px rgba(0,0,0,0.25),
       0 4px 8px rgba(0,0,0,0.15),
       0 0 0 1px #b8b3ac;
   }
+  /* Explicitly set sub-element backgrounds so they don't inherit/render dark on iOS */
+  body.light-mode .mpc-left-marks,
+  body.light-mode .mpc-chassis-main { background-color: transparent !important; }
   body.light-mode .mpc-left-box {
-    border-color: rgba(40,35,30,0.3);
+    border-color: rgba(40,35,30,0.3) !important;
   }
-  body.light-mode .mpc-mark-label { color: rgba(40,35,30,0.5); }
+  body.light-mode .mpc-mark-label { color: rgba(40,35,30,0.7) !important; }
   body.light-mode .mpc-scale-label { color: rgba(40,35,30,0.8); }
   body.light-mode .mpc-scale-label.active-label { color: rgba(40,35,30,0.8); text-shadow: none; }
   body.light-mode .mpc-scale-label.active-label::before,
@@ -3211,7 +3216,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:28';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:38';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
