@@ -2390,6 +2390,24 @@
     background: #4ecb71;
     border-color: #3ab85e;
   }
+  /* WARM UP — solid yellow fill in light mode */
+  body.light-mode .log-tag-wu {
+    color: #1a1208;
+    background: var(--yellow);
+    border-color: var(--yellow-2);
+  }
+  /* ✕ remove — solid red fill in light mode */
+  body.light-mode .log-remove {
+    background: rgba(180,60,60,0.85);
+    color: #fff;
+    border-color: rgba(140,40,40,0.9);
+  }
+  /* + add — solid green fill in light mode */
+  body.light-mode .log-add {
+    background: rgba(60,160,80,0.85);
+    color: #fff;
+    border-color: rgba(40,130,60,0.9);
+  }
   body.light-mode .log-tag-now {
     color: #1a1814;
     border-color: rgba(26,24,20,0.35);
@@ -3254,7 +3272,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 20:55';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 21:04';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
