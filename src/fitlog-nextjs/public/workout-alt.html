@@ -1817,12 +1817,12 @@
     margin: 0 4px;
   }
   .mpc-scale-label.active-label {
-    color: #FF3D3D;
-    text-shadow: 0 0 5px rgba(255,61,61,0.6);
+    color: rgba(255,255,255,0.85);
+    text-shadow: none;
   }
   .mpc-scale-label.active-label::before,
   .mpc-scale-label.active-label::after {
-    background: rgba(255,61,61,0.5);
+    background: rgba(255,255,255,0.45);
   }
 
   /* Pads container */
@@ -2195,7 +2195,10 @@
     border-color: rgba(40,35,30,0.3);
   }
   body.light-mode .mpc-mark-label { color: rgba(40,35,30,0.5); }
-  body.light-mode .mpc-scale-label { color: rgba(40,35,30,0.45); }
+  body.light-mode .mpc-scale-label { color: rgba(40,35,30,0.8); }
+  body.light-mode .mpc-scale-label.active-label { color: rgba(40,35,30,0.8); text-shadow: none; }
+  body.light-mode .mpc-scale-label.active-label::before,
+  body.light-mode .mpc-scale-label.active-label::after { background: rgba(40,35,30,0.18); }
   body.light-mode .mpc-footer-spec { color: rgba(40,35,30,0.5); }
   body.light-mode .mpc-pin { background: #888380; box-shadow: none; }
   body.light-mode .mpc-pad {
@@ -2327,8 +2330,12 @@
   /* White text → dark */
   body.light-mode .cassette-open-btn { color: rgba(40,35,30,0.75) !important; }
   body.light-mode .nav-btn { color: rgba(40,35,30,0.7) !important; }
-  body.light-mode .mpc-icon svg path { stroke: #5a5550; }
-  body.light-mode .mpc-icon svg rect { fill: #5a5550 !important; }
+  /* Icons: override the white-forcing rule (#f0f0eb) — light mode needs solid dark fills */
+  body.light-mode .mpc-icon svg [fill="#1a1a1c"] { fill: #1a1814 !important; }
+  body.light-mode .mpc-icon svg [stroke="#1a1a1c"] { stroke: #1a1814 !important; }
+  /* Active pad icons still glow red */
+  body.light-mode .mpc-pad-wrapper.active .mpc-icon svg [fill="#1a1a1c"] { fill: #FF3D3D !important; }
+  body.light-mode .mpc-pad-wrapper.active .mpc-icon svg [stroke="#1a1a1c"] { stroke: #FF3D3D !important; }
   /* Timer / rest labels */
   body.light-mode .rest-label, body.light-mode .timer-label { color: rgba(40,35,30,0.55); }
   /* White trim outlines → subtle dark */
@@ -3204,7 +3211,7 @@
 
         </div><!-- .mpc-pads -->
         <div class="mpc-footer-spec">INCYTE · MDL-X7 · 04CH &nbsp;·&nbsp; <span id="buildStamp"></span></div>
-        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:18';</script>
+        <script>document.getElementById('buildStamp').textContent = '20 MAY 19:28';</script>
       </div><!-- .mpc-chassis-main -->
 
     </div><!-- .mpc-chassis -->
