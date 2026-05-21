@@ -2,7 +2,7 @@
 
 > Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-16_
+_Last updated: 2026-05-20_
 
 ---
 
@@ -229,7 +229,66 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 9. Active work — what's next
+## 9. workout-alt.html — cassette prototype (active, 2026-05-19 → 2026-05-20)
+
+Standalone single-file prototype at `src/fitlog-nextjs/public/workout-alt.html`, deployed at **incyte13.netlify.app/workout-alt.html**. Build stamp: `20 MAY 23:08`.
+
+This is **not** the Next.js app. It explores a "cassette deck" visual language for the workout logging screen. Designed to be called from the Today page via URL params (`?name=...&bodypart=...&weight=...&reps=...&rpe=...&sets=...&rest=...`) but **nothing currently dispatches to it** — the Today page still routes to `/today/workout`.
+
+### What's built
+
+| Feature | State |
+|---|---|
+| Cassette SVG panel — WEIGHT / RPE / REPS readouts | ✅ |
+| VU-bar faders (drag up/down) — weight, RPE, reps | ✅ |
+| Reel spin animation synced to rest timer (RAF-based) | ✅ |
+| Timer strip — tap to start/stop, countdown | ✅ |
+| LOG SET button — logs set, starts timer | ✅ |
+| OPEN button — reveals fader panel with slide animation | ✅ |
+| BACK / AI ASSIST top buttons | ✅ |
+| Bottom MPC nav (matte black, 4 pads, active glow) | ✅ |
+| Log rows — WARM UP (yellow) / WORK (green) / NOW (pulsing) | ✅ |
+| Delete per row (✕) | ✅ |
+| Cassette panel sticky (flex sibling of scroll container — not inside it) | ✅ |
+| **Light mode** — full theme pass via `body.light-mode` toggle | ✅ |
+
+### Light mode implementation notes
+
+- **SVG fill override (iOS Safari):** CSS `fill` cannot override `fill="url(#gradient)"` on iOS Safari. Must use JS `element.setAttribute('fill', value)` inside `applyLightMode(on)`. Classes: `.cassette-shell`, `.cassette-label-strip`, `.cassette-timer-strip`.
+- **`!important` required on all active-state overrides** — base `.nav-btn` light mode has `color !important`, so `:active` overrides must also use `!important` to win.
+- **`transition: none !important` on `:active`** — `.nav-btn` has a `color 0.15s` transition. Without killing it on press, a quick tap reverts before the color change registers.
+- **ID selector for AI ASSIST:** `body.light-mode #aiBtn:active` beats class-based `.nav-btn:active` when both have `!important` (ID specificity wins).
+- **AI LED blinker:** green (`#4ecb71`). AI ASSIST press = yellow bg (`#f5ec00`) + black text. BACK press = neutral darker bg.
+- **Scale label dashes (— INSIGHT —):** black, opacity 1.
+
+### Key layout rules
+
+```
+.phone (flex column, height: calc(var(--vh) * 100))
+  .sticky-top     ← cassette panel + fader, flex-shrink: 0, NOT inside scroll container
+  .content        ← overflow-y: auto, flex: 1, min-height: 0
+  .bottom-nav-wrap← flex-shrink: 0
+```
+
+`--vh` = `window.innerHeight * 0.01` — fixes iOS Safari `100vh` overflow behind browser chrome.
+
+### What's still open
+
+- **Log rows are hardcoded test data** — don't read from URL params or real session data
+- **No persistence** — refresh loses all logged sets
+- **No dispatch from the app** — Today page `handleMovementTap` still routes to `/today/workout`, not the cassette
+- **Not wired to Supabase** — LOG SET doesn't write anywhere
+- **Open decision:** does the cassette *replace* `/today/workout` or route alongside it (e.g. strength → cassette, cardio/mobility → existing page)?
+
+### Deployment
+
+- **Site:** incyte13.netlify.app (site ID: `3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`)
+- **Deploy:** `cd src/fitlog-nextjs && npm run build && ~/.local/bin/netlify deploy --prod --dir=out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
+- **Rule:** state target site in chat, wait for explicit confirmation before every deploy. Update build stamp (`DD MMM HH:MM`) before every deploy.
+
+---
+
+## 10. Active work — what's next
 
 **Phase 9 — Capacitor wrap (launch only):**
 1. `npx cap init` inside `src/fitlog-nextjs/`
@@ -256,7 +315,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 10. Workflow rules
+## 11. Workflow rules
 
 - **Edit `src/fitlog-nextjs/` for all active development.** The HTML build (`fitlog-mobile.html`) is the visual reference only — read it when porting engine behavior or checking icon glyphs, don't edit it for the Next.js work.
 - **Commits:** prefix Next.js commits with `nextjs:`, HTML build commits with `src:`.
@@ -268,7 +327,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 11. Open decisions
+## 12. Open decisions
 
 | ID | Status |
 |---|---|
@@ -276,10 +335,11 @@ src/fitlog-nextjs/src/
 | **A-02** — Light-mode default on first load | Next.js defaults to system; verify `body.theme-dark` isn't applied when `fitlog_theme` key is absent. |
 | **D-03** — Account deletion flow | Required by App Store guideline 5.1.1(v). Needs Supabase edge function + UI. |
 | **North Star metric** | Working candidate: weekly active session completion rate. Not yet confirmed. |
+| **Cassette integration** | Does `workout-alt.html` replace `/today/workout` entirely, or route by movement type (strength → cassette, cardio/mobility → existing)? Must decide before any wiring work. |
 
 ---
 
-## 12. Where to read next
+## 13. Where to read next
 
 | Doc | When to read it |
 |---|---|
@@ -294,7 +354,7 @@ src/fitlog-nextjs/src/
 
 ---
 
-## 13. House style for AI sessions
+## 14. House style for AI sessions
 
 - Read this doc + linked docs **before** proposing changes. Don't re-litigate settled decisions; flag them if you think they need revisiting.
 - The user is solo dev + PM. Help him ship — bias toward concrete, small, verified changes over open-ended exploration.
