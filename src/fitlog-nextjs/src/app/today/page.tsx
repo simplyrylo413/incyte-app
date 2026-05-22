@@ -355,61 +355,45 @@ export default function TodayPage() {
 
 function SessionStats({
   stats,
-  isCompact,
 }: {
   stats: ReturnType<typeof calcDayStats>;
   isCompact: boolean;
 }) {
-  const parts = Object.entries(stats.volumeByPart);
-
   return (
-    <div className={`${s.progress} ${isCompact ? s.progressCompact : ""}`}>
-      <div className={s.readyStrip}>
-        <div className={s.planned}>
-          <span className={s.plannedNum}>{stats.totalSets}</span>
-          <span className={s.plannedUnit}>Sets</span>
-          <span className={s.plannedSep}>·</span>
-          <span className={s.plannedNum}>{stats.planMinutes}</span>
-          <span className={s.plannedUnit}>Min est.</span>
-        </div>
-        <span className={s.readyLabel}>Ready</span>
+    <div className={s.statsRow}>
+      {/* VOLUME */}
+      <div className={s.statPanel}>
+        <div className={s.panelRivet} data-pos="tl" />
+        <div className={s.panelRivet} data-pos="tr" />
+        <div className={s.panelRivet} data-pos="bl" />
+        <div className={s.panelRivet} data-pos="br" />
+        <div className={s.statLabel}><span className={s.ledYellow} />VOLUME</div>
+        <div className={s.statValue}>{stats.totalVolume.toLocaleString()}</div>
+        <div className={s.statUnit}>LB</div>
       </div>
 
-      <div className={s.statsRow}>
-        <div className={s.stat}>
-          <div className={s.statLabel}>Volume</div>
-          <div className={s.statValue}>
-            {stats.totalVolume.toLocaleString()}
-            <span className={s.statUnit}>lb</span>
-          </div>
-          {parts.length > 0 && (
-            <div className={s.volParts}>
-              {parts.map(([k, v]) => (
-                <span key={k}>
-                  <em>{k}</em>
-                  {v.toLocaleString()}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* AVG RPE */}
+      <div className={s.statPanel}>
+        <div className={s.panelRivet} data-pos="tl" />
+        <div className={s.panelRivet} data-pos="tr" />
+        <div className={s.panelRivet} data-pos="bl" />
+        <div className={s.panelRivet} data-pos="br" />
+        <div className={s.statLabel}><span className={s.ledGreen} />AVG RPE</div>
+        <div className={s.statValue}>{stats.avgRpe != null ? stats.avgRpe.toFixed(1) : "—"}</div>
+        <div className={s.statUnit}>/ 10</div>
+      </div>
 
-        <div className={s.stat}>
-          <div className={s.statLabel}>Avg RPE</div>
-          <div className={s.statValue}>
-            {stats.avgRpe != null ? stats.avgRpe.toFixed(1) : "—"}
-          </div>
-        </div>
-
-        <div className={s.stat}>
-          <div className={s.statLabel}>Complete</div>
-          <div className={s.statValue}>
-            {stats.completePct}
-            <span className={s.statUnit}>%</span>
-          </div>
-          <div className={s.miniBar}>
-            <div className={s.miniBarFill} style={{ width: `${stats.completePct}%` }} />
-          </div>
+      {/* COMPLETE */}
+      <div className={s.statPanel}>
+        <div className={s.panelRivet} data-pos="tl" />
+        <div className={s.panelRivet} data-pos="tr" />
+        <div className={s.panelRivet} data-pos="bl" />
+        <div className={s.panelRivet} data-pos="br" />
+        <div className={s.statLabel}><span className={s.ledRed} />DONE</div>
+        <div className={s.statValue}>{stats.completePct}</div>
+        <div className={s.statUnit}>%</div>
+        <div className={s.miniBar}>
+          <div className={s.miniBarFill} style={{ width: `${stats.completePct}%` }} />
         </div>
       </div>
     </div>

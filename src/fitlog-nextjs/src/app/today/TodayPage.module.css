@@ -39,132 +39,120 @@
   color: rgba(255,255,255,0.38); /* --label */
 }
 
-/* ─── Session-stats glass panel (.progress) ──────────────────────────────── */
-/* Source: fitlog-mobile.html lines 6693–6839 */
-.progress {
-  position: relative;
-  margin: 4px 22px 12px;
-  padding: 14px 8px 12px;
-  transition: padding 220ms cubic-bezier(0.33, 1, 0.68, 1);
-  background:
-    linear-gradient(155deg, rgba(93,155,184,0.24) 0%, rgba(155,130,200,0.17) 55%, rgba(201,160,190,0.12) 100%),
-    rgba(255,255,255,0.50);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1.2px solid rgba(255,255,255,0.85);
-  border-radius: 22px;
-  isolation: isolate;
-  overflow: hidden;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,0.95) inset,
-    0 0 0 1px rgba(93,155,184,0.10),
-    0 12px 26px rgba(93,155,184,0.18),
-    0 4px 8px rgba(15,22,34,0.08);
+/* ─── Stats row — 3 raised metal panels (Option A) ───────────────────────── */
+.statsRow {
+  display: flex;
+  gap: 6px;
+  margin: 4px 14px 12px;
   flex-shrink: 0;
 }
 
-.progress::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 50%);
-  pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.progress > * { position: relative; z-index: 1; }
-
-/* Compact state — no sets started yet */
-.progressCompact {
-  padding: 9px 14px;
-}
-
-/* ── Stats row (3 columns: Volume / RPE / Complete) ── */
-.statsRow {
-  display: grid;
-  grid-template-columns: 1.15fr 1fr 1fr;
-  gap: 0;
-}
-
-.progressCompact .statsRow {
-  display: none;
-}
-
-.stat {
-  padding: 2px 12px;
+.statPanel {
+  flex: 1;
   position: relative;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>"),
+    linear-gradient(160deg, #2a2e33 0%, #1a1d21 50%, #111316 100%);
+  border: 1px solid #3a3f44;
+  border-top-color: #4a5055;
+  border-radius: 5px;
+  padding: 10px 8px 9px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -1px 0 rgba(0,0,0,0.5),
+    0 4px 10px rgba(0,0,0,0.7),
+    0 2px 4px rgba(0,0,0,0.5);
   min-width: 0;
 }
 
-.stat + .stat::before {
-  content: '';
+/* Phillips-head panel rivets */
+.panelRivet {
   position: absolute;
-  left: 0; top: 4px; bottom: 4px;
-  width: 1px;
-  background: rgba(15,22,34,0.08);
+  width: 6px; height: 6px;
+  background: linear-gradient(135deg, #5a5d62 0%, #3a3c3e 50%, #1a1c1e 100%);
+  border-radius: 1px;
+  box-shadow: inset 0 0 0 1px #0a0a0a, inset 0 1px 1px rgba(255,255,255,0.2), 0 1px 1px rgba(0,0,0,0.6);
+  pointer-events: none;
+}
+.panelRivet::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); width: 65%; height: 1px;
+  background: rgba(0,0,0,0.75);
+}
+.panelRivet::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); width: 1px; height: 65%;
+  background: rgba(0,0,0,0.75);
+}
+.panelRivet[data-pos="tl"] { top: 4px; left: 4px; }
+.panelRivet[data-pos="tr"] { top: 4px; right: 4px; }
+.panelRivet[data-pos="bl"] { bottom: 4px; left: 4px; }
+.panelRivet[data-pos="br"] { bottom: 4px; right: 4px; }
+
+/* LED dots */
+.ledYellow, .ledGreen, .ledRed {
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ledYellow {
+  background: radial-gradient(circle at 35% 35%, #fffab8 0%, #f5ec00 50%, #5a5800 100%);
+  box-shadow: 0 0 5px #f5ec00, 0 0 10px rgba(245,236,0,0.5);
+}
+.ledGreen {
+  background: radial-gradient(circle at 35% 35%, #b8ffb8 0%, #50e030 50%, #1a5a12 100%);
+  box-shadow: 0 0 5px #50e030, 0 0 10px rgba(80,224,48,0.5);
+}
+.ledRed {
+  background: radial-gradient(circle at 35% 35%, #FFB8B8 0%, #FF3D3D 50%, #8B1212 100%);
+  box-shadow: 0 0 5px #FF3D3D, 0 0 10px rgba(255,61,61,0.5);
 }
 
 .statLabel {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 7.5px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 1.8px;
+  color: rgba(255,255,255,0.4);
   text-transform: uppercase;
-  color: rgba(255,255,255,0.55); /* --muted */
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .statValue {
-  font-family: "Inter Tight", system-ui, sans-serif;
+  font-family: "Geist Mono", ui-monospace, monospace;
   font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #ffffff; /* --ink */
+  color: #f5ec00;
+  text-shadow: 0 0 12px rgba(245,236,0,0.4), 0 0 4px rgba(245,236,0,0.6);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .statUnit {
-  font-family: "Inter Tight", system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  margin-left: 3px;
-}
-
-.volParts {
-  margin-top: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 9.5px;
-  font-weight: 500;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.38); /* --label */
-}
-
-.volParts span em {
-  font-style: normal;
-  color: rgba(255,255,255,0.55); /* --muted */
-  margin-right: 4px;
+  font-size: 8px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1px;
+  margin-top: 3px;
 }
 
 .miniBar {
-  margin-top: 6px;
-  height: 4px;
-  background: rgba(15,22,34,0.06);
-  border-radius: 999px;
+  margin-top: 5px;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .miniBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #5d9bb8 0%, #9b82c8 55%, #c9a0be 100%);
+  background: #FF3D3D;
+  box-shadow: 0 0 6px rgba(255,61,61,0.6);
+  border-radius: 2px;
   border-radius: 999px;
   transition: width 280ms cubic-bezier(0.33, 1, 0.68, 1);
 }
