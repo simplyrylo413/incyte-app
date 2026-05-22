@@ -6,9 +6,11 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 
 ---
 
-## 0. Agent communication rule
+## 0. Agent communication rules
 
 **IMPORTANT:** At the end of every completed task, explicitly state "Task complete." so the user knows they can go check the result. Never leave a task finished without this signal.
+
+**IMPORTANT:** When the user asks to deploy to localhost / run the dev server / open the browser — do NOT take or send screenshots. Just run the scripts, confirm the server is up, and state the URL.
 
 ---
 
