@@ -3454,6 +3454,7 @@ const state = {
   timerInterval: null,
   vuInterval: null,
   aiOn: false,
+  userHasLogged: false,
   logs: [{ num: 1, tags: ['WS'], weight: null, reps: null, done: false }],
 };
 
@@ -4066,6 +4067,7 @@ if (_logSetBtn2) _logSetBtn2.addEventListener('click', () => {
 document.getElementById('logSetBtn').addEventListener('click', () => {
   const target = state.logs.find(l => l.num === state.currentSet && !l.done) || state.logs.find(l => !l.done);
   if (!target) return;
+  state.userHasLogged = true;
   target.weight = state.weight;
   target.reps = state.reps;
   target.rpe = state.rpe;
@@ -4441,8 +4443,8 @@ requestAnimationFrame(() => {
       workout.entries.push(entry);
     }
 
-    // ── Pre-populate log panel from saved sets ─────────────────────────────
-    if (entry.sets && entry.sets.length > 0) {
+    // ── Pre-populate log panel from saved sets (only if user hasn't acted yet) ─
+    if (entry.sets && entry.sets.length > 0 && !state.userHasLogged) {
       state.logs = entry.sets.map((s, i) => ({
         num: i + 1,
         tags: s.warmup ? ['WU'] : ['WS'],
