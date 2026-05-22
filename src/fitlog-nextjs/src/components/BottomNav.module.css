@@ -13,6 +13,11 @@
   max-width: 398px;
 }
 
+/* Inline variant — sits inside the page flex column, constrained by parent width */
+.chassisWrapInline {
+  width: 100%;
+}
+
 .chassis {
   position: relative;
   background: #161618;

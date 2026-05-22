@@ -53,7 +53,7 @@ const TABS = [
   },
 ] as const;
 
-export default function BottomNav() {
+export default function BottomNav({ inline = false }: { inline?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -63,7 +63,7 @@ export default function BottomNav() {
   }
 
   return (
-    <div className={styles.chassisWrap}>
+    <div className={inline ? styles.chassisWrapInline : styles.chassisWrap}>
       <div className={styles.chassis}>
 
         {/* Left I/O port column */}

@@ -34,6 +34,7 @@ import {
   type TodayItem,
 } from "@/lib/engine/today";
 import s from "./TodayPage.module.css";
+import BottomNav from "@/components/BottomNav";
 
 // ─── Helpers: persist "hidden for today" plan IDs in localStorage ────────────
 
@@ -285,6 +286,8 @@ export default function TodayPage() {
 
   return (
     <div className={s.page}>
+      {/* ── Scrollable content ── */}
+      <div className={s.scrollContent}>
       {/* ── Header ── */}
       <div className={s.head}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
@@ -405,6 +408,12 @@ export default function TodayPage() {
           onSave={handleSaveEditedSets}
         />
       )}
+      </div>{/* end scrollContent */}
+
+      {/* ── Bottom nav — inline inside the 430px column ── */}
+      <div className={s.navWrap}>
+        <BottomNav inline />
+      </div>
     </div>
   );
 }
