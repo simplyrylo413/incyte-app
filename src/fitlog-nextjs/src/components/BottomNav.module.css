@@ -254,3 +254,63 @@
   margin-top: 4px;
   user-select: none;
 }
+
+/* ─── Light mode — workout-alt warm industrial gray ─────────────────────── */
+:global(body.theme-light) .chassis {
+  background: #cac5be;
+  border-color: #a8a39c;
+  box-shadow:
+    0 16px 32px rgba(0,0,0,0.25),
+    0 4px 8px rgba(0,0,0,0.15),
+    0 0 0 1px #b8b3ac;
+}
+
+:global(body.theme-light) .leftBox {
+  border-color: rgba(40,35,30,0.30);
+}
+
+:global(body.theme-light) .markLabel { color: rgba(40,35,30,0.70); }
+
+:global(body.theme-light) .scaleLabel { color: rgba(40,35,30,0.80); }
+:global(body.theme-light) .scaleLabel::before,
+:global(body.theme-light) .scaleLabel::after { background: rgba(40,35,30,0.25); }
+
+:global(body.theme-light) .pin { background: #888380; box-shadow: none; }
+
+:global(body.theme-light) .pad {
+  background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+  border-color: #a09b94;
+  box-shadow:
+    inset 1.5px 1.5px 0 rgba(255,255,255,0.70),
+    inset 0 1px 0 rgba(255,255,255,0.50),
+    inset -1px -1.5px 0 rgba(0,0,0,0.15),
+    inset 0 -2px 5px rgba(0,0,0,0.12),
+    3px 8px 16px rgba(0,0,0,0.20),
+    1px 3px 6px rgba(0,0,0,0.12);
+}
+
+:global(body.theme-light) .pad:active {
+  background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+  box-shadow:
+    inset 1.5px 1.5px 0 rgba(255,255,255,0.70),
+    inset 0 1px 0 rgba(255,255,255,0.50),
+    inset -1px -1.5px 0 rgba(0,0,0,0.15),
+    inset 0 -2px 5px rgba(0,0,0,0.12);
+  transform: translateY(-1px);
+}
+
+:global(body.theme-light) .padWrapperActive .pad {
+  background: linear-gradient(145deg, #d8d3cc 0%, #c8c3bc 35%, #b8b3ac 100%);
+  border-color: #a09b94;
+  box-shadow:
+    inset 1.5px 1.5px 0 rgba(255,255,255,0.70),
+    inset 0 1px 0 rgba(255,255,255,0.50),
+    inset -1px -1.5px 0 rgba(0,0,0,0.15),
+    inset 0 -2px 5px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+}
+
+:global(body.theme-light) .icon svg { color: #1a1814; }
+:global(body.theme-light) .padWrapperActive .icon svg { color: #FF3D3D; }
+
+:global(body.theme-light) .footerSpec { color: rgba(40,35,30,0.50); }

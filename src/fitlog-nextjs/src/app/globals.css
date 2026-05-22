@@ -173,6 +173,37 @@ body.theme-dark {
     linear-gradient(180deg, #050608 0%, #0a0c10 55%, #04050a 100%);
 }
 
+/* ─── Light mode — workout-alt warm industrial gray ─────────────────────── */
+/* Activated via body.theme-light. Palette from workout-alt.html ln 2171+.   */
+body.theme-light {
+  --paper:          #e8e3dc;
+  --paper-2:        #d4cfc8;
+  --paper-3:        #c8c3bc;
+  --ink:            #1a1814;
+  --ink-2:          #3a3530;
+  --muted:          #5a5550;
+  --label:          #7a7670;
+  --hairline:       rgba(26,24,20,0.18);
+  --hairline-soft:  rgba(26,24,20,0.10);
+  --hairline-strong:rgba(26,24,20,0.22);
+  --card-border:    rgba(26,24,20,0.20);
+  --accent:         #5d9bb8;
+  --accent-2:       #7fa5c7;
+  --accent-3:       #9eb5cb;
+  --ok:             #4f9aa8;
+  --warn:           #8e9bb0;
+  --bad:            #b08092;
+  --glass-bg:       rgba(212,207,200,0.70);
+  --glass-highlight: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 28%, rgba(255,255,255,0) 58%);
+  --glass-shadow:
+    0 2px 8px  rgba(26,24,20,0.10),
+    0 8px 24px rgba(26,24,20,0.14),
+    0 1px 2px  rgba(26,24,20,0.08);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.88  0 0 0 0 0.85  0 0 0 0.06 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
+    radial-gradient(ellipse at 30% 0%, #e0dbd4 0%, #d4cfc8 45%, #c8c3bc 100%);
+}
+
 /* ─── Form elements ──────────────────────────────────────────────────────── */
 input,
 select,

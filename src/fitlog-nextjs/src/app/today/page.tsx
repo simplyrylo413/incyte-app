@@ -73,10 +73,26 @@ export default function TodayPage() {
   const [detailEntry, setDetailEntry] = useState<{ entry: WorkoutEntry; workout: Workout } | null>(null);
   const [aiHeadline, setAiHeadline] = useState<string | null>(null);
 
-  // Today page is dark-only — ensure body carries theme-dark on mount
+  // Theme — persisted in localStorage; defaults to dark
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
   useEffect(() => {
-    document.body.classList.add("theme-dark");
+    const stored = localStorage.getItem("incyte-theme") as "dark" | "light" | null;
+    const initial = stored ?? "dark";
+    setTheme(initial);
+    document.body.classList.toggle("theme-dark", initial === "dark");
+    document.body.classList.toggle("theme-light", initial === "light");
   }, []);
+
+  function toggleTheme() {
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      localStorage.setItem("incyte-theme", next);
+      document.body.classList.toggle("theme-dark", next === "dark");
+      document.body.classList.toggle("theme-light", next === "light");
+      return next;
+    });
+  }
 
   // Fetch AI headline once per day (cached in localStorage)
   useEffect(() => {
@@ -263,7 +279,40 @@ export default function TodayPage() {
     <div className={s.page}>
       {/* ── Header ── */}
       <div className={s.head}>
-        <h1 className={s.headline}>{headline}</h1>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <h1 className={s.headline}>{headline}</h1>
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            style={{
+              background: "none",
+              border: "1.2px solid rgba(128,120,110,0.35)",
+              borderRadius: 6,
+              padding: "5px 8px",
+              cursor: "pointer",
+              color: theme === "dark" ? "rgba(255,255,255,0.45)" : "rgba(40,35,30,0.55)",
+              fontSize: 13,
+              flexShrink: 0,
+              marginTop: 2,
+              transition: "color 160ms, border-color 160ms",
+              lineHeight: 1,
+            }}
+          >
+            {theme === "dark" ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </button>
+        </div>
         <div className={s.dateLine}>{todayDateLabel()}</div>
       </div>
 
