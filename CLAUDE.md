@@ -281,6 +281,7 @@ src/fitlog-nextjs/
 
 **Target site: `incyte13.netlify.app` (site ID: `3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`)**
 
+- **IMPORTANT:** Default to running and verifying changes on `http://localhost:3000` (the Next.js dev server). **Never deploy to Netlify unless the user explicitly asks for and authorizes a deploy.** Casual phrases like "ship it", "push the change", or completing a feature do NOT constitute deploy permission — only an explicit instruction like "deploy to netlify" qualifies, and even then state the target site and wait for confirmation before running the deploy command.
 - **IMPORTANT:** Before every deploy, state the target site in chat and wait for explicit user confirmation before proceeding.
 - Deploy command: `~/.local/bin/netlify deploy --prod --dir=src/fitlog-nextjs/out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`
 - Always run `npm run build` inside `src/fitlog-nextjs/` first to regenerate `out/`.
