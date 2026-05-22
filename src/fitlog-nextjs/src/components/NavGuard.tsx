@@ -1,10 +1,10 @@
 "use client";
 import { usePathname } from "next/navigation";
-import BottomNav from "./BottomNav";
+import MPCNav from "./MPCNav";
 
 export default function NavGuard() {
   const pathname = usePathname();
   if (pathname === "/login" || pathname.startsWith("/auth/")) return null;
   if (pathname === "/today/workout") return null;
-  return <BottomNav />;
+  return <MPCNav />;
 }

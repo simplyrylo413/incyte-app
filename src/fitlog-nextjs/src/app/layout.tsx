@@ -40,10 +40,10 @@ export default function RootLayout({
       <body
         className="min-h-dvh font-sans antialiased"
         style={{
-          // Content scrolls under the floating nav pill.
-          // 88px = nav pill height (~56px) + bottom gap (16px) + clearance (16px).
+          // Content scrolls above the MPC nav chassis.
+          // 110px = chassis height (~90px) + clearance (20px).
           // env() accounts for iOS home-indicator safe area.
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 110px)",
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
       >
