@@ -213,6 +213,7 @@ When a Figma URL or selection is provided, the implementation flow is:
 - Verify visually in the running preview server (`Claude Preview`) before reporting work done. Don't rely on type checks or test runs — there are none here.
 - When the user says "snapshot the file" they mean `cp src/fitlog-mobile.html src/mobile{N+1}.html` where N is the highest existing number. They're aware this conflicts with the 2026-05-12 retirement decision; if it becomes a pattern, surface the contradiction.
 - The repo is on `main` and `main` is the working branch. No branching workflow is in use.
+- **IMPORTANT:** After every action completes, always tell the user the outcome — what changed, what file/line was affected, and what the result is. Never go silent after completing work.
 
 ### Mockup workflow (whenever user asks for mockups / design options)
 
