@@ -1,124 +1,256 @@
-/* BottomNav glass-pill styles.
- * Tailwind can't express layered inset box-shadows or complex backdrop-filter
- * combos cleanly, so the structural glass treatment lives here.
- * All color values mirror the HTML build's .bottom-nav light-mode rules.
- * Source reference: src/fitlog-mobile.html lines 5416–5512.
+/* BottomNav — MPC chassis style.
+ * Source: src/fitlog-nextjs/public/workout-alt.html
  */
 
-/* ── The pill container ──────────────────────────────────────────────────── */
-.nav {
+/* ── Chassis wrap — fixed bottom ──────────────────────────────────────────── */
+.chassisWrap {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   left: 50%;
-  transform: translateX(-50%) scale(1.15);
-  transform-origin: bottom center;
+  transform: translateX(-50%);
   z-index: 200;
-  display: flex;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
+  width: calc(100% - 32px);
+  max-width: 398px;
+}
 
-  /* Light-mode glass pill — matches body:not(.theme-dark) .bottom-nav */
-  background: rgba(255, 255, 255, 0.72);
-  border: 1.2px solid rgba(15, 22, 34, 0.18);
+.chassis {
+  position: relative;
+  background: #161618;
+  border-radius: 6px;
+  padding: 7px 16px 9px 14px;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 -1px 0 rgba(15, 22, 34, 0.06) inset,
-    0 3px 8px rgba(15, 22, 34, 0.10),
-    0 10px 22px rgba(15, 22, 34, 0.18),
-    0 26px 50px rgba(15, 22, 34, 0.18);
-
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+    0 16px 32px rgba(0,0,0,0.9),
+    0 4px 8px rgba(0,0,0,0.6),
+    0 0 0 1px #0a0a0b;
+  border: 1px solid #0d0d0e;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
 }
 
-/* ── Divider between Momentum and More ──────────────────────────────────── */
-.divider {
-  width: 1.2px;
+/* ── Left I/O column ───────────────────────────────────────────────────────── */
+.leftMarks {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-self: stretch;
-  margin: 6px 2px;
-  background: rgba(15, 22, 34, 0.14);
-  border-radius: 999px;
   flex-shrink: 0;
+  padding: 2px 0;
+  margin-left: -2px;
 }
 
-/* ── Individual tab button ───────────────────────────────────────────────── */
-.tab {
-  background: transparent;
-  border: 0;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
+.leftBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 5px 4px 1px;
+  height: 75%;
+  border-top: 1px dotted rgba(245,245,240,0.5);
+  border-right: 1px dotted rgba(245,245,240,0.5);
+  border-bottom: 1px dotted rgba(245,245,240,0.5);
+  border-radius: 0 3px 3px 0;
+}
+
+.markRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+}
+
+.markLabel {
+  font-family: 'Share Tech Mono', 'Geist Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: rgba(245,245,240,0.6);
+  font-weight: 700;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  user-select: none;
+}
+
+.markIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Main content ──────────────────────────────────────────────────────────── */
+.chassisMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ── Scale labels row ──────────────────────────────────────────────────────── */
+.scaleRow {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.scaleLabel {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  color: #5e6a82; /* --muted */
-  transition:
-    color 0.24s ease,
-    background 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    box-shadow 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    transform 0.22s cubic-bezier(0.34, 1.08, 0.64, 1);
+  font-family: 'Share Tech Mono', 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: rgba(255,255,255,0.85);
+  user-select: none;
+  white-space: nowrap;
 }
 
-.tab:not(.active):active {
-  transform: scale(0.94);
+.scaleLabel::before,
+.scaleLabel::after {
+  content: '';
+  flex: 1;
+  height: 1.25px;
+  background: rgba(255,255,255,0.45);
+  margin: 0 4px;
 }
 
-/* ── Active tab — white card lift ───────────────────────────────────────── */
-/* Matches body:not(.theme-dark) .bottom-nav-tab.active */
-.tab.active {
-  background: rgba(255, 255, 255, 0.96);
-  color: #0f1622; /* --ink */
+/* ── Pads row ──────────────────────────────────────────────────────────────── */
+.pads {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.padWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+}
+
+/* Pin rows */
+.pinRow {
+  display: flex;
+  justify-content: space-between;
+  width: 92%;
+  margin: 0 auto;
+}
+
+.pin {
+  width: 3px;
+  height: 2px;
+  background: #5a5a5e;
+  border-radius: 0.5px;
+  transition: all 0.25s ease;
+}
+
+.padWrapperActive .pin {
+  background: #FF3D3D;
+  box-shadow: 0 0 2px rgba(255,61,61,0.6);
+}
+
+/* Pad button */
+.pad {
+  width: 92%;
+  height: 46px;
+  margin: 0 auto;
+  display: block;
+  background: #38383c;
+  border-radius: 3px;
+  border: 1px solid #111113;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+  transform: translateY(-2px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 1) inset,
-    0 -1px 0 rgba(15, 22, 34, 0.04) inset,
-    0 3px 10px rgba(15, 22, 34, 0.10),
-    0 7px 20px rgba(15, 22, 34, 0.12);
+    0 6px 12px rgba(0,0,0,0.85),
+    0 2px 4px rgba(0,0,0,0.6),
+    0 1px 0 #060607,
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+  padding: 0;
+}
+
+.pad:active {
   transform: translateY(-1px);
-}
-
-.tab.active:active {
-  transform: translateY(-1px) scale(0.96);
-}
-
-/* ─── Dark mode ─────────────────────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :global(body:not(.theme-light)) .nav {
-    background: rgba(14,18,23,0.72);
-    border-color: rgba(255,255,255,0.14);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.10) inset,
-      0 -1px 0 rgba(0,0,0,0.45) inset,
-      0 4px 12px rgba(0,0,0,0.55),
-      0 12px 28px rgba(0,0,0,0.60);
-  }
-  :global(body:not(.theme-light)) .tab { color: #6a7384; }
-  :global(body:not(.theme-light)) .tab.active {
-    background: rgba(30,38,50,0.95);
-    color: #f7f9fc;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.10) inset,
-      0 3px 10px rgba(0,0,0,0.55),
-      0 7px 20px rgba(0,0,0,0.55);
-  }
-}
-
-body.theme-dark .nav {
-  background: rgba(14,18,23,0.72);
-  border-color: rgba(255,255,255,0.14);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.10) inset,
-    0 -1px 0 rgba(0,0,0,0.45) inset,
-    0 4px 12px rgba(0,0,0,0.55),
-    0 12px 28px rgba(0,0,0,0.60);
+    0 3px 6px rgba(0,0,0,0.85),
+    0 1px 2px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    inset 0 2px 3px rgba(0,0,0,0.5);
 }
-body.theme-dark .tab { color: #6a7384; }
-body.theme-dark .tab.active {
-  background: rgba(30,38,50,0.95);
-  color: #f7f9fc;
+
+.padWrapperActive .pad {
+  background: #38383c;
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.10) inset,
-    0 3px 10px rgba(0,0,0,0.55),
-    0 7px 20px rgba(0,0,0,0.55);
+    0 6px 12px rgba(0,0,0,0.85),
+    0 2px 4px rgba(0,0,0,0.6),
+    0 1px 0 #060607,
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  border-color: #111113;
+  transform: translateY(-2px);
+}
+
+/* LED dot */
+.led {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.4px;
+  height: 2.4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #3a3a3c 0%, #1a1a1c 70%);
+  pointer-events: none;
+  transition: all 0.25s ease;
+  z-index: 4;
+}
+
+.padWrapperActive .led {
+  background: radial-gradient(circle at 35% 35%, #FFB8B8 0%, #FF3D3D 50%, #8B1212 100%);
+  box-shadow: 0 0 6px #FF3D3D, 0 0 12px rgba(255,61,61,0.6);
+}
+
+/* Icon */
+.icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.icon svg {
+  color: #f0f0eb;
+  transition: color 0.25s;
+}
+
+@keyframes iconPulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255,61,61,1)) drop-shadow(0 0 4px rgba(255,61,61,0.4)); opacity: 1; }
+  50% { filter: drop-shadow(0 0 4px rgba(255,61,61,1)) drop-shadow(0 0 7px rgba(255,61,61,0.5)); opacity: 0.75; }
+}
+
+.padWrapperActive .icon svg {
+  color: #FF3D3D;
+  animation: iconPulse 1.6s ease-in-out infinite;
+}
+
+/* Footer spec */
+.footerSpec {
+  text-align: center;
+  color: rgba(255,255,255,0.75);
+  font-family: 'Share Tech Mono', 'Geist Mono', monospace;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  margin-top: 4px;
+  user-select: none;
 }
