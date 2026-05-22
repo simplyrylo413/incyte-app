@@ -12,6 +12,8 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 
 **IMPORTANT:** When the user asks to deploy to localhost / run the dev server / open the browser — do NOT take or send screenshots. Just run the scripts, confirm the server is up, and state the URL.
 
+**IMPORTANT:** When debugging an issue, run all diagnostic commands autonomously in the container before asking the user for anything. Only ask the user for data that literally cannot be obtained any other way (e.g., their local terminal output, browser Network tab).
+
 ---
 
 ## 1. What INCYTE is
