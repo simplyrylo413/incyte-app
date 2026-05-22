@@ -3437,7 +3437,7 @@ function scrambleLedText(text, opts) {
   if (p.get('bodypart') && _mvBodyPart) _mvBodyPart.textContent = p.get('bodypart').toUpperCase();
   document.title = name + ' — Workout';
   // Back button returns to caller
-  document.getElementById('backBtn').addEventListener('click', () => history.back(), { once: true });
+  document.getElementById('backBtn').addEventListener('click', () => { window.location.href = '/today'; }, { once: true });
   window.__urlParams = p;
 })();
 
@@ -4302,7 +4302,7 @@ document.getElementById('timerStrip').addEventListener('click', () => {
   });
 })();
 
-// backBtn: URL param bootstrap already wired history.back(); this is a no-op fallback
+// backBtn: routes to /today
 // AI button: toggle on/off independently of the nav group
 document.getElementById('aiBtn').addEventListener('click', () => {
   const btn = document.getElementById('aiBtn');
