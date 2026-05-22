@@ -73,6 +73,11 @@ export default function TodayPage() {
   const [detailEntry, setDetailEntry] = useState<{ entry: WorkoutEntry; workout: Workout } | null>(null);
   const [aiHeadline, setAiHeadline] = useState<string | null>(null);
 
+  // Today page is dark-only — ensure body carries theme-dark on mount
+  useEffect(() => {
+    document.body.classList.add("theme-dark");
+  }, []);
+
   // Fetch AI headline once per day (cached in localStorage)
   useEffect(() => {
     getDailyHeadline(todayHeadline()).then(setAiHeadline);
