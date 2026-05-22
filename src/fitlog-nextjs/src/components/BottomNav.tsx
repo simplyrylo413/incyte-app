@@ -1,117 +1,152 @@
 "use client";
 
-// BottomNav — primary navigation bar.
-// mobile351.html is visual reference only (icon glyphs, active-state treatment).
-// IA: Today / Insights / Momentum / More.
-// Icons: inline SVG, 22×22, stroke-width 1.6.
+// BottomNav — MPC chassis nav. Style reference: public/workout-alt.html.
+// IA: Insights / Today / Plan / More (left → right, matching cassette prototype).
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./BottomNav.module.css";
 
-const TABS = [
+const PADS = [
   {
+    tab: "INSIGHT",
+    href: "/momentum",
+    label: "Insights",
+    icon: (
+      <svg width="22" height="18" viewBox="-15 -13 30 26" aria-hidden="true">
+        <rect x="-13" y="2"  width="5.4" height="9"  rx="0.8" fill="currentColor"/>
+        <rect x="-6"  y="-2" width="5.4" height="13" rx="0.8" fill="currentColor"/>
+        <rect x="1"   y="-7" width="5.4" height="18" rx="0.8" fill="currentColor"/>
+        <rect x="8"  y="-12" width="5.4" height="23" rx="0.8" fill="currentColor"/>
+      </svg>
+    ),
+  },
+  {
+    tab: "TODAY",
     href: "/today",
     label: "Today",
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
-        strokeLinejoin="round" aria-hidden="true">
-        <rect x="4" y="5" width="16" height="16" rx="2" />
-        <path d="M16 3v4M8 3v4M4 11h16" />
-        <circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none" />
+      <svg width="18" height="18" viewBox="-13 -13 26 26" aria-hidden="true">
+        <path d="M-7,-11 L11,0 L-7,11 Z" fill="currentColor" stroke="none"/>
       </svg>
     ),
   },
   {
-    href: "/momentum",
-    label: "Insights",
-    // Bar chart — analytics/insights glyph
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
-        strokeLinejoin="round" aria-hidden="true">
-        <path d="M4 20h16" />
-        <rect x="6" y="12" width="3" height="6" />
-        <rect x="11" y="8" width="3" height="10" />
-        <rect x="16" y="4" width="3" height="14" />
-      </svg>
-    ),
-  },
-  {
+    tab: "PLAN",
     href: "/plan",
     label: "Plan",
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
-        strokeLinejoin="round" aria-hidden="true">
-        <rect x="4" y="4" width="16" height="16" rx="2" />
-        <path d="M8 9h8M8 13h5" />
-        <circle cx="16" cy="16" r="2.5" fill="currentColor" stroke="none" />
+      <svg width="19" height="19" viewBox="-14 -14 28 28" aria-hidden="true">
+        <circle cx="0" cy="0" r="12" fill="none" stroke="currentColor" strokeWidth="2.4"/>
+        <circle cx="0" cy="0" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.2"/>
+        <circle cx="0" cy="0" r="2.4" fill="currentColor"/>
+      </svg>
+    ),
+  },
+  {
+    tab: "MORE",
+    href: "/more",
+    label: "More",
+    icon: (
+      <svg width="18" height="18" viewBox="-12 -12 24 24" aria-hidden="true">
+        <rect x="-10" y="-10" width="8" height="8" rx="1.8" fill="currentColor"/>
+        <rect x="2"   y="-10" width="8" height="8" rx="1.8" fill="currentColor"/>
+        <rect x="-10" y="2"   width="8" height="8" rx="1.8" fill="currentColor"/>
+        <rect x="2"   y="2"   width="8" height="8" rx="1.8" fill="currentColor"/>
       </svg>
     ),
   },
 ] as const;
 
-// More tab — grid icon
-const MORE_ICON = (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <rect x="4" y="4" width="7" height="7" rx="1.5" />
-    <rect x="13" y="4" width="7" height="7" rx="1.5" />
-    <rect x="4" y="13" width="7" height="7" rx="1.5" />
-    <rect x="13" y="13" width="7" height="7" rx="1.5" />
-  </svg>
-);
+function PinRow() {
+  return (
+    <div className={styles.pinRow} aria-hidden="true">
+      <span className={styles.pin} />
+      <span className={styles.pin} />
+      <span className={styles.pin} />
+    </div>
+  );
+}
 
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Determine which tab is active. "/more" also catches sub-routes under More.
   function isActive(href: string) {
-    if (href === "/today") return pathname === "/today" || pathname === "/";
+    if (href === "/today")
+      return pathname === "/today" || pathname === "/" || pathname.startsWith("/today/");
     return pathname === href || pathname.startsWith(href + "/");
   }
 
-  const moreActive = isActive("/more");
-
   return (
-    <nav className={styles.nav} aria-label="Primary navigation">
-      {TABS.map((tab) => {
-        const active = isActive(tab.href);
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            aria-label={tab.label}
-            aria-current={active ? "page" : undefined}
-            className={`${styles.tab} ${active ? styles.active : ""}`}
-          >
-            {tab.icon}
-          </Link>
-        );
-      })}
+    <nav className={styles.chassisWrap} aria-label="Primary navigation">
+      <div className={styles.chassis}>
 
-      {/* Divider between Momentum and More */}
-      <span className={styles.divider} aria-hidden="true" />
+        {/* Left I/O port column */}
+        <div className={styles.leftMarks} aria-hidden="true">
+          <div className={styles.leftBox}>
+            <div className={styles.markRow}>
+              <svg width="5" height="6" viewBox="0 0 7 8">
+                <path d="M7,0 L0,4 L7,8 Z" fill="rgba(245,245,240,0.6)"/>
+              </svg>
+              <span className={styles.markLabel}>USB</span>
+            </div>
+            <div className={styles.markRow}>
+              <svg width="5" height="6" viewBox="0 0 7 8">
+                <path d="M7,0 L0,4 L7,8 Z" fill="rgba(245,245,240,0.6)"/>
+              </svg>
+              <span className={styles.markIcon}>
+                <svg width="10" height="12" viewBox="-7 -9 14 18">
+                  <path d="M-3,-6 L0,-6 A6,6 0 0 1 0,6 L-3,6" fill="none" stroke="rgba(245,245,240,0.6)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <rect x="-7" y="-7" width="5" height="2.6" rx="1" fill="none" stroke="rgba(245,245,240,0.6)" strokeWidth="1.4"/>
+                  <rect x="-7" y="4.4" width="5" height="2.6" rx="1" fill="none" stroke="rgba(245,245,240,0.6)" strokeWidth="1.4"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
 
-      <Link
-        href="/more"
-        aria-label="More"
-        aria-current={moreActive ? "page" : undefined}
-        className={`${styles.tab} ${moreActive ? styles.active : ""}`}
-      >
-        {MORE_ICON}
-      </Link>
+        {/* Main chassis content */}
+        <div className={styles.chassisMain}>
+
+          {/* Scale labels row */}
+          <div className={styles.scaleRow} aria-hidden="true">
+            {PADS.map((p) => (
+              <span
+                key={p.tab}
+                className={`${styles.scaleLabel} ${isActive(p.href) ? styles.scaleLabelActive : ""}`}
+              >
+                {p.tab}
+              </span>
+            ))}
+          </div>
+
+          {/* Pad row */}
+          <div className={styles.pads}>
+            {PADS.map((p) => {
+              const active = isActive(p.href);
+              return (
+                <Link
+                  key={p.tab}
+                  href={p.href}
+                  aria-label={p.label}
+                  aria-current={active ? "page" : undefined}
+                  className={`${styles.padWrapper} ${active ? styles.padWrapperActive : ""}`}
+                >
+                  <PinRow />
+                  <div className={styles.pad}>
+                    <span className={styles.led} />
+                    <div className={styles.icon}>{p.icon}</div>
+                  </div>
+                  <PinRow />
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className={styles.footerSpec} aria-hidden="true">INCYTE · MDL-X7 · 04CH</div>
+        </div>
+
+      </div>
     </nav>
   );
 }
