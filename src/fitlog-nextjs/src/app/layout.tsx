@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description:
     "Progressive overload tracking for trained lifters. Calibrated feedback, not a hype reel.",
   appleWebApp: {
-    capable: true,
     statusBarStyle: "default",
     title: "INCYTE",
   },
