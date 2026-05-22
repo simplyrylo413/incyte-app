@@ -275,7 +275,7 @@ export default function TodayPage() {
 
       {/* ── Content ── */}
       {loading ? (
-        <div style={{ padding: "24px", color: "#5e6a82", fontSize: 13 }}>Loading…</div>
+        <div style={{ padding: "24px", color: "rgba(255,255,255,0.55)", fontSize: 13 }}>Loading…</div>
       ) : err ? (
         <div style={{ padding: "24px", color: "#b08092", fontSize: 13 }}>{err}</div>
       ) : !hasMovements ? (
@@ -284,7 +284,7 @@ export default function TodayPage() {
         <>
           <div style={{ paddingBottom: 8 }}>
             {grouped.length === 0 ? (
-              <div style={{ padding: "16px 26px", fontSize: 13, color: "#8893a8" }}>
+              <div style={{ padding: "16px 26px", fontSize: 13, color: "rgba(255,255,255,0.38)" }}>
                 {completedEntries.length > 0 ? "All movements done for today." : "Nothing remaining."}
               </div>
             ) : (
@@ -757,7 +757,7 @@ function LoggedDetailSheet({
                 <span className={s.setValCell}>
                   {set.rpe != null
                     ? <span className={`${s.setRpeChip} ${rpeClass(Number(set.rpe))}`}>@{set.rpe}</span>
-                    : <span style={{ color: "#8893a8" }}>—</span>
+                    : <span style={{ color: "rgba(255,255,255,0.38)" }}>—</span>
                   }
                 </span>
                 <div className={s.setActionsCell}>

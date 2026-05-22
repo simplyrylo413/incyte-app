@@ -25,7 +25,7 @@
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.018em;
-  color: #0f1622;
+  color: #ffffff;
   line-height: 1.1;
   margin: 0 0 4px;
 }
@@ -36,7 +36,7 @@
   font-weight: 600;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: #8893a8; /* --label */
+  color: rgba(255,255,255,0.38); /* --label */
 }
 
 /* ─── Session-stats glass panel (.progress) ──────────────────────────────── */
@@ -113,7 +113,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #5e6a82; /* --muted */
+  color: rgba(255,255,255,0.55); /* --muted */
   margin-bottom: 6px;
 }
 
@@ -122,7 +122,7 @@
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #0f1622; /* --ink */
+  color: #ffffff; /* --ink */
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -131,7 +131,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   margin-left: 3px;
 }
 
@@ -145,12 +145,12 @@
   font-weight: 500;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: #8893a8; /* --label */
+  color: rgba(255,255,255,0.38); /* --label */
 }
 
 .volParts span em {
   font-style: normal;
-  color: #5e6a82; /* --muted */
+  color: rgba(255,255,255,0.55); /* --muted */
   margin-right: 4px;
 }
 
@@ -185,7 +185,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
-  color: #0f1622;
+  color: #ffffff;
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
@@ -194,17 +194,17 @@
 .plannedNum {
   font-size: 15px;
   font-weight: 700;
-  color: #0f1622;
+  color: #ffffff;
 }
 
 .plannedSep {
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
 }
 
 .plannedUnit {
   font-size: 11px;
   font-weight: 600;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
 }
 
 .readyLabel {
@@ -213,7 +213,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -239,7 +239,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease;
   white-space: nowrap;
@@ -247,7 +247,7 @@
 
 .tabBtnActive {
   background: #ffffff;
-  color: #0f1622;
+  color: #ffffff;
   box-shadow: 0 1px 3px rgba(15,22,34,0.10), 0 1px 0 rgba(255,255,255,1) inset;
 }
 
@@ -258,7 +258,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #0f1622;
+  color: #ffffff;
   padding: 12px 26px 6px;
 }
 
@@ -320,7 +320,7 @@
   height: 24px;
   display: grid;
   place-items: center;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
   opacity: 0.30;
   flex-shrink: 0;
   margin-left: -6px;
@@ -343,7 +343,7 @@
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #0f1622;
+  color: #ffffff;
   line-height: 1.2;
 }
 
@@ -358,7 +358,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   padding: 4px 9px;
   background: transparent;
   border: 1.5px solid #0f1622;
@@ -408,7 +408,7 @@
   font-weight: 600;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: #0f1622;
+  color: #ffffff;
   cursor: pointer;
   transition: background 150ms ease-out;
 }
@@ -427,7 +427,7 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  color: #0f1622;
+  color: #ffffff;
   background: #f4f5f7;
   border: 1.5px solid #0f1622;
   border-radius: 999px;
@@ -464,7 +464,7 @@
   background: transparent;
   display: grid;
   place-items: center;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
   cursor: pointer;
   flex-shrink: 0;
   transition: color 150ms ease-out, border-color 150ms ease-out;
@@ -499,7 +499,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
 }
 
 .removeConfirmCancel {
@@ -510,7 +510,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   cursor: pointer;
   transition: background 120ms;
   -webkit-tap-highlight-color: transparent;
@@ -552,20 +552,20 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
 }
 
 .emptyTitle {
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: #0f1622;
+  color: #ffffff;
   margin: 0;
 }
 
 .emptyBody {
   font-size: 13px;
-  color: #5e6a82;
+  color: rgba(255,255,255,0.55);
   margin: 0;
 }
 
@@ -590,7 +590,7 @@
   display: block;
   padding: 11px 0;
   background: transparent;
-  color: #0f1622;
+  color: #ffffff;
   border: 1.5px dashed #0f1622;
   border-radius: 999px;
   font-family: "Inter Tight", system-ui, sans-serif;
@@ -669,7 +669,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: #0f1622;
+  color: #ffffff;
   letter-spacing: -0.01em;
 }
 
@@ -677,7 +677,7 @@
   background: none;
   border: 0;
   font-size: 14px;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
@@ -698,7 +698,7 @@
   padding: 9px 13px;
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 13px;
-  color: #0f1622;
+  color: #ffffff;
   outline: none;
   box-sizing: border-box;
   transition: border-color 150ms;
@@ -719,7 +719,7 @@
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
 }
 
 .pickerItem {
@@ -741,7 +741,7 @@
   font-family: "Inter Tight", system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
-  color: #0f1622;
+  color: #ffffff;
   flex: 1;
 }
 
@@ -751,7 +751,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
   background: rgba(15,22,34,0.06);
   padding: 2px 6px;
   border-radius: 4px;
@@ -760,7 +760,7 @@
 .pickerEmpty {
   padding: 24px 20px;
   font-size: 13px;
-  color: #8893a8;
+  color: rgba(255,255,255,0.38);
   text-align: center;
 }
 
@@ -844,7 +844,7 @@
 
   :global(body:not(.theme-light)) .equipChipActive {
     background: #f7f9fc;
-    color: #0f1622;
+    color: #ffffff;
     border-color: #f7f9fc;
   }
 
@@ -995,7 +995,7 @@
 
 :global(body.theme-dark) .equipChipActive {
   background: #f7f9fc;
-  color: #0f1622;
+  color: #ffffff;
   border-color: #f7f9fc;
 }
 
