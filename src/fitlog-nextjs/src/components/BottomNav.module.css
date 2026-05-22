@@ -1,11 +1,10 @@
-/* BottomNav glass-pill styles.
+/* BottomNav styles.
  * Tailwind can't express layered inset box-shadows or complex backdrop-filter
- * combos cleanly, so the structural glass treatment lives here.
- * All color values mirror the HTML build's .bottom-nav light-mode rules.
- * Source reference: src/fitlog-mobile.html lines 5416–5512.
+ * combos cleanly, so the structural treatment lives here.
+ * Source reference: src/fitlog-nextjs/public/workout-alt.html (active style default).
  */
 
-/* ── The pill container ──────────────────────────────────────────────────── */
+/* ── Nav container ───────────────────────────────────────────────────────── */
 .nav {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
@@ -18,7 +17,7 @@
   padding: 4px;
   border-radius: 999px;
 
-  /* Light-mode glass pill — matches body:not(.theme-dark) .bottom-nav */
+  /* Light-mode — matches body:not(.theme-dark) .bottom-nav */
   background: rgba(255, 255, 255, 0.72);
   border: 1.2px solid rgba(15, 22, 34, 0.18);
   box-shadow:
@@ -65,8 +64,7 @@
   transform: scale(0.94);
 }
 
-/* ── Active tab — white card lift ───────────────────────────────────────── */
-/* Matches body:not(.theme-dark) .bottom-nav-tab.active */
+/* ── Active tab — lifted card ────────────────────────────────────────────── */
 .tab.active {
   background: rgba(255, 255, 255, 0.96);
   color: #0f1622; /* --ink */

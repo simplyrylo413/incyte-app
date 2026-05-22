@@ -208,7 +208,7 @@ src/fitlog-nextjs/src/
 │   └── auth/callback/
 │       └── route.ts           ← Supabase PKCE exchange
 ├── components/
-│   ├── BottomNav.tsx          ← Glass pill nav, icon-only tabs, active tab lift
+│   ├── BottomNav.tsx          ← Bottom nav bar, icon-only tabs, active tab lift
 │   ├── BottomNav.module.css
 │   ├── NavGuard.tsx           ← Suppresses BottomNav on /login and /auth/*
 │   ├── AuthForm.tsx           ← Signin / signup / reset (3-mode)

@@ -1,6 +1,6 @@
 "use client";
 
-// BottomNav — floating glass-pill primary navigation.
+// BottomNav — primary navigation bar.
 // mobile351.html is visual reference only (icon glyphs, active-state treatment).
 // IA: Today / Insights / Momentum / More.
 // Icons: inline SVG, 22×22, stroke-width 1.6.
@@ -95,7 +95,6 @@ export default function BottomNav() {
             aria-label={tab.label}
             aria-current={active ? "page" : undefined}
             className={`${styles.tab} ${active ? styles.active : ""}`}
-            style={{ color: active ? "#5d9bb8" : undefined }}
           >
             {tab.icon}
           </Link>
@@ -110,7 +109,6 @@ export default function BottomNav() {
         aria-label="More"
         aria-current={moreActive ? "page" : undefined}
         className={`${styles.tab} ${moreActive ? styles.active : ""}`}
-        style={{ color: moreActive ? "#5d9bb8" : undefined }}
       >
         {MORE_ICON}
       </Link>
