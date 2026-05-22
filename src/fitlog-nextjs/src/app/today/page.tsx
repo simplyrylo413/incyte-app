@@ -37,7 +37,12 @@ import s from "./TodayPage.module.css";
 
 // ─── Helpers: persist "hidden for today" plan IDs in localStorage ────────────
 
-const todayKey = () => `hiddenPlanIds_${new Date().toISOString().slice(0, 10)}`;
+/** Local-calendar date string YYYY-MM-DD — never UTC, avoids midnight timezone drift. */
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const todayKey = () => `hiddenPlanIds_${localDateStr()}`;
 
 function getHiddenForToday(): Set<string> {
   try {
@@ -110,9 +115,12 @@ export default function TodayPage() {
       // Only treat an unfinished workout as "active" if it was started today.
       // An unfinished session from a previous day is stale — ignore it so
       // Today always rebuilds from the current day's plan.
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = localDateStr();
       const candidate = wkts[0] ?? null;
-      const isFromToday = !!candidate?.date && candidate.date.slice(0, 10) === todayStr;
+      // Compare using local calendar dates — toISOString() is UTC and drifts
+      // across midnight in non-UTC timezones, causing yesterday's sessions to
+      // bleed into today and surface stale adhoc entries.
+      const isFromToday = !!candidate?.date && localDateStr(new Date(candidate.date)) === todayStr;
       setMovements(mv);
       setPlans(pl);
       setActiveWorkout(isFromToday ? candidate : null);
@@ -345,10 +353,11 @@ export default function TodayPage() {
               grouped.map(([bp, items]) => (
                 <div key={bp}>
                   <div className={s.eyebrow}>{bp.toUpperCase()}</div>
-                  {items.map((item) => (
+                  {items.map((item, i) => (
                     <MovementRow
                       key={item.planId}
                       item={item}
+                      index={i}
                       onTap={handleMovementTap}
                       onEquipChange={handleEquipChange}
                       onRemove={handleRemoveEntry}
@@ -453,11 +462,13 @@ function SessionStats({
 
 function MovementRow({
   item,
+  index,
   onTap,
   onEquipChange,
   onRemove,
 }: {
   item: TodayItem;
+  index: number;
   onTap: (item: TodayItem) => void;
   onEquipChange: (planId: string, equip: string) => void;
   onRemove: (planId: string) => void;
@@ -534,6 +545,9 @@ function MovementRow({
     return `${done}/${total || "?"}`;
   }
 
+  const rowNum = String(index + 1).padStart(2, "0");
+  const equipLabel = equip === "unspecified" ? null : equip.toUpperCase();
+
   return (
     <div
       ref={cardRef}
@@ -542,14 +556,45 @@ function MovementRow({
     >
       <span ref={rippleRef} className={s.rippleLayer} aria-hidden="true" />
 
+      {/* Row number */}
+      <span className={s.rowNum}>{rowNum}</span>
+
+      {/* Name + tags */}
       <div className={s.mvBody} onClick={handleBodyClick}>
         <div className={s.row1}>
           <span className={s.mvName}>{name}</span>
         </div>
+        <div className={s.row2}>
+          {equipLabel && (
+            <div className={s.equipWrap}>
+              <button
+                className={s.equip}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setOpenPop((v) => !v); }}
+              >
+                {equipLabel}
+              </button>
+              {openPop && (
+                <div className={`${s.equipPop} ${s.equipPopOpen}`}>
+                  {["unspecified","barbell","dumbbell","cable","machine","bodyweight"].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      className={`${s.equipChip} ${opt === equip ? s.equipChipActive : ""}`}
+                      onClick={(e) => handleEquipTap(e, opt)}
+                    >
+                      {opt === "unspecified" ? "—" : opt.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <span className={chipClass()}>{chipLabel()}</span>
+        </div>
       </div>
 
-      <span className={chipClass()}>{chipLabel()}</span>
-
+      {/* Remove button */}
       {!item.fromHistory && (
         <button
           className={s.removeBtn}

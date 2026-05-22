@@ -251,20 +251,33 @@
 }
 
 /* ─── Movement row (.mv) ─────────────────────────────────────────────────── */
-/* Source: fitlog-mobile.html lines 6860–7027 */
 .mv {
   position: relative;
-  margin: 0 16px;
-  padding: 10px 12px;
-  border-bottom: 1.2px solid rgba(15,22,34,0.06);
+  margin: 0 14px 6px;
+  padding: 10px 10px 10px 12px;
+  border-radius: 5px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>"),
+    linear-gradient(160deg, #25282d 0%, #1a1d22 55%, #141618 100%);
+  border: 1px solid #2e3338;
+  border-top-color: #363b41;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 3px 8px rgba(0,0,0,0.55),
+    0 1px 3px rgba(0,0,0,0.40);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
-  transition: background 150ms ease-out;
+  transition: box-shadow 150ms ease-out, transform 100ms ease-out;
 }
 
-.mv:hover { background: rgba(15,22,34,0.025); }
+.mv:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    0 4px 12px rgba(0,0,0,0.65),
+    0 1px 3px rgba(0,0,0,0.45);
+}
 
 .mv:active { transform: scale(0.99); }
 
@@ -299,65 +312,76 @@
 
 /* Completed state */
 .mvComplete {
-  background: rgba(15,22,34,0.025);
+  opacity: 0.55;
 }
 
-/* Drag handle */
-.dragHandle {
-  width: 16px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  color: rgba(255,255,255,0.38);
-  opacity: 0.30;
+/* Row number — yellow monospace index (01, 02…) */
+.rowNum {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f5ec00;
+  text-shadow: 0 0 8px rgba(245,236,0,0.35);
   flex-shrink: 0;
-  margin-left: -6px;
+  min-width: 22px;
+  letter-spacing: 0.04em;
+  user-select: none;
 }
-
-.dragHandle svg { width: 10px; height: 14px; }
 
 /* Body */
 .mvBody { flex: 1; min-width: 0; }
+
 .row1 {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 8px;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
+}
+
+.row2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .mvName {
   font-family: "Inter Tight", system-ui, sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: #f0f0eb;
   line-height: 1.2;
 }
 
-.mvComplete .mvName { color: #5e6a82; }
+.mvComplete .mvName { color: rgba(255,255,255,0.40); }
 
-/* Equipment pill */
+/* Equipment pill — green bordered tag */
 .equipWrap { position: relative; display: inline-block; }
 
 .equip {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
-  padding: 4px 9px;
-  background: transparent;
-  border: 1.5px solid #0f1622;
+  color: rgba(80,224,48,0.85);
+  padding: 3px 8px;
+  background: rgba(80,224,48,0.08);
+  border: 1.2px solid rgba(80,224,48,0.45);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  transition: background 150ms ease-out, border-color 150ms ease-out;
 }
 
-.equip:hover { background: rgba(15,22,34,0.04); color: #0f1622; border-color: rgba(15,22,34,0.28); }
+.equip:hover {
+  background: rgba(80,224,48,0.14);
+  border-color: rgba(80,224,48,0.70);
+}
 
-.mvComplete .equip { opacity: 0.7; }
+.mvComplete .equip {
+  color: rgba(255,255,255,0.30);
+  background: transparent;
+  border-color: rgba(255,255,255,0.18);
+}
 
 /* Equipment popover */
 .equipPop {
@@ -409,57 +433,63 @@
   border-color: #0f1622;
 }
 
-/* Progress chip */
+/* Progress chip — gray pill for pending, colored for states */
 .progressChip {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
   line-height: 1;
-  color: #ffffff;
-  background: #f4f5f7;
-  border: 1.5px solid #0f1622;
+  color: rgba(255,255,255,0.50);
+  background: transparent;
+  border: 1.2px solid rgba(255,255,255,0.22);
   border-radius: 999px;
-  padding: 6px 10px;
-  min-width: 44px;
+  padding: 3px 8px;
   text-align: center;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .progressChipDone {
-  color: #4f9aa8;
-  background: rgba(79,154,168,0.10);
-  border-color: rgba(79,154,168,0.20);
+  color: rgba(80,224,48,0.85);
+  background: rgba(80,224,48,0.08);
+  border-color: rgba(80,224,48,0.40);
 }
 
 .progressChipSkipped {
-  color: #b08092;
-  background: rgba(176,128,146,0.10);
-  border-color: rgba(176,128,146,0.20);
+  color: rgba(255,61,61,0.75);
+  background: rgba(255,61,61,0.07);
+  border-color: rgba(255,61,61,0.30);
 }
 
 .progressChipPartial {
-  color: #5d9bb8;
-  background: rgba(93,155,184,0.10);
-  border-color: rgba(93,155,184,0.20);
+  color: #f5ec00;
+  background: rgba(245,236,0,0.07);
+  border-color: rgba(245,236,0,0.35);
 }
 
-/* Remove button */
+/* Remove button — red circle × */
 .removeBtn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
-  border: 1.2px solid rgba(15,22,34,0.20);
-  background: transparent;
+  border: 1.2px solid rgba(255,61,61,0.35);
+  background: rgba(255,61,61,0.06);
   display: grid;
   place-items: center;
-  color: rgba(255,255,255,0.38);
+  color: rgba(255,61,61,0.55);
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 150ms ease-out, border-color 150ms ease-out;
+  transition: color 150ms ease-out, border-color 150ms ease-out, background 150ms ease-out;
 }
 
-.removeBtn:hover { color: #b08092; border-color: rgba(176,128,146,0.30); }
-.removeBtn svg { width: 12px; height: 12px; }
+.removeBtn:hover {
+  color: #FF3D3D;
+  border-color: rgba(255,61,61,0.65);
+  background: rgba(255,61,61,0.12);
+}
+.removeBtn:active { transform: scale(0.93); }
+.removeBtn svg { width: 10px; height: 10px; }
 
 /* ─── Remove confirmation strip ─────────────────────────────────────────── */
 .removeConfirm {
@@ -1080,13 +1110,77 @@
 
 :global(body.theme-light) .eyebrow { color: rgba(40,35,30,0.50); }
 
-:global(body.theme-light) .mv { border-bottom-color: rgba(26,24,20,0.10); }
-:global(body.theme-light) .mv:hover { background: rgba(26,24,20,0.04); }
-:global(body.theme-light) .mvComplete { background: rgba(26,24,20,0.04); }
+:global(body.theme-light) .mv {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.9  0 0 0 0 0.88  0 0 0 0 0.85  0 0 0 0.05 0'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>"),
+    linear-gradient(160deg, #d8d3cc 0%, #cac5be 55%, #bfbab3 100%);
+  border-color: #a8a39c;
+  border-top-color: #b8b3ac;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    0 2px 6px rgba(0,0,0,0.18),
+    0 1px 2px rgba(0,0,0,0.12);
+}
+:global(body.theme-light) .mv:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.60),
+    0 3px 8px rgba(0,0,0,0.22),
+    0 1px 2px rgba(0,0,0,0.14);
+}
 
-:global(body.theme-light) .dragHandle { color: rgba(40,35,30,0.30); }
+:global(body.theme-light) .rowNum {
+  color: #1a1814;
+  text-shadow: none;
+}
+
 :global(body.theme-light) .mvName { color: #1a1814; }
 :global(body.theme-light) .mvComplete .mvName { color: rgba(40,35,30,0.45); }
+
+:global(body.theme-light) .equip {
+  color: rgba(26,24,20,0.70);
+  background: rgba(26,24,20,0.08);
+  border-color: rgba(26,24,20,0.35);
+}
+:global(body.theme-light) .equip:hover {
+  background: rgba(26,24,20,0.14);
+  border-color: rgba(26,24,20,0.55);
+}
+:global(body.theme-light) .mvComplete .equip {
+  color: rgba(26,24,20,0.30);
+  background: transparent;
+  border-color: rgba(26,24,20,0.18);
+}
+
+:global(body.theme-light) .progressChip {
+  color: rgba(40,35,30,0.50);
+  border-color: rgba(26,24,20,0.25);
+}
+:global(body.theme-light) .progressChipDone {
+  color: #2a7a30;
+  background: rgba(42,122,48,0.10);
+  border-color: rgba(42,122,48,0.30);
+}
+:global(body.theme-light) .progressChipSkipped {
+  color: #a03020;
+  background: rgba(160,48,32,0.08);
+  border-color: rgba(160,48,32,0.25);
+}
+:global(body.theme-light) .progressChipPartial {
+  color: #7a6010;
+  background: rgba(122,96,16,0.08);
+  border-color: rgba(122,96,16,0.28);
+}
+
+:global(body.theme-light) .removeBtn {
+  border-color: rgba(160,48,32,0.30);
+  background: rgba(160,48,32,0.06);
+  color: rgba(160,48,32,0.55);
+}
+:global(body.theme-light) .removeBtn:hover {
+  color: #a03020;
+  border-color: rgba(160,48,32,0.55);
+  background: rgba(160,48,32,0.12);
+}
 
 :global(body.theme-light) .equip {
   color: rgba(40,35,30,0.60);
