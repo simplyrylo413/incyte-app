@@ -340,16 +340,16 @@ export default function TodayPage() {
 
       {/* ── Content ── */}
       {loading ? (
-        <div style={{ padding: "24px", color: "rgba(255,255,255,0.55)", fontSize: 13 }}>Loading…</div>
+        <div className={s.loadingState}>Loading…</div>
       ) : err ? (
-        <div style={{ padding: "24px", color: "#b08092", fontSize: 13 }}>{err}</div>
+        <div className={s.errorState}>{err}</div>
       ) : !hasMovements ? (
         <EmptyState onAdd={() => setAddSheetOpen(true)} />
       ) : (
         <>
           <div style={{ paddingBottom: 8 }}>
             {grouped.length === 0 ? (
-              <div style={{ padding: "16px 26px", fontSize: 13, color: "rgba(255,255,255,0.38)" }}>
+              <div className={s.nothingRemaining}>
                 {completedEntries.length > 0 ? "All movements done for today." : "Nothing remaining."}
               </div>
             ) : (
@@ -849,7 +849,7 @@ function LoggedDetailSheet({
                 <span className={s.setValCell}>
                   {set.rpe != null
                     ? <span className={`${s.setRpeChip} ${rpeClass(Number(set.rpe))}`}>@{set.rpe}</span>
-                    : <span style={{ color: "rgba(255,255,255,0.38)" }}>—</span>
+                    : <span className={s.mutedDash}>—</span>
                   }
                 </span>
                 <div className={s.setActionsCell}>
