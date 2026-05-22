@@ -38,7 +38,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="/odometer-train-station.css" />
       </head>
       <body
-        className="min-h-dvh font-sans antialiased"
+        className="min-h-dvh font-sans antialiased theme-dark"
         style={{
           // Content scrolls under the floating nav pill.
           // 88px = nav pill height (~56px) + bottom gap (16px) + clearance (16px).
