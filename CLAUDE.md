@@ -6,6 +6,12 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 
 ---
 
+## 0. Agent communication rule
+
+**IMPORTANT:** At the end of every completed task, explicitly state "Task complete." so the user knows they can go check the result. Never leave a task finished without this signal.
+
+---
+
 ## 1. What INCYTE is
 
 **INCYTE** — progressive overload tracking for trained lifters. Solo-developed, mobile-first, headed to App Store via Capacitor. Voice is clinical, direct, and calibrated. Reject motivational filler, emoji punctuation, and "new identity" redesigns. See [`pm/decisions.md`](pm/decisions.md) for locked direction.
