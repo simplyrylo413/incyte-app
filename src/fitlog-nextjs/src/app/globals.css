@@ -1,10 +1,11 @@
+/* ─── Google Fonts — DM Sans + Geist Mono ───────────────────────────────── */
+/* @import must come before all other rules per CSS spec.                    */
+/* Matches the HTML build's <link> at src/fitlog-mobile.html line 12.        */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Geist+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ─── Google Fonts — DM Sans + Geist Mono ───────────────────────────────── */
-/* Matches the HTML build's <link> at src/fitlog-mobile.html line 12.        */
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=Geist+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* ─── CSS custom properties (mirrors :root in fitlog-mobile.html ln 20–115) */
 /* Consumed by plan/PlanPage.module.css and any other CSS module using var(--*). */
