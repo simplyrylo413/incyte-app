@@ -4423,6 +4423,7 @@ requestAnimationFrame(() => {
     if (entry.sets && entry.sets.length > 0) {
       state.logs = entry.sets.map((s, i) => ({
         num: i + 1,
+        tags: s.warmup ? ['WU'] : ['WS'],
         weight: s.weight ?? null,
         reps: s.reps ?? null,
         rpe: s.rpe ?? null,
@@ -4430,7 +4431,7 @@ requestAnimationFrame(() => {
         warmup: s.warmup ?? false,
       }));
       while (state.logs.length < state.totalSets) {
-        state.logs.push({ num: state.logs.length + 1, weight: null, reps: null, rpe: null, done: false, warmup: false });
+        state.logs.push({ num: state.logs.length + 1, tags: ['WS'], weight: null, reps: null, rpe: null, done: false, warmup: false });
       }
       state.totalSets = Math.max(state.logs.length, state.totalSets);
       renderLog();
