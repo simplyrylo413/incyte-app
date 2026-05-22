@@ -15,8 +15,9 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 ## 2. Critical rules (do not violate)
 
 - **IMPORTANT:** Two builds coexist in this repo. Know which one you're touching before editing.
-  - **HTML build** at `src/fitlog-mobile.html` — single-file vanilla HTML/CSS/JS, ~21.6k lines, no build step, no framework. The **primary shipping product** during the transition. Rules in §3–§7 apply.
-  - **Next.js build** at `src/fitlog-nextjs/` — Next 14 (app router) + React 18 + Tailwind + TypeScript + Supabase SSR. In active construction toward visual + feature parity with the HTML build's mobile351 baseline. Has its own conventions in §12 below. Per [`pm/decisions.md` 2026-05-13](pm/decisions.md), this build is being developed in parallel and will replace the HTML build at cutover.
+  - **HTML build** at `src/fitlog-mobile.html` — single-file vanilla HTML/CSS/JS, ~21.6k lines, no build step, no framework. Rules in §3–§7 apply.
+  - **Next.js build** at `src/fitlog-nextjs/` — Next 14 (app router) + React 18 + Tailwind + TypeScript + Supabase SSR. **This is the primary shipping product going forward.** Visual and design source of truth is `src/fitlog-nextjs/public/workout-alt.html` (the MPC/cassette prototype). All new UI must match that reference, not the HTML build. Has its own conventions in §12 below.
+- **IMPORTANT:** Dark mode is the default and only supported mode. `theme-dark` is baked onto `<body>` in `layout.tsx`. Do not build light-mode variants unless explicitly instructed.
 - **IMPORTANT:** Inside the HTML build, do **not** create new files for components, styles, or scripts. Everything goes inside the single canonical `fitlog-mobile.html`. Numbered snapshots (e.g. `mobile346.html`) are only created when the user explicitly asks — they are not source of truth.
 - **IMPORTANT:** Commit each meaningful change to git. The repo is at `~/fitness-app/` on branch `main`. Numbered-snapshot workflow was retired 2026-05-12 ([`pm/decisions.md`](pm/decisions.md)); user may still request snapshots for specific exports.
 - **IMPORTANT:** Never hardcode colors, font sizes, spacing, or shadows. Use the design tokens declared in `:root` at [src/fitlog-mobile.html:20](src/fitlog-mobile.html#L20). Hardcoded values that re-implement existing tokens are a regression.
