@@ -1,4 +1,6 @@
-# CLAUDE.md — INCYTE engineering rules
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 These rules apply to every code change in this repo. Read top-to-bottom before editing. They encode the conventions of the project so AI coding agents don't re-invent style, drift away from tokens, or create components in random locations.
 
@@ -16,6 +18,38 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 
 ---
 
+## 0b. Commands
+
+### Next.js build (primary active build)
+```bash
+cd src/fitlog-nextjs
+
+npm run dev        # dev server → http://localhost:3000
+npm run build      # static export to out/ (production, used for Netlify deploy)
+npm run lint       # ESLint
+npx tsc --noEmit   # type-check without emitting (run before committing)
+```
+
+**Required before first run:** create `src/fitlog-nextjs/.env.local` (gitignored — never committed):
+```
+NEXT_PUBLIC_SUPABASE_URL=https://drlmpltseepsxostsqdq.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_xv1UEb6ZGshMjIcX-qkgZw_9p6rzBVb
+```
+
+**Known macOS gotcha:** `output: "export"` in `next.config.js` causes all `/_next/static/` chunks to 404 in `next dev` on macOS. It is now conditionally applied only when `NODE_ENV === "production"` — do not move it back to unconditional.
+
+**Deploy to Netlify** (`incyte13.netlify.app`, site ID `3b186e5f-3f0b-422c-be12-6d4d0f9f8b28`):
+```bash
+# Always confirm site name with user before running
+cd src/fitlog-nextjs && npm run build
+~/.local/bin/netlify deploy --prod --dir=out --site=3b186e5f-3f0b-422c-be12-6d4d0f9f8b28
+```
+
+### HTML build (visual reference only — do not edit during active Next.js development)
+No build step. Open `src/fitlog-mobile.html` directly in a browser or the Claude Preview server. Read it to verify icon glyphs, spacing, and engine behavior; port behavior to Next.js, don't edit the file.
+
+---
+
 ## 1. What INCYTE is
 
 **INCYTE** — progressive overload tracking for trained lifters. Solo-developed, mobile-first, headed to App Store via Capacitor. Voice is clinical, direct, and calibrated. Reject motivational filler, emoji punctuation, and "new identity" redesigns. See [`pm/decisions.md`](pm/decisions.md) for locked direction.
@@ -25,8 +59,8 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 ## 2. Critical rules (do not violate)
 
 - **IMPORTANT:** Two builds coexist in this repo. Know which one you're touching before editing.
-  - **HTML build** at `src/fitlog-mobile.html` — single-file vanilla HTML/CSS/JS, ~21.6k lines, no build step, no framework. The **primary shipping product** during the transition. Rules in §3–§7 apply.
-  - **Next.js build** at `src/fitlog-nextjs/` — Next 14 (app router) + React 18 + Tailwind + TypeScript + Supabase SSR. In active construction toward visual + feature parity with the HTML build's mobile351 baseline. Has its own conventions in §12 below. Per [`pm/decisions.md` 2026-05-13](pm/decisions.md), this build is being developed in parallel and will replace the HTML build at cutover.
+  - **Next.js build** at `src/fitlog-nextjs/` — **the primary active build.** Next 14 (app router) + React 18 + Tailwind + TypeScript + Supabase SSR. This is what ships. Phases 0–8 complete. Conventions in §12 below.
+  - **HTML build** at `src/fitlog-mobile.html` — single-file vanilla HTML/CSS/JS, ~21.6k lines, no build step. **Visual and engine reference only.** Read it when porting behavior or checking visual parity. Do not edit during active Next.js development.
 - **IMPORTANT:** Inside the HTML build, do **not** create new files for components, styles, or scripts. Everything goes inside the single canonical `fitlog-mobile.html`. Numbered snapshots (e.g. `mobile346.html`) are only created when the user explicitly asks — they are not source of truth.
 - **IMPORTANT:** Commit each meaningful change to git. The repo is at `~/fitness-app/` on branch `main`. Numbered-snapshot workflow was retired 2026-05-12 ([`pm/decisions.md`](pm/decisions.md)); user may still request snapshots for specific exports.
 - **IMPORTANT:** Never hardcode colors, font sizes, spacing, or shadows. Use the design tokens declared in `:root` at [src/fitlog-mobile.html:20](src/fitlog-mobile.html#L20). Hardcoded values that re-implement existing tokens are a regression.
@@ -40,9 +74,9 @@ For PM-side context (vision, roadmap, decisions, port plan), see [`pm/handoff.md
 ```
 ~/fitness-app/
 ├── src/
-│   ├── fitlog-mobile.html      ← THE app. Edit this.
-│   ├── mobile{NNN}.html        ← Ad-hoc numbered snapshots. Read-only.
-│   └── fitlog-nextjs/          ← Dormant scaffold. Do not edit.
+│   ├── fitlog-nextjs/          ← PRIMARY ACTIVE BUILD. Edit this.
+│   ├── fitlog-mobile.html      ← Visual + engine reference only. Do not edit.
+│   └── mobile{NNN}.html        ← Ad-hoc numbered snapshots. Read-only.
 ├── pm/                         ← PM workspace (roadmap, decisions, etc.)
 ├── CLAUDE.md                   ← This file.
 └── .git/                       ← Repo, branch `main`.
@@ -218,10 +252,11 @@ When a Figma URL or selection is provided, the implementation flow is:
 
 ## 10. Workflow
 
-- Edit `src/fitlog-mobile.html` directly. Commit each meaningful change.
-- Read the relevant `pm/*.md` files before starting non-trivial work — they hold the project's settled decisions.
-- Verify visually in the running preview server (`Claude Preview`) before reporting work done. Don't rely on type checks or test runs — there are none here.
-- When the user says "snapshot the file" they mean `cp src/fitlog-mobile.html src/mobile{N+1}.html` where N is the highest existing number. They're aware this conflicts with the 2026-05-12 retirement decision; if it becomes a pattern, surface the contradiction.
+- **Active development targets `src/fitlog-nextjs/`.** Prefix commits with `nextjs:`.
+- Read the relevant `pm/*.md` files before starting non-trivial work.
+- Type-check before committing: `npx tsc --noEmit` from `src/fitlog-nextjs/`.
+- Visual verification bar: `mobile351.html` is the reference. If Next.js pages don't match it, the Next.js side is wrong.
+- When the user says "snapshot the file" they mean `cp src/fitlog-mobile.html src/mobile{N+1}.html` where N is the highest existing number.
 - The repo is on `main` and `main` is the working branch. No branching workflow is in use.
 
 ### Mockup workflow (whenever user asks for mockups / design options)
