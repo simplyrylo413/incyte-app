@@ -2,7 +2,18 @@
 
 > Single-page orientation for anyone (or any AI session) starting cold. Skim top-to-bottom, then follow links for depth.
 
-_Last updated: 2026-05-20_
+_Last updated: 2026-05-22_
+
+---
+
+## ⚠️ Known broken — Today page (2026-05-22)
+
+Despite multiple attempts this session, these are **still broken in production**:
+
+1. **Dark theme not defaulting on load** — Today page still renders in light mode on hard refresh / fresh visit, even though `theme-dark` is baked into `<body>` in `layout.tsx` and `localStorage` defaults to `"dark"`. Toggle works to switch modes, but the *default state* is wrong.
+2. **BottomNav alignment broken** — On Today page the nav is still acting like desktop / viewport-fixed instead of being constrained to the 430px mobile column. The `position: fixed → inline` restructure (commit `a201821`) did not resolve this from the user's perspective.
+
+These take priority next session. Don't claim either is fixed without explicit user verification.
 
 ---
 
