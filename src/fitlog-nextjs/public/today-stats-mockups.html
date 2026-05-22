@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Today Stats Panel — Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@500;600;700;800&family=DSEG7+Classic:wght@700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'DSEG7';
+    src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2');
+    font-weight: 700;
+  }
+  :root {
+    --bg-deep: #050607;
+    --bg-1: #0e1013;
+    --bg-2: #16191d;
+    --bg-3: #1f2328;
+    --bg-4: #2a2e33;
+    --bg-5: #353a40;
+    --border-1: #3a3f44;
+    --border-2: #4a5055;
+    --text: #e8e8e8;
+    --text-dim: #6a6e72;
+    --text-mid: #9ba0a5;
+    --yellow: #f5ec00;
+    --red-led: #ff3030;
+    --green-led: #50e030;
+    --metal: linear-gradient(180deg, #353a40 0%, #1f2328 50%, #16191d 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #030404;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 48px;
+  }
+  h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+  .option-block {
+    max-width: 390px;
+    margin: 0 auto 48px;
+  }
+  .option-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  /* ─── PHONE FRAME ─────────────────────────────────────────────── */
+  .phone {
+    width: 100%;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='9'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
+      radial-gradient(ellipse at 30% 0%, #2a2e33 0%, #14171a 45%, #050607 100%);
+    border: 2px solid #0a0b0c;
+    border-radius: 12px;
+    padding: 20px 14px 16px;
+    position: relative;
+  }
+  /* Corner rivets on phone */
+  .rivet {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: radial-gradient(circle at 30% 30%, #7a8085 0%, #3a3f44 50%, #0a0b0c 100%);
+    border-radius: 50%;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.9);
+  }
+  .rivet::after {
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%) rotate(45deg);
+    width:55%; height:1px; background:rgba(0,0,0,0.7);
+  }
+  .rivet.tl{top:8px;left:8px} .rivet.tr{top:8px;right:8px}
+  .rivet.bl{bottom:8px;left:8px} .rivet.br{bottom:8px;right:8px}
+
+  /* Page header */
+  .page-head {
+    margin-bottom: 12px;
+    padding-left: 2px;
+  }
+  .page-headline {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f0f0eb;
+    letter-spacing: 0.5px;
+  }
+  .page-date {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ─── PANEL RIVET (square phillips) ──────────────────────────── */
+  .pr {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: linear-gradient(135deg, #5a5d62 0%, #3a3c3e 50%, #1a1c1e 100%);
+    border-radius: 1px;
+    box-shadow: inset 0 0 0 1px #0a0a0a, inset 0 1px 1px rgba(255,255,255,0.2), 0 1px 1px rgba(0,0,0,0.6);
+  }
+  .pr::before,.pr::after { content:''; position:absolute; top:50%; left:50%; background:rgba(0,0,0,0.75); }
+  .pr::before { transform:translate(-50%,-50%); width:65%; height:1px; }
+  .pr::after  { transform:translate(-50%,-50%); width:1px; height:65%; }
+  .pr.tl{top:4px;left:4px} .pr.tr{top:4px;right:4px}
+  .pr.bl{bottom:4px;left:4px} .pr.br{bottom:4px;right:4px}
+
+  /* ─── LED dot ─────────────────────────────────────────────────── */
+  .led {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #FFB8B8 0%, #FF3D3D 50%, #8B1212 100%);
+    box-shadow: 0 0 5px #FF3D3D, 0 0 10px rgba(255,61,61,0.5);
+    flex-shrink: 0;
+  }
+  .led.green {
+    background: radial-gradient(circle at 35% 35%, #b8ffb8 0%, #50e030 50%, #1a5a12 100%);
+    box-shadow: 0 0 5px #50e030, 0 0 10px rgba(80,224,48,0.5);
+  }
+  .led.yellow {
+    background: radial-gradient(circle at 35% 35%, #fffab8 0%, #f5ec00 50%, #5a5800 100%);
+    box-shadow: 0 0 5px #f5ec00, 0 0 10px rgba(245,236,0,0.5);
+  }
+
+  /* ══════════════════════════════════════════════════
+     OPTION A — Three separate raised metal panels
+  ══════════════════════════════════════════════════ */
+  .stats-a {
+    display: flex;
+    gap: 6px;
+  }
+  .stat-panel-a {
+    flex: 1;
+    position: relative;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>"),
+      linear-gradient(160deg, #2a2e33 0%, #1a1d21 50%, #111316 100%);
+    border: 1px solid #3a3f44;
+    border-top-color: #4a5055;
+    border-radius: 5px;
+    padding: 10px 8px 9px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.5),
+      0 4px 10px rgba(0,0,0,0.7),
+      0 2px 4px rgba(0,0,0,0.5);
+  }
+  .stat-label-a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .stat-value-a {
+    font-family: 'DSEG7', 'Share Tech Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--yellow);
+    text-shadow: 0 0 12px rgba(245,236,0,0.4), 0 0 4px rgba(245,236,0,0.6);
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+  .stat-unit-a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+  /* progress bar on complete panel */
+  .stat-bar-a {
+    margin-top: 5px;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-bar-fill-a {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #FF3D3D 0%, #ff6060 100%);
+    box-shadow: 0 0 6px rgba(255,61,61,0.6);
+    border-radius: 2px;
+  }
+
+  /* ══════════════════════════════════════════════════
+     OPTION B — One chassis bar, 3 inset recessed cells
+  ══════════════════════════════════════════════════ */
+  .stats-b {
+    position: relative;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"),
+      linear-gradient(180deg, #2a2e33 0%, #161a1e 100%);
+    border: 1px solid #3a3f44;
+    border-top-color: #4a5055;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.09),
+      inset 0 -1px 0 rgba(0,0,0,0.55),
+      0 6px 16px rgba(0,0,0,0.75),
+      0 2px 6px rgba(0,0,0,0.5);
+  }
+  .cells-b {
+    display: flex;
+    gap: 8px;
+  }
+  .cell-b {
+    flex: 1;
+    position: relative;
+    background:
+      inset 0 2px 6px rgba(0,0,0,0.85),
+      inset 0 -1px 0 rgba(255,255,255,0.04);
+    background: #0e1013;
+    border: 1px solid #252a2e;
+    border-radius: 4px;
+    padding: 8px 7px 7px;
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.85),
+      inset 0 -1px 0 rgba(255,255,255,0.03);
+  }
+  .cell-label-b {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1.8px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .cell-value-b {
+    font-family: 'DSEG7', 'Share Tech Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--yellow);
+    text-shadow: 0 0 10px rgba(245,236,0,0.35), 0 0 3px rgba(245,236,0,0.5);
+    line-height: 1;
+  }
+  .cell-unit-b {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+    margin-top: 3px;
+  }
+  .cell-bar-b {
+    margin-top: 4px;
+    height: 2px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .cell-bar-fill-b {
+    height: 100%;
+    width: 40%;
+    background: #FF3D3D;
+    box-shadow: 0 0 4px rgba(255,61,61,0.7);
+  }
+  /* Corner screws on outer chassis */
+  .stats-b .pr.tl{top:5px;left:5px}
+  .stats-b .pr.tr{top:5px;right:5px}
+  .stats-b .pr.bl{bottom:5px;left:5px}
+  .stats-b .pr.br{bottom:5px;right:5px}
+
+  /* ══════════════════════════════════════════════════
+     OPTION C — Tall panels, vertical layout per stat
+  ══════════════════════════════════════════════════ */
+  .stats-c {
+    display: flex;
+    gap: 5px;
+    align-items: stretch;
+  }
+  .stat-panel-c {
+    flex: 1;
+    position: relative;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0'/></filter><rect width='80' height='80' filter='url(%23n)'/></svg>"),
+      linear-gradient(160deg, #252a2f 0%, #141719 60%, #0d0f11 100%);
+    border: 1px solid var(--border-1);
+    border-top: 1px solid #4a5055;
+    border-radius: 4px;
+    padding: 10px 6px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      inset 0 -1px 0 rgba(0,0,0,0.6),
+      0 5px 14px rgba(0,0,0,0.75),
+      0 2px 4px rgba(0,0,0,0.5);
+  }
+  /* Top LED */
+  .stat-panel-c .led-top {
+    margin-bottom: 6px;
+  }
+  .stat-label-c {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .stat-value-c {
+    font-family: 'DSEG7', 'Share Tech Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--yellow);
+    text-shadow: 0 0 12px rgba(245,236,0,0.45), 0 0 4px rgba(245,236,0,0.6);
+    line-height: 1;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stat-unit-c {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 7px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 5px;
+  }
+  /* Red bar at base */
+  .stat-base-c {
+    width: 100%;
+    height: 2px;
+    background: rgba(255,61,61,0.15);
+    border-radius: 1px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .stat-base-fill-c {
+    height: 100%;
+    background: #FF3D3D;
+    box-shadow: 0 0 4px rgba(255,61,61,0.8);
+    border-radius: 1px;
+  }
+  /* Pin rows on c */
+  .pin-row-c {
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    margin: 0 auto 3px;
+  }
+  .pin-c {
+    width: 2.5px; height: 1.5px;
+    background: #3a3d40;
+    border-radius: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>INCYTE · TODAY STATS · PANEL OPTIONS</h1>
+
+<!-- ══════ OPTION A ══════ -->
+<div class="option-block">
+  <div class="option-label">— Option A · Three Raised Metal Panels —</div>
+  <div class="phone">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+
+    <div class="page-head">
+      <div class="page-headline">Lift heavy.</div>
+      <div class="page-date">THU MAY 22</div>
+    </div>
+
+    <div class="stats-a">
+      <!-- VOLUME -->
+      <div class="stat-panel-a">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="stat-label-a"><span class="led yellow"></span>VOLUME</div>
+        <div class="stat-value-a">5130</div>
+        <div class="stat-unit-a">LB</div>
+      </div>
+      <!-- AVG RPE -->
+      <div class="stat-panel-a">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="stat-label-a"><span class="led green"></span>AVG RPE</div>
+        <div class="stat-value-a">7.5</div>
+        <div class="stat-unit-a">/ 10</div>
+      </div>
+      <!-- COMPLETE -->
+      <div class="stat-panel-a">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="stat-label-a"><span class="led"></span>DONE</div>
+        <div class="stat-value-a">40</div>
+        <div class="stat-unit-a">%</div>
+        <div class="stat-bar-a"><div class="stat-bar-fill-a"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ OPTION B ══════ -->
+<div class="option-block">
+  <div class="option-label">— Option B · Single Chassis · Inset Cells —</div>
+  <div class="phone">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+
+    <div class="page-head">
+      <div class="page-headline">Lift heavy.</div>
+      <div class="page-date">THU MAY 22</div>
+    </div>
+
+    <div class="stats-b">
+      <div class="pr tl"></div><div class="pr tr"></div>
+      <div class="pr bl"></div><div class="pr br"></div>
+      <div class="cells-b">
+        <div class="cell-b">
+          <div class="cell-label-b">VOLUME</div>
+          <div class="cell-value-b">5130</div>
+          <div class="cell-unit-b">LB</div>
+        </div>
+        <div class="cell-b">
+          <div class="cell-label-b">AVG RPE</div>
+          <div class="cell-value-b">7.5</div>
+          <div class="cell-unit-b">/ 10</div>
+        </div>
+        <div class="cell-b">
+          <div class="cell-label-b">DONE</div>
+          <div class="cell-value-b">40</div>
+          <div class="cell-unit-b">%</div>
+          <div class="cell-bar-b"><div class="cell-bar-fill-b"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ OPTION C ══════ -->
+<div class="option-block">
+  <div class="option-label">— Option C · Tall Panels · LED + Pin Rows —</div>
+  <div class="phone">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+
+    <div class="page-head">
+      <div class="page-headline">Lift heavy.</div>
+      <div class="page-date">THU MAY 22</div>
+    </div>
+
+    <div class="stats-c">
+      <!-- VOLUME -->
+      <div class="stat-panel-c">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="pin-row-c"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+        <div class="led-top"><span class="led yellow"></span></div>
+        <div class="stat-label-c">VOLUME</div>
+        <div class="stat-value-c">5130</div>
+        <div class="stat-unit-c">LB</div>
+        <div class="stat-base-c"><div class="stat-base-fill-c" style="width:100%"></div></div>
+        <div class="pin-row-c" style="margin-top:3px;margin-bottom:0"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+      </div>
+      <!-- AVG RPE -->
+      <div class="stat-panel-c">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="pin-row-c"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+        <div class="led-top"><span class="led green"></span></div>
+        <div class="stat-label-c">AVG RPE</div>
+        <div class="stat-value-c">7.5</div>
+        <div class="stat-unit-c">/ 10</div>
+        <div class="stat-base-c"><div class="stat-base-fill-c" style="width:75%"></div></div>
+        <div class="pin-row-c" style="margin-top:3px;margin-bottom:0"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+      </div>
+      <!-- COMPLETE -->
+      <div class="stat-panel-c">
+        <div class="pr tl"></div><div class="pr tr"></div>
+        <div class="pr bl"></div><div class="pr br"></div>
+        <div class="pin-row-c"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+        <div class="led-top"><span class="led"></span></div>
+        <div class="stat-label-c">DONE</div>
+        <div class="stat-value-c">40</div>
+        <div class="stat-unit-c">%</div>
+        <div class="stat-base-c"><div class="stat-base-fill-c" style="width:40%"></div></div>
+        <div class="pin-row-c" style="margin-top:3px;margin-bottom:0"><span class="pin-c"></span><span class="pin-c"></span><span class="pin-c"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
