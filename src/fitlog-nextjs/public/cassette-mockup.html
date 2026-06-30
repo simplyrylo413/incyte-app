@@ -1,672 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>INCYTE — Cassette Mockup</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>INCYTE — Cassette Design Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #111; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 32px 16px 48px; }
-  h1 { color: #f6e84a; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px; margin-bottom: 8px; }
-  .subtitle { color: rgba(255,255,255,0.3); font-family: monospace; font-size: 10px; letter-spacing: 1.5px; margin-bottom: 28px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 24px 12px 48px; min-height: 100vh; font-family: "Helvetica Neue", system-ui, sans-serif; }
+h1 { color: rgba(255,255,255,0.5); font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 3px; font-weight: 700; text-align: center; margin-bottom: 18px; }
 
-  /* screen selector */
-  .screen-tabs { display: flex; gap: 6px; margin-bottom: 24px; }
-  .screen-tab { padding: 7px 18px; border-radius: 5px; border: 1px solid rgba(246,232,74,0.3); background: transparent; color: rgba(246,232,74,0.5); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1.5px; font-weight: 800; cursor: pointer; transition: all 0.15s; }
-  .screen-tab.active { background: rgba(246,232,74,0.12); border-color: #f6e84a; color: #f6e84a; }
+.tab-switcher { display: flex; gap: 6px; margin-bottom: 24px; }
+.tab-btn { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 1.8px; font-weight: 700; padding: 6px 14px; border-radius: 4px; border: none; cursor: pointer; background: #2a2a2a; color: rgba(255,255,255,0.4); transition: all .15s; }
+.tab-btn.active { background: #f6e84a; color: #0a0a0a; }
 
-  /* phone shell */
-  .phone { width: 375px; background: #0a0a0a; border-radius: 44px; overflow: hidden; box-shadow: 0 0 0 1px #222, 0 30px 80px rgba(0,0,0,0.9), inset 0 0 0 1px #333; position: relative; }
-  .phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 126px; height: 34px; background: #0a0a0a; border-radius: 0 0 20px 20px; z-index: 10; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .phone-camera { width: 12px; height: 12px; border-radius: 50%; background: #1a1a1a; border: 1px solid #333; }
-  .phone-speaker { width: 56px; height: 6px; border-radius: 3px; background: #1a1a1a; }
-  .screen { height: 780px; overflow-y: auto; scrollbar-width: none; position: relative; }
-  .screen::-webkit-scrollbar { display: none; }
+.phone-wrap { display: flex; flex-direction: column; align-items: center; }
+.phone { width: 375px; height: 812px; background: #0a0a0a; border-radius: 44px; overflow: hidden; position: relative; display: flex; flex-direction: column; border: 2px solid #2a2a2a; box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px #111; }
 
-  /* ── cassette tokens ── */
-  :root {
-    --acc: #f6e84a;
-    --acc-dim: rgba(246,232,74,0.18);
-    --bg: #0a0a0a;
-    --chassis: #141618;
-    --ink: rgba(245,245,240,0.92);
-    --ink-dim: rgba(245,245,240,0.38);
-    --rule: rgba(255,255,255,0.07);
-    --hw-btn-bg: linear-gradient(145deg,#4a4a4e 0%,#38383c 35%,#28282c 100%);
-    --hw-btn-shadow: inset 1.5px 1.5px 0 rgba(255,255,255,0.20),inset 0 1px 0 rgba(255,255,255,0.12),inset -1px -1.5px 0 rgba(0,0,0,0.65),inset 0 -2px 5px rgba(0,0,0,0.45),3px 8px 16px rgba(0,0,0,0.85),1px 3px 6px rgba(0,0,0,0.65);
-    --danger: #d9534f;
-    --mono: 'JetBrains Mono', monospace;
-    --lcd: 'Courier New', monospace;
-  }
+.screen { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.scroll-area { flex: 1; overflow-y: auto; padding: 52px 16px 180px; scrollbar-width: none; }
+.scroll-area::-webkit-scrollbar { display: none; }
 
-  /* page wrapper */
-  .pg { min-height: 780px; background: var(--bg); padding-bottom: 88px; }
+/* NAV — matches TDNav exactly */
+.cassette-nav { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #1f1f1f 0%, #0e0e0e 100%); padding: 8px 14px 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.6), 0 -10px 24px rgba(0,0,0,0.25); z-index: 10; }
+.nav-labels { display: flex; gap: 6px; margin-bottom: 4px; }
+.nav-label-item { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.nav-label-line { flex: 0 0 6px; height: 1px; }
+.nav-label-text { font-family: "JetBrains Mono", monospace; font-size: 8.5px; letter-spacing: 1.4px; font-weight: 700; white-space: nowrap; }
+.nav-buttons { display: flex; gap: 6px; }
+.nav-btn { flex: 1; height: 42px; position: relative; border: none; cursor: pointer; border-radius: 5px; display: flex; align-items: center; justify-content: center; transition: transform .1s; }
+.nav-btn:active { transform: translateY(1px); }
+.nav-btn.idle { background: linear-gradient(180deg, #2c2c2c 0%, #1a1a1a 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3); color: rgba(255,255,255,0.78); }
+.nav-btn.active { background: linear-gradient(180deg, #f6e84a 0%, #c9a23a 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4); color: #0a0a0a; }
+.nav-leds { position: absolute; top: 3px; left: 0; right: 0; display: flex; justify-content: space-around; padding: 0 6px; }
+.nav-led { width: 3px; height: 3px; border-radius: 50%; }
+.nav-led.idle { background: rgba(255,255,255,0.15); }
+.nav-led.active { background: #ff3b3b; box-shadow: 0 0 4.5px #ff3b3b; }
+.nav-icon { margin-top: 4px; display: flex; }
+.nav-footer { margin-top: 6px; padding: 5px 8px 0; font-family: "JetBrains Mono", monospace; font-size: 7.5px; letter-spacing: 2.2px; color: rgba(255,255,255,0.55); text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
 
-  /* header */
-  .pg-head { padding: 52px 18px 12px; display: flex; align-items: center; justify-content: space-between; }
-  .pg-head-eyebrow { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--ink-dim); margin-bottom: 4px; }
-  .pg-head-title { font-family: var(--mono); font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: 0.5px; }
-  .led { width: 6px; height: 6px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 8px var(--acc); animation: blink 2.4s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* CONTENT */
+.status-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.status-brand { font-family: "Helvetica Neue", sans-serif; font-size: 9px; letter-spacing: 2.5px; font-weight: 800; color: rgba(255,255,255,0.9); }
+.status-date { font-family: "Helvetica Neue", sans-serif; font-size: 8px; letter-spacing: 1.6px; color: rgba(255,255,255,0.4); }
 
-  .hairline { height: 1px; background: var(--rule); margin: 0 18px 16px; }
+.hero { margin-bottom: 26px; }
+.hero-eyebrow { font-family: "Helvetica Neue", sans-serif; font-size: 9px; letter-spacing: 2.5px; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.hero-headline { font-family: "Helvetica Neue", sans-serif; font-size: 38px; font-weight: 800; color: rgba(255,255,255,0.9); letter-spacing: -1px; line-height: 0.98; }
+.hero-headline .accent { color: #f6e84a; }
+.hero-sub { font-family: "Helvetica Neue", sans-serif; font-size: 14px; color: rgba(255,255,255,0.9); margin-top: 10px; line-height: 1.4; font-weight: 600; }
 
-  .pg-body { padding: 0 18px; }
+.section-eyebrow { font-family: "Helvetica Neue", sans-serif; font-size: 8.5px; letter-spacing: 2.5px; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
 
-  /* LCD stat bar */
-  .lcd-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 14px; background: #050607; border-radius: 10px; padding: 12px 10px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 8px rgba(0,0,0,0.7); position: relative; overflow: hidden; }
-  .lcd-bar::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.25) 2px, rgba(0,0,0,0.25) 4px); pointer-events: none; }
-  .lcd-cell { text-align: center; }
-  .lcd-val { font-family: var(--lcd); font-size: 22px; color: var(--acc); text-shadow: 0 0 10px rgba(246,232,74,0.6); line-height: 1; }
-  .lcd-lbl { font-family: var(--mono); font-size: 6.5px; letter-spacing: 1.2px; color: rgba(246,232,74,0.45); margin-top: 4px; }
+/* muscle chips — large padding, yellow, corner black dot */
+.chips { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.chip { position: relative; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1.2px; font-weight: 800; padding: 11px 16px; border-radius: 7px; color: #1a1810; background: #f6e84a; box-shadow: 0 0 10px rgba(246,232,74,0.3), inset 0 1px 0 rgba(255,255,255,0.5); }
+.chip-dot { position: absolute; top: 5px; right: 5px; width: 4px; height: 4px; border-radius: 50%; background: #1a1810; }
 
-  /* progress bar */
-  .prog-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
-  .prog-bar-fill { height: 100%; background: var(--acc); border-radius: 2px; }
+/* stats bar — simple hairline row (NOT a dark LCD box) */
+.stats-bar { display: flex; margin-bottom: 16px; border-top: 1px solid rgba(255,255,255,0.07); border-bottom: 1px solid rgba(255,255,255,0.07); }
+.stat-cell { flex: 1; padding: 10px 0; }
+.stat-cell + .stat-cell { border-left: 1px solid rgba(255,255,255,0.07); padding-left: 12px; }
+.stat-label { font-family: "Helvetica Neue", sans-serif; font-size: 6.5px; letter-spacing: 1.4px; color: rgba(255,255,255,0.4); margin-bottom: 3px; }
+.stat-value { font-family: "Helvetica Neue", sans-serif; font-size: 22px; font-weight: 700; color: rgba(255,255,255,0.9); }
 
-  /* body part chips */
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-  .chip { font-family: var(--mono); font-size: 7.5px; letter-spacing: 1.4px; font-weight: 800; color: #1a1810; background: var(--acc); padding: 4px 9px; border-radius: 4px; }
+/* start button */
+.start-btn { position: relative; width: 100%; padding: 15px 0; border-radius: 7px; cursor: pointer; background: linear-gradient(180deg, #3a3a3e 0%, #2c2c30 50%, #1f1f22 100%); border: 1px solid #0a0a0b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 0 rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.55); font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 2.5px; font-weight: 800; color: #f6e84a; text-shadow: 0 0 8px rgba(246,232,74,0.5); text-align: center; margin-bottom: 18px; }
+.start-btn-shine { position: absolute; top: 0; left: 8px; right: 8px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.06)); }
 
-  /* start button */
-  .start-btn { width: 100%; padding: 15px 0; border-radius: 9px; cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: 2px; font-weight: 800; color: var(--acc); background: var(--hw-btn-bg); border: 1px solid #111113; box-shadow: var(--hw-btn-shadow); margin-bottom: 20px; }
+/* group headers: accent label + hairline + count */
+.group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.group-part { font-family: "Helvetica Neue", sans-serif; font-size: 8px; letter-spacing: 2px; font-weight: 800; color: #f6e84a; }
+.group-line { flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+.group-count { font-family: "Helvetica Neue", sans-serif; font-size: 8px; letter-spacing: 1px; font-weight: 700; color: rgba(255,255,255,0.4); }
 
-  /* crate slot rows */
-  .slot-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: linear-gradient(180deg,#2a2a2e 0%,#1e1e22 100%); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; margin-bottom: 7px; cursor: pointer; }
-  .slot-play { color: var(--acc); font-size: 10px; flex-shrink: 0; }
-  .slot-name { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); flex: 1; }
-  .slot-meta { font-family: var(--mono); font-size: 8px; color: var(--ink-dim); }
-  .slot-remove { font-family: var(--mono); font-size: 10px; color: rgba(255,80,80,0.5); flex-shrink: 0; }
+/* movement rows */
+.mv-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 6px; }
+.mv-slot { flex: 1; display: flex; align-items: center; gap: 9px; padding: 9px 10px; background: linear-gradient(180deg, #1f2125, #131517); border-radius: 5px; border: 1px solid #0a0a0b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+/* circle play button — yellow outline, ▶ glyph */
+.mv-play { width: 18px; height: 18px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid #f6e84a; background: #0a0a0a; color: #f6e84a; display: flex; align-items: center; justify-content: center; font-size: 8px; padding-left: 1px; box-shadow: 0 0 8px rgba(246,232,74,0.45); }
+/* movement name — Helvetica Neue NOT mono */
+.mv-name { flex: 1; font-family: "Helvetica Neue", sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); }
+/* sets/reps — Share Tech Mono */
+.mv-sets { font-family: "Share Tech Mono", monospace; font-size: 13px; font-weight: 600; color: #f6e84a; text-shadow: 0 0 7px rgba(246,232,74,0.45); flex: 0 0 auto; }
+/* ✕ delete — red LED dot */
+.mv-del { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 4px; background: linear-gradient(180deg, #2c2c30, #18181b); border: 1px solid #0a0a0b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); cursor: pointer; color: #e35454; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; position: relative; }
+.mv-del-led { position: absolute; top: 3px; left: 3px; width: 3px; height: 3px; border-radius: 50%; background: #e35454; box-shadow: 0 0 4px #e35454; }
+/* ✎ edit — green LED dot */
+.mv-edit { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 4px; background: linear-gradient(180deg, #2c2c30, #18181b); border: 1px solid #0a0a0b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); cursor: pointer; color: #3ec97a; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; position: relative; }
+.mv-edit-led { position: absolute; top: 3px; left: 3px; width: 3px; height: 3px; border-radius: 50%; background: #3ec97a; box-shadow: 0 0 4px #3ec97a; }
 
-  /* body part section label */
-  .section-label { font-family: var(--mono); font-size: 7.5px; letter-spacing: 2px; color: var(--ink-dim); margin: 16px 0 8px; }
+.add-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; padding: 13px 0; border-radius: 8px; cursor: pointer; background: transparent; border: 1px dashed rgba(255,255,255,0.07); }
+.add-circle { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #f6e84a; color: #f6e84a; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 0 8px rgba(246,232,74,0.25); }
+.add-label { font-family: "Helvetica Neue", sans-serif; font-size: 10px; letter-spacing: 1.6px; font-weight: 800; color: rgba(255,255,255,0.9); }
 
-  /* ── nav ── */
-  .hw-nav { position: sticky; bottom: 0; background: #0c0d0f; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06),0 -10px 24px rgba(0,0,0,0.25); padding-bottom: 8px; }
-  .nav-strip { display: flex; align-items: center; justify-content: center; padding: 8px 16px 4px; gap: 4px; }
-  .nav-line { flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
-  .nav-time { font-family: var(--mono); font-size: 7.5px; letter-spacing: 1.4px; color: rgba(255,255,255,0.2); padding: 0 10px; }
-  .nav-tabs { display: flex; gap: 6px; padding: 0 12px 6px; }
-  .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px; background: linear-gradient(180deg,#3a3a3e 0%,#2c2c30 100%); border: none; border-radius: 4px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1),inset 0 -1px 0 rgba(0,0,0,0.4); }
-  .nav-tab.active { background: linear-gradient(180deg,#4a4a4e 0%,#38383c 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); }
-  .nav-tab svg { width: 16px; height: 16px; }
-  .nav-tab span { font-family: var(--mono); font-size: 6.5px; letter-spacing: 1.2px; font-weight: 800; }
+/* PLAN */
+.plan-day-strip { display: flex; gap: 4px; margin-bottom: 18px; }
+.plan-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 6px; background: linear-gradient(180deg, #1f2125, #131517); border: 1px solid #0a0a0b; }
+.plan-day.today { border-color: rgba(246,232,74,0.4); background: linear-gradient(180deg, #2a2c25, #1a1c16); }
+.plan-day-label { font-family: "JetBrains Mono", monospace; font-size: 7px; letter-spacing: 1px; font-weight: 700; color: rgba(255,255,255,0.4); }
+.plan-day.today .plan-day-label { color: #f6e84a; }
+.plan-day-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+.plan-day.today .plan-day-dot { background: #f6e84a; box-shadow: 0 0 6px #f6e84a; }
+.plan-day.done .plan-day-dot { background: #3ec97a; box-shadow: 0 0 6px #3ec97a; }
 
-  /* ── plan page ── */
-  .ring-strip { display: flex; gap: 6px; margin-bottom: 16px; }
-  .ring-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; background: linear-gradient(180deg,#2a2a2e,#1e1e22); border: 1px solid var(--rule); border-radius: 8px; cursor: pointer; }
-  .ring-day.active { border-color: var(--acc); background: rgba(246,232,74,0.08); }
-  .ring-wrap { position: relative; width: 32px; height: 32px; }
-  .ring-wrap svg { position: absolute; inset: 0; }
-  .ring-letter { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 9px; font-weight: 800; }
-  .ring-count { font-family: var(--mono); font-size: 7px; color: var(--ink-dim); letter-spacing: 0.8px; }
+/* INSIGHTS — LCD tiles */
+.lcd-tile { background: #020203; border: 1px solid #1a1d20; border-radius: 5px; padding: 7px 10px 8px; position: relative; overflow: hidden; box-shadow: inset 0 3px 8px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.12); }
+.lcd-scanlines { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.3) 2px 3px); pointer-events: none; mix-blend-mode: multiply; }
+.lcd-label { font-family: "JetBrains Mono", monospace; font-size: 7px; letter-spacing: 1.6px; font-weight: 700; color: rgba(255,255,255,0.5); margin-bottom: 2px; position: relative; }
+.lcd-value { font-family: "Share Tech Mono", monospace; font-size: 22px; line-height: 20px; color: #f5ec00; text-shadow: 0 0 12px rgba(245,236,0,0.7), 0 0 3px rgba(245,236,0,1); position: relative; }
 
-  .hw-card { background: linear-gradient(180deg,#242629,#1c1e22); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
-  .hw-card-eyebrow { font-family: var(--mono); font-size: 8px; font-weight: 800; letter-spacing: 2px; color: var(--ink-dim); margin-bottom: 12px; }
+/* MORE */
+.more-section { font-family: "JetBrains Mono", monospace; font-size: 8px; font-weight: 800; letter-spacing: 2px; color: rgba(255,255,255,0.4); margin-bottom: 8px; margin-top: 20px; }
+.more-row { background: linear-gradient(180deg, #3a3a3e 0%, #2c2c30 50%, #1f1f22 100%); border: 1px solid #0a0a0b; border-radius: 8px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.55); cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px; width: 100%; margin-bottom: 6px; }
+.more-row-title { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
+.more-row-sub { font-family: "Helvetica Neue", sans-serif; font-size: 11px; color: rgba(255,255,255,0.4); }
+.more-chev { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 16px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
 
-  .bal-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .bal-label { font-family: var(--mono); font-size: 8px; color: var(--ink-dim); width: 36px; }
-  .bal-track { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
-  .bal-fill { height: 100%; background: var(--acc); border-radius: 2px; }
-  .bal-val { font-family: var(--mono); font-size: 9px; color: var(--ink); width: 20px; text-align: right; }
-
-  .day-view { background: linear-gradient(180deg,#242629,#1c1e22); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-  .day-head { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--rule); }
-  .day-name { font-family: var(--mono); font-size: 13px; font-weight: 800; color: var(--ink); }
-  .today-badge { font-family: var(--mono); font-size: 7px; font-weight: 800; letter-spacing: 1.5px; color: #1a1810; background: var(--acc); padding: 2px 6px; border-radius: 3px; margin-left: 8px; }
-  .day-meta { font-size: 11px; color: var(--ink-dim); font-family: system-ui; margin-top: 2px; }
-  .add-btn { font-family: var(--mono); font-size: 9px; font-weight: 800; letter-spacing: 1.2px; color: var(--acc); background: transparent; border: 1px solid var(--acc); border-radius: 5px; padding: 6px 12px; cursor: pointer; }
-
-  .plan-mv-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--rule); cursor: pointer; background: transparent; border-left: none; border-right: none; border-top: none; width: 100%; }
-  .mv-stripe { width: 3px; height: 32px; border-radius: 2px; background: var(--acc); flex-shrink: 0; }
-  .mv-stripe.none { background: var(--rule); }
-  .mv-name { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 2px; text-align: left; }
-  .mv-meta { font-size: 10px; color: var(--ink-dim); text-align: left; }
-  .mv-badge { font-family: var(--mono); font-size: 8px; font-weight: 800; color: var(--acc); border: 1px solid var(--acc); padding: 2px 6px; border-radius: 3px; }
-  .mv-chev { font-family: var(--mono); font-size: 16px; color: var(--ink-dim); margin-left: auto; }
-
-  /* ── momentum ── */
-  .ai-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: linear-gradient(180deg,#242629,#1c1e22); border: 1px solid var(--rule); border-radius: 8px; margin-bottom: 16px; }
-  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 5px var(--acc); margin-right: 8px; display: inline-block; }
-  .ai-label { font-family: var(--mono); font-size: 8.5px; letter-spacing: 1px; color: var(--ink-dim); }
-  .ai-refresh { background: transparent; border: 1px solid var(--rule); color: var(--acc); font-family: var(--mono); font-size: 12px; cursor: pointer; border-radius: 4px; padding: 2px 8px; }
-
-  .carousel-slide { background: linear-gradient(180deg,#242629,#1c1e22); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
-  .slide-head { padding: 14px 16px; border-bottom: 1px solid var(--rule); }
-  .slide-eyebrow { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--ink-dim); margin-bottom: 2px; }
-  .slide-title { font-family: var(--mono); font-size: 16px; font-weight: 800; color: var(--ink); }
-
-  .tab-strip { display: flex; gap: 4px; padding: 10px 12px; background: rgba(0,0,0,0.2); }
-  .tab-btn { flex: 1; padding: 7px 0; font-family: var(--mono); font-size: 8px; font-weight: 800; letter-spacing: 1.2px; color: var(--ink-dim); background: transparent; border: none; border-radius: 4px; cursor: pointer; }
-  .tab-btn.on { background: var(--acc); color: #1a1810; }
-
-  .slide-body { padding: 14px 16px; }
-  .stat-tiles { display: flex; gap: 8px; margin-bottom: 12px; }
-  .stat-tile { flex: 1; padding: 12px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--rule); }
-  .tile-lbl { font-family: var(--mono); font-size: 7.5px; letter-spacing: 1.5px; color: var(--ink-dim); margin-bottom: 6px; }
-  .tile-val { font-family: 'Courier New', monospace; font-size: 28px; color: var(--acc); line-height: 1; margin-bottom: 4px; }
-  .tile-val sup { font-size: 12px; }
-  .tile-bar { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
-  .tile-bar-fill { height: 100%; background: var(--acc); border-radius: 2px; }
-  .tile-cap { font-size: 9.5px; color: var(--ink-dim); font-family: system-ui; }
-
-  .dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
-  .dot { height: 6px; border-radius: 3px; border: none; cursor: pointer; background: var(--rule); transition: all 0.2s; }
-  .dot.active { width: 18px; background: var(--acc); }
-  .dot:not(.active) { width: 6px; }
-
-  /* PR row */
-  .pr-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--rule); margin-bottom: 8px; }
-  .pr-glyph { font-family: 'Courier New', monospace; font-size: 24px; color: var(--acc); line-height: 1; flex-shrink: 0; }
-  .pr-label { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
-  .pr-val { font-family: 'Courier New', monospace; font-size: 18px; color: var(--acc); margin-bottom: 2px; }
-  .pr-sub { font-size: 10px; color: var(--ink-dim); font-family: system-ui; }
-
-  /* ── more ── */
-  .more-section { font-family: var(--mono); font-size: 8px; font-weight: 800; letter-spacing: 2px; color: var(--ink-dim); margin: 20px 0 8px; }
-  .hw-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--hw-btn-bg); border: 1px solid #0a0a0b; border-radius: 8px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1),inset 0 -1px 0 rgba(0,0,0,0.5),0 2px 5px rgba(0,0,0,0.55); cursor: pointer; margin-bottom: 7px; text-decoration: none; }
-  .hw-row-icon { color: var(--acc); flex-shrink: 0; }
-  .hw-row-title { font-family: var(--mono); font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: var(--ink); margin-bottom: 2px; }
-  .hw-row-sub { font-size: 11px; color: var(--ink-dim); font-family: system-ui; }
-  .hw-row-chev { margin-left: auto; font-family: var(--mono); font-size: 16px; color: var(--ink-dim); }
-  .hw-row-danger .hw-row-title { color: #d9534f; }
-  .hw-row-danger .hw-row-icon { color: #d9534f; }
-
-  .version-stamp { font-family: var(--mono); font-size: 7.5px; letter-spacing: 1.4px; color: rgba(255,255,255,0.15); text-align: center; margin-top: 32px; }
+/* SCREEN PANELS */
+.screen-panel { display: none; height: 100%; flex-direction: column; }
+.screen-panel.visible { display: flex; }
 </style>
 </head>
 <body>
+<h1>INCYTE · CASSETTE DESIGN MOCKUP</h1>
 
-<h1>INCYTE</h1>
-<div class="subtitle">CASSETTE HARDWARE UI · ALL SCREENS</div>
-
-<div class="screen-tabs">
-  <button class="screen-tab active" onclick="show('today')">TODAY</button>
-  <button class="screen-tab" onclick="show('plan')">PLAN</button>
-  <button class="screen-tab" onclick="show('insights')">INSIGHTS</button>
-  <button class="screen-tab" onclick="show('more')">MORE</button>
+<div class="tab-switcher">
+  <button class="tab-btn active" onclick="showTab('today',this)">TODAY</button>
+  <button class="tab-btn" onclick="showTab('plan',this)">PLAN</button>
+  <button class="tab-btn" onclick="showTab('insights',this)">INSIGHTS</button>
+  <button class="tab-btn" onclick="showTab('more',this)">MORE</button>
 </div>
 
-<div class="phone">
-  <div class="phone-notch">
-    <div class="phone-camera"></div>
-    <div class="phone-speaker"></div>
-    <div class="phone-camera"></div>
-  </div>
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="screen">
 
-  <!-- ══════════════════════════════════ TODAY ══════════════════════════════════ -->
-  <div class="screen" id="screen-today">
-  <div class="pg">
-    <div class="pg-head">
-      <div>
-        <div class="pg-head-eyebrow">MONDAY · JUN 30</div>
-        <div class="pg-head-title">TODAY</div>
-      </div>
-      <div class="led"></div>
-    </div>
-    <div class="hairline"></div>
-    <div class="pg-body">
-
-      <!-- LCD stat bar -->
-      <div class="lcd-bar">
-        <div class="lcd-cell"><div class="lcd-val">6</div><div class="lcd-lbl">EXERCISES</div></div>
-        <div class="lcd-cell"><div class="lcd-val">24</div><div class="lcd-lbl">SETS</div></div>
-        <div class="lcd-cell"><div class="lcd-val">68<span style="font-size:14px">m</span></div><div class="lcd-lbl">EST</div></div>
-        <div class="lcd-cell"><div class="lcd-val">58<span style="font-size:14px">%</span></div><div class="lcd-lbl">DONE</div></div>
-      </div>
-
-      <!-- progress bar -->
-      <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:58%"></div></div>
-
-      <!-- chips -->
-      <div class="chips">
-        <div class="chip">CHEST</div>
-        <div class="chip">SHOULDERS</div>
-        <div class="chip">TRICEPS</div>
-      </div>
-
-      <!-- start button -->
-      <button class="start-btn">▶ RESUME SESSION</button>
-
-      <!-- chest section -->
-      <div class="section-label">CHEST</div>
-      <div class="slot-row">
-        <span class="slot-play">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">Bench Press</div>
-          <div class="slot-meta">Barbell · 4 × 6–8</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--acc);border:1px solid var(--acc);padding:2px 6px;border-radius:3px;">★ PR</div>
-        <span class="slot-remove">✕</span>
-      </div>
-      <div class="slot-row">
-        <span class="slot-play">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">Incline DB Press</div>
-          <div class="slot-meta">Dumbbell · 3 × 10</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--ink-dim);border:1px solid var(--rule);padding:2px 6px;border-radius:3px;">3/3 ✓</div>
-        <span class="slot-remove">✕</span>
-      </div>
-
-      <!-- shoulders section -->
-      <div class="section-label">SHOULDERS</div>
-      <div class="slot-row">
-        <span class="slot-play" style="color:var(--ink-dim)">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">OHP</div>
-          <div class="slot-meta">Barbell · 4 × 5</div>
-        </div>
-        <span class="slot-remove">✕</span>
-      </div>
-      <div class="slot-row">
-        <span class="slot-play" style="color:var(--ink-dim)">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">Lateral Raises</div>
-          <div class="slot-meta">Dumbbell · 3 × 15</div>
-        </div>
-        <span class="slot-remove">✕</span>
-      </div>
-
-      <!-- triceps -->
-      <div class="section-label">TRICEPS</div>
-      <div class="slot-row">
-        <span class="slot-play" style="color:var(--ink-dim)">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">Tricep Pushdown</div>
-          <div class="slot-meta">Cable · 3 × 12</div>
-        </div>
-        <span class="slot-remove">✕</span>
-      </div>
-      <div class="slot-row">
-        <span class="slot-play" style="color:var(--ink-dim)">▶</span>
-        <div style="flex:1">
-          <div class="slot-name">Skull Crushers</div>
-          <div class="slot-meta">EZ Bar · 3 × 10</div>
-        </div>
-        <span class="slot-remove">✕</span>
-      </div>
-    </div>
-
-    <!-- nav -->
-    <div class="hw-nav">
-      <div class="nav-strip">
-        <div class="nav-line"></div>
-        <div class="nav-time">09:41</div>
-        <div class="nav-line"></div>
-      </div>
-      <div class="nav-tabs">
-        <button class="nav-tab active">
-          <svg viewBox="0 0 16 16" fill="#f6e84a"><polygon points="4,2 14,8 4,14"/></svg>
-          <span style="color:#f6e84a">TODAY</span>
-        </button>
-        <button class="nav-tab" onclick="show('insights')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><rect x="1" y="9" width="3" height="6"/><rect x="6" y="5" width="3" height="10"/><rect x="11" y="1" width="3" height="14"/></svg>
-          <span style="color:rgba(245,245,240,0.38)">INSIGHTS</span>
-        </button>
-        <button class="nav-tab" onclick="show('plan')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><circle cx="8" cy="8" r="0.8" fill="rgba(245,245,240,0.38)"/></svg>
-          <span style="color:rgba(245,245,240,0.38)">PLAN</span>
-        </button>
-        <button class="nav-tab" onclick="show('more')">
-          <svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
-          <span style="color:rgba(245,245,240,0.38)">PROFILE</span>
-        </button>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <!-- ══════════════════════════════════ PLAN ═══════════════════════════════════ -->
-  <div class="screen" id="screen-plan" style="display:none">
-  <div class="pg">
-    <div class="pg-head">
-      <div>
-        <div class="pg-head-eyebrow">WEEKLY</div>
-        <div class="pg-head-title">PLAN</div>
-      </div>
-      <div class="led"></div>
-    </div>
-    <div class="hairline"></div>
-    <div class="pg-body">
-
-      <!-- Recent wins -->
-      <div class="hw-card">
-        <div class="hw-card-eyebrow">RECENT PERFORMANCE</div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule)">
-          <div style="flex:1">
-            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink)">Bench Press</div>
-            <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">225 lbs · all-time best</div>
+      <!-- TODAY -->
+      <div class="screen-panel visible" id="panel-today">
+        <div class="scroll-area">
+          <div class="status-row">
+            <span class="status-brand">INCYTE</span>
+            <span class="status-date">FRI · MAR 14 · DAY 12</span>
           </div>
-          <span style="font-family:var(--mono);font-size:9px;font-weight:800;color:var(--acc);border:1px solid var(--acc);padding:3px 7px;border-radius:4px">★ PR</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-          <div style="flex:1">
-            <div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink)">OHP</div>
-            <div style="font-size:10px;color:var(--ink-dim);margin-top:2px">Up 5 lbs from last session</div>
+          <div class="hero">
+            <div class="hero-eyebrow">GOOD MORNING, ALEX</div>
+            <div class="hero-headline">Strength is<br>a <span class="accent">habit.</span></div>
+            <div class="hero-sub">Twelve days straight. Keep the streak alive.</div>
           </div>
-          <span style="font-family:var(--mono);font-size:9px;font-weight:800;color:var(--ink);border:1px solid var(--rule);padding:3px 7px;border-radius:4px">↑ +5 lbs</span>
+          <div class="section-eyebrow">TRAINING TODAY</div>
+          <div class="chips">
+            <span class="chip">CHEST<span class="chip-dot"></span></span>
+            <span class="chip">SHOULDERS<span class="chip-dot"></span></span>
+            <span class="chip">TRICEPS<span class="chip-dot"></span></span>
+          </div>
+          <div class="stats-bar">
+            <div class="stat-cell"><div class="stat-label">EXERCISES</div><div class="stat-value">5</div></div>
+            <div class="stat-cell"><div class="stat-label">SETS</div><div class="stat-value">18</div></div>
+            <div class="stat-cell"><div class="stat-label">EST</div><div class="stat-value">52m</div></div>
+          </div>
+          <div class="start-btn"><div class="start-btn-shine"></div>► START WORKOUT</div>
+
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">CHEST</span><span class="group-line"></span><span class="group-count">02</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Barbell Bench Press</span><span class="mv-sets">4 × 8</span><div class="mv-del"><span class="mv-del-led"></span>✕</div><div class="mv-edit"><span class="mv-edit-led"></span>✎</div></div></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Incline Dumbbell Press</span><span class="mv-sets">3 × 10</span><div class="mv-del"><span class="mv-del-led"></span>✕</div><div class="mv-edit"><span class="mv-edit-led"></span>✎</div></div></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">SHOULDERS</span><span class="group-line"></span><span class="group-count">02</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Overhead Press</span><span class="mv-sets">3 × 8</span><div class="mv-del"><span class="mv-del-led"></span>✕</div><div class="mv-edit"><span class="mv-edit-led"></span>✎</div></div></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Lateral Raise</span><span class="mv-sets">3 × 15</span><div class="mv-del"><span class="mv-del-led"></span>✕</div><div class="mv-edit"><span class="mv-edit-led"></span>✎</div></div></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">TRICEPS</span><span class="group-line"></span><span class="group-count">01</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Triceps Pushdown</span><span class="mv-sets">3 × 12</span><div class="mv-del"><span class="mv-del-led"></span>✕</div><div class="mv-edit"><span class="mv-edit-led"></span>✎</div></div></div>
+          </div>
+          <div class="add-btn"><span class="add-circle">+</span><span class="add-label">ADD MOVEMENT</span></div>
+        </div>
+
+        <div class="cassette-nav">
+          <div class="nav-labels">
+            <div class="nav-label-item"><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span><span class="nav-label-text" style="color:#f6e84a;text-shadow:0 0 4px #f6e84a">TODAY</span><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">INSIGHTS</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PLAN</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PROFILE</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+          </div>
+          <div class="nav-buttons">
+            <button class="nav-btn active"><div class="nav-leds"><div class="nav-led active"></div><div class="nav-led active"></div></div><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14" fill="#0a0a0a"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="18.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="12" cy="18.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="5.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="3.5" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="1" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="8" r="4" fill="rgba(255,255,255,0.9)"/><path d="M12 14c-5 0-8 2.5-8 5v3h16v-3c0-2.5-3-5-8-5z" fill="rgba(255,255,255,0.9)"/></svg></span></button>
+          </div>
+          <div class="nav-footer">INCYTE · MDL-X7 · 04CH · 08:42</div>
         </div>
       </div>
 
-      <!-- Ring strip -->
-      <div class="ring-strip">
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/></svg>
-            <span class="ring-letter" style="color:var(--ink-dim)">S</span>
+      <!-- PLAN -->
+      <div class="screen-panel" id="panel-plan">
+        <div class="scroll-area">
+          <div class="status-row"><span class="status-brand">INCYTE</span><span class="status-date">FRI · MAR 14 · DAY 12</span></div>
+          <div style="font-family:'Helvetica Neue',sans-serif;font-size:22px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:20px;letter-spacing:-0.5px">PLAN</div>
+          <div class="plan-day-strip">
+            <div class="plan-day done"><div class="plan-day-label">M</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day done"><div class="plan-day-label">T</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day done"><div class="plan-day-label">W</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day done"><div class="plan-day-label">T</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day today"><div class="plan-day-label">F</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day"><div class="plan-day-label">S</div><div class="plan-day-dot"></div></div>
+            <div class="plan-day"><div class="plan-day-label">S</div><div class="plan-day-dot"></div></div>
           </div>
-          <span class="ring-count">—</span>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">CHEST</span><span class="group-line"></span><span class="group-count">02</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Barbell Bench Press</span><span class="mv-sets">4 × 8</span></div></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Incline Dumbbell Press</span><span class="mv-sets">3 × 10</span></div></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">BACK</span><span class="group-line"></span><span class="group-count">02</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Pull-Up</span><span class="mv-sets">4 × 8</span></div></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Barbell Row</span><span class="mv-sets">3 × 10</span></div></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">LEGS</span><span class="group-line"></span><span class="group-count">02</span></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Back Squat</span><span class="mv-sets">5 × 5</span></div></div>
+            <div class="mv-row"><div class="mv-slot"><span class="mv-play">▶</span><span class="mv-name">Romanian Deadlift</span><span class="mv-sets">3 × 10</span></div></div>
+          </div>
         </div>
-        <div class="ring-day active">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32">
-              <circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/>
-              <circle cx="20" cy="20" r="16" stroke="#f6e84a" stroke-width="2.5" stroke-dasharray="100.53" stroke-dashoffset="42" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:50% 50%"/>
-            </svg>
-            <span class="ring-letter" style="color:var(--acc)">M</span>
+        <div class="cassette-nav">
+          <div class="nav-labels">
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">TODAY</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">INSIGHTS</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span><span class="nav-label-text" style="color:#f6e84a;text-shadow:0 0 4px #f6e84a">PLAN</span><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PROFILE</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
           </div>
-          <span class="ring-count" style="color:var(--acc)">6</span>
-        </div>
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/><circle cx="20" cy="20" r="16" stroke="rgba(246,232,74,0.4)" stroke-width="2.5" stroke-dasharray="100.53" stroke-dashoffset="70" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:50% 50%"/></svg>
-            <span class="ring-letter" style="color:var(--ink)">T</span>
+          <div class="nav-buttons">
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="18.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="12" cy="18.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="5.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/></svg></span></button>
+            <button class="nav-btn active"><div class="nav-leds"><div class="nav-led active"></div><div class="nav-led active"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke-width="1.6" stroke="#0a0a0a"/><circle cx="9" cy="9" r="3.5" stroke-width="1.6" stroke="#0a0a0a"/><circle cx="9" cy="9" r="1" fill="#0a0a0a"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="8" r="4" fill="rgba(255,255,255,0.9)"/><path d="M12 14c-5 0-8 2.5-8 5v3h16v-3c0-2.5-3-5-8-5z" fill="rgba(255,255,255,0.9)"/></svg></span></button>
           </div>
-          <span class="ring-count">4</span>
-        </div>
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-dasharray="5 4"/></svg>
-            <span class="ring-letter" style="color:var(--ink-dim)">W</span>
-          </div>
-          <span class="ring-count">—</span>
-        </div>
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/></svg>
-            <span class="ring-letter" style="color:var(--ink)">T</span>
-          </div>
-          <span class="ring-count">5</span>
-        </div>
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5"/></svg>
-            <span class="ring-letter" style="color:var(--ink-dim)">F</span>
-          </div>
-          <span class="ring-count">—</span>
-        </div>
-        <div class="ring-day">
-          <div class="ring-wrap">
-            <svg viewBox="0 0 40 40" fill="none" width="32" height="32"><circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.15)" stroke-width="2.5" stroke-dasharray="5 4"/></svg>
-            <span class="ring-letter" style="color:var(--ink-dim)">S</span>
-          </div>
-          <span class="ring-count">—</span>
+          <div class="nav-footer">INCYTE · MDL-X7 · 04CH · 08:42</div>
         </div>
       </div>
 
-      <!-- Muscle balance -->
-      <div class="hw-card">
-        <div class="hw-card-eyebrow">MUSCLE BALANCE — THIS WEEK</div>
-        <div class="bal-row"><span class="bal-label">PUSH</span><div class="bal-track"><div class="bal-fill" style="width:100%"></div></div><span class="bal-val">3×</span></div>
-        <div class="bal-row"><span class="bal-label">PULL</span><div class="bal-track"><div class="bal-fill" style="width:66%"></div></div><span class="bal-val">2×</span></div>
-        <div class="bal-row"><span class="bal-label">LEGS</span><div class="bal-track"><div class="bal-fill" style="width:100%"></div></div><span class="bal-val">3×</span></div>
-        <div class="bal-row"><span class="bal-label">CORE</span><div class="bal-track"><div class="bal-fill" style="width:33%;background:#d9534f"></div></div><span class="bal-val" style="color:#d9534f">1×</span></div>
-      </div>
-
-      <!-- Day view -->
-      <div class="day-view">
-        <div class="day-head">
-          <div>
-            <div class="day-name">MONDAY<span class="today-badge">TODAY</span></div>
-            <div class="day-meta">Jun 30 · 6 movements · ~68 min</div>
+      <!-- INSIGHTS -->
+      <div class="screen-panel" id="panel-insights">
+        <div class="scroll-area">
+          <div class="status-row"><span class="status-brand">INCYTE</span><span class="status-date">FRI · MAR 14 · DAY 12</span></div>
+          <div style="font-family:'Helvetica Neue',sans-serif;font-size:22px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:20px;letter-spacing:-0.5px">INSIGHTS</div>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <div class="lcd-tile" style="flex:1"><div class="lcd-scanlines"></div><div class="lcd-label">STREAK</div><div class="lcd-value">12<span style="font-size:10px;opacity:0.6;margin-left:2px">d</span></div></div>
+            <div class="lcd-tile" style="flex:1"><div class="lcd-scanlines"></div><div class="lcd-label">VOLUME</div><div class="lcd-value">38k<span style="font-size:10px;opacity:0.6;margin-left:2px">lb</span></div></div>
+            <div class="lcd-tile" style="flex:1"><div class="lcd-scanlines"></div><div class="lcd-label">AVG RPE</div><div class="lcd-value">7.4</div></div>
           </div>
-          <button class="add-btn">+ ADD</button>
+          <div style="display:flex;gap:8px;margin-bottom:22px">
+            <div class="lcd-tile" style="flex:1.3"><div class="lcd-scanlines"></div><div class="lcd-label">BENCH 1RM EST</div><div class="lcd-value" style="font-size:18px">245<span style="font-size:10px;opacity:0.6;margin-left:2px">lb</span></div></div>
+            <div class="lcd-tile" style="flex:1"><div class="lcd-scanlines"></div><div class="lcd-label">FATIGUE</div><div class="lcd-value" style="color:#fff;text-shadow:none">LOW</div></div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="group-header"><span class="group-part">RECENT PRs</span><span class="group-line"></span></div>
+            <div class="mv-row"><div class="mv-slot" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px">
+              <div style="font-family:'Helvetica Neue',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,0.9)">Barbell Bench Press</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:#f6e84a;text-shadow:0 0 7px rgba(246,232,74,0.45)">225 lb × 5 reps</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:1px;color:rgba(255,255,255,0.35)">MAR 12 · +10 LB</div>
+            </div></div>
+            <div class="mv-row"><div class="mv-slot" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px">
+              <div style="font-family:'Helvetica Neue',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,0.9)">Back Squat</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:#f6e84a;text-shadow:0 0 7px rgba(246,232,74,0.45)">315 lb × 3 reps</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:1px;color:rgba(255,255,255,0.35)">MAR 10 · +15 LB</div>
+            </div></div>
+          </div>
         </div>
-        <button class="plan-mv-row">
-          <span class="mv-stripe"></span>
-          <div style="flex:1">
-            <div class="mv-name">Bench Press</div>
-            <div class="mv-meta">4 sets · 6–8 reps · Barbell</div>
+        <div class="cassette-nav">
+          <div class="nav-labels">
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">TODAY</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span><span class="nav-label-text" style="color:#f6e84a;text-shadow:0 0 4px #f6e84a">INSIGHTS</span><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PLAN</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PROFILE</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
           </div>
-          <div class="mv-badge">★ PR</div>
-          <span class="mv-chev">›</span>
-        </button>
-        <button class="plan-mv-row">
-          <span class="mv-stripe"></span>
-          <div style="flex:1">
-            <div class="mv-name">Incline DB Press</div>
-            <div class="mv-meta">3 sets · 10 reps · Dumbbell</div>
+          <div class="nav-buttons">
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn active"><div class="nav-leds"><div class="nav-led active"></div><div class="nav-led active"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#0a0a0a"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.5" fill="rgba(255,255,255,0.9)"/><circle cx="18.5" cy="12" r="1.5" fill="rgba(255,255,255,0.9)"/><circle cx="12" cy="18.5" r="1.5" fill="rgba(255,255,255,0.9)"/><circle cx="5.5" cy="12" r="1.5" fill="rgba(255,255,255,0.9)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="3.5" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="1" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="8" r="4" fill="rgba(255,255,255,0.9)"/><path d="M12 14c-5 0-8 2.5-8 5v3h16v-3c0-2.5-3-5-8-5z" fill="rgba(255,255,255,0.9)"/></svg></span></button>
           </div>
-          <span class="mv-chev">›</span>
-        </button>
-        <button class="plan-mv-row">
-          <span class="mv-stripe none"></span>
-          <div style="flex:1">
-            <div class="mv-name">OHP</div>
-            <div class="mv-meta">4 sets · 5 reps · Barbell</div>
-          </div>
-          <div style="font-family:var(--mono);font-size:8px;font-weight:800;color:var(--ink);border:1px solid var(--rule);padding:2px 6px;border-radius:3px">↑ +5</div>
-          <span class="mv-chev">›</span>
-        </button>
-        <button class="plan-mv-row">
-          <span class="mv-stripe none"></span>
-          <div style="flex:1">
-            <div class="mv-name">Lateral Raises</div>
-            <div class="mv-meta">3 sets · 15 reps · Dumbbell</div>
-          </div>
-          <span class="mv-chev">›</span>
-        </button>
+          <div class="nav-footer">INCYTE · MDL-X7 · 04CH · 08:42</div>
+        </div>
       </div>
-    </div>
 
-    <div class="hw-nav">
-      <div class="nav-strip"><div class="nav-line"></div><div class="nav-time">09:41</div><div class="nav-line"></div></div>
-      <div class="nav-tabs">
-        <button class="nav-tab" onclick="show('today')"><svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><polygon points="4,2 14,8 4,14"/></svg><span style="color:rgba(245,245,240,0.38)">TODAY</span></button>
-        <button class="nav-tab" onclick="show('insights')"><svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><rect x="1" y="9" width="3" height="6"/><rect x="6" y="5" width="3" height="10"/><rect x="11" y="1" width="3" height="14"/></svg><span style="color:rgba(245,245,240,0.38)">INSIGHTS</span></button>
-        <button class="nav-tab active"><svg viewBox="0 0 16 16" fill="none" stroke="#f6e84a" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><circle cx="8" cy="8" r="0.8" fill="#f6e84a"/></svg><span style="color:#f6e84a">PLAN</span></button>
-        <button class="nav-tab" onclick="show('more')"><svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span style="color:rgba(245,245,240,0.38)">PROFILE</span></button>
+      <!-- MORE -->
+      <div class="screen-panel" id="panel-more">
+        <div class="scroll-area">
+          <div class="status-row"><span class="status-brand">INCYTE</span><span class="status-date">FRI · MAR 14 · DAY 12</span></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;color:rgba(255,255,255,0.9);margin-bottom:4px;letter-spacing:0.5px">MORE</div>
+
+          <div class="more-section">WORKOUTS</div>
+          <div class="more-row">
+            <span style="color:#f6e84a;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f6e84a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><circle cx="12" cy="16" r="1.6" fill="#f6e84a" stroke="none"/></svg></span>
+            <div style="flex:1"><div class="more-row-title">HISTORY</div><div class="more-row-sub">All finished sessions</div></div>
+            <span class="more-chev">›</span>
+          </div>
+
+          <div class="more-section">LIBRARY</div>
+          <div class="more-row">
+            <span style="color:#f6e84a;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f6e84a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M3 9h3M18 9h3M3 15h3M18 15h3M9 12h6"/></svg></span>
+            <div style="flex:1"><div class="more-row-title">MOVEMENTS</div><div class="more-row-sub">Browse and manage your library</div></div>
+            <span class="more-chev">›</span>
+          </div>
+
+          <div class="more-section">APPEARANCE</div>
+          <div class="more-row">
+            <span style="color:#f6e84a;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f6e84a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            <div style="flex:1"><div class="more-row-title">THEME</div><div class="more-row-sub">Dark mode — tap to switch</div></div>
+            <span style="font-size:16px;flex-shrink:0">🌙</span>
+          </div>
+
+          <div class="more-section">ACCOUNT</div>
+          <div class="more-row" style="border-color:rgba(227,84,84,0.3)">
+            <span style="color:#e35454;flex-shrink:0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e35454" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+            <div style="flex:1"><div class="more-row-title" style="color:#e35454">SIGN OUT</div><div class="more-row-sub">End your current session</div></div>
+          </div>
+
+          <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:1.4px;color:rgba(255,255,255,0.2);text-align:center;margin-top:32px">INCYTE · BUILD 2026</div>
+        </div>
+        <div class="cassette-nav">
+          <div class="nav-labels">
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">TODAY</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">INSIGHTS</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span><span class="nav-label-text" style="color:rgba(255,255,255,0.55)">PLAN</span><span class="nav-label-line" style="background:rgba(255,255,255,0.55);opacity:0.3"></span></div>
+            <div class="nav-label-item"><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span><span class="nav-label-text" style="color:#f6e84a;text-shadow:0 0 4px #f6e84a">PROFILE</span><span class="nav-label-line" style="background:#f6e84a;opacity:0.8"></span></div>
+          </div>
+          <div class="nav-buttons">
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.78)"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="18.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="12" cy="18.5" r="1.5" fill="rgba(0,0,0,0.9)"/><circle cx="5.5" cy="12" r="1.5" fill="rgba(0,0,0,0.9)"/></svg></span></button>
+            <button class="nav-btn idle"><div class="nav-leds"><div class="nav-led idle"></div><div class="nav-led idle"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="3.5" stroke-width="1.6" stroke="rgba(255,255,255,0.78)"/><circle cx="9" cy="9" r="1" fill="rgba(255,255,255,0.78)"/></svg></span></button>
+            <button class="nav-btn active"><div class="nav-leds"><div class="nav-led active"></div><div class="nav-led active"></div></div><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#0a0a0a"><circle cx="12" cy="8" r="4" fill="rgba(0,0,0,0.9)"/><path d="M12 14c-5 0-8 2.5-8 5v3h16v-3c0-2.5-3-5-8-5z" fill="rgba(0,0,0,0.9)"/></svg></span></button>
+          </div>
+          <div class="nav-footer">INCYTE · MDL-X7 · 04CH · 08:42</div>
+        </div>
       </div>
+
     </div>
   </div>
-  </div>
-
-  <!-- ══════════════════════════════════ INSIGHTS ═══════════════════════════════ -->
-  <div class="screen" id="screen-insights" style="display:none">
-  <div class="pg">
-    <div class="pg-head">
-      <div>
-        <div class="pg-head-eyebrow">TRAINING INTELLIGENCE</div>
-        <div class="pg-head-title">INSIGHTS</div>
-      </div>
-      <div class="led"></div>
-    </div>
-    <div class="hairline"></div>
-    <div class="pg-body">
-
-      <!-- AI bar -->
-      <div class="ai-bar">
-        <div style="display:flex;align-items:center">
-          <span class="ai-dot"></span>
-          <span class="ai-label">AI ENHANCED · 2 MIN AGO</span>
-        </div>
-        <button class="ai-refresh">↻</button>
-      </div>
-
-      <!-- Insights card -->
-      <div class="carousel-slide">
-        <div class="slide-head">
-          <div class="slide-eyebrow">SESSION DATA</div>
-          <div class="slide-title">INSIGHTS</div>
-        </div>
-        <div class="tab-strip">
-          <button class="tab-btn on">TODAY</button>
-          <button class="tab-btn">TRENDS</button>
-          <button class="tab-btn">RECOVERY</button>
-        </div>
-        <div class="slide-body">
-          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px;font-family:system-ui">Ready to train. Fatigue is manageable.</div>
-          <div class="stat-tiles">
-            <div class="stat-tile">
-              <div class="tile-lbl">READINESS</div>
-              <div class="tile-val">78<sup>%</sup></div>
-              <div class="tile-bar"><div class="tile-bar-fill" style="width:78%"></div></div>
-              <div class="tile-cap">Good baseline for heavy work</div>
-            </div>
-            <div class="stat-tile">
-              <div class="tile-lbl">RECOVERY</div>
-              <div class="tile-val">82<sup>%</sup></div>
-              <div class="tile-bar"><div class="tile-bar-fill" style="width:82%"></div></div>
-              <div class="tile-cap">Adequate rest since last session</div>
-            </div>
-            <div class="stat-tile">
-              <div class="tile-lbl">FATIGUE</div>
-              <div class="tile-val">34<sup>%</sup></div>
-              <div class="tile-bar"><div class="tile-bar-fill" style="width:34%"></div></div>
-              <div class="tile-cap">Accumulation is low</div>
-            </div>
-          </div>
-          <div style="display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--rule)">
-            <div style="text-align:center;flex:1">
-              <div style="font-family:'Courier New',monospace;font-size:22px;color:var(--acc);line-height:1">24</div>
-              <div style="font-family:var(--mono);font-size:7.5px;letter-spacing:1px;color:var(--ink-dim);margin-top:2px">SETS</div>
-            </div>
-            <div style="text-align:center;flex:1">
-              <div style="font-family:'Courier New',monospace;font-size:22px;color:var(--acc);line-height:1">7.4</div>
-              <div style="font-family:var(--mono);font-size:7.5px;letter-spacing:1px;color:var(--ink-dim);margin-top:2px">AVG RPE</div>
-            </div>
-            <div style="text-align:center;flex:1">
-              <div style="font-family:'Courier New',monospace;font-size:22px;color:var(--acc);line-height:1">18</div>
-              <div style="font-family:var(--mono);font-size:7.5px;letter-spacing:1px;color:var(--ink-dim);margin-top:2px">HARD SETS</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PRs card -->
-      <div class="carousel-slide">
-        <div class="slide-head">
-          <div class="slide-eyebrow">ACHIEVEMENTS</div>
-          <div class="slide-title">RECENT PRS</div>
-        </div>
-        <div class="slide-body">
-          <div class="pr-row">
-            <div class="pr-glyph">★</div>
-            <div>
-              <div class="pr-label">Bench Press</div>
-              <div class="pr-val">225 lbs</div>
-              <div class="pr-sub">All-time top set · Jun 30</div>
-            </div>
-          </div>
-          <div class="pr-row">
-            <div class="pr-glyph">↑</div>
-            <div>
-              <div class="pr-label">Squat</div>
-              <div class="pr-val">315 lbs</div>
-              <div class="pr-sub">+10 lbs vs last session · Jun 27</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- dots -->
-      <div class="dots">
-        <button class="dot active"></button>
-        <button class="dot"></button>
-      </div>
-    </div>
-
-    <div class="hw-nav">
-      <div class="nav-strip"><div class="nav-line"></div><div class="nav-time">09:41</div><div class="nav-line"></div></div>
-      <div class="nav-tabs">
-        <button class="nav-tab" onclick="show('today')"><svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><polygon points="4,2 14,8 4,14"/></svg><span style="color:rgba(245,245,240,0.38)">TODAY</span></button>
-        <button class="nav-tab active"><svg viewBox="0 0 16 16" fill="none" stroke="#f6e84a" stroke-width="1.5"><rect x="1" y="9" width="3" height="6"/><rect x="6" y="5" width="3" height="10"/><rect x="11" y="1" width="3" height="14"/></svg><span style="color:#f6e84a">INSIGHTS</span></button>
-        <button class="nav-tab" onclick="show('plan')"><svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><circle cx="8" cy="8" r="0.8" fill="rgba(245,245,240,0.38)"/></svg><span style="color:rgba(245,245,240,0.38)">PLAN</span></button>
-        <button class="nav-tab" onclick="show('more')"><svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span style="color:rgba(245,245,240,0.38)">PROFILE</span></button>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <!-- ══════════════════════════════════ MORE ═══════════════════════════════════ -->
-  <div class="screen" id="screen-more" style="display:none">
-  <div class="pg">
-    <div class="pg-head">
-      <div>
-        <div class="pg-head-eyebrow">INCYTE</div>
-        <div class="pg-head-title">MORE</div>
-      </div>
-      <div class="led"></div>
-    </div>
-    <div class="hairline"></div>
-    <div class="pg-body">
-
-      <div class="more-section">WORKOUTS</div>
-      <div class="hw-row">
-        <div class="hw-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><circle cx="12" cy="16" r="1.6" fill="currentColor" stroke="none"/></svg></div>
-        <div>
-          <div class="hw-row-title">HISTORY</div>
-          <div class="hw-row-sub">All finished sessions</div>
-        </div>
-        <div class="hw-row-chev">›</div>
-      </div>
-
-      <div class="more-section">LIBRARY</div>
-      <div class="hw-row">
-        <div class="hw-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M3 9h3M18 9h3M3 15h3M18 15h3M9 12h6"/></svg></div>
-        <div>
-          <div class="hw-row-title">MOVEMENTS</div>
-          <div class="hw-row-sub">Browse and manage your library</div>
-        </div>
-        <div class="hw-row-chev">›</div>
-      </div>
-
-      <div class="more-section">APPEARANCE</div>
-      <div class="hw-row">
-        <div class="hw-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
-        <div>
-          <div class="hw-row-title">THEME</div>
-          <div class="hw-row-sub">Dark mode — tap to switch</div>
-        </div>
-        <div style="font-size:16px;margin-left:auto">🌙</div>
-      </div>
-
-      <div class="more-section">ACCOUNT</div>
-      <div class="hw-row hw-row-danger">
-        <div class="hw-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
-        <div>
-          <div class="hw-row-title">SIGN OUT</div>
-          <div class="hw-row-sub">End your current session</div>
-        </div>
-      </div>
-
-      <div class="version-stamp">INCYTE · BUILD 2026</div>
-    </div>
-
-    <div class="hw-nav">
-      <div class="nav-strip"><div class="nav-line"></div><div class="nav-time">09:41</div><div class="nav-line"></div></div>
-      <div class="nav-tabs">
-        <button class="nav-tab" onclick="show('today')"><svg viewBox="0 0 16 16" fill="rgba(245,245,240,0.38)"><polygon points="4,2 14,8 4,14"/></svg><span style="color:rgba(245,245,240,0.38)">TODAY</span></button>
-        <button class="nav-tab" onclick="show('insights')"><svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><rect x="1" y="9" width="3" height="6"/><rect x="6" y="5" width="3" height="10"/><rect x="11" y="1" width="3" height="14"/></svg><span style="color:rgba(245,245,240,0.38)">INSIGHTS</span></button>
-        <button class="nav-tab" onclick="show('plan')"><svg viewBox="0 0 16 16" fill="none" stroke="rgba(245,245,240,0.38)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><circle cx="8" cy="8" r="0.8" fill="rgba(245,245,240,0.38)"/></svg><span style="color:rgba(245,245,240,0.38)">PLAN</span></button>
-        <button class="nav-tab active"><svg viewBox="0 0 16 16" fill="#f6e84a"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg><span style="color:#f6e84a">PROFILE</span></button>
-      </div>
-    </div>
-  </div>
-  </div>
-
-</div><!-- /phone -->
+</div>
 
 <script>
-function show(id) {
-  ['today','plan','insights','more'].forEach(s => {
-    document.getElementById('screen-' + s).style.display = s === id ? '' : 'none';
-  });
-  document.querySelectorAll('.screen-tab').forEach((btn, i) => {
-    const ids = ['today','plan','insights','more'];
-    btn.classList.toggle('active', ids[i] === id);
-  });
+function showTab(id, btn) {
+  document.querySelectorAll('.screen-panel').forEach(p => p.classList.remove('visible'));
+  document.getElementById('panel-' + id).classList.add('visible');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 </script>
 </body>
