@@ -1,24 +1,9 @@
 "use client";
 
-// Insights page — timeline-aware, rules-first, AI-enhanced.
-//
-// Layout (top → bottom):
-//   Page header
-//   Status banner (Option A "Signal" — dot + mono label + stats pill)
-//   Warnings strip
-//   Carousel: Insights · Readiness · Stimulus · PRs · Muscles
-//   AI status bar
-//
-// Data flow:
-//   1. Load movements + finished workouts + active (unfinished) workout in parallel.
-//   2. Run computeInsightResult() synchronously → rules-based InsightResult.
-//   3. Render sections immediately with rules output.
-//   4. Fire enhanceInsightsWithAi() in background → overlay AI language if successful.
-//   5. Existing carousel (Readiness / Stimulus / PRs / Muscles) loads below.
-//
-// AI fallback: if AI fails for any reason, the page shows rules output unchanged.
+// Insights page — cassette-deck hardware aesthetic.
+// Data layer (engine logic, AI) unchanged; render replaced with cassette theme.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { listWorkouts, listMovements } from "@/lib/db";
 import type { Workout, Movement } from "@/lib/types";
 import {
@@ -27,17 +12,12 @@ import {
   computePRs,
   computeMuscleReadiness,
   type ReadinessScores,
-  type MuscleReadinessRow,
   type StimulusBar,
   type PRBadge,
 } from "@/lib/engine/momentum";
 import {
   computeInsightResult,
   type InsightResult,
-  type InsightItem,
-  type InsightSection,
-  type TimelineContext,
-  type BodyPartLoad,
 } from "@/lib/engine/insightEngine";
 import {
   enhanceInsightsWithAi,
@@ -47,61 +27,65 @@ import {
 import {
   fetchAiInsights,
   invalidateAiCache,
-  ageLabel,
   type AiInsights,
 } from "@/lib/engine/aiInsights";
-import s from "./MomentumPage.module.css";
+import { getCassetteTheme, type CassetteTheme } from "@/lib/cassetteTheme";
+import CassetteNav from "@/components/cassette/CassetteNav";
+import ProfileModal from "@/components/cassette/ProfileModal";
+import type { TimerType } from "@/components/cassette/TimerModal";
+
+function readIsDark(): boolean {
+  try {
+    const v = localStorage.getItem("fitlog_theme");
+    if (v === "light") return false;
+    if (v === "dark") return true;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  } catch { return true; }
+}
 
 const CAROUSEL_LABELS = ["Insights", "PRs"];
-
-// ─── Timeline context helpers ─────────────────────────────────────────────────
-
-const STATUS_META: Record<
-  TimelineContext,
-  { label: string; dotClass: string }
-> = {
-  CURRENT_ACTIVE_SESSION: {
-    label: "Active Session",
-    dotClass: s.active,
-  },
-  TODAY_COMPLETED: {
-    label: "Completed Today",
-    dotClass: s.done,
-  },
-  NO_TODAY_RECENT_HISTORY: {
-    label: "Training History",
-    dotClass: s.history,
-  },
-};
 
 // ─── Root page ────────────────────────────────────────────────────────────────
 
 export default function MomentumPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-
   const [finishedWorkouts, setFinishedWorkouts] = useState<Workout[]>([]);
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
-
-  // Timeline-aware insight state
   const [insightResult, setInsightResult] = useState<InsightResult | null>(null);
   const [aiEnhanced, setAiEnhanced] = useState(false);
   const [aiTimelineLoading, setAiTimelineLoading] = useState(false);
   const [aiTimelineErr, setAiTimelineErr] = useState<string | null>(null);
   const [aiTimelineAge, setAiTimelineAge] = useState<number | null>(null);
-
-  // Carousel AI (existing readiness/stimulus/PRs AI)
   const [carouselAi, setCarouselAi] = useState<AiInsights | null>(null);
-  const [carouselAiLoading, setCarouselAiLoading] = useState(false);
-
+  const [isDark, setIsDark] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [selectedTimer, setSelectedTimer] = useState<TimerType | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselIdx, setCarouselIdx] = useState(0);
+  const theme = getCassetteTheme(isDark);
 
-  // ── Data load ───────────────────────────────────────────────────────────────
+  useEffect(() => { setIsDark(readIsDark()); }, []);
+
+  const loadAiTimeline = useCallback(async (result: InsightResult, force = false) => {
+    setAiTimelineLoading(true); setAiTimelineErr(null);
+    try {
+      const enhanced = await enhanceInsightsWithAi(result, { forceRefresh: force });
+      setInsightResult(enhanced); setAiEnhanced(true); setAiTimelineAge(Date.now());
+    } catch { setAiTimelineErr("AI enhancement unavailable"); }
+    finally { setAiTimelineLoading(false); }
+  }, []);
+
+  const loadCarouselAi = useCallback(async (wk: Workout[], mv: Movement[], force = false) => {
+    try {
+      const insights = await fetchAiInsights(wk, mv, { forceRefresh: force });
+      setCarouselAi(insights);
+    } catch { /* best-effort */ }
+  }, []);
+
   const load = useCallback(async () => {
-    setLoading(true);
-    setErr(null);
+    setLoading(true); setErr(null);
     try {
       const [mv, finished, activeArr] = await Promise.all([
         listMovements(),
@@ -109,942 +93,331 @@ export default function MomentumPage() {
         listWorkouts({ finished: false, limit: 1 }),
       ]);
       const active = activeArr[0] ?? null;
-
-      setMovements(mv);
-      setFinishedWorkouts(finished);
-      setActiveWorkout(active);
-
-      // Compute rules-based insights synchronously
+      setMovements(mv); setFinishedWorkouts(finished); setActiveWorkout(active);
       const result = computeInsightResult(finished, mv, active);
       setInsightResult(result);
-
-      // Fire AI enhancement in background (non-blocking)
       loadAiTimeline(result);
       loadCarouselAi(finished, mv);
-    } catch (e) {
-      setErr(String(e));
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setErr(String(e)); }
+    finally { setLoading(false); }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadAiTimeline = useCallback(
-    async (result: InsightResult, force = false) => {
-      setAiTimelineLoading(true);
-      setAiTimelineErr(null);
-      try {
-        const enhanced = await enhanceInsightsWithAi(result, { forceRefresh: force });
-        setInsightResult(enhanced);
-        setAiEnhanced(true);
-        setAiTimelineAge(Date.now());
-      } catch {
-        setAiTimelineErr("AI enhancement unavailable");
-      } finally {
-        setAiTimelineLoading(false);
-      }
-    },
-    []
-  );
-
-  const loadCarouselAi = useCallback(
-    async (wk: Workout[], mv: Movement[], force = false) => {
-      setCarouselAiLoading(true);
-      try {
-        const insights = await fetchAiInsights(wk, mv, { forceRefresh: force });
-        setCarouselAi(insights);
-      } catch {
-        // Carousel AI is best-effort — silent failure
-      } finally {
-        setCarouselAiLoading(false);
-      }
-    },
-    []
-  );
 
   function handleRefreshAi() {
     if (!insightResult) return;
-    invalidateAiTimelineCache();
-    invalidateAiCache();
+    invalidateAiTimelineCache(); invalidateAiCache();
     setAiEnhanced(false);
     loadAiTimeline(insightResult, true);
     loadCarouselAi(finishedWorkouts, movements, true);
   }
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  // Carousel dot tracking
   useEffect(() => {
     const track = carouselRef.current;
     if (!track) return;
-    const onScroll = () => {
-      setCarouselIdx(Math.round(track.scrollLeft / track.clientWidth));
-    };
+    const onScroll = () => setCarouselIdx(Math.round(track.scrollLeft / track.clientWidth));
     track.addEventListener("scroll", onScroll, { passive: true });
     return () => track.removeEventListener("scroll", onScroll);
   }, []);
 
   function scrollToCard(idx: number) {
-    const track = carouselRef.current;
-    if (!track) return;
-    track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" });
+    carouselRef.current?.scrollTo({ left: idx * (carouselRef.current?.clientWidth ?? 0), behavior: "smooth" });
   }
 
-  // Carousel scores (recomputed from finished workouts for carousel cards)
   const scores = computeReadiness(finishedWorkouts, movements);
   const stimulus = computeWeeklyStimulus(finishedWorkouts, movements);
   const prs = computePRs(finishedWorkouts, movements);
-  const muscleReadiness = computeMuscleReadiness(finishedWorkouts, movements);
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const labelFont = "JetBrains Mono, monospace";
+  const bodyFont  = "Helvetica Neue, system-ui, sans-serif";
 
   return (
-    <div className={s.page}>
-      {/* ── Page header ────────────────────────────────────────────────────── */}
-      <div className={s.head}>
-        <div className={s.headInner}>
-          <h1 className={s.headline}>Insights</h1>
-          <div className={s.subline}>Training Intelligence</div>
+    <div style={{ minHeight: "100dvh", background: theme.appBg, paddingBottom: 100 }}>
+      <style>{`@keyframes tdBlink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes tdSpin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* header */}
+      <div style={{ padding: "56px 16px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontFamily: labelFont, fontSize: 8, letterSpacing: 2, color: theme.listInkDim, marginBottom: 4 }}>TRAINING INTELLIGENCE</div>
+          <div style={{ fontFamily: labelFont, fontSize: 22, fontWeight: 800, color: theme.listInk, letterSpacing: 0.5 }}>INSIGHTS</div>
         </div>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: theme.accent, boxShadow: `0 0 8px ${theme.accent}`, display: "inline-block", animation: "tdBlink 2.4s infinite" }} />
+      </div>
+      <div style={{ height: 1, background: theme.listRule, margin: "0 16px 16px" }} />
+
+      <div style={{ padding: "0 16px" }}>
+        {loading ? (
+          <div style={{ fontFamily: labelFont, fontSize: 10, letterSpacing: 1.4, color: theme.listInkDim, textAlign: "center", paddingTop: 40 }}>LOADING…</div>
+        ) : err ? (
+          <div style={{ fontFamily: bodyFont, fontSize: 13, color: theme.danger ?? "#d9534f", textAlign: "center", paddingTop: 40 }}>{err}</div>
+        ) : insightResult ? (
+          <>
+            {/* warnings */}
+            {insightResult.warnings.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                {insightResult.warnings.map((w, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", background: theme.isLight ? "rgba(217,83,79,0.08)" : "rgba(255,80,80,0.08)", border: `1px solid ${theme.danger ?? "#d9534f"}33`, borderRadius: 7, marginBottom: 6 }}>
+                    <span style={{ fontFamily: labelFont, fontSize: 10, fontWeight: 800, color: theme.danger ?? "#d9534f" }}>!</span>
+                    <span style={{ fontFamily: bodyFont, fontSize: 11, color: theme.listInk }}>{w}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* AI status bar */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px", background: theme.isLight ? "linear-gradient(180deg, #e8e3d6, #d8d3c2)" : "linear-gradient(180deg, #242629, #1c1e22)", border: `1px solid ${theme.listRule}`, borderRadius: 8, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {aiTimelineLoading
+                  ? <span style={{ width: 8, height: 8, borderRadius: "50%", border: `1.5px solid ${theme.accent}`, borderTopColor: "transparent", display: "inline-block", animation: "tdSpin 0.8s linear infinite" }} />
+                  : <span style={{ width: 6, height: 6, borderRadius: "50%", background: aiTimelineErr ? (theme.danger ?? "#d9534f") : theme.accent, boxShadow: aiTimelineErr ? "none" : `0 0 5px ${theme.accent}` }} />
+                }
+                <span style={{ fontFamily: labelFont, fontSize: 8.5, letterSpacing: 1, color: theme.listInkDim }}>
+                  {aiTimelineLoading
+                    ? "AI ANALYSIS RUNNING…"
+                    : aiTimelineErr
+                    ? "AI UNAVAILABLE · RULE-BASED MODE"
+                    : aiEnhanced && aiTimelineAge
+                    ? `AI ENHANCED · ${aiTimelineAgeLabel(aiTimelineAge).toUpperCase()}`
+                    : "RULES-BASED INSIGHTS"}
+                </span>
+              </div>
+              {!aiTimelineLoading && (
+                <button type="button" onClick={handleRefreshAi} style={{ background: "transparent", border: `1px solid ${theme.listRule}`, color: theme.accent, fontFamily: labelFont, fontSize: 12, fontWeight: 700, cursor: "pointer", borderRadius: 4, padding: "2px 8px", lineHeight: 1.5 }}>↻</button>
+              )}
+            </div>
+
+            {/* carousel */}
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <div ref={carouselRef} style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", gap: 12 } as CSSProperties}>
+                {/* slide 0: Insights */}
+                <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
+                  <InsightsSlide insightResult={insightResult} scores={scores} stimulus={stimulus} carouselAi={carouselAi} theme={theme} />
+                </div>
+                {/* slide 1: PRs */}
+                <div style={{ flex: "0 0 100%", scrollSnapAlign: "start" }}>
+                  <PRsSlide prs={prs} aiPrs={carouselAi?.prs ?? null} theme={theme} />
+                </div>
+              </div>
+              {/* dots */}
+              <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 12 }}>
+                {CAROUSEL_LABELS.map((label, i) => (
+                  <button key={label} type="button" aria-label={label} onClick={() => scrollToCard(i)}
+                    style={{ width: i === carouselIdx ? 18 : 6, height: 6, borderRadius: 3, background: i === carouselIdx ? theme.accent : theme.listRule, border: "none", cursor: "pointer", transition: "all 0.2s", padding: 0 }} />
+                ))}
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
 
-      {loading ? (
-        <div className={s.loadingState}>Loading…</div>
-      ) : err ? (
-        <div className={s.errorState}>{err}</div>
-      ) : insightResult ? (
-        <>
-          {/* ── Warnings ──────────────────────────────────────────────────── */}
-          {insightResult.warnings.length > 0 && (
-            <div className={s.warningsWrap}>
-              {insightResult.warnings.map((w, i) => (
-                <div key={i} className={s.warningItem}>
-                  <span className={s.warningIcon} aria-hidden="true">!</span>
-                  <span className={s.warningText}>{w}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ── AI status bar ──────────────────────────────────────────────── */}
-          <div className={s.aiBar}>
-            <span className={s.aiBarLabel}>
-              {aiTimelineLoading ? (
-                <span className={s.aiBarSpinner} aria-label="Generating AI insights" />
-              ) : (
-                <span
-                  className={s.aiBarDot}
-                  data-ok={!aiTimelineErr}
-                  aria-hidden="true"
-                />
-              )}
-              {aiTimelineLoading
-                ? "AI analysis running…"
-                : aiTimelineErr
-                ? "AI unavailable · rule-based mode"
-                : aiEnhanced && aiTimelineAge
-                ? `AI enhanced · ${aiTimelineAgeLabel(aiTimelineAge)}`
-                : "Rules-based insights"}
-            </span>
-            {!aiTimelineLoading && (
-              <button
-                type="button"
-                className={s.aiBarRefresh}
-                onClick={handleRefreshAi}
-                aria-label="Refresh insights"
-              >
-                ↻
-              </button>
-            )}
-          </div>
-
-          {/* ── Carousel ──────────────────────────────────────────────────── */}
-          <div className={s.carouselWrap}>
-            <div className={s.carouselTrack} ref={carouselRef}>
-              {/* Slide 0 — Insights (Today | Trends | Recovery) */}
-              <div className={s.carouselSlide}>
-                <InsightsCard
-                  insightResult={insightResult}
-                  scores={scores}
-                  ai={carouselAi?.readiness ?? null}
-                  stimulus={stimulus}
-                  stimulusAi={carouselAi?.stimulus ?? null}
-                />
-              </div>
-              {/* Slide 1 — PRs */}
-              <div className={s.carouselSlide}>
-                <PRsCard prs={prs} aiPrs={carouselAi?.prs ?? null} />
-              </div>
-            </div>
-            <div className={s.dots}>
-              {CAROUSEL_LABELS.map((label, i) => (
-                <button
-                  key={label}
-                  type="button"
-                  aria-label={label}
-                  className={`${s.dot} ${carouselIdx === i ? s.dotActive : ""}`}
-                  onClick={() => scrollToCard(i)}
-                />
-              ))}
-            </div>
-          </div>
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-// ─── Status banner (Option A "Signal") ───────────────────────────────────────
-
-function StatusBanner({ insightResult }: { insightResult: InsightResult }) {
-  const { timelineContext, metrics } = insightResult;
-  const meta = STATUS_META[timelineContext];
-
-  const showStatsPill =
-    timelineContext !== "NO_TODAY_RECENT_HISTORY" &&
-    metrics.currentSessionSets > 0;
-
-  const rpe =
-    metrics.currentSessionAvgRpe != null
-      ? metrics.currentSessionAvgRpe.toFixed(1)
-      : null;
-
-  return (
-    <div className={s.statusBanner}>
-      <span className={`${s.statusDot} ${meta.dotClass}`} aria-hidden="true" />
-      <span className={s.statusLabel}>{meta.label}</span>
-      {showStatsPill && (
-        <span className={s.statusStatsPill}>
-          {metrics.currentSessionSets} SETS
-          {rpe != null ? ` · RPE ${rpe}` : ""}
-        </span>
+      {showProfile && (
+        <ProfileModal
+          theme={theme} isDark={isDark}
+          onToggleTheme={() => { const n = !isDark; setIsDark(n); localStorage.setItem("fitlog_theme", n ? "dark" : "light"); }}
+          selectedTimer={selectedTimer} onSelectTimer={setSelectedTimer}
+          onClose={() => setShowProfile(false)}
+        />
       )}
+
+      <CassetteNav theme={theme} onProfile={() => setShowProfile(true)} />
     </div>
   );
 }
 
-// ─── InsightsCard — 3-tab: Today | Trends | Recovery ─────────────────────────
+// ─── Insights slide ───────────────────────────────────────────────────────────
 
-function InsightsCard({
-  insightResult,
-  scores,
-  ai,
-  stimulus,
-  stimulusAi,
+function InsightsSlide({
+  insightResult, scores, stimulus, carouselAi, theme,
 }: {
   insightResult: InsightResult;
   scores: ReadinessScores;
-  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
   stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
-  stimulusAi: import("@/lib/engine/aiInsights").AiStimulus | null;
+  carouselAi: AiInsights | null;
+  theme: CassetteTheme;
 }) {
   const [tab, setTab] = useState<"today" | "trends" | "recovery">("today");
-  const { metrics, timelineContext } = insightResult;
+  const { metrics } = insightResult;
+  const labelFont = "JetBrains Mono, monospace";
+  const bodyFont  = "Helvetica Neue, system-ui, sans-serif";
 
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>
-            {tab === "today" ? "Session data" : tab === "trends" ? "Volume trend" : "Recovery status"}
-          </div>
-          <div className={s.heroCardTitle}>Insights</div>
-        </div>
-      </div>
-      <div className={s.heroInner} style={{ minHeight: 248, maxHeight: 248, overflowY: "auto", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
-        {/* 3-tab toggle */}
-        <div className={s.fatigueTogglePill}>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "today" ? s.on : ""}`}
-            onClick={() => setTab("today")}
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "trends" ? s.on : ""}`}
-            onClick={() => setTab("trends")}
-          >
-            Trends
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "recovery" ? s.on : ""}`}
-            onClick={() => setTab("recovery")}
-          >
-            Recovery
-          </button>
-        </div>
+  const cardBg: CSSProperties = {
+    background: theme.isLight
+      ? "linear-gradient(180deg, #e8e3d6 0%, #d8d3c2 100%)"
+      : "linear-gradient(180deg, #242629 0%, #1c1e22 100%)",
+    border: `1px solid ${theme.listRule}`,
+    borderRadius: 12,
+    overflow: "hidden",
+  };
 
-        {tab === "today" && <InsightsTodayTab metrics={metrics} timelineContext={timelineContext} scores={scores} ai={ai} />}
-        {tab === "trends" && <InsightsTrendsTab metrics={metrics} stimulus={stimulus} stimulusAi={stimulusAi} />}
-        {tab === "recovery" && <InsightsRecoveryTab metrics={metrics} />}
+  const tabBtn = (active: boolean): CSSProperties => ({
+    flex: 1, padding: "7px 0",
+    fontFamily: labelFont, fontSize: 8, fontWeight: 800, letterSpacing: 1.2,
+    color: active ? (theme.isLight ? "#fff" : "#1a1810") : theme.listInkDim,
+    background: active ? theme.accent : "transparent",
+    border: "none", borderRadius: 4, cursor: "pointer",
+  });
+
+  const statTile = (val: number, label: string, cap?: string): React.ReactNode => (
+    <div style={{ flex: 1, padding: "12px 10px", background: theme.isLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.03)", borderRadius: 8, border: `1px solid ${theme.listRule}` }}>
+      <div style={{ fontFamily: labelFont, fontSize: 7.5, letterSpacing: 1.5, color: theme.listInkDim, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 28, color: theme.accent, lineHeight: 1, marginBottom: 4 }}>{val}<span style={{ fontSize: 12 }}>%</span></div>
+      <div style={{ height: 3, background: theme.isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden", marginBottom: 4 }}>
+        <div style={{ height: "100%", width: `${val}%`, background: theme.accent, borderRadius: 2 }} />
       </div>
-    </section>
+      {cap && <div style={{ fontFamily: bodyFont, fontSize: 9.5, color: theme.listInkDim }}>{cap}</div>}
+    </div>
   );
-}
 
-// ── Today tab ─────────────────────────────────────────────────────────────────
-
-function InsightsTodayTab({
-  metrics,
-  timelineContext,
-  scores,
-  ai,
-}: {
-  metrics: InsightResult["metrics"];
-  timelineContext: TimelineContext;
-  scores: ReadinessScores;
-  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
-}) {
-  const noData =
-    timelineContext === "NO_TODAY_RECENT_HISTORY" &&
-    metrics.currentSessionSets === 0;
-
-  if (noData) {
-    return (
-      <div className={s.stimulusEmpty}>
-        No session today — log a workout to see session data.
-      </div>
-    );
-  }
-
-  const totalSets = metrics.currentSessionSets;
-  const avgRpe = metrics.currentSessionAvgRpe;
-  const hardSets = metrics.currentSessionHardSets;
-
-  // Readiness captions (prefer AI-enhanced, fall back to rules)
+  const ai = carouselAi?.readiness ?? null;
   const readinessCap = ai?.readinessCap ?? scores.readinessCap;
   const recoveryCap  = ai?.recoveryCap  ?? scores.recoveryCap;
   const fatigueCap   = ai?.fatigueCap   ?? scores.fatigueCap;
 
-  // Top 5 body parts by sets
-  const sorted = [...metrics.currentSessionBodyParts]
-    .sort((a, b) => b.sets - a.sets)
-    .slice(0, 5);
-  const maxSets = sorted[0]?.sets ?? 1;
-
   return (
-    <>
-      {/* Readiness headline from scores */}
-      {scores.title && (
-        <div className={s.readinessHeadline}>{scores.title}</div>
-      )}
-
-      {/* Readiness / Recovery / Fatigue tiles — absorbed from ReadinessCard */}
-      <div className={s.statTiles}>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>Readiness</span>
-          <div className={s.statTileValue}>
-            {scores.readiness != null ? scores.readiness : "—"}
-            {scores.readiness != null && <span className={s.statTileValueSuffix}>%</span>}
-          </div>
-          <div className={s.readinessBar}>
-            <div className={s.readinessBarFill} style={{ width: `${scores.readiness ?? 0}%` }} />
-          </div>
-          <div className={s.statTileCaption}>{readinessCap}</div>
-        </div>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>Recovery</span>
-          <div className={s.statTileValue}>
-            {scores.recovery}<span className={s.statTileValueSuffix}>%</span>
-          </div>
-          <div className={s.readinessBar}>
-            <div className={s.readinessBarFill} style={{ width: `${scores.recovery}%` }} />
-          </div>
-          <div className={s.statTileCaption}>{recoveryCap}</div>
-        </div>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>Fatigue</span>
-          <div className={s.statTileValue}>
-            {scores.fatigue}<span className={s.statTileValueSuffix}>%</span>
-          </div>
-          <div className={s.readinessBar}>
-            <div className={s.readinessBarFill} style={{ width: `${scores.fatigue}%` }} />
-          </div>
-          <div className={s.statTileCaption}>{fatigueCap}</div>
-        </div>
+    <div style={cardBg}>
+      {/* card header */}
+      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${theme.listRule}` }}>
+        <div style={{ fontFamily: labelFont, fontSize: 8, letterSpacing: 2, color: theme.listInkDim, marginBottom: 2 }}>{tab === "today" ? "SESSION DATA" : tab === "trends" ? "VOLUME TREND" : "RECOVERY STATUS"}</div>
+        <div style={{ fontFamily: labelFont, fontSize: 16, fontWeight: 800, color: theme.listInk }}>INSIGHTS</div>
       </div>
 
-      {/* Session stats — secondary row */}
-      {totalSets > 0 && (
-        <div className={s.sessionStatRow}>
-          <span className={s.sessionStatItem}>
-            <span className={s.sessionStatVal}>{totalSets}</span>
-            <span className={s.sessionStatLbl}>sets</span>
-          </span>
-          <span className={s.sessionStatDot} aria-hidden="true">·</span>
-          <span className={s.sessionStatItem}>
-            <span className={s.sessionStatVal}>
-              {avgRpe != null ? avgRpe.toFixed(1) : "—"}
-            </span>
-            <span className={s.sessionStatLbl}>avg RPE</span>
-          </span>
-          <span className={s.sessionStatDot} aria-hidden="true">·</span>
-          <span className={s.sessionStatItem}>
-            <span className={s.sessionStatVal}>{hardSets}</span>
-            <span className={s.sessionStatLbl}>hard sets</span>
-          </span>
-        </div>
-      )}
+      {/* tab strip */}
+      <div style={{ display: "flex", gap: 4, padding: "10px 12px", background: theme.isLight ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.2)" }}>
+        {(["today", "trends", "recovery"] as const).map((t) => (
+          <button key={t} type="button" onClick={() => setTab(t)} style={tabBtn(tab === t)}>
+            {t.toUpperCase()}
+          </button>
+        ))}
+      </div>
 
-      {/* Volume by muscle */}
-      {sorted.length > 0 && (
-        <>
-          <div className={s.muscleBarsEyebrow}>Volume by muscle</div>
-          <div className={s.muscleBars}>
-            {sorted.map((bp) => (
-              <div key={bp.key} className={s.muscleBarRow}>
-                <span className={s.muscleBarName}>{bp.label}</span>
-                <div className={s.muscleBarTrack}>
-                  <div
-                    className={s.muscleBarFill}
-                    style={{ width: `${(bp.sets / maxSets) * 100}%` }}
-                  />
+      <div style={{ padding: "14px 16px", minHeight: 200 }}>
+        {tab === "today" && (
+          <>
+            {scores.title && <div style={{ fontFamily: bodyFont, fontSize: 13, fontWeight: 700, color: theme.listInk, marginBottom: 12 }}>{scores.title}</div>}
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              {statTile(scores.readiness ?? 0, "READINESS", readinessCap)}
+              {statTile(scores.recovery, "RECOVERY", recoveryCap)}
+              {statTile(scores.fatigue, "FATIGUE", fatigueCap)}
+            </div>
+            {metrics.currentSessionSets > 0 && (
+              <div style={{ display: "flex", gap: 12, padding: "10px 0", borderTop: `1px solid ${theme.listRule}` }}>
+                {[
+                  { v: metrics.currentSessionSets, l: "sets" },
+                  { v: metrics.currentSessionAvgRpe?.toFixed(1) ?? "—", l: "avg rpe" },
+                  { v: metrics.currentSessionHardSets, l: "hard sets" },
+                ].map(({ v, l }) => (
+                  <div key={l} style={{ textAlign: "center", flex: 1 }}>
+                    <div style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 22, color: theme.accent, lineHeight: 1 }}>{v}</div>
+                    <div style={{ fontFamily: labelFont, fontSize: 7.5, letterSpacing: 1, color: theme.listInkDim, marginTop: 2 }}>{l.toUpperCase()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "trends" && (
+          <>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 16 }}>
+              <span style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 48, color: theme.accent, lineHeight: 1 }}>{stimulus.totalSets}</span>
+              <span style={{ fontFamily: labelFont, fontSize: 9, color: theme.listInkDim, letterSpacing: 1 }}>SETS THIS WEEK</span>
+              {stimulus.tier && <span style={{ fontFamily: labelFont, fontSize: 8, fontWeight: 800, color: theme.accent, border: `1px solid ${theme.accent}`, padding: "2px 6px", borderRadius: 3 }}>{stimulus.tier.toUpperCase()}</span>}
+            </div>
+            {stimulus.bars.length === 0 ? (
+              <div style={{ fontFamily: bodyFont, fontSize: 12, color: theme.listInkDim }}>Log working sets this week to see stimulus data.</div>
+            ) : stimulus.bars.map((bar) => (
+              <div key={bar.key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontFamily: labelFont, fontSize: 8, color: theme.listInkDim, width: 48 }}>{bar.label.substring(0, 5).toUpperCase()}</span>
+                <div style={{ flex: 1, height: 4, background: theme.isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${bar.pct}%`, background: theme.accent, borderRadius: 2 }} />
                 </div>
-                <span className={s.muscleBarCount}>{bp.sets}</span>
+                <span style={{ fontFamily: labelFont, fontSize: 9, color: theme.listInk, width: 16, textAlign: "right" }}>{bar.sets}</span>
               </div>
             ))}
-          </div>
-        </>
-      )}
-    </>
-  );
-}
+          </>
+        )}
 
-// ── Trends tab ────────────────────────────────────────────────────────────────
-
-function InsightsTrendsTab({
-  metrics,
-  stimulus,
-  stimulusAi,
-}: {
-  metrics: InsightResult["metrics"];
-  stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
-  stimulusAi: import("@/lib/engine/aiInsights").AiStimulus | null;
-}) {
-  // Use stimulus bars (hypertrophy-weighted) as the primary source; fall back to raw 7d loads
-  const barsSource = stimulus.bars.length > 0 ? stimulus.bars : metrics.bodyPartLoads7d;
-  const maxVal = Math.max(...barsSource.map((b) => ("pct" in b ? b.pct : b.sets)), 1);
-  const totalSets7d = metrics.bodyPartLoads7d.reduce((sum, bp) => sum + bp.sets, 0);
-
-  const tierClass =
-    stimulus.tierTone === "pos"  ? s.tonePos
-    : stimulus.tierTone === "med"  ? s.toneMed
-    : stimulus.tierTone === "high" ? s.toneHigh
-    : "";
-
-  // RPE trend note
-  let rpeTrend: string | null = null;
-  if (metrics.rpeTrend === "rising") {
-    rpeTrend = "Avg RPE trending upward — intensity is accumulating.";
-  } else if (metrics.rpeTrend === "falling") {
-    rpeTrend = "Avg RPE trending lower — effort is easing.";
-  }
-
-  if (stimulus.totalSets === 0 && barsSource.length === 0) {
-    return (
-      <div className={s.stimulusEmpty}>Log working sets this week to see stimulus data.</div>
-    );
-  }
-
-  return (
-    <>
-      {/* Weekly sets hero + tier — from Stimulus */}
-      <div className={s.trendHero}>
-        <div className={s.trendHeroLeft}>
-          <span className={s.stimulusNum}>{stimulus.totalSets}</span>
-          <span className={s.stimulusSuffix}>sets</span>
-        </div>
-        <div className={s.trendHeroRight}>
-          <div className={s.trendHeroLabel}>Weekly sets</div>
-          {stimulus.tier && (
-            <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
-          )}
-        </div>
-      </div>
-
-      {/* Per-muscle bars: set count on left, delta vs last week on right */}
-      <div className={s.muscleBarsEyebrow}>Volume by muscle</div>
-      <div className={s.muscleBars}>
-        {barsSource.map((bar) => {
-          const key = bar.key;
-          const sets = "sets" in bar ? bar.sets : 0;
-          const barPct = "pct" in bar ? bar.pct : (sets / maxVal) * 100;
-          const deltaRaw = metrics.volumeChangeVsBaseline[key];
-          let deltaLabel = "";
-          let deltaClass = "";
-          if (deltaRaw != null) {
-            deltaLabel = deltaRaw > 0 ? `+${Math.round(deltaRaw)}%` : `${Math.round(deltaRaw)}%`;
-            deltaClass = deltaRaw > 0 ? s.deltaUp : s.deltaDown;
-          } else if (totalSets7d > 0) {
-            deltaLabel = "New";
-            deltaClass = s.deltaNew;
-          }
-
-          return (
-            <div key={key} className={s.muscleBarRow}>
-              <span className={s.muscleBarName}>{bar.label}</span>
-              <div className={`${s.muscleBarTrack} ${deltaLabel ? s.hasDelta : ""}`}>
-                <div className={s.muscleBarFill} style={{ width: `${barPct}%` }} />
-              </div>
-              <span className={s.muscleBarCount}>{sets}</span>
-              {deltaLabel && (
-                <span className={`${s.muscleBarDelta} ${deltaClass}`}>{deltaLabel}</span>
-              )}
+        {tab === "recovery" && (
+          <>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              {statTile(metrics.fatigueScore, "FATIGUE")}
+              {statTile(metrics.recoveryScore, "RECOVERY")}
             </div>
-          );
-        })}
+            {Object.entries(metrics.repeatedExposure72h).filter(([, c]) => c >= 1).length > 0 && (
+              <>
+                <div style={{ fontFamily: labelFont, fontSize: 8, letterSpacing: 1.5, color: theme.listInkDim, marginBottom: 8 }}>MUSCLE EXPOSURE 72H</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {Object.entries(metrics.repeatedExposure72h).filter(([, c]) => c >= 1).map(([key, count]) => {
+                    const label = metrics.bodyPartLoads7d.find((b) => b.key === key)?.label ?? key;
+                    const isHigh = count >= 2;
+                    return (
+                      <span key={key} style={{ fontFamily: labelFont, fontSize: 8, fontWeight: 700, padding: "4px 8px", borderRadius: 4, border: `1px solid ${isHigh ? (theme.danger ?? "#d9534f") : theme.listRule}`, color: isHigh ? (theme.danger ?? "#d9534f") : theme.listInk, background: isHigh ? (theme.isLight ? "rgba(217,83,79,0.08)" : "rgba(255,80,80,0.08)") : "transparent" }}>
+                        {label} ×{count}
+                      </span>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
-
-      {/* AI adjustments */}
-      {stimulusAi && (
-        <div className={s.aiBlock}>
-          <p className={s.aiBlockText}>{stimulusAi.summary}</p>
-          {stimulusAi.adjustments.length > 0 && (
-            <ul className={s.aiBlockList}>
-              {stimulusAi.adjustments.map((adj, i) => <li key={i}>{adj}</li>)}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* RPE trend note if no AI */}
-      {!stimulusAi && rpeTrend && (
-        <div className={s.insightNote}>{rpeTrend}</div>
-      )}
-    </>
+    </div>
   );
 }
 
-// ── Recovery tab ──────────────────────────────────────────────────────────────
+// ─── PRs slide ────────────────────────────────────────────────────────────────
 
-function InsightsRecoveryTab({ metrics }: { metrics: InsightResult["metrics"] }) {
-  const { fatigueScore, recoveryScore, repeatedExposure72h } = metrics;
+function PRsSlide({ prs, aiPrs, theme }: { prs: PRBadge[]; aiPrs: import("@/lib/engine/aiInsights").AiPR[] | null; theme: CassetteTheme }) {
+  const labelFont = "JetBrains Mono, monospace";
+  const bodyFont  = "Helvetica Neue, system-ui, sans-serif";
 
-  // Fatigue sub-label
-  let fatigueSub: string;
-  let fatigueSubClass: string;
-  if (fatigueScore >= 75) {
-    fatigueSub = "high";
-    fatigueSubClass = s.subAlert;
-  } else if (fatigueScore >= 50) {
-    fatigueSub = "moderate";
-    fatigueSubClass = s.subWarn;
-  } else {
-    fatigueSub = "low";
-    fatigueSubClass = s.subOk;
-  }
-
-  // Recovery sub-label
-  let recoverySub: string;
-  if (recoveryScore >= 70) {
-    recoverySub = "adequate";
-  } else if (recoveryScore >= 40) {
-    recoverySub = "building";
-  } else {
-    recoverySub = "limited";
-  }
-
-  // Repeated exposure chips
-  const exposureEntries = Object.entries(repeatedExposure72h).filter(
-    ([, count]) => count >= 1
-  );
-
-  // Analysis note
-  let noteText: string | null = null;
-  let noteWarn = false;
-
-  if (fatigueScore >= 75) {
-    noteText = "High accumulated fatigue — next session performance may be reduced.";
-    noteWarn = true;
-  } else {
-    // Check for any key with count >= 2
-    const highExposure = exposureEntries.find(([, count]) => count >= 2);
-    if (highExposure) {
-      // Find label from bodyPartLoads7d or currentSessionBodyParts
-      const [key, count] = highExposure;
-      const bpLabel =
-        metrics.bodyPartLoads7d.find((bp) => bp.key === key)?.label ??
-        metrics.currentSessionBodyParts.find((bp) => bp.key === key)?.label ??
-        key;
-      noteText = `${bpLabel} trained ${count}× in 72h — consider reducing volume next session.`;
-      noteWarn = true;
-    } else if (fatigueScore < 30) {
-      noteText = "Fatigue is low — readiness for the next session looks solid.";
-    } else {
-      noteText = "Monitor readiness going into the next session.";
-    }
-  }
-
-  return (
-    <>
-      {/* 2-tile row: Fatigue / Recovery */}
-      <div className={s.statTiles2}>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>Fatigue</span>
-          <div className={s.statTileValue}>
-            {fatigueScore}
-            <span className={s.statTileValueSuffix}>%</span>
-          </div>
-          <span className={`${s.statTileSub} ${fatigueSubClass}`}>{fatigueSub}</span>
-        </div>
-        <div className={s.statTile}>
-          <span className={s.statTileLabel}>Recovery</span>
-          <div className={s.statTileValue}>
-            {recoveryScore}
-            <span className={s.statTileValueSuffix}>%</span>
-          </div>
-          <span className={s.statTileSub}>{recoverySub}</span>
-        </div>
-      </div>
-
-      {/* Muscle exposure 72h */}
-      <div className={s.muscleBarsEyebrow}>Muscle exposure 72h</div>
-      {exposureEntries.length === 0 ? (
-        <div className={s.stimulusEmpty}>
-          No repeated muscle exposure in the last 72 hours.
-        </div>
-      ) : (
-        <div className={s.exposureChips}>
-          {exposureEntries.map(([key, count]) => {
-            const label =
-              metrics.bodyPartLoads7d.find((bp) => bp.key === key)?.label ??
-              metrics.currentSessionBodyParts.find((bp) => bp.key === key)?.label ??
-              key;
-            const isHigh = count >= 2;
-            return (
-              <span
-                key={key}
-                className={`${s.exposureChip} ${isHigh ? s.exposureHigh : ""}`}
-              >
-                {label} ×{count}
-              </span>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Analysis note */}
-      {noteText && (
-        <div className={`${s.insightNote} ${noteWarn ? s.insightNoteWarn : ""}`}>
-          {noteText}
-        </div>
-      )}
-    </>
-  );
-}
-
-// ─── InsightCard — kept for reference, no longer rendered ────────────────────
-
-function InsightCard({
-  section,
-  accent,
-}: {
-  section: { eyebrow: string; headline: string; items: InsightItem[] };
-  accent: "session" | "trend" | "recovery";
-}) {
-  const toneClass = (tone: InsightItem["tone"]) => {
-    switch (tone) {
-      case "positive": return s.itemPositive;
-      case "caution":  return s.itemCaution;
-      case "alert":    return s.itemAlert;
-      default:         return s.itemNeutral;
-    }
+  const cardBg: CSSProperties = {
+    background: theme.isLight
+      ? "linear-gradient(180deg, #e8e3d6 0%, #d8d3c2 100%)"
+      : "linear-gradient(180deg, #242629 0%, #1c1e22 100%)",
+    border: `1px solid ${theme.listRule}`,
+    borderRadius: 12,
+    overflow: "hidden",
   };
 
   return (
-    <section className={`${s.insightCard} ${s[`insightCard_${accent}`]}`}>
-      <div className={s.insightCardHead}>
-        <div className={s.insightCardEyebrow}>{section.eyebrow}</div>
-        <div className={s.insightCardTitle}>{section.headline}</div>
+    <div style={cardBg}>
+      <div style={{ padding: "14px 16px", borderBottom: `1px solid ${theme.listRule}` }}>
+        <div style={{ fontFamily: labelFont, fontSize: 8, letterSpacing: 2, color: theme.listInkDim, marginBottom: 2 }}>ACHIEVEMENTS</div>
+        <div style={{ fontFamily: labelFont, fontSize: 16, fontWeight: 800, color: theme.listInk }}>RECENT PRS</div>
       </div>
-      {section.items.length > 0 && (
-        <ul className={s.insightList}>
-          {section.items.map((item, i) => (
-            <li key={i} className={`${s.insightItem} ${toneClass(item.tone)}`}>
-              <span className={s.insightDot} aria-hidden="true" />
-              <span className={s.insightText}>{item.text}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
 
-// ─── Readiness card (carousel) ────────────────────────────────────────────────
-
-function ReadinessCard({
-  scores,
-  ai,
-}: {
-  scores: ReadinessScores;
-  ai: import("@/lib/engine/aiInsights").AiReadiness | null;
-}) {
-  const recAction    = ai?.recommendation ?? scores.recAction;
-  const recBullets   = ai?.bullets        ?? scores.recBullets;
-  const readinessCap = ai?.readinessCap   ?? scores.readinessCap;
-  const recoveryCap  = ai?.recoveryCap    ?? scores.recoveryCap;
-  const fatigueCap   = ai?.fatigueCap     ?? scores.fatigueCap;
-
-  const toneClass =
-    scores.recTone === "high" ? s.toneHigh
-    : scores.recTone === "med"  ? s.toneMed
-    : scores.recTone === "pos"  ? s.tonePos
-    : "";
-
-  return (
-    <section className={`${s.heroCard} ${s.readinessCard}`}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardTitle}>{scores.title}</div>
-        </div>
-      </div>
-      <div className={s.heroInner}>
-        <div className={s.readinessGrid}>
-          <div className={s.readinessStat}>
-            <div className={s.readinessStatLabel}>Readiness</div>
-            <div className={s.readinessStatNumRow}>
-              <span className={s.readinessStatValue}>
-                {scores.readiness != null ? scores.readiness : "—"}
-              </span>
-              {scores.readiness != null && (
-                <span className={s.readinessStatSuffix}>%</span>
-              )}
-            </div>
-            <div className={s.readinessBar}>
-              <div className={s.readinessBarFill} style={{ width: `${scores.readiness ?? 0}%` }} />
-            </div>
-            <div className={s.readinessStatCaption}>{readinessCap}</div>
-          </div>
-
-          <div className={s.readinessStat}>
-            <div className={s.readinessStatLabel}>Recovery</div>
-            <div className={s.readinessStatNumRow}>
-              <span className={s.readinessStatValue}>{scores.recovery}</span>
-              <span className={s.readinessStatSuffix}>%</span>
-            </div>
-            <div className={s.readinessBar}>
-              <div className={s.readinessBarFill} style={{ width: `${scores.recovery}%` }} />
-            </div>
-            <div className={s.readinessStatCaption}>{recoveryCap}</div>
-          </div>
-
-          <div className={s.readinessStat}>
-            <div className={s.readinessStatLabel}>Fatigue</div>
-            <div className={s.readinessStatNumRow}>
-              <span className={s.readinessStatValue}>{scores.fatigue}</span>
-              <span className={s.readinessStatSuffix}>%</span>
-            </div>
-            <div className={s.readinessBar}>
-              <div className={s.readinessBarFill} style={{ width: `${scores.fatigue}%` }} />
-            </div>
-            <div className={s.readinessStatCaption}>{fatigueCap}</div>
-          </div>
-        </div>
-
-        <div className={s.rdRecommendation}>
-          <div className={s.rdRecHead}>
-            <span className={s.rdRecLabel}>{ai ? "AI:" : "Recommendation:"}</span>
-            <span className={`${s.rdRecAction} ${toneClass}`}>{recAction}</span>
-          </div>
-          <p className={s.rdRecPara}>{recBullets.join(" ")}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Stimulus card (carousel) — single view, no tabs ─────────────────────────
-
-function StimulusCard({
-  stimulus,
-  ai,
-}: {
-  stimulus: { bars: StimulusBar[]; totalSets: number; tier: string; tierTone: string };
-  ai: import("@/lib/engine/aiInsights").AiStimulus | null;
-}) {
-  const tierClass =
-    stimulus.tierTone === "pos"  ? s.tonePos
-    : stimulus.tierTone === "med"  ? s.toneMed
-    : stimulus.tierTone === "high" ? s.toneHigh
-    : "";
-
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>Hypertrophy share</div>
-          <div className={s.heroCardTitle}>Muscle Stimulus</div>
-        </div>
-      </div>
-      <div className={s.heroInner}>
-        <div className={s.stimulusHero}>
-          <div>
-            <span className={s.stimulusNum}>{stimulus.totalSets}</span>
-            <span className={s.stimulusSuffix}>sets</span>
-          </div>
-          <div className={s.stimulusLabel}>Weekly sets</div>
-          <div className={`${s.stimulusTier} ${tierClass}`}>{stimulus.tier}</div>
-        </div>
-
-        {stimulus.bars.length === 0 ? (
-          <div className={s.stimulusEmpty}>
-            Log working sets this week to see stimulus distribution.
-          </div>
-        ) : (
-          <div className={s.stimulusBars}>
-            {stimulus.bars.map((bar) => (
-              <div key={bar.key} className={s.stimulusBarRow}>
-                <span className={s.stimulusBarName}>{bar.label}</span>
-                <div className={s.stimulusBarTrack}>
-                  <div className={s.stimulusBarFill} style={{ width: `${bar.pct}%` }} />
-                </div>
-                <span className={s.stimulusSets}>{bar.sets}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {ai && (
-          <div className={s.aiBlock}>
-            <p className={s.aiBlockText}>{ai.summary}</p>
-            {ai.adjustments.length > 0 && (
-              <ul className={s.aiBlockList}>
-                {ai.adjustments.map((adj, i) => (
-                  <li key={i}>{adj}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// ─── PRs card (carousel) ──────────────────────────────────────────────────────
-
-function PRsCard({
-  prs,
-  aiPrs,
-}: {
-  prs: PRBadge[];
-  aiPrs: import("@/lib/engine/aiInsights").AiPR[] | null;
-}) {
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>Achievements</div>
-          <div className={s.heroCardTitle}>Recent PRs</div>
-        </div>
-      </div>
-      <div className={s.heroInner}>
+      <div style={{ padding: "14px 16px" }}>
         {prs.length === 0 ? (
-          <div className={s.prList}>
-            <div className={s.prBadge}>
-              <span className={s.prGlyph}>★</span>
-              <span className={s.prLabel}>Top set</span>
-              <span className={s.prValue}>No PRs yet</span>
-              <span className={s.prSub}>
-                Finish a session to seed your first record.
-              </span>
-            </div>
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <div style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 36, color: theme.accent, lineHeight: 1, marginBottom: 8 }}>★</div>
+            <div style={{ fontFamily: labelFont, fontSize: 10, letterSpacing: 1.2, color: theme.listInkDim }}>NO PRS YET</div>
+            <div style={{ fontFamily: bodyFont, fontSize: 11, color: theme.listInkDim, marginTop: 6 }}>Finish a session to seed your first record.</div>
           </div>
         ) : (
-          <div className={s.prList}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {prs.map((badge, i) => {
-              const aiPr =
-                aiPrs?.find(
-                  (p) =>
-                    p.movement.toLowerCase() === badge.label.toLowerCase()
-                ) ?? null;
+              const aiPr = aiPrs?.find((p) => p.movement.toLowerCase() === badge.label.toLowerCase()) ?? null;
               return (
-                <div key={i} className={s.prBadge}>
-                  <span className={s.prGlyph}>{badge.glyph}</span>
-                  <span className={s.prLabel}>{badge.label}</span>
-                  <span className={s.prValue}>{badge.value}</span>
-                  <span className={s.prSub}>{badge.sub}</span>
-                  {aiPr && (
-                    <div className={s.prAiWrap}>
-                      <span className={s.prAiTarget}>→ {aiPr.nextTarget}</span>
-                      <span className={s.prAiContext}>{aiPr.context}</span>
-                    </div>
-                  )}
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: theme.isLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.03)", borderRadius: 8, border: `1px solid ${theme.listRule}` }}>
+                  <span style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 24, color: theme.accent, lineHeight: 1, flexShrink: 0 }}>{badge.glyph}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: labelFont, fontSize: 10, fontWeight: 700, color: theme.listInk, marginBottom: 2 }}>{badge.label}</div>
+                    <div style={{ fontFamily: "Share Tech Mono, monospace", fontSize: 18, color: theme.accent, marginBottom: 2 }}>{badge.value}</div>
+                    <div style={{ fontFamily: bodyFont, fontSize: 10, color: theme.listInkDim }}>{badge.sub}</div>
+                    {aiPr && (
+                      <div style={{ marginTop: 6, padding: "6px 8px", background: theme.isLight ? "rgba(44,95,168,0.06)" : "rgba(246,232,74,0.06)", borderRadius: 5, border: `1px solid ${theme.accent}33` }}>
+                        <div style={{ fontFamily: labelFont, fontSize: 8.5, fontWeight: 700, color: theme.accent }}>→ {aiPr.nextTarget}</div>
+                        <div style={{ fontFamily: bodyFont, fontSize: 9.5, color: theme.listInkDim, marginTop: 2 }}>{aiPr.context}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
-      </div>
-    </section>
-  );
-}
-
-// ─── Muscle Readiness card (carousel) ────────────────────────────────────────
-
-function MuscleReadinessCard({
-  upper,
-  lower,
-}: {
-  upper: MuscleReadinessRow[];
-  lower: MuscleReadinessRow[];
-}) {
-  const [tab, setTab] = useState<"upper" | "lower">("upper");
-  const rows = tab === "upper" ? upper : lower;
-
-  return (
-    <section className={s.heroCard}>
-      <div className={s.heroCardHead}>
-        <div>
-          <div className={s.heroCardEyebrow}>Recovery status</div>
-          <div className={s.heroCardTitle}>Muscle Readiness</div>
-        </div>
-      </div>
-      <div className={s.heroInner}>
-        <div className={s.fatigueTogglePill}>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "upper" ? s.on : ""}`}
-            onClick={() => setTab("upper")}
-          >
-            Upper body
-          </button>
-          <button
-            type="button"
-            className={`${s.fatigueToggleBtn} ${tab === "lower" ? s.on : ""}`}
-            onClick={() => setTab("lower")}
-          >
-            Lower body
-          </button>
-        </div>
-        <div className={s.mrGrid}>
-          {rows.map((row) => (
-            <MrTile key={row.key} row={row} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function MrTile({ row }: { row: MuscleReadinessRow }) {
-  return (
-    <div className={s.mrTile}>
-      <div className={s.mrTileName}>{row.label}</div>
-      <div className={s.mrBarTrack}>
-        <div
-          className={`${s.mrBarFill} ${s[row.status]}`}
-          style={{ width: `${row.recoveryPct}%` }}
-        />
-      </div>
-      <div className={s.mrTileBottom}>
-        <span className={`${s.mrPill} ${s[row.status]}`}>{row.statusLabel}</span>
-        <span className={s.mrTileStat}>{row.daysStat}</span>
       </div>
     </div>
   );
