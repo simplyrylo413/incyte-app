@@ -31,6 +31,11 @@ export function Dock() {
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
+  // The Today screen ships its own self-contained hardware nav (TDNav),
+  // matching the locked Claude Design. Suppress the persistent Dock there
+  // and on the workout console so we never render two navs.
+  if (pathname === '/today' || pathname.startsWith('/workout')) return null;
+
   return (
     <div style={{
       position: 'fixed',
